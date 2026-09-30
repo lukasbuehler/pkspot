@@ -121,6 +121,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private lastRecordedHeight = 0;
   private mutationObserver: MutationObserver | null = null;
   private layoutRecalculationFrameId: number | null = null;
+  private animationFrameId: number | null = null;
 
   // ─── Shared drag helpers ───────────────────────────────────────────
 
@@ -244,6 +245,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     targetOffset: number,
     alwaysVisible: number,
   ): void {
+    this.cancelAnimation();
     if (this.contentElement) {
       this.contentElement.style.overflowY =
         targetOffset === 0 ? "scroll" : "hidden";
@@ -254,7 +256,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
     const step = (timestamp: number) => {
       if (!start) start = timestamp;
-      const timeProgress = timestamp - start;
+      const timeProgress = Math.min(timestamp - start, this.animationDurationMs);
 
       const current = this.easeOutCubic(
         timeProgress,
@@ -268,15 +270,23 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.emitSheetState(current, alwaysVisible);
 
       if (timeProgress < this.animationDurationMs) {
-        window.requestAnimationFrame(step);
+        this.animationFrameId = window.requestAnimationFrame(step);
       } else {
+        this.animationFrameId = null;
         this.currentOffset = targetOffset;
         sheetEl.style.transform = `translateY(${targetOffset}px)`;
         this.syncContentOverflow();
         this.emitSheetState(targetOffset, alwaysVisible);
       }
     };
-    window.requestAnimationFrame(step);
+    this.animationFrameId = window.requestAnimationFrame(step);
+  }
+
+  private cancelAnimation(): void {
+    if (this.animationFrameId !== null) {
+      window.cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
   }
 
   private syncContentOverflow(): void {
@@ -382,7 +392,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         sheetEl,
       );
 
-      const shiftY = event.clientY - this.currentOffset;
+      let shiftY = event.clientY - this.currentOffset;
       const initialY = event.clientY;
       const initialX = event.clientX;
       const isHorizontalScrollTarget =
@@ -412,6 +422,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           }
           if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
 
+          this.cancelAnimation();
+          shiftY = initialY - this.currentOffset;
           hasDragged = true;
           if (!hasPointerCapture) {
             try {
@@ -641,14 +653,13 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       const touch = this.findTouch(event.changedTouches, this.activeTouchId);
       if (!touch) return;
 
-      const pageY = touch.pageY;
+      const pageY = touch.clientY;
       const absDeltaX = Math.abs(touch.clientX - initialX);
       const absDeltaY = Math.abs(touch.clientY - initialY);
 
       if (!hasDragged) {
         if (
           isHorizontalScrollTarget &&
-          absDeltaX > this.minDragDistance &&
           absDeltaX > absDeltaY
         ) {
           this.cleanupTouchListeners(
@@ -662,8 +673,6 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           originalTouch = null;
           return;
         }
-
-        if (absDeltaY <= this.minDragDistance) return;
 
         // If sheet is fully open and content is scrollable, allow native scroll
         // pageY > initialY means swiping down (scrolling up in content)
@@ -685,6 +694,26 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           }
         }
 
+        // Chromium decides native scroll ownership on the first move, before
+        // our visual drag threshold. Reserve sheet gestures immediately while
+        // leaving content scrolling and horizontal carousels native.
+        if (!event.cancelable) {
+          this.cleanupTouchListeners(
+            removeTouchMove,
+            removeTouchEnd,
+            removeTouchCancel,
+          );
+          this.activeTouchId = null;
+          originalTarget = null;
+          originalTouch = null;
+          this.syncContentOverflow();
+          return;
+        }
+        event.preventDefault();
+        if (absDeltaY <= this.minDragDistance) return;
+
+        this.cancelAnimation();
+        shiftY = initialY - this.currentOffset;
         hasDragged = true;
 
         // Cancel the touch on the original target (e.g., button) so it releases
@@ -696,6 +725,11 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         }
       }
 
+      // Never move the sheet alongside a gesture already owned by the browser.
+      if (!event.cancelable) {
+        handleTouchEnd(event);
+        return;
+      }
       event.preventDefault();
 
       if (pageY - shiftY >= 0 && isScrollableUp) {
@@ -750,6 +784,11 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       originalTarget = null;
       originalTouch = null;
     };
+
+    this.destroyListeners.push(() => {
+      this.cleanupTouchListeners(removeTouchMove, removeTouchEnd, removeTouchCancel);
+      this.activeTouchId = null;
+    });
 
     this.addTouchListener(sheetEl, "touchstart", handleTouchStart, {
       passive: true,
@@ -834,6 +873,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.cancelAnimation();
     this.destroyListeners.forEach((fn) => fn());
     this.destroyListeners = [];
     if (this.resizeObserver) {
