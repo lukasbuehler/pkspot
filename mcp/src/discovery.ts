@@ -27,7 +27,7 @@ export const schemas = {
 export type ToolName = keyof typeof schemas;
 export const toolNames = Object.keys(schemas) as ToolName[];
 export const descriptions: Record<ToolName, string> = {
-  search_spots: "Find up to ten public parkour Spots by phrase, referenced community, or coarse host location. Recommended ranks a limited rating-selected candidate set, not every Spot. Distances are straight-line from the search center, not travel times. No pagination or export.",
+  search_spots: "Find up to ten public parkour Spots by phrase, referenced community, or coarse host location. For a named city, resolve search_communities and pass community_id; omit radius_km to use 10 km without asking. For near me, use host location or resolve a city already supplied in the conversation. Ask for a city only if no usable location is available. Recommended ranks a limited rating-selected candidate set, not every Spot. Distances are straight-line from the search center, not travel times. No pagination or export.",
   search_events: "Find upcoming public parkour events by phrase or referenced community. Supply explicit ISO date-time bounds with offsets for weekend/date queries. Canceled events remain labeled. No pagination or export.",
   search_communities: "Find public parkour communities by name or topic. Returns community references usable for Spot and event discovery. Do not send private user addresses.",
   get_spot: "Read current public information about one Spot. Access and unknown amenities are not guarantees of safety, permission, or opening hours.",

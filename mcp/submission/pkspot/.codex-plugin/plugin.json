@@ -1,0 +1,40 @@
+{
+  "name": "pkspot",
+  "version": "0.1.1",
+  "description": "Discover parkour Spots, events and local communities on PK Spot.",
+  "author": {
+    "name": "Lukas Bühler",
+    "url": "https://pkspot.app"
+  },
+  "homepage": "https://pkspot.app",
+  "keywords": [
+    "parkour",
+    "freerunning",
+    "spots",
+    "events",
+    "communities"
+  ],
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "PK Spot",
+    "shortDescription": "spots, events and communities",
+    "longDescription": "Discover public parkour Spots, upcoming events and local community information from PK Spot. Search by place or name, compare listed amenities, and open source links for more details. No PK Spot account is required. Results are a bounded selection, not a complete directory. Listings do not guarantee safety, access permission, opening hours or suitability for a particular skill level. The integration cannot create content, book events or export the database.",
+    "developerName": "Lukas Bühler",
+    "category": "Sports",
+    "capabilities": [
+      "Find parkour Spots",
+      "Find upcoming parkour events",
+      "Read public community information"
+    ],
+    "websiteURL": "https://pkspot.app",
+    "privacyPolicyURL": "https://pkspot.app/privacy-policy",
+    "termsOfServiceURL": "https://pkspot.app/terms-of-service",
+    "defaultPrompt": [
+      "Find parkour Spots in Zurich.",
+      "Find upcoming parkour events.",
+      "What amenities are listed at Lindenhof in Zurich?"
+    ],
+    "logo": "./assets/icon.png",
+    "composerIcon": "./assets/icon.png"
+  }
+}

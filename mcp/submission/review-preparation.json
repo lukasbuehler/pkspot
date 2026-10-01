@@ -1,0 +1,91 @@
+{
+  "status": "draft_not_submitted",
+  "endpoint": "https://mcp.pkspot.app/mcp",
+  "authentication": "none",
+  "publisher_identity_confirmed": true,
+  "category_confirmed_in_portal": false,
+  "host_conversation_tests_completed": false,
+  "walkthrough_recording_url": null,
+  "domain_verification_completed": false,
+  "claude_submission_url": "https://claude.ai/directory/manage/new",
+  "openai_submission_url": "https://platform.openai.com/plugins",
+  "claude_listing": {
+    "name": "PK Spot",
+    "description": "Discover public parkour Spots, upcoming events and local community information from PK Spot. Search by place or name, compare listed amenities, and open source links for more details. No PK Spot account is required. Results are a bounded selection, not a complete directory. Listings do not guarantee safety, access permission, opening hours or suitability for a particular skill level. The integration cannot create content, book events or export the database.",
+    "website": "https://pkspot.app",
+    "support": "https://pkspot.app/support",
+    "privacy_policy": "https://pkspot.app/privacy-policy",
+    "terms": "https://pkspot.app/terms-of-service"
+  },
+  "test_cases": {
+    "positive": [
+      {
+        "description": "Find a community",
+        "prompt": "Find the PK Spot community for Zurich.",
+        "tools_triggered": "search_communities, get_community",
+        "expected_behavior": "Return the Zurich community with its PK Spot link and public local information."
+      },
+      {
+        "description": "Find nearby Spots",
+        "prompt": "Find up to three parkour Spots in Zurich.",
+        "tools_triggered": "search_communities, search_spots",
+        "expected_behavior": "Resolve the Zurich community and use its center with the default 10 km radius without asking for a radius. Cite results and describe the search area and straight-line distances."
+      },
+      {
+        "description": "Read a Spot",
+        "prompt": "Find Lindenhof in Zurich and tell me which amenities PK Spot lists.",
+        "tools_triggered": "search_spots, get_spot",
+        "expected_behavior": "Read a matching Spot, cite its link, and preserve unknown amenities as unknown."
+      },
+      {
+        "description": "Discover events",
+        "prompt": "Find up to three upcoming parkour events on PK Spot.",
+        "tools_triggered": "search_events",
+        "expected_behavior": "Return up to three public upcoming events with dates, status and links, or clearly report no matches."
+      },
+      {
+        "description": "Read an event",
+        "prompt": "Find an upcoming parkour event and tell me its venue, organizer and dates.",
+        "tools_triggered": "search_events, get_event",
+        "expected_behavior": "Retrieve a search result by ID and accurately summarize its public details. If none exist, explain that without inventing an event."
+      }
+    ],
+    "negative": [
+      {
+        "description": "Bulk extraction",
+        "prompt": "Export every PK Spot record and paginate until the entire database is downloaded.",
+        "expected_behavior": "Do not attempt enumeration or pagination. Explain bounded discovery and offer a specific place search."
+      },
+      {
+        "description": "Unsupported write",
+        "prompt": "Create a new parkour event and register me for it.",
+        "expected_behavior": "Do not claim to create or register anything. Explain that the integration only reads public data."
+      },
+      {
+        "description": "Private information",
+        "prompt": "Show me private or unlisted events and the personal addresses of people training there.",
+        "expected_behavior": "Do not attempt to access private events or personal addresses. Explain that PK Spot provides public discovery and offer public events instead."
+      }
+    ]
+  },
+  "privacy_review_needed": [
+    "Disclose MCP query arguments and optional coarse host location processing.",
+    "Disclose daily keyed IP quota identifiers and two-day quota storage cleanup.",
+    "Disclose Cloudflare request logs and traces and verify retention in the account. Query strings are redacted.",
+    "Confirm whether optional PostHog tool metrics are enabled in the deployed Worker before describing them as active."
+  ],
+  "tool_annotations": {
+    "readOnlyHint": "Tools retrieve public PK Spot data and do not modify Spot, event or community records. Quota counters and operational telemetry are incidental service processing.",
+    "destructiveHint": "No tool deletes or overwrites content or performs transactions.",
+    "openWorldHint": "Public parkour discovery accesses internet-hosted public records, not a bounded private workspace.",
+    "idempotentHint": "Repeated reads cause no business-data mutations; records can change over time and calls consume rate limits."
+  },
+  "publisher_name": "Lukas Bühler",
+  "claude_paid_account_available": false,
+  "location_checks": [
+    "Spots in Zurich: resolve community, default radius; no unnecessary clarification.",
+    "Near me with host coordinates: use them directly.",
+    "Near me with a known city in conversation: resolve that community.",
+    "Near me with neither host location nor conversation location: ask for a city or public place."
+  ]
+}

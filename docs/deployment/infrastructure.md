@@ -59,6 +59,22 @@ individual detail tools, with no exports or pagination.
       failures do not break discovery. These metrics measure tool calls, not
       conversation views, link clicks, unique users or cross-platform funnels.
 - [ ] Prepare and separately approve ChatGPT and Claude directory submissions,
+      using `mcp/submission/pkspot/plugin.json` and the private preparation record
+      `mcp/submission/review-preparation.json`. The draft publisher is Lukas Bühler.
+      Deploy the public-discovery `openWorldHint: true` annotation before scanning.
+      Deploy the ownership challenge route and public token configured in
+      `mcp/wrangler.jsonc`; verify GET returns the exact token as plain text at
+      `https://mcp.pkspot.app/.well-known/openai-apps-challenge`, then select
+      Verify Domain in the existing PK Spot OpenAI draft. Do not mark domain
+      verification complete until the portal confirms it.
+      Confirm the listing category in the portal, complete individual and domain
+      verification, run five positive and three negative conversations in ChatGPT,
+      add an accessible walkthrough recording, and review MCP data processing in
+      the privacy policy (arguments, optional coarse location, quota identifiers,
+      Cloudflare logs/traces and any enabled PostHog metrics). Keep credentials
+      and the preparation record outside the upload ZIP. Claude submission is
+      deferred until a paid Claude account is available. Obtain approval before
+      submitting or publishing either listing,
       including verified publisher/domain, policy/support links, test cases and
       review materials. The MCP server itself is not a submitted directory listing.
       For rollback, remove/disable the Worker route and directory connection;

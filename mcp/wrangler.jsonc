@@ -11,7 +11,9 @@
   "vars": {
     "FIRESTORE_PROJECT_ID": "parkour-base-project",
     "PUBLIC_ORIGIN": "https://mcp.pkspot.app",
-    "TYPESENSE_ORIGIN": "https://search.pkspot.app"
+    "TYPESENSE_ORIGIN": "https://search.pkspot.app",
+    // Public proof of domain ownership, not an authentication credential.
+    "OPENAI_DOMAIN_VERIFICATION_TOKEN": "PqWjQ7rGRbs8bK7QuKdSNqrjKG4wlQs1ymFlqAChGKg"
   },
   "durable_objects": {
     "bindings": [{ "name": "QUOTAS", "class_name": "QuotaStore" }]
