@@ -77,7 +77,7 @@
       },
       "interface": {
         "displayName": "PK Spot",
-        "shortDescription": "spots, events and communities",
+        "shortDescription": "Parkour spots, events & more",
         "longDescription": "Discover public parkour Spots, upcoming events and local community information from PK Spot. Search by place or name, compare listed amenities, and open source links for more details. No PK Spot account is required. Results are a bounded selection, not a complete directory. Listings do not guarantee safety, access permission, opening hours or suitability for a particular skill level. The integration cannot create content, book events or export the database.",
         "developerName": "Lukas Bühler",
         "category": "Sports",
