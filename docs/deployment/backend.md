@@ -35,11 +35,14 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
 ### Live function alert follow-up (2026-09-28)
 
 - [ ] Repair the expiry-query/index mismatch in
-      `cleanupSafetyCaseSecurityMetadata`. The live 02:40 UTC run failed because
+      `cleanupSafetyCaseSecurityMetadata`. The 2026-10-01 02:40 UTC run still returned
+      500 with `FAILED_PRECONDITION` because
       `safety_case_rate_limits.expires_at` lacks a collection ascending index.
       The checked-in configuration also disables indexing for the queried
       `safety_case_access_tokens.expires_at` and `safety_case_sessions.expires_at`.
-      Preserve TTL and older clients; add the required indexes before deploying
+      TTL was verified ACTIVE for all three fields on 2026-10-01; it does not
+      provide the missing query indexes. Preserve TTL and older clients; add
+      collection-scope ascending indexes for these three fields before deploying
       any cleanup changes. Success: indexes ready and the next scheduled cleanup
       completes without `FAILED_PRECONDITION`.
 - [ ] Prevent Typesense from indexing incomplete Spot creation writes. The two
@@ -69,21 +72,22 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
       are preserved. Verify covered and uncovered locations through an
       App-Check-valid client, including recovery; confirm missing coverage no
       longer produces callable 503s. Local coverage/outage tests passed on
-      2026-09-29; live behavior remains unchanged until deployment.
+      2026-09-29. The 2026-10-01 live source check confirmed that the August 27
+      deployment still lacks the coverage correction.
 
 ### Share cards (enabled for 1.2; release verification pending)
 
 The lab (`npm run share-cards:lab`, port 4318) and backend use the same renderer.
 The branded static fallback is generated with `npm run share-cards:fallback`
 and checked in as `src/assets/banner_1200x630.png`.
-- [ ] Deploy `functions:shareCardImage` to `parkour-base-project` to publish the
-      updated bundled fallback. Verify a public entity without a prepared card
-      returns the branded image. The static website fallback ships with the next
-      normal web release; no runtime image generation is required.
 - [ ] Deploy the centered photo crops and entity-specific faint backgrounds
       plus logo shadow (renderer `prototype-10`) and compatible
       extensionless-photo resolver in
-      `prepareShareCard`, `shareCardImage`, and `cleanupShareCards`. Legacy Spot
+      `prepareShareCard`, `shareCardImage`, and `cleanupShareCards`, including the
+      updated bundled fallback. The 2026-10-01 live source check found renderer
+      `prototype-3` in deployed `prepareShareCard`. Verify a public entity without
+      a prepared card returns the branded fallback. The static website fallback
+      ships with the normal web release. Legacy Spot
       originals may be absent while `_800x800` derivatives exist. Verify a fresh
       Aumatten card (`idlc5zspvPuoau1YYBbG`) includes its two eligible photos.
       The local preview lab uses the same resolver; this does not deploy it.
@@ -125,6 +129,9 @@ Existing image processors skip the `share_cards/` prefix.
       be revoked. Verify actual WhatsApp/Messages/Discord preview behavior.
 
 ### Spot and Event localization
+
+The five entity place-name Functions below are absent from production as of the
+2026-10-01 live inventory. Keep rules, deployment and backfill in this order.
 
 - Deploy Firestore rules before releasing the client: `place_names/{key}` permits
   public single-document reads only. `place_name_sources` and `place_name_jobs`
@@ -202,7 +209,8 @@ Existing image processors skip the `share_cards/` prefix.
 
 ### Contact delivery and support address
 
-- [ ] Deploy the additive sender receipt trigger after local verification:
+- [ ] Deploy the additive sender receipt trigger (not present in the 2026-10-01
+      live inventory) after local verification:
       `npx firebase deploy --project prod --only functions:onContactMessageReceiptCreate`.
       It reuses `CONTACT_RESEND_API_KEY`; existing support and Discord triggers
       stay independent. No client update or backfill is required. Submit a new
@@ -235,29 +243,14 @@ contact messages to support; it is not general user notification email.
 
 ### Private check-ins and delayed Spot activity
 
-- [ ] Verify live clearing of `recent_activity_min_30d` through the extension
-      after rollup expiry or deletion drops activity below two accounts.
-      On 2026-09-30, the maintainer authorized a Walchestrasse
-      (`hJEYB7GqWYz1ujo7rKWg`) simulation: the Spot field was set to 2,
-      and its Typesense document was verified to contain 2. No check-in,
-      account contribution, or legacy summary was fabricated.
-      The rollup queue is eligible on 2026-10-01 at 03:30 Europe/Zurich,
-      so it must clear the simulated value unless real accepted contributions
-      support a band. Verify the Spot becomes null and Typesense no longer
-      returns a count; do not remove real activity if new check-ins qualify.
-      The five rollup emulator tests cover distinct-account deduplication,
-      deletion, concurrent updates, unchanged bands and simulated time advancing
-      through expiry without new check-ins. Keep legacy
-      `spot_activity_public` writes for supported older clients.
-
-
 - [ ] Deploy the additive Spot-name snapshot correction with
       `npx firebase deploy --project prod --only functions:confirmCheckIn`.
       Verify a new check-in retains the name from both legacy string translations
       and `{text, provider}` translations. The updated client resolves names for
       existing nameless visits through the shared cached lookup; no history
       rewrite or backfill is required. The structured-name emulator write passed
-      on 2026-09-29. This correction is local, separate from the earlier rollout.
+      on 2026-09-29. A 2026-10-01 deployed-source check confirmed the live
+      function still accepts only legacy string translations.
 
 Check-ins are enabled in development, web production, Android and iOS; CI disables
 check-ins. Development uses production Firebase. On 2026-09-29 the four new
@@ -300,11 +293,13 @@ not a test switch. Compatible Functions must be active before a Spot is moved
 to that policy. The Firestore rule permits a vote only for a public, pending
 community-vote edit, so deploying the rules before the client is required.
 
-- [ ] Deploy the compatible Functions first, then deploy Firestore rules. Verify
-      the Functions deployment includes `applySpotEditOnCreate`,
-      `evaluateSpotEditVotesOnVoteWrite`, and
-      `evaluatePendingSpotEditVotesOnSchedule`, and that the rules deployment
-      succeeds before releasing the web client.
+- [ ] Verify and, if needed, deploy the reviewed voting rules before releasing
+      the web client. All three compatible Functions (`applySpotEditOnCreate`,
+      `evaluateSpotEditVotesOnVoteWrite`, `evaluatePendingSpotEditVotesOnSchedule`)
+      are ACTIVE from September 29; their deployed `spotEditFunctions.ts` matches
+      the local source exactly (checked 2026-10-01). Live rules could not be read
+      with the available Google Cloud identity (403), so their status remains
+      unverified. Review unrelated pending rules cutovers before any deployment.
 
 - [ ] After both backend deployments succeed, make the separately approved
       production data migration for Dame du Lac (`1QsdgLHOpzDIReNaFDLw`): replace
@@ -326,12 +321,13 @@ The client repairs existing follow-request notification links using the requeste
 ID in the intent payload. Deploy the compatible Function before releasing the
 client so new intents and FCM payloads link directly to the requester profile.
 
-- [ ] Build and deploy the notification Function, then create a private-account
+- [ ] Build and deploy `onFollowRequestNotificationCreate`, then create a private-account
       follow request in a non-production fixture. Verify its stored intent,
       in-app notification, and delivered FCM payload target `/u/{requesterId}`.
       From the recipient profile, open the requester profile and verify the
       primary action is “Accept follow request”; accepting it must create both
-      follow edges and remove the pending request.
+      follow edges and remove the pending request. The 2026-10-01 live source
+      check confirmed that new requests still target `/profile`.
 
   ```sh
   npm --prefix functions run build
@@ -391,7 +387,9 @@ Hosting:
 ### Optional Other event category
 
 - [ ] Deploy `updateEventFieldsOnWrite` with the normalization correction before
-      releasing the client fix. A fallback `kind: other` must not re-add the
+      releasing the client fix. The 2026-10-01 deployed-source check confirmed
+      that its normalization helper still inserts the fallback category.
+      A fallback `kind: other` must not re-add the
       deselected `other` category. Verify editing `event_categories` from
       `[jam, other]` to `[jam]` remains `[jam]` after the trigger settles.
       Preserve explicitly selected Other categories; do not bulk-remove them.
