@@ -395,8 +395,14 @@ div.google-img-container {
   .collapsible-header-info { transition: none; }
 }
 
-// Loading uses the same one-line typography as the finished header. Known
-// titles keep their real wrapping; only missing text receives a skeleton.
+// Keep the preview title compact until the full Spot metadata is available.
+.spot-title-text.spot-loading-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Only missing title text receives a skeleton.
 .spot-loading-title {
   display: inline-block;
   width: min(14ch, 65%);

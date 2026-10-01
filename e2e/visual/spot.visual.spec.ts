@@ -102,11 +102,15 @@ async function expandSheetForFullContentSnapshot(page: Page): Promise<void> {
 }
 
 test.describe("Spot Details Visual Regression @visual", () => {
-  test("should match the pending Spot preview and align it with the finished carousel", async ({
+  test("should truncate the pending title and preserve carousel geometry", async ({
     page,
   }) => {
     await openSpotFixture(page, { width: 390, height: 844 }, "loading");
 
+    const loadingTitle = page.locator(".spot-loading-name");
+    await expect(loadingTitle).toHaveCSS("white-space", "nowrap");
+    await expect(loadingTitle).toHaveCSS("text-overflow", "ellipsis");
+    const loadingHeader = await page.locator("mat-card-header").first().boundingBox();
     const sheet = page.locator("app-bottom-sheet .sheet");
     const loadingMedia = page.getByTestId("spot-loading-media");
     const loadingBox = await loadingMedia.boundingBox();
@@ -138,9 +142,30 @@ test.describe("Spot Details Visual Regression @visual", () => {
     if (!resolvedBox) return;
 
     expect(Math.abs(loadingBox.x - resolvedBox.x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(loadingBox.y - resolvedBox.y)).toBeLessThanOrEqual(1);
+    const resolvedHeader = await page.locator("mat-card-header").first().boundingBox();
+    expect(loadingHeader).not.toBeNull();
+    expect(resolvedHeader).not.toBeNull();
+    // Loaded metadata can make the header taller. Keep the media immediately
+    // below it, with the same crop and spacing as the compact loading header.
+    expect(Math.abs((resolvedBox.y - loadingBox.y) -
+      (resolvedHeader!.height - loadingHeader!.height))).toBeLessThanOrEqual(1);
     expect(Math.abs(loadingBox.width - resolvedBox.width)).toBeLessThanOrEqual(1);
     expect(Math.abs(loadingBox.height - resolvedBox.height)).toBeLessThanOrEqual(1);
+  });
+
+  test("should ellipsize an overflowing loading title on narrow phones", async ({ page }) => {
+    await openSpotFixture(page, { width: 320, height: 844 }, "loading");
+    const title = page.locator(".spot-loading-name");
+    await expect(title).toHaveCSS("white-space", "nowrap");
+    await expect(title).toHaveCSS("text-overflow", "ellipsis");
+    const size = await title.evaluate(element => ({
+      width: element.clientWidth,
+      textWidth: element.scrollWidth,
+      height: element.getBoundingClientRect().height,
+      lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+    }));
+    expect(size.textWidth).toBeGreaterThan(size.width);
+    expect(size.height).toBeCloseTo(size.lineHeight, 0);
   });
 
   test("should match full rich persisted spot details", async ({
