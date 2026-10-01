@@ -440,19 +440,19 @@
       "collectionGroup": "safety_case_access_tokens",
       "fieldPath": "expires_at",
       "ttl": true,
-      "indexes": []
+      "indexes": [{ "queryScope": "COLLECTION", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "safety_case_sessions",
       "fieldPath": "expires_at",
       "ttl": true,
-      "indexes": []
+      "indexes": [{ "queryScope": "COLLECTION", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "safety_case_rate_limits",
       "fieldPath": "expires_at",
       "ttl": true,
-      "indexes": []
+      "indexes": [{ "queryScope": "COLLECTION", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "edits",

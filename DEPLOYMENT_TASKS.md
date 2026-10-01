@@ -49,6 +49,10 @@ run data migrations, or complete third-party service tasks.
      before releasing code that writes, filters, sorts, or queries the new field.
    - Verify the live collection against the checked-in schema, including field
      types and `facet` flags. Local contract tests do not verify production.
+   - For Firebase Extension sync, verify `FIRESTORE_COLLECTION_FIELDS` includes
+     every required source field. A Typesense schema entry alone does not forward
+     a field. After adding one, re-sync affected existing documents and verify
+     the actual search response; future writes alone do not repair old records.
    - Deploy the matching projection/helper functions, run required backfills,
      and wait for indexing before verifying the actual client query, including
      facets, filters, and sorting. Confirm legacy documents remain in filtered

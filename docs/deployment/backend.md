@@ -34,17 +34,6 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
 
 ### Live function alert follow-up (2026-09-28)
 
-- [ ] Repair the expiry-query/index mismatch in
-      `cleanupSafetyCaseSecurityMetadata`. The 2026-10-01 02:40 UTC run still returned
-      500 with `FAILED_PRECONDITION` because
-      `safety_case_rate_limits.expires_at` lacks a collection ascending index.
-      The checked-in configuration also disables indexing for the queried
-      `safety_case_access_tokens.expires_at` and `safety_case_sessions.expires_at`.
-      TTL was verified ACTIVE for all three fields on 2026-10-01; it does not
-      provide the missing query indexes. Preserve TTL and older clients; add
-      collection-scope ascending indexes for these three fields before deploying
-      any cleanup changes. Success: indexes ready and the next scheduled cleanup
-      completes without `FAILED_PRECONDITION`.
 - [ ] Prevent Typesense from indexing incomplete Spot creation writes. The two
       affected Spots were verified in live `spots_v2` with valid coordinates and
       ratings on 2026-09-28, so no repair/backfill is needed for them. Creation
@@ -61,36 +50,23 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
       than cached as empty tiles, stale fallback and eventual recovery. Legacy
       clients intentionally retain their 503/retry contract. Seven handler/cache
       emulator tests pass; no synthetic upstream outage was induced in production.
-- [ ] Deploy the tested weather coverage correction, after backend approval:
-      `npx firebase deploy --project prod --only functions:getWeather`.
-      Google 404 now maps locally to callable `not-found` with
-      `details.reason=coverage-unavailable`; real upstream failures retain
-      `unavailable`. Forecast coverage gaps never become successful empty cached
-      forecasts. Alert coverage gaps retain `alertsStatus=unavailable` without
-      ERROR logging; provider, path and status diagnostics contain no secrets
-      or coordinates. Existing successful payloads and client failure handling
-      are preserved. Verify covered and uncovered locations through an
-      App-Check-valid client, including recovery; confirm missing coverage no
-      longer produces callable 503s. Local coverage/outage tests passed on
-      2026-09-29. The 2026-10-01 live source check confirmed that the August 27
-      deployment still lacks the coverage correction.
+- [ ] Verify the deployed weather coverage correction through an App-Check-valid
+      client at covered and uncovered locations, including recovery. The October 1
+      deployment maps Google 404 to callable `not-found` with
+      `details.reason=coverage-unavailable`; actual upstream failures remain
+      `unavailable`. Confirm missing coverage no longer produces callable 503s
+      and unsuccessful forecasts are not cached as empty successes.
 
 ### Share cards (enabled for 1.2; release verification pending)
 
 The lab (`npm run share-cards:lab`, port 4318) and backend use the same renderer.
 The branded static fallback is generated with `npm run share-cards:fallback`
 and checked in as `src/assets/banner_1200x630.png`.
-- [ ] Deploy the centered photo crops and entity-specific faint backgrounds
-      plus logo shadow (renderer `prototype-10`) and compatible
-      extensionless-photo resolver in
-      `prepareShareCard`, `shareCardImage`, and `cleanupShareCards`, including the
-      updated bundled fallback. The 2026-10-01 live source check found renderer
-      `prototype-3` in deployed `prepareShareCard`. Verify a public entity without
-      a prepared card returns the branded fallback. The static website fallback
-      ships with the normal web release. Legacy Spot
-      originals may be absent while `_800x800` derivatives exist. Verify a fresh
-      Aumatten card (`idlc5zspvPuoau1YYBbG`) includes its two eligible photos.
-      The local preview lab uses the same resolver; this does not deploy it.
+- [ ] Prepare a fresh Aumatten card (`idlc5zspvPuoau1YYBbG`) through the app and
+      confirm both eligible photos appear with centered crops and the logo shadow.
+      Renderer `prototype-10` and the extensionless-photo resolver were deployed
+      October 1. Public fallback returned 200, PNG, private/no-store and matched
+      the bundled image byte-for-byte. Authenticated preparation remains to verify.
 Only Share clicks generate cards, regardless of rating. There is no backfill,
 edit-triggered generation, or crawler-triggered generation. Spot and Event Share
 buttons use the common service; community/profile targets are supported by the
@@ -209,18 +185,15 @@ The five entity place-name Functions below are absent from production as of the
 
 ### Contact delivery and support address
 
-- [ ] Deploy the additive sender receipt trigger (not present in the 2026-10-01
-      live inventory) after local verification:
-      `npx firebase deploy --project prod --only functions:onContactMessageReceiptCreate`.
-      It reuses `CONTACT_RESEND_API_KEY`; existing support and Discord triggers
-      stay independent. No client update or backfill is required. Submit a new
-      contact message with a controlled email address and verify the receipt,
-      Reply-To `support@pkspot.app`, and `contact_receipt_delivery/{messageId}`
-      status `sent`. Non-email contact handles receive no receipt. A second
+- [ ] Submit a new contact message with a controlled email address and verify the
+      receipt, Reply-To `support@pkspot.app`, and
+      `contact_receipt_delivery/{messageId}` status `sent`. The receipt trigger
+      is deployed and ACTIVE as of October 1, with retries disabled and the
+      existing Resend secret. Non-email handles must receive no receipt. A second
       message to the same address within an hour must record `recipient_cooldown`
-      while support/Discord delivery continues. Verify malformed addresses,
-      duplicate event delivery, and expired-event review before enabling retries.
-      The receipt is currently English; localized receipts can follow separately.
+      while support/Discord delivery continues. Malformed addresses, duplicate
+      delivery, cooldown and expired-event handling pass local tests; verify live
+      delivery before enabling retries. Receipts are currently English.
 
 Public contact links use `support@pkspot.app`. The Resend contact-email
 trigger is deployed and active in `europe-west1`, bound to
@@ -243,14 +216,11 @@ contact messages to support; it is not general user notification email.
 
 ### Private check-ins and delayed Spot activity
 
-- [ ] Deploy the additive Spot-name snapshot correction with
-      `npx firebase deploy --project prod --only functions:confirmCheckIn`.
-      Verify a new check-in retains the name from both legacy string translations
-      and `{text, provider}` translations. The updated client resolves names for
-      existing nameless visits through the shared cached lookup; no history
-      rewrite or backfill is required. The structured-name emulator write passed
-      on 2026-09-29. A 2026-10-01 deployed-source check confirmed the live
-      function still accepts only legacy string translations.
+- [ ] Verify a fresh check-in retains the Spot name from both legacy string
+      translations and `{text, provider}` translations. The additive snapshot
+      correction was deployed October 1; the callable still rejects missing
+      credentials with 401. The client resolves existing nameless visits through
+      its cached lookup, so no history rewrite or backfill is needed.
 
 Check-ins are enabled in development, web production, Android and iOS; CI disables
 check-ins. Development uses production Firebase. On 2026-09-29 the four new
@@ -321,18 +291,11 @@ The client repairs existing follow-request notification links using the requeste
 ID in the intent payload. Deploy the compatible Function before releasing the
 client so new intents and FCM payloads link directly to the requester profile.
 
-- [ ] Build and deploy `onFollowRequestNotificationCreate`, then create a private-account
-      follow request in a non-production fixture. Verify its stored intent,
-      in-app notification, and delivered FCM payload target `/u/{requesterId}`.
-      From the recipient profile, open the requester profile and verify the
-      primary action is “Accept follow request”; accepting it must create both
-      follow edges and remove the pending request. The 2026-10-01 live source
-      check confirmed that new requests still target `/profile`.
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:onFollowRequestNotificationCreate
-  ```
+- [ ] Verify a controlled private-account follow request: its stored intent,
+      in-app notification and delivered FCM payload must target `/u/{requesterId}`.
+      The corrected creation trigger was deployed October 1. From the recipient
+      profile, open the requester profile and verify “Accept follow request”
+      creates both follow edges and removes the pending request.
 
 ### Retire the `de-CH` app locale
 
@@ -386,10 +349,7 @@ Hosting:
 
 ### Optional Other event category
 
-- [ ] Deploy `updateEventFieldsOnWrite` with the normalization correction before
-      releasing the client fix. The 2026-10-01 deployed-source check confirmed
-      that its normalization helper still inserts the fallback category.
-      A fallback `kind: other` must not re-add the
-      deselected `other` category. Verify editing `event_categories` from
-      `[jam, other]` to `[jam]` remains `[jam]` after the trigger settles.
+- [ ] Verify editing `event_categories` from `[jam, other]` to `[jam]` remains
+      `[jam]` after the trigger settles. The normalization correction was deployed
+      October 1: fallback `kind: other` no longer re-adds a deselected category.
       Preserve explicitly selected Other categories; do not bulk-remove them.
