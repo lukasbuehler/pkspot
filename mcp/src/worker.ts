@@ -41,6 +41,12 @@ export async function handle(request: Request, env: Environment, context: Execut
   const url = new URL(request.url);
   const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
   if (!local && url.origin !== env.PUBLIC_ORIGIN) return new Response(null, { status: 421 });
+  // Public ownership challenge, independent of data credentials and discovery quotas.
+  if (url.pathname === "/.well-known/openai-apps-challenge" && env.OPENAI_DOMAIN_VERIFICATION_TOKEN) {
+    if (!["GET", "HEAD"].includes(request.method)) return new Response(null, { status: 405, headers: { Allow: "GET, HEAD" } });
+    return new Response(request.method === "HEAD" ? null : env.OPENAI_DOMAIN_VERIFICATION_TOKEN,
+      { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  }
   if (url.pathname === "/health" && request.method === "GET") {
     return Response.json({ service: "pkspot-mcp", ready: configured(env) }, { status: configured(env) ? 200 : 503 });
   }

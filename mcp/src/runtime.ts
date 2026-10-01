@@ -13,6 +13,7 @@ export interface Environment {
   TYPESENSE_SEARCH_KEY: string;
   FIRESTORE_PROJECT_ID: string;
   QUOTA_SECRET: string;
+  OPENAI_DOMAIN_VERIFICATION_TOKEN?: string;
   POSTHOG_API_KEY?: string;
   POSTHOG_HOST?: string;
   QUOTAS: {

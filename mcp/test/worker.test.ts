@@ -34,6 +34,17 @@ function request(body: unknown, headers: Record<string, string> = {}) {
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe("Worker with real MCP SDK transport", () => {
+  it("serves the ownership challenge without data credentials and limits methods", async () => {
+    const env = { ...environment(), TYPESENSE_SEARCH_KEY: "", OPENAI_DOMAIN_VERIFICATION_TOKEN: "public-proof" };
+    const url = "https://mcp.pkspot.app/.well-known/openai-apps-challenge";
+    const result = await handle(new Request(url), env, context);
+    expect(result.status).toBe(200);
+    expect(await result.text()).toBe("public-proof");
+    expect(result.headers.get("Content-Type")).toContain("text/plain");
+    expect((await handle(new Request(url, { method: "POST" }), env, context)).status).toBe(405);
+    expect((await handle(new Request(url), environment(), context)).status).toBe(404);
+    expect((await handle(new Request(url.replace("mcp.pkspot.app", "other.example")), env, context)).status).toBe(421);
+  });
   it("initializes and advertises six portable read-only tools", async () => {
     const env = environment();
     const init = await handle(request({ jsonrpc: "2.0", id: 1, method: "initialize", params: {
