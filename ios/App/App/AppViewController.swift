@@ -54,5 +54,6 @@ class AppViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(DateTimePreferencesPlugin())
         bridge?.registerPluginInstance(GooglePlacePhotoPlugin())
         bridge?.registerPluginInstance(NotificationSettingsPlugin())
+        bridge?.registerPluginInstance(MapsLauncherPlugin())
     }
 }

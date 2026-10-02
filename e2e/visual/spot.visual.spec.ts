@@ -176,6 +176,8 @@ test.describe("Spot Details Visual Regression @visual", () => {
 
     const sheet = page.locator("app-bottom-sheet .sheet");
     const details = sheet.locator("app-spot-details");
+    await expect(details.getByRole("button", { name: /In Karten öffnen|Open in Maps/ })).toHaveCount(1);
+    await expect(details.getByRole("button", { name: /Open in (Google|Apple) Maps/ })).toHaveCount(0);
 
     const title = details.locator('.spot-title-text').first();
     await expect(title).toHaveText('Riverside Training Walls');

@@ -11,7 +11,6 @@ import {
   OnChanges,
   ElementRef,
   LOCALE_ID,
-  AfterViewInit,
   Pipe,
   PipeTransform,
   Signal,
@@ -343,7 +342,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
   schemas: [],
 })
 export class SpotDetailsComponent
-  implements OnInit, AfterViewInit, OnChanges, OnDestroy
+  implements OnInit, OnChanges, OnDestroy
 {
   readonly shareCards = inject(ShareCardService);
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
@@ -746,8 +745,6 @@ export class SpotDetailsComponent
   private _latestReportRequestSpotId: string | null = null;
 
   automaticallyDetermineAddress: boolean = true;
-
-  isAppleMaps: boolean = false;
 
   mediaStorageFolder: StorageBucket = StorageBucket.SpotPictures;
 
@@ -1261,10 +1258,6 @@ export class SpotDetailsComponent
           this.nearbyPlaceResults = nearbyPlaces;
         }
       });
-  }
-
-  ngAfterViewInit() {
-    this.isAppleMaps = this._mapsApiService.isMacOSOriOS();
   }
 
   ngOnChanges() {

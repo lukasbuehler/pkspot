@@ -134,14 +134,16 @@
         <target> Incluez ce profil dans la recherche d’utilisateurs de PK Spot et les sitemaps publiques. Cette option reste désactivée pour les enfants et les profils sans majorité vérifiée de façon indépendante. </target>
       </segment>
     </unit>
-    <unit id="1779696877741891389">
-      <notes>
-        <note category="description">Tooltip of button to open the spot in Google Maps</note>
-        <note category="meaning">Open in Google maps button tooltip</note>
-      </notes>
+    <unit id="spot.open_maps.label">
       <segment state="initial">
-        <source>Open the location of this spot in Maps</source>
-        <target>Ouvrir cet emplacement dans Maps</target>
+        <source>Open in Maps</source>
+        <target>Ouvrir dans Plans</target>
+      </segment>
+    </unit>
+    <unit id="spot.open_maps.tooltip">
+      <segment state="initial">
+        <source>Open the location of this Spot in Maps</source>
+        <target>Ouvrir l’emplacement de ce Spot dans Plans</target>
       </segment>
     </unit>
     <unit id="1780673444278901710">
@@ -3934,16 +3936,6 @@
       <segment state="initial">
         <source>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</source>
         <target>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</target>
-      </segment>
-    </unit>
-    <unit id="8661229474911203378">
-      <notes>
-        <note category="description">Tooltip of button to open the spot in Apple Maps</note>
-        <note category="meaning">Open in Apple maps button tooltip</note>
-      </notes>
-      <segment state="initial">
-        <source>Open the location of this spot in Maps</source>
-        <target>Open the location of this spot in Maps</target>
       </segment>
     </unit>
     <unit id="8665225557897160418">
@@ -10392,12 +10384,6 @@
         <target>Tous les jours</target>
       </segment>
     </unit>
-    <unit id="event_program.all_locations">
-      <segment state="initial">
-        <source>All program locations</source>
-        <target>Tous les lieux du programme</target>
-      </segment>
-    </unit>
     <unit id="event_program.at_this_location">
       <segment state="initial">
         <source> Program at this location </source>
@@ -12607,16 +12593,6 @@
         <target>Événement reprogrammé</target>
       </segment>
     </unit>
-    <unit id="2140524575884770731">
-      <notes>
-        <note category="description">Button to open the spot in Apple Maps</note>
-        <note category="meaning">Open in Apple maps button</note>
-      </notes>
-      <segment state="initial">
-        <source>Open in Apple Maps</source>
-        <target>Open in Apple Maps</target>
-      </segment>
-    </unit>
     <unit id="2143027146062629863">
       <segment state="initial">
         <source>Invalid email address.</source>
@@ -14462,16 +14438,6 @@
       <segment state="initial">
         <source> A public profile can expose a picture, city, biography and links to anyone—including search engines. PK Spot keeps that profile private unless an age provider returns an independently checked 18+ result. </source>
         <target> Un profil public peut exposer une photo, une ville, une biographie et des liens à tout le monde, y compris aux moteurs de recherche. PK Spot garde ce profil privé tant qu’un fournisseur d’âge ne renvoie pas un résultat 18+ vérifié de façon indépendante. </target>
-      </segment>
-    </unit>
-    <unit id="2361381507645842011">
-      <notes>
-        <note category="description">Button to open the spot in Google Maps</note>
-        <note category="meaning">Open in Google maps button</note>
-      </notes>
-      <segment state="initial">
-        <source>Open in Google Maps</source>
-        <target>Open in Google Maps</target>
       </segment>
     </unit>
     <unit id="2365683588441896071">

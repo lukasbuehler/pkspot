@@ -1,3 +1,4 @@
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { readStreetViewPanorama, streetViewCamera, StreetViewPanorama } from "../../scripts/StreetViewHelpers";
 import {
   Injectable,
@@ -24,6 +25,10 @@ import {
   reportInvalidMapCoordinate,
 } from "../shared/map-coordinate-utils";
 import { FirebaseAppCheckService } from "./firebase/app-check.service";
+
+const MapsLauncher = registerPlugin<{
+  open(options: { lat: number; lng: number; directions: boolean }): Promise<void>;
+}>("MapsLauncher");
 
 interface LocationAndZoom {
   location: google.maps.LatLngLiteral;
@@ -272,25 +277,20 @@ export class MapsApiService extends ConsentAwareService {
   isMacOSOriOS(): boolean {
     if (typeof window === "undefined") return false; // abort if not in browser
 
-    const appleDevices = [
-      "iPad Simulator",
-      "iPhone Simulator",
-      "iPod Simulator",
-      "iPad",
-      "iPhone",
-      "iPod",
-      "Mac",
-    ];
-    return RegExp(`/${appleDevices.join("|")}/`).test(navigator.userAgent);
+    return Capacitor.getPlatform() === "ios" ||
+      /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
   }
 
-  openLatLngInMaps(
+  async openLatLngInMaps(
     location: google.maps.LatLngLiteral,
     mapsType?: "google" | "apple",
   ) {
     if (typeof window === "undefined") return; // abort if not in browser
 
-    if (this.isMacOSOriOS() || mapsType === "apple") {
+    if (!mapsType && Capacitor.getPlatform() === "ios" &&
+        await this.openInDefaultIosMaps(location, false)) return;
+    // A named provider is an explicit choice and must override platform defaults.
+    if ((mapsType ?? (this.isMacOSOriOS() ? "apple" : "google")) === "apple") {
       this._openLatLngInAppleMaps(location);
     } else {
       this._openLatLngInGoogleMaps(location);
@@ -299,7 +299,7 @@ export class MapsApiService extends ConsentAwareService {
 
   private _openLatLngInAppleMaps(location: google.maps.LatLngLiteral) {
     console.debug("opening in apple maps");
-    const url = `https://maps.apple.com/?address=${location.lat},${location.lng}`;
+    const url = `https://maps.apple.com/?ll=${location.lat},${location.lng}&q=${location.lat},${location.lng}`;
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "open_in_maps",
@@ -312,7 +312,7 @@ export class MapsApiService extends ConsentAwareService {
       url: taggedUrl || url,
     });
 
-    if (taggedUrl) window.open(taggedUrl);
+    window.open(taggedUrl || url);
   }
 
   private _openLatLngInGoogleMaps(location: google.maps.LatLngLiteral) {
@@ -330,16 +330,36 @@ export class MapsApiService extends ConsentAwareService {
       url: taggedUrl || url,
     });
 
-    if (taggedUrl) window.open(taggedUrl);
+    window.open(taggedUrl || url);
   }
 
-  openDirectionsInMaps(location: google.maps.LatLngLiteral) {
+  async openDirectionsInMaps(location: google.maps.LatLngLiteral) {
     if (typeof window === "undefined") return; // abort if not in browser
 
+    if (Capacitor.getPlatform() === "ios" &&
+        await this.openInDefaultIosMaps(location, true)) return;
     if (this.isMacOSOriOS()) {
       this._openDirectionsInAppleMaps(location);
     } else {
       this._openDirectionsInGoogleMaps(location);
+    }
+  }
+
+  private async openInDefaultIosMaps(
+    location: google.maps.LatLngLiteral,
+    directions: boolean,
+  ): Promise<boolean> {
+    if (Capacitor.getPlatform() !== "ios") return false;
+    try {
+      // Native completion tells us whether the OS handled the navigation scheme.
+      // Older binaries without this bridge keep the ordinary Apple Maps link.
+      await MapsLauncher.open({ ...location, directions });
+      this._analytics.trackEvent(directions ? "get_directions" : "open_maps", {
+        platform: "system",
+      });
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -358,7 +378,7 @@ export class MapsApiService extends ConsentAwareService {
       url: taggedUrl || url,
     });
 
-    if (taggedUrl) window.open(taggedUrl);
+    window.open(taggedUrl || url);
   }
 
   private _openDirectionsInGoogleMaps(location: google.maps.LatLngLiteral) {
@@ -376,7 +396,7 @@ export class MapsApiService extends ConsentAwareService {
       url: taggedUrl || url,
     });
 
-    if (taggedUrl) window.open(taggedUrl);
+    window.open(taggedUrl || url);
   }
 
   async autocompletePlaceSearch(

@@ -16,6 +16,7 @@
 		80A610052F1F000100000005 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 80A610042F1F000100000004 /* GooglePlaces */; };
 		80A610082F1F000100000008 /* AppViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610072F1F000100000007 /* AppViewController.swift */; };
 		80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */; };
+		46D27AE99FD745D7AFCF7022 /* MapsLauncherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */; };
 		80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */; };
 		81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */; };
 		91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */; };
@@ -45,6 +46,7 @@
 		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
 		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
 		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
+		257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsLauncherPlugin.swift; sourceTree = "<group>"; };
 		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
 		81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreReviewPlugin.swift; sourceTree = "<group>"; };
 		91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewPlugin.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				80A610072F1F000100000007 /* AppViewController.swift */,
 				80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */,
+				257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */,
 				80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */,
 				81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */,
 				91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */,
@@ -262,6 +265,7 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				80A610082F1F000100000008 /* AppViewController.swift in Sources */,
 				80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */,
+				46D27AE99FD745D7AFCF7022 /* MapsLauncherPlugin.swift in Sources */,
 				80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */,
 				81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */,
 				91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */,

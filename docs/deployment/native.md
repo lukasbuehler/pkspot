@@ -4,6 +4,17 @@ Build, signing and physical-device checks. Restore Credentials remain disabled; 
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Opening a Spot in Maps
+
+- [ ] Build a fresh iOS binary containing `MapsLauncherPlugin`. Verify the single
+      “Open in Maps” button opens the Spot coordinate, and directions keeps the
+      same destination. In an eligible EU/Japan configuration with a chosen
+      default navigation app, verify the `geo-navigation` handoff reaches that app.
+      In Switzerland, older iOS versions, or without a scheme handler, verify
+      fallback to Apple Maps. Also check the Apple Maps web fallback when the app
+      is removed. Existing binaries without the plugin retain the URL fallback.
+      Browser/unit tests and an iOS compile do not prove which installed app opens.
+
 ### Android Maps sharing and mobile cropping
 
 - [ ] Rebuild Android/iOS development binaries and stress-test vector-map panning

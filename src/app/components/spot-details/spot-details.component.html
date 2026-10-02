@@ -506,50 +506,18 @@
         </div>
         } -->
 
-        <!-- Navigate and open in google buttons -->
-        <div class="d-flex flex-column flex-xl-row gap-2 mb-4">
+        <div class="d-flex mb-4">
           <button
             mat-stroked-button
             color="primary"
-            class="flex-grow-1 flex-basis-0 py-2"
-            i18n-matTooltip="
-              Open in Google maps button tooltip|Tooltip of button to open the
-              spot in Google Maps
-            "
-            matTooltip="Open the location of this spot in Maps"
-            (click)="openSpotInMaps('google')"
+            class="flex-grow-1 py-2"
+            i18n-matTooltip="@@spot.open_maps.tooltip"
+            matTooltip="Open the location of this Spot in Maps"
+            (click)="openSpotInMaps()"
           >
             <mat-icon>place</mat-icon>
-            <span
-              i18n="
-                Open in Google maps button|Button to open the spot in Google
-                Maps
-              "
-              >Open in Google Maps</span
-            >
+            <span i18n="@@spot.open_maps.label">Open in Maps</span>
           </button>
-          @if (isAppleMaps) {
-            <button
-              mat-stroked-button
-              color="primary"
-              class="flex-grow-1 flex-basis-0 py-2"
-              i18n-matTooltip="
-                Open in Apple maps button tooltip|Tooltip of button to open the
-                spot in Apple Maps
-              "
-              matTooltip="Open the location of this spot in Maps"
-              (click)="openSpotInMaps('apple')"
-            >
-              <mat-icon>place</mat-icon>
-              <span
-                i18n="
-                  Open in Apple maps button|Button to open the spot in Apple
-                  Maps
-                "
-                >Open in Apple Maps</span
-              >
-            </button>
-          }
         </div>
 
         <!-- Google place (reusable component) -->

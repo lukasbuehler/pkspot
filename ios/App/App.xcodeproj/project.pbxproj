@@ -20,6 +20,7 @@
 		80A610052F1F000100000005 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 80A610042F1F000100000004 /* GooglePlaces */; };
 		80A610082F1F000100000008 /* AppViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610072F1F000100000007 /* AppViewController.swift */; };
 		80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */; };
+		1C0E1EAB842E497A8CE718C7 /* MapsLauncherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BE37009FDCD4FFB975AF910 /* MapsLauncherPlugin.swift */; };
 		80A6100B2F1F00010000000B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 80A6100D2F1F00010000000D /* FirebaseMessaging */; };
 		80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */; };
 		80D508C62F01488800B544DF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 80D508C52F01488800B544DF /* GoogleService-Info.plist */; };
@@ -50,6 +51,7 @@
 		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
 		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
 		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
+		7BE37009FDCD4FFB975AF910 /* MapsLauncherPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsLauncherPlugin.swift; sourceTree = "<group>"; };
 		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
 		80CC6AE32F12A0470084B21F /* PK Spot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PK Spot.entitlements"; sourceTree = "<group>"; };
 		80D508C52F01488800B544DF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -120,6 +122,7 @@
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				80A610072F1F000100000007 /* AppViewController.swift */,
 				80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */,
+				7BE37009FDCD4FFB975AF910 /* MapsLauncherPlugin.swift */,
 				80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */,
 				81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */,
 				91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */,
@@ -263,6 +266,7 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				80A610082F1F000100000008 /* AppViewController.swift in Sources */,
 				80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */,
+				1C0E1EAB842E497A8CE718C7 /* MapsLauncherPlugin.swift in Sources */,
 				80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */,
 				81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */,
 				91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */,
