@@ -201,9 +201,9 @@ const redirectCases: RouteCase[] = [
 ];
 
 const navTargets = [
-  { name: "map", hrefSuffix: "/map", expectedPath: /\/de\/map$/u },
-  { name: "events", hrefSuffix: "/events", expectedPath: /\/de\/events$/u },
-  { name: "about", hrefSuffix: "/about", expectedPath: /\/de\/about$/u },
+  { name: "map", menuLabel: "Karte", hrefSuffix: "/map", expectedPath: /\/de\/map$/u },
+  { name: "events", menuLabel: "Events", hrefSuffix: "/events", expectedPath: /\/de\/events$/u },
+  { name: "about", menuLabel: "Über uns", hrefSuffix: "/about", expectedPath: /\/de\/about$/u },
 ];
 
 const mapSearchQueries = [
@@ -300,7 +300,8 @@ test.describe("high-priority user workflow matrix", () => {
 
       await openCompactMenu(page);
       await page
-        .locator(`.cdk-overlay-container a[href$="${target.hrefSuffix}"]`)
+        .locator("#alainMenuButton")
+        .getByRole("button", { name: target.menuLabel, exact: true })
         .click();
 
       await expectRoute(page, target.expectedPath);
