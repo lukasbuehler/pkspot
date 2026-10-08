@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 struct SharedMapLink: Codable {
     let id: String
@@ -12,8 +13,15 @@ struct SharedMapLink: Codable {
 /// One atomic file per share avoids lost updates between app and extension.
 enum SharedMapStore {
     static let group = "group.com.pkspot.app.media"
+    static func containerURL() -> URL? {
+        let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)
+        let logger = Logger(subsystem: "com.pkspot.app", category: "MapShare")
+        if container != nil { logger.info("App Group container accessible") }
+        else { logger.error("App Group container unavailable: check app and extension signing entitlements") }
+        return container
+    }
     static func directory() throws -> URL {
-        guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) else {
+        guard let container = containerURL() else {
             throw NSError(domain: "PKSpotMapShare", code: 1)
         }
         let directory = container.appendingPathComponent("map-links", isDirectory: true)

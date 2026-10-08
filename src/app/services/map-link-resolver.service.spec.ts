@@ -72,7 +72,6 @@ describe("MapLinkResolverService", () => {
     await expect(service.resolve("https://maps.app.goo.gl/abc123")).resolves.toMatchObject({
       provider: "google",
       format: "short",
-      location: { lat: 47.3769, lng: 8.5417 },
       query: "Josefhalle",
     });
     expect(functions.callAppChecked).toHaveBeenCalledWith(
@@ -95,6 +94,29 @@ describe("MapLinkResolverService", () => {
       query: "Spital Lachen AG",
       location: { lat: 47.1893231, lng: 8.8592046 },
     });
+  });
+
+  it("accepts iOS Google Maps root redirects without inventing coordinates", async () => {
+    functions.callAppChecked.mockResolvedValue({finalUrl: "https://maps.google.com?q=Seedammstrasse,+8808+Freienbach&ftid=example"});
+    const result = await service.resolve("https://maps.app.goo.gl/example?g_st=ic");
+    expect(result.query).toBe("Seedammstrasse, 8808 Freienbach");
+    expect(result.location).toBeUndefined();
+  });
+
+  it("does not mistake Google camera coordinates for the shared pin", async () => {
+    const result = await service.resolve("https://www.google.com/maps/place/Training/@48,9,15z?ll=48,9");
+    expect(result.location).toBeUndefined();
+    expect(result.query).toBe("Training");
+  });
+
+  it("opens a saved address-only root URL without calling the cloud resolver", async () => {
+    await expect(service.resolve("https://maps.google.com/?q=Spielplatz,+Hafenweg+1,+8808+Freienbach&ftid=example"))
+      .resolves.toEqual({provider: "google", format: "direct", query: "Spielplatz, Hafenweg 1, 8808 Freienbach"});
+    expect(functions.callAppChecked).not.toHaveBeenCalled();
+  });
+
+  it.each(["https://user@maps.google.com/?q=Training", "https://maps.google.com:444/?q=Training"])("rejects unsafe URL %s", url => {
+    expect(service.isSupportedUrl(url)).toBe(false);
   });
 
   it("rejects lookalike and non-HTTPS hosts", () => {

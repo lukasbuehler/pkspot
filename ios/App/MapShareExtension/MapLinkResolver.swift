@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 struct SharedMapLocation: Codable, Equatable {
     let lat: Double
@@ -9,6 +10,7 @@ struct ResolvedMapLink {
     let url: URL
     let location: SharedMapLocation?
     let name: String?
+    var resolutionIncomplete = false
 }
 
 /// Native HTTP can inspect redirects without the browser's CORS proxy.
@@ -16,6 +18,7 @@ struct ResolvedMapLink {
 final class MapLinkResolver: NSObject, URLSessionTaskDelegate {
     enum Failure: Error { case unsupported, redirects, response }
     private let configuration: URLSessionConfiguration
+    private static let logger = Logger(subsystem: "com.pkspot.app", category: "MapShare")
     init(configuration: URLSessionConfiguration = .ephemeral) {
         self.configuration = configuration
         super.init()
@@ -24,6 +27,7 @@ final class MapLinkResolver: NSObject, URLSessionTaskDelegate {
                     willPerformHTTPRedirection response: HTTPURLResponse,
                     newRequest request: URLRequest,
                     completionHandler: @escaping (URLRequest?) -> Void) {
+        Self.logger.info("Intercepted HTTP redirect: status=\(response.statusCode)")
         completionHandler(nil)
     }
 
@@ -33,10 +37,34 @@ final class MapLinkResolver: NSObject, URLSessionTaskDelegate {
               url.absoluteString.count <= 16384 else { return false }
         if host == "maps.apple.com" || host == "maps.app.goo.gl" { return true }
         let google = host.range(of: "^(?:(?:www|maps)\\.)?google\\.[a-z]{2,3}(?:\\.[a-z]{2})?$", options: .regularExpression) != nil
+        // Google iOS shares can redirect to maps.google.com?q=... before
+        // adding /maps. Only the Maps subdomain may use this root form.
+        if google && host.hasPrefix("maps.") && (url.path.isEmpty || url.path == "/") { return true }
         return (google || host == "goo.gl") && (url.path == "/maps" || url.path.hasPrefix("/maps/"))
     }
 
+    private static func isShortLink(_ url: URL) -> Bool {
+        url.host == "maps.app.goo.gl" || url.host == "goo.gl"
+    }
+
+    /// Resolving a preview is optional. Preserve only the original, validated
+    /// link on failure, never an untrusted redirect or an inferred pin location.
+    func resolveForDraft(_ initial: URL) async throws -> ResolvedMapLink {
+        guard Self.allowed(initial) else { throw Failure.unsupported }
+        do {
+            return try await resolve(initial)
+        } catch {
+            try Task.checkCancellation()
+            let failure = error as NSError
+            Self.logger.error("Link resolution failed: domain=\(failure.domain, privacy: .public) code=\(failure.code) reason=\(String(describing: error as? Failure), privacy: .public)")
+            var draft = Self.parse(initial)
+            draft.resolutionIncomplete = true
+            return draft
+        }
+    }
+
     func resolve(_ initial: URL) async throws -> ResolvedMapLink {
+        Self.logger.info("Starting link resolution: supported=\(Self.allowed(initial))")
         guard Self.allowed(initial) else { throw Failure.unsupported }
         let config = configuration
         config.timeoutIntervalForRequest = 8
@@ -46,25 +74,38 @@ final class MapLinkResolver: NSObject, URLSessionTaskDelegate {
         let deadline = Date().addingTimeInterval(10)
         var current = initial
         var visited = Set<URL>()
-        for _ in 0..<6 {
+        for hop in 0..<6 {
             guard Self.allowed(current), visited.insert(current).inserted,
                   deadline.timeIntervalSinceNow > 0 else { throw Failure.redirects }
-            // Direct links with coordinates need no network request at all.
+            // Match the callable: stop at full Google Maps URLs rather than fetching
+            // HTML or following consent redirects. Apple opaque links may still need expansion.
             let parsed = Self.parse(current)
-            if parsed.location != nil { return parsed }
+            if !Self.isShortLink(current) && (current.host != "maps.apple.com" || parsed.location != nil || parsed.name != nil) {
+                Self.logger.info("Resolved full Maps URL: hop=\(hop)")
+                return parsed
+            }
             var request = URLRequest(url: current)
             request.timeoutInterval = min(8, deadline.timeIntervalSinceNow)
             request.setValue("PKSpot/1.2 map-share", forHTTPHeaderField: "User-Agent")
+            Self.logger.info("Requesting Maps headers: hop=\(hop)")
             // Only headers are needed; do not download the Maps HTML page.
             let (_, response) = try await session.bytes(for: request)
             guard let http = response as? HTTPURLResponse else { throw Failure.response }
+            Self.logger.info("Maps HTTP response: hop=\(hop) status=\(http.statusCode)")
             if (300..<400).contains(http.statusCode) {
                 guard let target = http.value(forHTTPHeaderField: "Location"),
-                      let next = URL(string: target, relativeTo: current)?.absoluteURL,
-                      Self.allowed(next) else { throw Failure.unsupported }
+                      let next = URL(string: target, relativeTo: current)?.absoluteURL else {
+                    Self.logger.error("Rejected redirect: missing or malformed Location header")
+                    throw Failure.unsupported
+                }
+                guard Self.allowed(next) else {
+                    Self.logger.error("Rejected redirect destination: scheme=\(next.scheme ?? "none", privacy: .public) host=\(next.host ?? "none", privacy: .public)")
+                    throw Failure.unsupported
+                }
                 current = next
             } else {
                 guard (200..<300).contains(http.statusCode) else { throw Failure.response }
+                Self.logger.info("Resolved link without exact pin")
                 return parsed
             }
         }
@@ -72,7 +113,11 @@ final class MapLinkResolver: NSObject, URLSessionTaskDelegate {
     }
 
     static func parse(_ url: URL) -> ResolvedMapLink {
-        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        // Match URLSearchParams: '+' is a query-space, while '%2B' is a literal plus.
+        let query = components?.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%20")
+        components?.percentEncodedQuery = query
+        let items = components?.queryItems ?? []
         func value(_ key: String) -> String? { items.first { $0.name == key }?.value }
         func coordinate(_ text: String?) -> SharedMapLocation? {
             guard let text else { return nil }
@@ -81,8 +126,8 @@ final class MapLinkResolver: NSObject, URLSessionTaskDelegate {
                   lat.isFinite, lng.isFinite, abs(lat) <= 90, abs(lng) <= 180 else { return nil }
             return SharedMapLocation(lat: lat, lng: lng)
         }
-        let query = value("query") ?? value("q")
-        var location = coordinate(value("coordinate")) ?? coordinate(query) ?? (url.host == "maps.apple.com" ? coordinate(value("ll")) : nil)
+        let queryValue = value("query") ?? value("q")
+        var location = coordinate(value("coordinate")) ?? coordinate(queryValue) ?? (url.host == "maps.apple.com" ? coordinate(value("ll")) : nil)
         let path = url.path
         if let regex = try? NSRegularExpression(pattern: "!3d(-?[0-9.]+)!4d(-?[0-9.]+)"),
            let match = regex.firstMatch(in: path, range: NSRange(path.startIndex..., in: path)),
@@ -90,8 +135,8 @@ final class MapLinkResolver: NSObject, URLSessionTaskDelegate {
             location = coordinate("\(path[lat]),\(path[lng])") ?? location
         }
         // /@lat,lng is a camera position, not proof of the shared pin's location.
-        let pathName = path.components(separatedBy: "/place/").dropFirst().first?.components(separatedBy: "/").first
-        let name = value("name") ?? (coordinate(query) == nil ? query : nil) ?? pathName?.replacingOccurrences(of: "+", with: " ")
+        let pathName = path.components(separatedBy: path.contains("/place/") ? "/place/" : "/search/").dropFirst().first?.components(separatedBy: "/").first
+        let name = value("name") ?? (coordinate(queryValue) == nil ? queryValue : nil) ?? value("address") ?? pathName?.replacingOccurrences(of: "+", with: " ")
         return ResolvedMapLink(url: url, location: location, name: name)
     }
 }

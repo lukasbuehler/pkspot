@@ -1,8 +1,8 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
-const MAX_URL_LENGTH = 2_048;
+const MAX_URL_LENGTH = 16_384;
 const MAX_REDIRECTS = 5;
-const REDIRECT_DEADLINE_MS = 8_000;
+const REDIRECT_DEADLINE_MS = 10_000;
 const GOOGLE_HOST_PATTERN = /^(?:(?:www|maps)\.)?google\.[a-z]{2,3}(?:\.[a-z]{2})?$/u;
 const GOOGLE_SHORT_HOSTS = new Set(["maps.app.goo.gl", "goo.gl"]);
 
@@ -26,12 +26,12 @@ const isGoogleShortLink = (url: URL): boolean => {
 };
 
 export const isAllowedMapLinkUrl = (url: URL): boolean => {
-  if (url.protocol !== "https:") return false;
+  if (url.protocol !== "https:" || url.username || url.password || url.port || url.href.length > MAX_URL_LENGTH) return false;
   const host = url.hostname.toLowerCase();
   return (
     host === "maps.apple.com" ||
     (GOOGLE_SHORT_HOSTS.has(host) && isGoogleShortLink(url)) ||
-    (GOOGLE_HOST_PATTERN.test(host) && isGoogleMapsPath(url))
+    (GOOGLE_HOST_PATTERN.test(host) && (isGoogleMapsPath(url) || (host.startsWith("maps.") && url.pathname === "/")))
   );
 };
 
@@ -78,7 +78,7 @@ export async function resolveMapRedirectChain(
         method: "GET",
         redirect: "manual",
         signal: AbortSignal.timeout(remainingMs),
-        headers: { "User-Agent": "PKSpot/1.1 map-link-resolver" },
+        headers: { "User-Agent": "PKSpot/1.2 map-share" },
       });
     } catch (error) {
       if (
@@ -94,6 +94,9 @@ export async function resolveMapRedirectChain(
     }
     await response.body?.cancel().catch(() => undefined);
     if (response.status < 300 || response.status >= 400) {
+      if (response.status < 200 || response.status >= 300) {
+        throw new HttpsError("unavailable", "The Maps server returned an unsuccessful response.");
+      }
       return current.toString();
     }
 
@@ -121,7 +124,7 @@ export async function resolveMapRedirectChain(
 }
 
 export const resolveMapShortLink = onCall(
-  { enforceAppCheck: true, timeoutSeconds: 10 },
+  { enforceAppCheck: true, timeoutSeconds: 15 },
   async (request): Promise<{ finalUrl: string }> => {
     const value =
       typeof request.data === "object" &&

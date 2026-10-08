@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 import MapKit
+import OSLog
 
 @MainActor
 final class ShareViewController: UIViewController {
@@ -9,6 +10,11 @@ final class ShareViewController: UIViewController {
         super.viewDidLoad()
         let providers = extensionContext?.inputItems.compactMap { $0 as? NSExtensionItem }
             .flatMap { $0.attachments ?? [] } ?? []
+        Logger(subsystem: "com.pkspot.app", category: "MapShare")
+            .info("Extension opened: context=\(self.extensionContext != nil) providers=\(providers.count)")
+        // Check access without creating or writing a draft. This distinguishes
+        // an App Group entitlement failure from unrelated LaunchServices logs.
+        _ = SharedMapStore.containerURL()
         let host = UIHostingController(rootView: MapShareView(providers: providers, complete: { [weak self] in
             self?.extensionContext?.completeRequest(returningItems: nil)
         }, cancel: { [weak self] in
@@ -28,6 +34,7 @@ final class ShareViewController: UIViewController {
 }
 
 private struct MapShareView: View {
+    private static let logger = Logger(subsystem: "com.pkspot.app", category: "MapShare")
     let providers: [NSItemProvider]
     let complete: () -> Void
     let cancel: () -> Void
@@ -53,6 +60,9 @@ private struct MapShareView: View {
                         TextField("Spot name (optional)", text: $name).textFieldStyle(.roundedBorder)
                         if resolved?.location == nil {
                             Text("This link does not reveal an exact pin location. You can keep it as a draft and choose the location in PK Spot.")
+                            if resolved?.resolutionIncomplete == true {
+                                Button("Try again") { Task { await loadLocation() } }
+                            }
                         } else if searchFailed {
                             Text("Nearby Spots could not be loaded. You can still save a draft.")
                             Button("Try again") { Task { await loadLocation() } }
@@ -93,8 +103,13 @@ private struct MapShareView: View {
         do {
             try SharedMapStore.save(resolved.url.absoluteString, location: resolved.location,
                                     name: name.trimmingCharacters(in: .whitespacesAndNewlines), spotId: selectedSpot?.id)
+            Self.logger.info("Draft saved; completing extension request")
             complete()
-        } catch { failed = true }
+        } catch {
+            let failure = error as NSError
+            Self.logger.error("Draft save failed: domain=\(failure.domain, privacy: .public) code=\(failure.code)")
+            failed = true
+        }
     }
 
     private func loadLocation() async {
@@ -102,7 +117,8 @@ private struct MapShareView: View {
         loading = true; failed = false; searchFailed = false; selectedSpot = nil; nearby = []; snapshot = nil
         defer { loading = false }
         do {
-            let result = try await MapLinkResolver().resolve(sourceURL)
+            let result = try await MapLinkResolver().resolveForDraft(sourceURL)
+            Self.logger.info("Draft ready: exactPin=\(result.location != nil) resolutionIncomplete=\(result.resolutionIncomplete)")
             resolved = result
             if name.isEmpty { name = result.name ?? "" }
             if let point = result.location {
@@ -120,7 +136,11 @@ private struct MapShareView: View {
                 defer { previewTimeout.cancel() }
                 async let preview = try? snapshotter.start()
                 do { nearby = try await NearbySpotSearch.search(point) }
-                catch { searchFailed = true }
+                catch {
+                    let failure = error as NSError
+                    Self.logger.error("Nearby search failed: domain=\(failure.domain, privacy: .public) code=\(failure.code)")
+                    searchFailed = true
+                }
                 if let map = await preview {
                     let renderer = UIGraphicsImageRenderer(size: map.image.size)
                     snapshot = renderer.image { _ in
@@ -131,7 +151,11 @@ private struct MapShareView: View {
                     }
                 }
             }
-        } catch { failed = true; resolved = nil }
+        } catch {
+            let failure = error as NSError
+            Self.logger.error("Draft preparation failed: domain=\(failure.domain, privacy: .public) code=\(failure.code)")
+            failed = true; resolved = nil
+        }
     }
 
     private func readLink() async {
@@ -139,8 +163,14 @@ private struct MapShareView: View {
             let type = provider.hasItemConformingToTypeIdentifier(UTType.url.identifier)
                 ? UTType.url.identifier : UTType.plainText.identifier
             guard provider.hasItemConformingToTypeIdentifier(type) else { continue }
+            Self.logger.info("Loading share attachment: type=\(type, privacy: .public)")
             let value: String? = await withCheckedContinuation { continuation in
-                provider.loadItem(forTypeIdentifier: type, options: nil) { value, _ in
+                provider.loadItem(forTypeIdentifier: type, options: nil) { value, error in
+                    if let error {
+                        let failure = error as NSError
+                        Self.logger.error("Attachment load failed: domain=\(failure.domain, privacy: .public) code=\(failure.code)")
+                    }
+                    Self.logger.info("Attachment decoded: url=\(value is URL) text=\(value is String)")
                     continuation.resume(returning: (value as? URL)?.absoluteString ?? value as? String)
                 }
             }
@@ -148,11 +178,13 @@ private struct MapShareView: View {
                   let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { continue }
             for match in detector.matches(in: value, range: NSRange(value.startIndex..., in: value)) {
                 guard let url = match.url, MapLinkResolver.allowed(url) else { continue }
+                Self.logger.info("Supported Maps link found")
                 sourceURL = url
                 await loadLocation()
                 return
             }
         }
+        Self.logger.notice("No supported Maps link found in attachments")
         loading = false
     }
 }

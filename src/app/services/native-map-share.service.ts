@@ -67,18 +67,28 @@ export class NativeMapShareService {
     } finally { this.checkingPending = false; }
   }
 
-  async receive(text: string): Promise<boolean> {
+  async receive(text: string, draftName?: string): Promise<boolean> {
     const requestId = ++this.requestId;
     this.selection.set(null);
+    let phase = "resolve";
     try {
       const result = await this.resolver.resolve(text);
       if (requestId !== this.requestId) return false;
+      phase = "navigate";
       await this.router.navigate(["/map"]);
       if (requestId !== this.requestId) return false;
-      this.selection.set(result);
+      this.selection.set({...result, ...(draftName ? {draftName} : {})});
       return true;
-    } catch {
+    } catch (error) {
       if (requestId !== this.requestId) return false;
+      // Keep link contents and saved place names out of diagnostic output.
+      console.error("[MapShare] Could not open shared link", {
+        phase,
+        supportedUrl: this.resolver.isSupportedUrl(text),
+        message: error instanceof Error
+          ? error.message.replace(/https?:\/\/[^\s]+/gu, "[URL]")
+          : "Unknown error",
+      });
       this.snackbar.open(
         $localize`Couldn't open that Maps link. Try pasting a full Google Maps or Apple Maps link.`,
         $localize`Dismiss`, {duration: 6000},
@@ -91,7 +101,7 @@ export class NativeMapShareService {
     // Reading a draft never deletes it. Cancellation or failed publication must
     // leave it available; removal is an explicit action in the draft list.
     if (!draft.location && !draft.spotId) {
-      await this.receive(draft.text);
+      await this.receive(draft.text, draft.name);
       return;
     }
     await this.router.navigate(["/map"]);

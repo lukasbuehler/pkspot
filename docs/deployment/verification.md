@@ -187,6 +187,14 @@ The client parses full supported URLs locally. Google short links use a narrow,
 App Check-protected redirect resolver which validates every redirect hop and
 does not log or persist the pasted URL.
 
+- [ ] Before releasing the updated web/mobile client, deploy the compatible Maps
+      resolver with `npm --prefix functions run build` then
+      `npx firebase deploy --project prod --only functions:resolveMapShortLink`.
+      Verify the App Check-protected callable accepts an iOS Google short link
+      redirecting to `https://maps.google.com/?q=...`, returns the full URL without
+      requesting a consent page, and rejects credentials, nonstandard ports, and
+      failed HTTP responses. Rebuild/install iOS to include the matching native
+      resolver. Address-only links must not invent coordinates or run nearby search.
 - [ ] Complete the remaining post-deployment Maps-link verification. Confirm an
       off-domain redirect is rejected, and verify full links from both supported
       map providers open the expected location.

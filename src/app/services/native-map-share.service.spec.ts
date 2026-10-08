@@ -11,7 +11,7 @@ import {MapLinkResolverService, type MapLinkResolution} from "./map-link-resolve
 import {NativeMapShareService} from "./native-map-share.service";
 
 describe("NativeMapShareService", () => {
-  const resolver = {resolve: vi.fn()};
+  const resolver = {resolve: vi.fn(), isSupportedUrl: vi.fn()};
   const router = {navigate: vi.fn()};
   const snackbar = {open: vi.fn()};
   let service: NativeMapShareService;
@@ -77,6 +77,27 @@ describe("NativeMapShareService", () => {
     await service.removeDraft("one");
     expect(service.drafts()).toHaveLength(1);
     expect(snackbar.open).toHaveBeenCalled();
+  });
+
+  it("opens an address-only draft as a query and retains its saved name", async () => {
+    const draft = {id: "address", text: "https://maps.google.com/?q=Spielplatz,+Hafenweg+1,+8808+Freienbach", name: "Training area"};
+    resolver.resolve.mockResolvedValue({provider: "google", format: "direct", query: "Spielplatz, Hafenweg 1, 8808 Freienbach"});
+    await service.reviewDraft(draft);
+    expect(resolver.resolve).toHaveBeenCalledWith(draft.text);
+    expect(service.pending()).toMatchObject({query: "Spielplatz, Hafenweg 1, 8808 Freienbach", draftName: "Training area"});
+    expect(service.pending()?.location).toBeUndefined();
+    expect(native.acknowledge).not.toHaveBeenCalled();
+  });
+
+  it("logs the failing stage without including the Maps URL", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    resolver.isSupportedUrl.mockReturnValue(true);
+    resolver.resolve.mockRejectedValue(new Error("Request failed https://maps.google.com/?q=private"));
+    await service.receive("https://maps.google.com/?q=private");
+    expect(log).toHaveBeenCalledWith("[MapShare] Could not open shared link", {
+      phase: "resolve", supportedUrl: true, message: "Request failed [URL]",
+    });
+    log.mockRestore();
   });
 
 });

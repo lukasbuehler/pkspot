@@ -27,6 +27,22 @@ describe("map link redirect resolver", () => {
     expect(request).toHaveBeenCalledOnce();
   });
 
+  it("accepts the Google Maps root redirect and avoids fetching the consent page", async () => {
+    const destination = "https://maps.google.com/?q=Seedammstrasse,+8808+Freienbach&ftid=example";
+    const request = vi.fn().mockResolvedValue(redirect(destination));
+    await expect(resolveMapRedirectChain("https://maps.app.goo.gl/example", request)).resolves.toBe(destination);
+    expect(request).toHaveBeenCalledOnce();
+  });
+
+  it.each([403, 404, 500])("rejects HTTP %s responses", async status => {
+    const request = vi.fn().mockResolvedValue({status, headers: new Headers(), body: responseBody()});
+    await expect(resolveMapRedirectChain("https://maps.app.goo.gl/example", request)).rejects.toMatchObject({code: "unavailable"});
+  });
+
+  it.each(["https://user@maps.google.com/?q=Training", "https://maps.google.com:444/?q=Training", "https://www.google.com/?q=Training"])("rejects unsafe destination %s", url => {
+    expect(isAllowedMapLinkUrl(new URL(url))).toBe(false);
+  });
+
   it("blocks off-domain redirects", async () => {
     const request = vi.fn().mockResolvedValue(redirect("https://evil.test/maps"));
     await expect(
@@ -54,7 +70,7 @@ describe("map link redirect resolver", () => {
     let now = 0;
     let hop = 0;
     const request = vi.fn().mockImplementation(async () => {
-      now += 4_100;
+      now += 5_100;
       hop += 1;
       return redirect(`https://maps.app.goo.gl/next-${hop}`);
     });
