@@ -2111,6 +2111,13 @@ service cloud.firestore {
       }
     }
     // Collection Group Queries
+    match /{path=**}/live_update_subscribers/{subscriberId} {
+      // My Events discovers legacy subscriptions across events. Authorize only
+      // owner-filtered lists; document reads and writes retain the event rules.
+      allow list: if request.auth != null
+        && resource.data.user_id == request.auth.uid;
+    }
+
     match /{path=**}/reports/{reportId} {
       allow read, update, delete: if isAdmin();
     }

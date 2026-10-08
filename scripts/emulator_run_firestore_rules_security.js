@@ -2200,6 +2200,18 @@ async function testEventLiveUpdateGuards(anon, owner, other, adminUser) {
       updated_at: Timestamp.now(),
     })
   );
+  await assertAllowed("user lists own subscriptions across events", () =>
+    getDocs(query(collectionGroup(owner.db, "live_update_subscribers"), where("user_id", "==", "owner")))
+  );
+  await assertDenied("user cannot list another attendee's subscriptions", () =>
+    getDocs(query(collectionGroup(other.db, "live_update_subscribers"), where("user_id", "==", "owner")))
+  );
+  await assertDenied("user cannot list subscriptions without an owner filter", () =>
+    getDocs(collectionGroup(owner.db, "live_update_subscribers"))
+  );
+  await assertDenied("anonymous cannot list event subscriptions", () =>
+    getDocs(query(collectionGroup(anon.db, "live_update_subscribers"), where("user_id", "==", "owner")))
+  );
   await assertAllowed("user keeps only reminders for their event", () =>
     updateDoc(doc(owner.db, subscriptionPath), {
       event_reminders: true,

@@ -4,6 +4,14 @@ Pending Functions, indexes, provider fixes and data jobs. Check live state befor
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Event subscription discovery rules
+
+- [ ] Deploy `npx firebase deploy --project prod --only firestore:rules` after
+      the rules emulator suite passes. Verify a signed-in user's owner-filtered
+      `live_update_subscribers` collection-group listener succeeds on iOS and web,
+      while anonymous, unfiltered, and other-user queries remain denied. This
+      enables legacy event discovery; existing per-event write rules stay intact.
+
 ### External backend canary
 
 - [ ] Investigate intermittent Better Stack failures before declaring the probe
