@@ -332,6 +332,11 @@
         <source>About</source>
       </segment>
     </unit>
+    <unit id="4085036566907851447">
+      <segment>
+        <source>An older scan used a combined category for suggestive, adult, or violent imagery. Review the individual likelihoods.</source>
+      </segment>
+    </unit>
     <unit id="4086606389696938932">
       <segment>
         <source>Account</source>
@@ -370,6 +375,11 @@
     <unit id="5863879151969666492">
       <segment>
         <source> Preview every active approval created from one policy basis before revoking it. Historical assurance records are retained. </source>
+      </segment>
+    </unit>
+    <unit id="5868895548901252233">
+      <segment>
+        <source>Existing media flagged</source>
       </segment>
     </unit>
     <unit id="5881351283414819200">
@@ -432,6 +442,11 @@
         <source>Pending</source>
       </segment>
     </unit>
+    <unit id="4425399585760291496">
+      <segment>
+        <source>False positive recorded</source>
+      </segment>
+    </unit>
     <unit id="662676929097085827">
       <segment>
         <source>Preview failed</source>
@@ -480,6 +495,11 @@
     <unit id="208754813279042651">
       <segment>
         <source> Public map activity from this profile. </source>
+      </segment>
+    </unit>
+    <unit id="1034149520601449069">
+      <segment>
+        <source>Some items could not be loaded or are no longer public.</source>
       </segment>
     </unit>
     <unit id="1035459065824093652">
@@ -995,6 +1015,11 @@
         <source> Latest open spot and media reports. </source>
       </segment>
     </unit>
+    <unit id="6272079317102347427">
+      <segment>
+        <source>Do not preview or release this media. Continue through the restricted incident workflow.</source>
+      </segment>
+    </unit>
     <unit id="6275309169485929724">
       <segment>
         <source>Authentication Error</source>
@@ -1003,6 +1028,11 @@
     <unit id="6283880478744342457">
       <segment>
         <source>Notify followers of the local community when I publish</source>
+      </segment>
+    </unit>
+    <unit id="4586836015659210261">
+      <segment>
+        <source>Spoof or manipulated imagery</source>
       </segment>
     </unit>
     <unit id="4590053177684821603">
@@ -1058,6 +1088,11 @@
     <unit id="5906272961955453157">
       <segment>
         <source>Approved</source>
+      </segment>
+    </unit>
+    <unit id="5911489025294875166">
+      <segment>
+        <source>Select content to preview your embed.</source>
       </segment>
     </unit>
     <unit id="5911495341996816625">
@@ -1355,6 +1390,11 @@
         <source>Resolving…</source>
       </segment>
     </unit>
+    <unit id="7841744051797681626">
+      <segment>
+        <source>Possible</source>
+      </segment>
+    </unit>
     <unit id="8665225557897160418">
       <segment>
         <source>Spot report</source>
@@ -1650,6 +1690,11 @@
         <source>Participant Type</source>
       </segment>
     </unit>
+    <unit id="4901370606663943191">
+      <segment>
+        <source>PK Spot embedded content</source>
+      </segment>
+    </unit>
     <unit id="4902817035128594900">
       <segment>
         <source>Description</source>
@@ -1673,6 +1718,11 @@
     <unit id="8846151385804023521">
       <segment>
         <source>Classification</source>
+      </segment>
+    </unit>
+    <unit id="8846725202101932087">
+      <segment>
+        <source>Potentially adult content</source>
       </segment>
     </unit>
     <unit id="8856905278208146821">
@@ -2039,9 +2089,19 @@
         <source>Enter a rejection reason.</source>
       </segment>
     </unit>
+    <unit id="1715090817675396731">
+      <segment>
+        <source>Loading your selection…</source>
+      </segment>
+    </unit>
     <unit id="1716052484074407499">
       <segment>
         <source>Why can&apos;t I see any spots in my area?</source>
+      </segment>
+    </unit>
+    <unit id="1716103244838780873">
+      <segment>
+        <source>Violence</source>
       </segment>
     </unit>
     <unit id="1726495281959581318">
@@ -2102,6 +2162,11 @@
     <unit id="7793821153334609761">
       <segment>
         <source>Only visible to you.</source>
+      </segment>
+    </unit>
+    <unit id="7794536791466704117">
+      <segment>
+        <source>The scanner detected a potentially suggestive pose or presentation. This does not establish explicit nudity or illegal content.</source>
       </segment>
     </unit>
     <unit id="7795965715171252279">
@@ -2863,6 +2928,11 @@
         <source>Event operation applied.</source>
       </segment>
     </unit>
+    <unit id="4985572236399012311">
+      <segment>
+        <source> We believe the map should serve the athletes who use it. PK Spot is open source, privacy-first, and built with the community. </source>
+      </segment>
+    </unit>
     <unit id="4992232621012041129">
       <segment>
         <source> events</source>
@@ -3126,6 +3196,11 @@
         <source>Event cancelled</source>
       </segment>
     </unit>
+    <unit id="1201945688098851518">
+      <segment>
+        <source>Scan failed</source>
+      </segment>
+    </unit>
     <unit id="1210302373806182896">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Illegal or unsafe content: This may break the law or put someone at risk.</pc></source>
@@ -3154,6 +3229,11 @@
     <unit id="569492211620333799">
       <segment>
         <source>Safety incident</source>
+      </segment>
+    </unit>
+    <unit id="5696073833130403775">
+      <segment>
+        <source>Likely</source>
       </segment>
     </unit>
     <unit id="4570454655933825601">
@@ -6744,9 +6824,19 @@
         <source>Calendar view</source>
       </segment>
     </unit>
+    <unit id="6340024479572008870">
+      <segment>
+        <source>No media was published or replaced.</source>
+      </segment>
+    </unit>
     <unit id="6340970481322850527">
       <segment>
         <source>Return to sign in</source>
+      </segment>
+    </unit>
+    <unit id="6349573350509049547">
+      <segment>
+        <source>Escalate this media for incident assessment? Normal preview and release will be disabled. No external report is sent automatically.</source>
       </segment>
     </unit>
     <unit id="6350615969580028001">
@@ -6787,6 +6877,11 @@
     <unit id="8552470530989442343">
       <segment>
         <source> Browser-only accounts can use the core service. For now, public-profile eligibility must be established through a supported mobile platform. Additional privacy-preserving verification choices may be added later. </source>
+      </segment>
+    </unit>
+    <unit id="8561751271361299664">
+      <segment>
+        <source>Escalated to incident</source>
       </segment>
     </unit>
     <unit id="8574418528664928574">
@@ -6917,6 +7012,11 @@
         <source>OK</source>
       </segment>
     </unit>
+    <unit id="1600082992393362456">
+      <segment>
+        <source>False positive recorded. No media was published or replaced.</source>
+      </segment>
+    </unit>
     <unit id="1603041043712955298">
       <segment>
         <source>Temporarily closed</source>
@@ -7017,6 +7117,11 @@
     <unit id="3517550046701184661">
       <segment>
         <source>Show less</source>
+      </segment>
+    </unit>
+    <unit id="3525343022629713955">
+      <segment>
+        <source>Mark as false positive without publishing</source>
       </segment>
     </unit>
     <unit id="7214717827274759008">
@@ -7769,6 +7874,11 @@
         <source> Restrict access and contain further distribution </source>
       </segment>
     </unit>
+    <unit id="8729582342971384106">
+      <segment>
+        <source>Needs review</source>
+      </segment>
+    </unit>
     <unit id="8731046002621153148">
       <segment>
         <source>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</source>
@@ -8423,6 +8533,11 @@
         <source> Edit </source>
       </segment>
     </unit>
+    <unit id="5378216314955510316">
+      <segment>
+        <source>Escalate to incident</source>
+      </segment>
+    </unit>
     <unit id="5014960004929658159">
       <segment>
         <source>Verified</source>
@@ -8531,6 +8646,11 @@
         <source> Cancel </source>
       </segment>
     </unit>
+    <unit id="2334394397980787854">
+      <segment>
+        <source>Media review not found.</source>
+      </segment>
+    </unit>
     <unit id="5740206434555920246">
       <segment>
         <source> Preview </source>
@@ -8584,6 +8704,11 @@
     <unit id="events.calendar_local_time_note">
       <segment>
         <source> Event dates use each venue’s local time. </source>
+      </segment>
+    </unit>
+    <unit id="8600926992878784762">
+      <segment>
+        <source>The scanner detected potentially sexual or adult imagery. A human review is required.</source>
       </segment>
     </unit>
     <unit id="8609785202570000921">
@@ -9201,6 +9326,11 @@
         <source>Password changed successfully</source>
       </segment>
     </unit>
+    <unit id="2035140506994982921">
+      <segment>
+        <source>Scanning</source>
+      </segment>
+    </unit>
     <unit id="2036269498046585590">
       <segment>
         <source>Organization settings</source>
@@ -9251,6 +9381,11 @@
         <source>History</source>
       </segment>
     </unit>
+    <unit id="1867945621264126708">
+      <segment>
+        <source>Potentially suggestive content</source>
+      </segment>
+    </unit>
     <unit id="1868606282505332204">
       <segment>
         <source>Reports</source>
@@ -9296,6 +9431,11 @@
         <source>Block</source>
       </segment>
     </unit>
+    <unit id="4226829235700701789">
+      <segment>
+        <source>Show map</source>
+      </segment>
+    </unit>
     <unit id="4228840569239247673">
       <segment>
         <source>Only Reminders</source>
@@ -9321,14 +9461,14 @@
         <source>Nice Spot Sticker Support Pack</source>
       </segment>
     </unit>
-    <unit id="3456162150342793287">
-      <segment>
-        <source> We believe the map belongs to the athletes, not a corporation. PK Spot is open source, privacy-first, and community owned. </source>
-      </segment>
-    </unit>
     <unit id="1472354653162750894">
       <segment>
         <source>Open event website</source>
+      </segment>
+    </unit>
+    <unit id="1485459466100400260">
+      <segment>
+        <source>Escalate this concern to the incident workflow for restricted assessment.</source>
       </segment>
     </unit>
     <unit id="1486755545881068533">
@@ -9730,6 +9870,11 @@
     <unit id="6859805653263373747">
       <segment>
         <source>Keep your own list</source>
+      </segment>
+    </unit>
+    <unit id="7482807007581364111">
+      <segment>
+        <source>Unlikely</source>
       </segment>
     </unit>
     <unit id="7486528540316266957">
@@ -10310,6 +10455,11 @@
         <source>Community</source>
       </segment>
     </unit>
+    <unit id="1275736201928462859">
+      <segment>
+        <source>Open incident</source>
+      </segment>
+    </unit>
     <unit id="1283895920974679461">
       <segment>
         <source>Operation</source>
@@ -10448,6 +10598,11 @@
     <unit id="223483240416376467">
       <segment>
         <source>Media review</source>
+      </segment>
+    </unit>
+    <unit id="2250889364526654351">
+      <segment>
+        <source>No safety flag</source>
       </segment>
     </unit>
     <unit id="2267637299863581067">
@@ -11192,6 +11347,11 @@
         <source>Spot name</source>
       </segment>
     </unit>
+    <unit id="6420981017022434086">
+      <segment>
+        <source>Mark this flag as a false positive without publishing? The current profile picture and existing media will stay unchanged.</source>
+      </segment>
+    </unit>
     <unit id="6421460271971606186">
       <segment>
         <source>Zoom</source>
@@ -11606,6 +11766,11 @@
     <unit id="8876716314997684812">
       <segment>
         <source>Event management</source>
+      </segment>
+    </unit>
+    <unit id="8880174391913285982">
+      <segment>
+        <source>Suggestive content</source>
       </segment>
     </unit>
     <unit id="8882370377359593676">
@@ -12341,6 +12506,11 @@
         <source> media</source>
       </segment>
     </unit>
+    <unit id="1540765026346951304">
+      <segment>
+        <source>Potentially violent content</source>
+      </segment>
+    </unit>
     <unit id="6957965842552679691">
       <segment>
         <source>Error saving spot</source>
@@ -12476,9 +12646,19 @@
         <source>Draft event</source>
       </segment>
     </unit>
+    <unit id="8360850802637390671">
+      <segment>
+        <source>Failed to record the false positive</source>
+      </segment>
+    </unit>
     <unit id="8361822038727829961">
       <segment>
         <source>No reports match this filter.</source>
+      </segment>
+    </unit>
+    <unit id="8366055039424158608">
+      <segment>
+        <source>Very likely</source>
       </segment>
     </unit>
     <unit id="8368669567404524078">
@@ -12586,6 +12766,11 @@
         <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
       </segment>
     </unit>
+    <unit id="9081463435738465430">
+      <segment>
+        <source>Blocked</source>
+      </segment>
+    </unit>
     <unit id="6435282697411612190">
       <segment>
         <source>What would you rate this spot from one to five stars?</source>
@@ -12660,6 +12845,11 @@
     <unit id="2325032840535506648">
       <segment>
         <source>Discord Community</source>
+      </segment>
+    </unit>
+    <unit id="2329532327270524200">
+      <segment>
+        <source>Medical imagery</source>
       </segment>
     </unit>
     <unit id="3572620215430537942">
@@ -13338,9 +13528,19 @@
         <source>Contact</source>
       </segment>
     </unit>
+    <unit id="792767725784996680">
+      <segment>
+        <source>The automated scan did not flag this media.</source>
+      </segment>
+    </unit>
     <unit id="7932219281550877290">
       <segment>
         <source>Unknown creator</source>
+      </segment>
+    </unit>
+    <unit id="7934833136974560675">
+      <segment>
+        <source>Retry</source>
       </segment>
     </unit>
     <unit id="7939156787719949830">
@@ -13371,6 +13571,11 @@
     <unit id="7966917302907632321">
       <segment>
         <source>Platforms</source>
+      </segment>
+    </unit>
+    <unit id="7973843120604670267">
+      <segment>
+        <source>Adult content</source>
       </segment>
     </unit>
     <unit id="7976929923774557536">
@@ -13973,6 +14178,11 @@
         <source>Role</source>
       </segment>
     </unit>
+    <unit id="4148975909996198269">
+      <segment>
+        <source>Data by</source>
+      </segment>
+    </unit>
     <unit id="4152341800436198728">
       <segment>
         <source>Event Spot (optional)</source>
@@ -14022,6 +14232,11 @@
         <source>Pathfinder</source>
       </segment>
     </unit>
+    <unit id="7252953739661141621">
+      <segment>
+        <source>Continue assessment and reporting in the incident workflow.</source>
+      </segment>
+    </unit>
     <unit id="726336810858265673">
       <segment>
         <source>Uploading…</source>
@@ -14055,6 +14270,11 @@
     <unit id="7295769845403931650">
       <segment>
         <source>No spot edit votes waiting.</source>
+      </segment>
+    </unit>
+    <unit id="2881056693971347073">
+      <segment>
+        <source>Restricted child safety match</source>
       </segment>
     </unit>
     <unit id="2882100937757413407">
@@ -14172,6 +14392,11 @@
         <source>Documenter</source>
       </segment>
     </unit>
+    <unit id="1758316647733036984">
+      <segment>
+        <source>Potentially explicit or violent content</source>
+      </segment>
+    </unit>
     <unit id="1764129256318376973">
       <segment>
         <source>My Spots</source>
@@ -14195,6 +14420,11 @@
     <unit id="1774760996053367231">
       <segment>
         <source>Preview notification</source>
+      </segment>
+    </unit>
+    <unit id="7686689894059927472">
+      <segment>
+        <source>Very unlikely</source>
       </segment>
     </unit>
     <unit id="7688469791911355016">
@@ -14446,6 +14676,11 @@
         <source>Unnamed Challenge</source>
       </segment>
     </unit>
+    <unit id="2511734854911571232">
+      <segment>
+        <source>False positive</source>
+      </segment>
+    </unit>
     <unit id="2043725857486133673">
       <segment>
         <source>Sketchy</source>
@@ -14596,6 +14831,11 @@
         <source>Ownership claim rejected.</source>
       </segment>
     </unit>
+    <unit id="5103483003984888011">
+      <segment>
+        <source>Possible child safety concern</source>
+      </segment>
+    </unit>
     <unit id="5109390034351761565">
       <segment>
         <source>This challenge is for fun! </source>
@@ -14629,6 +14869,11 @@
         <source> A public profile can expose a picture, city, biography and links to anyone—including search engines. PK Spot keeps that profile private unless an age provider returns an independently checked 18+ result. </source>
       </segment>
     </unit>
+    <unit id="2363968011819595318">
+      <segment>
+        <source>The scanner detected potentially violent imagery. A human review is required.</source>
+      </segment>
+    </unit>
     <unit id="2365683588441896071">
       <segment>
         <source>Open released media</source>
@@ -14647,6 +14892,11 @@
     <unit id="2372675819412259320">
       <segment>
         <source>nearby Spots</source>
+      </segment>
+    </unit>
+    <unit id="2383218576943426820">
+      <segment>
+        <source>No public content is available for this selection.</source>
       </segment>
     </unit>
     <unit id="2384854885353072939">
@@ -14672,6 +14922,11 @@
     <unit id="3935646276054511852">
       <segment>
         <source>Solo</source>
+      </segment>
+    </unit>
+    <unit id="393825406524854368">
+      <segment>
+        <source>Review media</source>
       </segment>
     </unit>
     <unit id="3946393485152934212">

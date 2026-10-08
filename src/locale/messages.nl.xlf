@@ -66,6 +66,12 @@
         <target>History</target>
       </segment>
     </unit>
+    <unit id="1867945621264126708">
+      <segment state="initial">
+        <source>Potentially suggestive content</source>
+        <target>Mogelijk suggestieve inhoud</target>
+      </segment>
+    </unit>
     <unit id="1868606282505332204">
       <segment state="initial">
         <source>Reports</source>
@@ -370,10 +376,22 @@
         <target>Kalenderweergave</target>
       </segment>
     </unit>
+    <unit id="6340024479572008870">
+      <segment state="initial">
+        <source>No media was published or replaced.</source>
+        <target>Er zijn geen media gepubliceerd of vervangen.</target>
+      </segment>
+    </unit>
     <unit id="6340970481322850527">
       <segment state="initial">
         <source>Return to sign in</source>
         <target>Terug naar inloggen</target>
+      </segment>
+    </unit>
+    <unit id="6349573350509049547">
+      <segment state="initial">
+        <source>Escalate this media for incident assessment? Normal preview and release will be disabled. No external report is sent automatically.</source>
+        <target>Deze media escaleren voor incidentbeoordeling? Normale voorvertoning en publicatie worden uitgeschakeld. Er wordt niet automatisch een externe melding verstuurd.</target>
       </segment>
     </unit>
     <unit id="6350615969580028001">
@@ -470,6 +488,12 @@
         <target>Naam van de spot</target>
       </segment>
     </unit>
+    <unit id="6420981017022434086">
+      <segment state="initial">
+        <source>Mark this flag as a false positive without publishing? The current profile picture and existing media will stay unchanged.</source>
+        <target>Deze melding als fout-positief markeren zonder te publiceren? De huidige profielfoto en bestaande media blijven ongewijzigd.</target>
+      </segment>
+    </unit>
     <unit id="6421460271971606186">
       <segment state="initial">
         <source>Zoom</source>
@@ -480,6 +504,12 @@
       <segment state="initial">
         <source>Delete this spot and all of its nested data? This action is permanent and will be recorded in moderation provenance.</source>
         <target>Deze Spot en alle geneste gegevens verwijderen? Deze actie is permanent en wordt vastgelegd in de moderatieherkomst.</target>
+      </segment>
+    </unit>
+    <unit id="4901370606663943191">
+      <segment state="initial">
+        <source>PK Spot embedded content</source>
+        <target>Ingesloten inhoud van PK Spot</target>
       </segment>
     </unit>
     <unit id="4902817035128594900">
@@ -1014,6 +1044,12 @@
         <target>Open event website</target>
       </segment>
     </unit>
+    <unit id="1485459466100400260">
+      <segment state="initial">
+        <source>Escalate this concern to the incident workflow for restricted assessment.</source>
+        <target>Escaleer deze zorg naar het incidentproces voor afgeschermde beoordeling.</target>
+      </segment>
+    </unit>
     <unit id="1486755545881068533">
       <segment state="initial">
         <source>Re-authentication failed. Account not deleted.</source>
@@ -1168,6 +1204,12 @@
       <segment state="initial">
         <source> Preview every active approval created from one policy basis before revoking it. Historical assurance records are retained. </source>
         <target> Bekijk alle actieve goedkeuringen die op dezelfde beleidsgrondslag zijn gebaseerd voordat je ze intrekt. Historische verificatiegegevens blijven bewaard. </target>
+      </segment>
+    </unit>
+    <unit id="5868895548901252233">
+      <segment state="initial">
+        <source>Existing media flagged</source>
+        <target>Bestaande media gemarkeerd</target>
       </segment>
     </unit>
     <unit id="5881351283414819200">
@@ -2289,6 +2331,12 @@
         <target>Toon minder</target>
       </segment>
     </unit>
+    <unit id="3525343022629713955">
+      <segment state="initial">
+        <source>Mark as false positive without publishing</source>
+        <target>Als fout-positief markeren zonder te publiceren</target>
+      </segment>
+    </unit>
     <unit id="3542042671420335679">
       <segment state="initial">
         <source>No</source>
@@ -2957,6 +3005,12 @@
         <target> Spot </target>
       </segment>
     </unit>
+    <unit id="7482807007581364111">
+      <segment state="initial">
+        <source>Unlikely</source>
+        <target>Onwaarschijnlijk</target>
+      </segment>
+    </unit>
     <unit id="7486528540316266957">
       <segment state="initial">
         <source>Choose a strong password.</source>
@@ -3107,6 +3161,12 @@
         <target> Public map activity from this profile. </target>
       </segment>
     </unit>
+    <unit id="1034149520601449069">
+      <segment state="initial">
+        <source>Some items could not be loaded or are no longer public.</source>
+        <target>Sommige items konden niet worden geladen of zijn niet meer openbaar.</target>
+      </segment>
+    </unit>
     <unit id="1035459065824093652">
       <segment state="initial">
         <source>Open edit</source>
@@ -3177,6 +3237,12 @@
       <segment state="initial">
         <source>Community</source>
         <target>Gemeenschap</target>
+      </segment>
+    </unit>
+    <unit id="1275736201928462859">
+      <segment state="initial">
+        <source>Open incident</source>
+        <target>Incident openen</target>
       </segment>
     </unit>
     <unit id="1283895920974679461">
@@ -3689,6 +3755,12 @@
         <target> mediabestanden</target>
       </segment>
     </unit>
+    <unit id="1540765026346951304">
+      <segment state="initial">
+        <source>Potentially violent content</source>
+        <target>Mogelijk gewelddadige inhoud</target>
+      </segment>
+    </unit>
     <unit id="6945945395354199350">
       <segment state="initial">
         <source>Incorrect password. Please try again.</source>
@@ -3992,10 +4064,22 @@
         <target>Voeg nieuwe spots toe, verbeter details en help lokale kennis nuttig te houden voor iedereen.</target>
       </segment>
     </unit>
+    <unit id="8360850802637390671">
+      <segment state="initial">
+        <source>Failed to record the false positive</source>
+        <target>Fout-positieve melding kon niet worden vastgelegd</target>
+      </segment>
+    </unit>
     <unit id="8361822038727829961">
       <segment state="initial">
         <source>No reports match this filter.</source>
         <target>Ningún reporte coincide con este filtro.</target>
+      </segment>
+    </unit>
+    <unit id="8366055039424158608">
+      <segment state="initial">
+        <source>Very likely</source>
+        <target>Zeer waarschijnlijk</target>
       </segment>
     </unit>
     <unit id="8368669567404524078">
@@ -4050,6 +4134,12 @@
       <segment state="final">
         <source> Event dates use each venue’s local time. </source>
         <target> Evenementdatums gebruiken de lokale tijd van elke locatie. </target>
+      </segment>
+    </unit>
+    <unit id="8600926992878784762">
+      <segment state="initial">
+        <source>The scanner detected potentially sexual or adult imagery. A human review is required.</source>
+        <target>De scanner herkende mogelijk seksuele beelden of beelden voor volwassenen. Menselijke beoordeling is nodig.</target>
       </segment>
     </unit>
     <unit id="8609785202570000921">
@@ -4238,6 +4328,12 @@
         <target>In behandeling</target>
       </segment>
     </unit>
+    <unit id="4425399585760291496">
+      <segment state="initial">
+        <source>False positive recorded</source>
+        <target>Fout-positieve melding vastgelegd</target>
+      </segment>
+    </unit>
     <unit id="2312227289513761859">
       <segment state="initial">
         <source> Record the external action, reference, and follow-up </source>
@@ -4256,6 +4352,12 @@
         <target>Discord-community</target>
       </segment>
     </unit>
+    <unit id="2329532327270524200">
+      <segment state="initial">
+        <source>Medical imagery</source>
+        <target>Medische beelden</target>
+      </segment>
+    </unit>
     <unit id="2330111619305505465">
       <segment state="initial">
         <source> reviews</source>
@@ -4266,6 +4368,12 @@
       <segment state="initial">
         <source> Cancel </source>
         <target> Annuleren </target>
+      </segment>
+    </unit>
+    <unit id="2334394397980787854">
+      <segment state="initial">
+        <source>Media review not found.</source>
+        <target>Mediabeoordeling niet gevonden.</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.title">
@@ -6448,6 +6556,12 @@
         <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>&apos; evalueren</target>
       </segment>
     </unit>
+    <unit id="9081463435738465430">
+      <segment state="initial">
+        <source>Blocked</source>
+        <target>Geblokkeerd</target>
+      </segment>
+    </unit>
     <unit id="9091381429305665620">
       <segment state="initial">
         <source>Helper</source>
@@ -7837,6 +7951,12 @@
       <segment state="initial">
         <source>List view</source>
         <target>Lijstweergave</target>
+      </segment>
+    </unit>
+    <unit id="7686689894059927472">
+      <segment state="initial">
+        <source>Very unlikely</source>
+        <target>Zeer onwaarschijnlijk</target>
       </segment>
     </unit>
     <unit id="7688469791911355016">
@@ -10784,6 +10904,12 @@
         <target>Blokkeren</target>
       </segment>
     </unit>
+    <unit id="4226829235700701789">
+      <segment state="initial">
+        <source>Show map</source>
+        <target>Kaart tonen</target>
+      </segment>
+    </unit>
     <unit id="4228840569239247673">
       <segment state="initial">
         <source>Only Reminders</source>
@@ -11147,6 +11273,12 @@
         <target>Eventwijziging toegepast.</target>
       </segment>
     </unit>
+    <unit id="4985572236399012311">
+      <segment state="initial">
+        <source> We believe the map should serve the athletes who use it. PK Spot is open source, privacy-first, and built with the community. </source>
+        <target> Wij vinden dat de kaart de atleten die hem gebruiken moet dienen. PK Spot is open source, stelt privacy voorop en wordt samen met de community ontwikkeld. </target>
+      </segment>
+    </unit>
     <unit id="4992232621012041129">
       <segment state="initial">
         <source> events</source>
@@ -11249,6 +11381,12 @@
         <target> Verwijder mijn account </target>
       </segment>
     </unit>
+    <unit id="2881056693971347073">
+      <segment state="initial">
+        <source>Restricted child safety match</source>
+        <target>Afgeschermde overeenkomst voor kindveiligheid</target>
+      </segment>
+    </unit>
     <unit id="2882100937757413407">
       <segment state="initial">
         <source>Architect</source>
@@ -11301,6 +11439,12 @@
       <segment state="initial">
         <source>Resolving…</source>
         <target>Oplossen…</target>
+      </segment>
+    </unit>
+    <unit id="7841744051797681626">
+      <segment state="initial">
+        <source>Possible</source>
+        <target>Mogelijk</target>
       </segment>
     </unit>
     <unit id="7855274718891325217">
@@ -11387,10 +11531,22 @@
         <target>Contact opnemen</target>
       </segment>
     </unit>
+    <unit id="792767725784996680">
+      <segment state="initial">
+        <source>The automated scan did not flag this media.</source>
+        <target>De automatische scan heeft deze media niet gemarkeerd.</target>
+      </segment>
+    </unit>
     <unit id="7932219281550877290">
       <segment state="initial">
         <source>Unknown creator</source>
         <target>Onbekende maker</target>
+      </segment>
+    </unit>
+    <unit id="7934833136974560675">
+      <segment state="initial">
+        <source>Retry</source>
+        <target>Opnieuw proberen</target>
       </segment>
     </unit>
     <unit id="7939156787719949830">
@@ -11427,6 +11583,12 @@
       <segment state="initial">
         <source>Platforms</source>
         <target>Platformen</target>
+      </segment>
+    </unit>
+    <unit id="7973843120604670267">
+      <segment state="initial">
+        <source>Adult content</source>
+        <target>Inhoud voor volwassenen</target>
       </segment>
     </unit>
     <unit id="7976929923774557536">
@@ -11569,6 +11731,12 @@
       <segment state="initial">
         <source>Report</source>
         <target>Melden</target>
+      </segment>
+    </unit>
+    <unit id="4085036566907851447">
+      <segment state="initial">
+        <source>An older scan used a combined category for suggestive, adult, or violent imagery. Review the individual likelihoods.</source>
+        <target>Een oudere scan groepeerde suggestieve, seksuele en gewelddadige beelden. Bekijk de afzonderlijke waarschijnlijkheden.</target>
       </segment>
     </unit>
     <unit id="4086606389696938932">
@@ -12239,6 +12407,12 @@
         <target> Beperk de toegang en voorkom verdere verspreiding </target>
       </segment>
     </unit>
+    <unit id="8729582342971384106">
+      <segment state="initial">
+        <source>Needs review</source>
+        <target>Beoordeling nodig</target>
+      </segment>
+    </unit>
     <unit id="8731046002621153148">
       <segment state="initial">
         <source>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</source>
@@ -12662,6 +12836,12 @@
         <target>Goedgekeurd</target>
       </segment>
     </unit>
+    <unit id="5911489025294875166">
+      <segment state="initial">
+        <source>Select content to preview your embed.</source>
+        <target>Selecteer inhoud om een voorbeeld van je insluiting te bekijken.</target>
+      </segment>
+    </unit>
     <unit id="5911495341996816625">
       <segment state="initial">
         <source>Please wait while we verify your email address...</source>
@@ -13017,6 +13197,12 @@
       <segment state="initial">
         <source>Role</source>
         <target>Rol</target>
+      </segment>
+    </unit>
+    <unit id="4148975909996198269">
+      <segment state="initial">
+        <source>Data by</source>
+        <target>Gegevens van</target>
       </segment>
     </unit>
     <unit id="4152341800436198728">
@@ -13951,6 +14137,12 @@
         <target> Bewerken </target>
       </segment>
     </unit>
+    <unit id="5378216314955510316">
+      <segment state="initial">
+        <source>Escalate to incident</source>
+        <target>Escaleren naar incident</target>
+      </segment>
+    </unit>
     <unit id="spot.edit.media.header">
       <notes>
         <note category="description">Header for media editing section</note>
@@ -14155,6 +14347,12 @@
         <target>Naamloze Challenge</target>
       </segment>
     </unit>
+    <unit id="2511734854911571232">
+      <segment state="initial">
+        <source>False positive</source>
+        <target>Fout-positieve melding</target>
+      </segment>
+    </unit>
     <unit id="2523161892325205973">
       <segment state="initial">
         <source>Pending community vote (verified spot)</source>
@@ -14189,6 +14387,12 @@
       <segment state="initial">
         <source> Be Part of the Movement. </source>
         <target> Maak deel uit van de beweging. </target>
+      </segment>
+    </unit>
+    <unit id="2035140506994982921">
+      <segment state="initial">
+        <source>Scanning</source>
+        <target>Bezig met scannen</target>
       </segment>
     </unit>
     <unit id="2036269498046585590">
@@ -14503,12 +14707,6 @@
         <target>Nice Spot Sticker Support Pack</target>
       </segment>
     </unit>
-    <unit id="3456162150342793287">
-      <segment state="initial">
-        <source> We believe the map belongs to the athletes, not a corporation. PK Spot is open source, privacy-first, and community owned. </source>
-        <target> Wij geloven dat de kaart van de atleten is, niet van een bedrijf. PK Spot is open source, privacy-first en van de community. </target>
-      </segment>
-    </unit>
     <unit id="3471970565051584693">
       <segment state="initial">
         <source>Manual review required</source>
@@ -14543,6 +14741,12 @@
       <segment state="initial">
         <source>Ownership claim rejected.</source>
         <target>Ownership claim rejected.</target>
+      </segment>
+    </unit>
+    <unit id="5103483003984888011">
+      <segment state="initial">
+        <source>Possible child safety concern</source>
+        <target>Mogelijk risico voor kindveiligheid</target>
       </segment>
     </unit>
     <unit id="5109390034351761565">
@@ -14686,6 +14890,12 @@
         <target> Een openbaar profiel kan een foto, woonplaats, biografie en links aan iedereen tonen, ook aan zoekmachines. PK Spot houdt dat profiel privé totdat een leeftijdsprovider een onafhankelijk gecontroleerd resultaat van 18 jaar of ouder terugstuurt. </target>
       </segment>
     </unit>
+    <unit id="2363968011819595318">
+      <segment state="initial">
+        <source>The scanner detected potentially violent imagery. A human review is required.</source>
+        <target>De scanner herkende mogelijk gewelddadige beelden. Menselijke beoordeling is nodig.</target>
+      </segment>
+    </unit>
     <unit id="2365683588441896071">
       <segment state="initial">
         <source>Open released media</source>
@@ -14708,6 +14918,12 @@
       <segment state="initial">
         <source>nearby Spots</source>
         <target>nabijgelegen Spots</target>
+      </segment>
+    </unit>
+    <unit id="2383218576943426820">
+      <segment state="initial">
+        <source>No public content is available for this selection.</source>
+        <target>Er is geen openbare inhoud beschikbaar voor deze selectie.</target>
       </segment>
     </unit>
     <unit id="2384854885353072939">
@@ -14740,6 +14956,12 @@
         <target>Individueel</target>
       </segment>
     </unit>
+    <unit id="393825406524854368">
+      <segment state="initial">
+        <source>Review media</source>
+        <target>Media beoordelen</target>
+      </segment>
+    </unit>
     <unit id="3946393485152934212">
       <segment state="initial">
         <source>Privacy First</source>
@@ -14768,6 +14990,12 @@
       <segment state="initial">
         <source>Media review</source>
         <target>Mediacontrole</target>
+      </segment>
+    </unit>
+    <unit id="2250889364526654351">
+      <segment state="initial">
+        <source>No safety flag</source>
+        <target>Geen veiligheidswaarschuwing</target>
       </segment>
     </unit>
     <unit id="2267637299863581067">
@@ -14962,6 +15190,12 @@
         <target>Classificatie</target>
       </segment>
     </unit>
+    <unit id="8846725202101932087">
+      <segment state="initial">
+        <source>Potentially adult content</source>
+        <target>Mogelijk inhoud voor volwassenen</target>
+      </segment>
+    </unit>
     <unit id="8856905278208146821">
       <segment state="translated">
         <source> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One published event has invalid discovery data and was not shown.} other {{{invalidItemCount}} published events have invalid discovery data and were not shown.} }" subFlows="3991033213392190792"/> </source>
@@ -14978,6 +15212,12 @@
       <segment state="initial">
         <source>Event management</source>
         <target>Evenement beheren</target>
+      </segment>
+    </unit>
+    <unit id="8880174391913285982">
+      <segment state="initial">
+        <source>Suggestive content</source>
+        <target>Suggestieve inhoud</target>
       </segment>
     </unit>
     <unit id="8882370377359593676">
@@ -15140,6 +15380,12 @@
       <segment state="initial">
         <source> Browser-only accounts can use the core service. For now, public-profile eligibility must be established through a supported mobile platform. Additional privacy-preserving verification choices may be added later. </source>
         <target> Accounts die alleen de browser gebruiken, kunnen de kerndienst gebruiken. Voorlopig moet geschiktheid voor een openbaar profiel via een ondersteund mobiel platform worden vastgesteld. Later kunnen aanvullende privacyvriendelijke verificatieopties worden toegevoegd. </target>
+      </segment>
+    </unit>
+    <unit id="8561751271361299664">
+      <segment state="initial">
+        <source>Escalated to incident</source>
+        <target>Geëscaleerd naar incident</target>
       </segment>
     </unit>
     <unit id="8574418528664928574">
@@ -16023,6 +16269,12 @@
         <target>Event geannuleerd</target>
       </segment>
     </unit>
+    <unit id="1201945688098851518">
+      <segment state="initial">
+        <source>Scan failed</source>
+        <target>Scan mislukt</target>
+      </segment>
+    </unit>
     <unit id="1210302373806182896">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Illegal or unsafe content: This may break the law or put someone at risk.</pc></source>
@@ -16059,6 +16311,12 @@
         <target>Veiligheidsincident</target>
       </segment>
     </unit>
+    <unit id="5696073833130403775">
+      <segment state="initial">
+        <source>Likely</source>
+        <target>Waarschijnlijk</target>
+      </segment>
+    </unit>
     <unit id="4565748598505088180">
       <segment state="initial">
         <source>This link is invalid or has already been used. Please request a new one.</source>
@@ -16078,6 +16336,12 @@
       <segment state="initial">
         <source>All Participants</source>
         <target>Alle deelnemers</target>
+      </segment>
+    </unit>
+    <unit id="4586836015659210261">
+      <segment state="initial">
+        <source>Spoof or manipulated imagery</source>
+        <target>Parodie of gemanipuleerde beelden</target>
       </segment>
     </unit>
     <unit id="4590053177684821603">
@@ -16168,6 +16432,12 @@
       <segment state="initial">
         <source> Latest open spot and media reports. </source>
         <target> Laatst open spot and media reports. </target>
+      </segment>
+    </unit>
+    <unit id="6272079317102347427">
+      <segment state="initial">
+        <source>Do not preview or release this media. Continue through the restricted incident workflow.</source>
+        <target>Bekijk of publiceer deze media niet. Ga verder via het afgeschermde incidentproces.</target>
       </segment>
     </unit>
     <unit id="6275309169485929724">
@@ -16448,10 +16718,22 @@
         <target>Enter a rejection reason.</target>
       </segment>
     </unit>
+    <unit id="1715090817675396731">
+      <segment state="initial">
+        <source>Loading your selection…</source>
+        <target>Je selectie wordt geladen…</target>
+      </segment>
+    </unit>
     <unit id="1716052484074407499">
       <segment state="initial">
         <source>Why can&apos;t I see any spots in my area?</source>
         <target>Why can&apos;t I see any spots in my area?</target>
+      </segment>
+    </unit>
+    <unit id="1716103244838780873">
+      <segment state="initial">
+        <source>Violence</source>
+        <target>Geweld</target>
       </segment>
     </unit>
     <unit id="1726495281959581318">
@@ -16496,6 +16778,12 @@
         <target>Profielen</target>
       </segment>
     </unit>
+    <unit id="1758316647733036984">
+      <segment state="initial">
+        <source>Potentially explicit or violent content</source>
+        <target>Mogelijk expliciete of gewelddadige inhoud</target>
+      </segment>
+    </unit>
     <unit id="1764129256318376973">
       <segment state="initial">
         <source>My Spots</source>
@@ -16524,6 +16812,12 @@
       <segment state="initial">
         <source>Preview notification</source>
         <target>Meldingsvoorbeeld</target>
+      </segment>
+    </unit>
+    <unit id="1600082992393362456">
+      <segment state="initial">
+        <source>False positive recorded. No media was published or replaced.</source>
+        <target>Fout-positieve melding vastgelegd. Er zijn geen media gepubliceerd of vervangen.</target>
       </segment>
     </unit>
     <unit id="1603041043712955298">
@@ -16740,6 +17034,12 @@
         <target>Alleen zichtbaar voor jou.</target>
       </segment>
     </unit>
+    <unit id="7794536791466704117">
+      <segment state="initial">
+        <source>The scanner detected a potentially suggestive pose or presentation. This does not establish explicit nudity or illegal content.</source>
+        <target>De scanner herkende een mogelijk suggestieve pose of presentatie. Dit bewijst geen expliciete naaktheid of illegale inhoud.</target>
+      </segment>
+    </unit>
     <unit id="7795965715171252279">
       <segment state="initial">
         <source>Use original</source>
@@ -16888,6 +17188,12 @@
       <segment state="initial">
         <source>Searching PK Spot...</source>
         <target>PK Spot doorzoeken...</target>
+      </segment>
+    </unit>
+    <unit id="7252953739661141621">
+      <segment state="initial">
+        <source>Continue assessment and reporting in the incident workflow.</source>
+        <target>Ga verder met beoordeling en melding via het incidentproces.</target>
       </segment>
     </unit>
     <unit id="726336810858265673">
