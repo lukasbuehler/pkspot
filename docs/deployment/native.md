@@ -4,6 +4,19 @@ Build, signing and physical-device checks. Restore Credentials remain disabled; 
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Firebase SDK refresh
+
+Firebase JS is pinned to 12.18.0: 12.19.0 introduced `Temporal.Instant` types
+without the declarations required by the current Functions TypeScript build.
+Capacitor Firebase plugins are updated to 8.5.2. Review the web SDK pin when an
+appropriate compatible fix is available; do not silently move to Firebase 13.
+
+- [ ] Build fresh iOS and Android binaries after installing the updated Firebase
+      plugins (`npm ci`, then the usual native build/sync scripts). Verify sign-in,
+      App Check, Firestore reads/writes, notifications, and a moderated image
+      upload/download on both devices. JavaScript tests do not validate the native
+      SDKs or their network behavior.
+
 ### Bottom-sheet scroll and drag handoff
 
 - [ ] On fresh iOS and Android development builds, scroll Spot/event details to

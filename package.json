@@ -112,11 +112,11 @@
     "@angular/router": "22.1.6",
     "@angular/service-worker": "22.1.6",
     "@angular/ssr": "22.1.6",
-    "@capacitor-firebase/app-check": "^8.3.0",
-    "@capacitor-firebase/authentication": "^8.3.0",
-    "@capacitor-firebase/firestore": "^8.3.0",
-    "@capacitor-firebase/messaging": "^8.3.0",
-    "@capacitor-firebase/storage": "^8.3.0",
+    "@capacitor-firebase/app-check": "^8.5.2",
+    "@capacitor-firebase/authentication": "^8.5.2",
+    "@capacitor-firebase/firestore": "^8.5.2",
+    "@capacitor-firebase/messaging": "^8.5.2",
+    "@capacitor-firebase/storage": "^8.5.2",
     "@capacitor/android": "^8.5.2",
     "@capacitor/angular": "^2.0.3",
     "@capacitor/app": "^8.1.0",
@@ -135,7 +135,7 @@
     "bootstrap": "^5.3.8",
     "compression": "^1.8.1",
     "express": "^4.22.2",
-    "firebase": "^12.14.0",
+    "firebase": "12.18.0",
     "firebase-admin": "^13.10.0",
     "jszip": "^3.10.1",
     "ngx-image-cropper": "^9.1.6",
@@ -235,6 +235,7 @@
       "@google-cloud/firestore": "^8.6.0"
     },
     "@google-cloud/storage": {
+      ".": "7.22.0",
       "retry-request": "^8.0.3",
       "teeny-request": "^10.1.3"
     },

@@ -61,8 +61,18 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
   emulator checks passed; deployed revisions and their source lockfiles were
   verified, but no new production test image was uploaded. Do not trigger
   backfills for this verification.
-- Re-run root, production-only root, Functions and Horizn importer audits before
-  release. All four audits reported zero vulnerabilities on 2026-09-29.
+- [ ] Resolve and re-run the dependency audits before release. The 2026-10-08
+  audit after the Firebase refresh supersedes the clean September snapshot:
+  root has 42 findings (3 critical, 27 high, 11 moderate, 1 low), the root
+  production tree has 12 (1 critical, 9 high, 1 moderate, 1 low), Functions has
+  14 (1 critical, 13 high), MCP has 6 high, and the Horizn importer has 4 high.
+  Run `npm audit`, `npm audit --omit=dev`, `npm --prefix functions audit`,
+  `npm --prefix mcp audit`, and `npm --prefix scripts/horizn-import audit`.
+  Review fixes for proxy-addr, Angular SSR/router, Piscina, grpc-js, and the
+  remaining transitive dependencies; do not apply suggested major downgrades
+  or `npm audit fix --force` without checking compatibility. Re-run the unit,
+  build/SSR, and relevant backend tests after fixes; success is zero unresolved
+  findings or an explicitly reviewed, documented exception.
   Firebase CLI 15.31.0 supports the patched csv-parse and stream-json versions;
   retain its upstream integration rather than forcing those major versions
   into an older CLI. The scoped xcode UUID override uses the CommonJS-compatible

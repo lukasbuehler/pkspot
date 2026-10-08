@@ -4,6 +4,13 @@ Pending Functions, indexes, provider fixes and data jobs. Check live state befor
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Storage SDK refresh
+
+- [ ] Include the Functions lockfile update to Google Cloud Storage 7.22.0 in the
+      next separately approved backend deployment. Verify a controlled moderated
+      upload and download afterward. SDK checksum validation remains enabled by
+      default; do not disable `validation` to bypass a checksum mismatch.
+
 ### Media review decisions and incident handoff
 
 - [ ] Before releasing the moderation UI, deploy the compatible functions in
