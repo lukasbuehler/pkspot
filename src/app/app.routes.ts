@@ -3,6 +3,7 @@ import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
 import { trainingFeatureEnabled } from "./features/training-feature";
+import { financesFeatureEnabled } from "./features/finances-feature";
 import { supportShopFeatureEnabled } from "./features/support-shop-feature";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
@@ -304,6 +305,16 @@ export const routes: Routes = [
       ),
     data: { routeName: "Organization Reviews", discoverable: false },
   },
+  ...(financesFeatureEnabled
+    ? [{
+        path: "finances",
+        loadComponent: () =>
+          import("./components/finances-page/finances-page.component").then(
+            (m) => m.FinancesPageComponent,
+          ),
+        data: { routeName: "Finances", discoverable: false },
+      }]
+    : []),
   {
     path: "organization-admin",
     loadComponent: () =>

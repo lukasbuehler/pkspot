@@ -7,6 +7,7 @@ export const environment = {
   production: false,
   features: {
     ...androidEnvironment.features,
+    finances: false,
     ageVerification: { ...ageVerificationProviders, oneid: true },
     supportShop: false,
     mapPerformanceProfiling: true,

@@ -1,0 +1,101 @@
+<section class="finances-page">
+  <header>
+    <div><p class="eyebrow">ADMINISTRATION · PRIVATE</p><h1>PK Spot finances</h1>
+      <p>Project funding, spending and partner support. All entries are recorded in CHF.</p></div>
+  </header>
+  @if (!auth.authorizationStateResolved()) {
+    <p role="status">Checking administrator access…</p>
+  } @else if (!auth.isAdmin()) {
+    <p role="alert">This page is available to PK Spot administrators only.</p>
+  } @else {
+    <div class="toolbar">
+      <mat-form-field appearance="outline"><mat-label>Reporting year</mat-label>
+        <select matNativeControl [value]="year()" (change)="selectYear(yearSelect.value)" #yearSelect [disabled]="busy() || editing() || notesEditing()">
+          @for (item of years; track item) { <option [value]="item">{{ item }}</option> }
+        </select>
+      </mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Display currency</mat-label>
+        <select matNativeControl [value]="effectiveCurrency()" (change)="selectCurrency(currencySelect.value)" #currencySelect>
+          <option value="CHF">CHF</option><option value="EUR" [disabled]="!rates()">EUR ≈</option><option value="USD" [disabled]="!rates()">USD ≈</option>
+        </select>
+      </mat-form-field>
+      <button matButton="outlined" (click)="ledger.reload()" [disabled]="busy() || ledger.isLoading() || editing()">Refresh</button>
+    </div>
+    <p class="period">1 January–31 December {{ year() }} · {{ year() === currentYear ? 'Year to date' : 'Annual overview' }}</p>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    @if (ledger.isLoading()) { <p role="status">Loading financial records…</p> }
+    @else if (ledger.error()) {
+      <p class="error" role="alert">Financial records could not be loaded. Check your access and try Refresh.</p>
+    } @else if (data()) {
+      <div class="summary-grid">
+        @for (card of summaries(); track card.label) {
+          <article class="summary-card"><span>{{ card.label }}</span><strong>{{ card.amount }}</strong></article>
+        }
+      </div>
+      <p class="muted">Recorded cash movement only, not the company bank balance. Pending payments and non-cash benefits are excluded.</p>
+      <section class="panel">
+        <h2>Expenses by category</h2>
+        @if (totals().expenses === 0) { <p>No paid expenses recorded for this year.</p> }
+        @for (row of expenseRows(); track row.key) {
+          <div class="expense-row"><div><span>{{ row.label }}</span><strong>{{ row.amount }}</strong></div>
+            <div class="bar-track" aria-hidden="true"><div class="bar" [style.width.%]="row.width"></div></div>
+          </div>
+        }
+        <div class="pending-summary"><span>Pending income: {{ pending().income }}</span><span>Pending expenses: {{ pending().expenses }}</span><span>Known non-cash value received: {{ pending().inKind }}</span></div>
+      </section>
+      <section class="panel">
+        <div class="section-heading"><div><h2>Entries</h2><p>Record reimbursements separately from the expenses they cover.</p></div>
+          <button matButton="filled" (click)="openEntry()" [disabled]="busy() || editing()">Add entry</button></div>
+        @if (editing()) {
+          <form class="entry-form" (submit)="saveEntry($event)">
+            <h3>Entry in CHF</h3>
+            <div class="form-grid">
+              <mat-form-field appearance="outline"><mat-label>Date paid, received or expected</mat-label><input matInput type="date" [formField]="entryForm.date" [min]="year() + '-01-01'" [max]="year() + '-12-31'"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Type</mat-label><select matNativeControl [formField]="entryForm.kind"><option value="expense">Expense</option><option value="income">Income</option><option value="founder">Founder funding</option><option value="in_kind">Non-cash benefit</option></select></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Category</mat-label><select matNativeControl [formField]="entryForm.category">@for (category of categoryOptions; track category.value) { <option [value]="category.value">{{ category.label }}</option> }</select></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Status</mat-label><select matNativeControl [formField]="entryForm.status"><option value="settled">Paid / received</option><option value="pending">Pending</option></select></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Amount in CHF</mat-label><input matInput inputmode="decimal" [formField]="entryForm.amount" placeholder="0.00"><mat-hint>Leave blank only for an unknown non-cash value.</mat-hint></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Partner / supplier</mat-label><input matInput [formField]="entryForm.partner"></mat-form-field>
+              <mat-form-field class="wide" appearance="outline"><mat-label>Description</mat-label><input matInput [formField]="entryForm.description"></mat-form-field>
+              <mat-form-field class="wide" appearance="outline"><mat-label>Private notes</mat-label><textarea matInput [formField]="entryForm.notes" rows="2"></textarea></mat-form-field>
+            </div>
+            <div class="actions"><button matButton="filled" type="submit" [disabled]="busy()">Save entry</button><button matButton="text" type="button" (click)="editing.set(false)" [disabled]="busy()">Cancel</button></div>
+          </form>
+        }
+        @if (!entries().length) { <p class="empty">No entries yet. Add actual payments, expected funding or non-cash arrangements to begin.</p> }
+        @else {
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Financial entries">
+            <table><thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Type / status</th><th scope="col">Amount</th><th scope="col">Actions</th></tr></thead>
+              <tbody>@for (entry of entries(); track entry.id) {
+                <tr><td>{{ entry.date }}</td><td><strong>{{ entry.description }}</strong><small>@if (entry.partner) { {{ entry.partner }} · }{{ entry.categoryLabel }}</small>@if (entry.notes) { <small>{{ entry.notes }}</small> }</td>
+                  <td>{{ entry.kindLabel }}<small>{{ entry.status === 'pending' ? 'Pending' : 'Paid / received' }}</small></td><td class="amount">{{ entry.amount }}</td>
+                  <td>@if (deleteId() === entry.id) {
+                    <span>Delete this entry?</span><button matButton="text" class="delete" (click)="removeEntry(entry.id)" [disabled]="busy()">Confirm delete</button><button matButton="text" (click)="deleteId.set('')">Cancel</button>
+                  } @else { <button matButton="text" (click)="openEntry(entry)" [disabled]="busy() || editing()">Edit</button><button matButton="text" class="delete" (click)="deleteId.set(entry.id)" [disabled]="busy() || editing()">Delete</button> }</td></tr>
+              }</tbody></table>
+          </div>
+        }
+      </section>
+      <mat-accordion multi>
+        <mat-expansion-panel><mat-expansion-panel-header><mat-panel-title>Reporting notes & partnerships</mat-panel-title></mat-expansion-panel-header>
+          <p>Use this space for reimbursement limits, incorporation dates and partner arrangements. It is visible only to administrators.</p>
+          @if (notesEditing()) {
+            <form (submit)="saveNotes($event)"><mat-form-field class="notes-field" appearance="outline"><mat-label>Reporting notes</mat-label><textarea matInput [formField]="notesForm.notes" rows="6"></textarea></mat-form-field>
+              <div class="actions"><button matButton="filled" type="submit" [disabled]="busy()">Save notes</button><button matButton="text" type="button" (click)="notesEditing.set(false)" [disabled]="busy()">Cancel</button></div></form>
+          } @else { <p class="notes">{{ data()?.settings?.notes || 'No reporting notes yet.' }}</p><button matButton="outlined" (click)="editNotes()" [disabled]="busy()">Edit notes</button> }
+        </mat-expansion-panel>
+        <mat-expansion-panel><mat-expansion-panel-header><mat-panel-title>Annual exchange-rate snapshot</mat-panel-title></mat-expansion-panel-header>
+          <p>EUR and USD are approximate display conversions. CHF entries are never changed.</p>
+          @if (rates()) { <p>{{ rateDescription() }}</p> } @else { <p>No exchange-rate snapshot saved. CHF is available.</p> }
+          <p>Import the unzipped <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener">ECB historical CSV</a>. The average uses published daily rates in the selected year through today. Review its coverage before saving. A partial year's average remains provisional.</p>
+          <label class="file-label">Import exchange rates<input type="file" accept=".csv,text/csv" (change)="importRates($event)" [disabled]="busy()"></label>
+          @if (ratesDraft(); as draft) {
+            <p>{{ draft.start }} to {{ draft.end }} · {{ draft.observations }} observations</p>
+            <p>1 CHF ≈ {{ draft.eur_per_chf.toFixed(4) }} EUR / {{ draft.usd_per_chf.toFixed(4) }} USD</p>
+            <button matButton="filled" (click)="saveRates()" [disabled]="busy()">Save this snapshot</button>
+          }
+        </mat-expansion-panel>
+      </mat-accordion>
+    }
+  }
+</section>

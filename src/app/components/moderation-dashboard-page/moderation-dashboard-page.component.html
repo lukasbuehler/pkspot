@@ -9,6 +9,9 @@
 
     @if (isAdmin()) {
       <div class="moderation-dashboard__actions">
+        @if (financesEnabled) {
+          <a matButton="outlined" routerLink="/finances">Finances</a>
+        }
         <a matButton="outlined" routerLink="/moderation/media">
           <mat-icon>image</mat-icon>
           <span i18n>Media stream</span>

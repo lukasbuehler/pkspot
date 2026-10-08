@@ -5,6 +5,7 @@ export const environment = {
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
+    finances: false,
     ageVerification: { ...ageVerificationProviders },
     shareCards: false,
     plannedSessions: false,

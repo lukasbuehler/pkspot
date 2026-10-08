@@ -1,3 +1,4 @@
+import { financesFeatureEnabled } from "../../src/app/features/finances-feature";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { CURRENT_TERMS_VERSION } from "../../src/app/services/consent-version";
 
@@ -45,6 +46,11 @@ const mobileViewport = { width: 390, height: 844 };
 const alainMobileViewport = { width: 390, height: 680 };
 
 const routeVisualCases: RouteVisualCase[] = [
+  { name: "finances", path: "/finances", signedIn: true, admin: true, fullPage: true, fixedTime: "2026-10-06T12:00:00.000Z" },
+  { name: "finances-alain", path: "/finances", signedIn: true, admin: true, viewport: alainMobileViewport, fullPage: true, fixedTime: "2026-10-06T12:00:00.000Z", assertAlainClearance: { axis: "block", target: "app-finances-page header" } },
+  { name: "finances-entry", path: "/finances", signedIn: true, admin: true, viewport: mobileViewport, fullPage: true, fixedTime: "2026-10-06T12:00:00.000Z" },
+  { name: "finances-denied", path: "/finances", signedIn: true, fullPage: true },
+
   { name: "moderation-duplicates", path: "/moderation/duplicates", signedIn: true, admin: true, viewport: { width: 390, height: 844 }, fullPage: true },
   { name: "moderation-duplicates-alain", path: "/moderation/duplicates", signedIn: true, admin: true, viewport: alainMobileViewport, fullPage: true, assertAlainClearance: { axis: "block", target: "app-moderation-duplicates-page header" } },
   { name: "session-planner-mobile", path: "/events/session/new", signedIn: true, plannedSessionFixture: "planner", viewport: alainMobileViewport, fullPage: true, assertAlainClearance: { axis: "block", target: "app-session-planner-page h1" } },
@@ -633,6 +639,7 @@ const routeVisualCases: RouteVisualCase[] = [
 test.describe("Route visual regression @visual", () => {
   for (const route of routeVisualCases) {
     test(`matches ${route.name} route`, async ({ page }) => {
+      test.skip(route.path === "/finances" && !financesFeatureEnabled, "Finance view is disabled in every environment.");
       await prepareRoute(page, route);
 
       await expect(page.locator("mat-snack-bar-container")).toHaveCount(0);
@@ -640,6 +647,26 @@ test.describe("Route visual regression @visual", () => {
         await expect(page.locator(".duplicate-group")).toHaveCount(1);
         await expect(page.locator(".duplicate-group")).toContainText("Riverside training walls");
         await expect(page.locator(".duplicate-group small").first()).toContainText("2025");
+      }
+
+      if (route.path === "/finances") {
+        if (route.admin) {
+          await expect(page.locator("app-finances-page tbody tr")).toHaveCount(5);
+          await expect(page.locator(".summary-grid")).toContainText(/50[,.]00/);
+          await expect(page.locator(".expense-row")).toContainText(["Infrastructure", "Salaries"]);
+          if (route.name === "finances-entry") {
+            await page.getByRole("button", { name: "Add entry", exact: true }).click();
+            await expect(page.locator(".entry-form")).toBeVisible();
+            await page.getByLabel("Description", { exact: true }).fill("Hosting test");
+            await page.getByLabel("Amount in CHF", { exact: true }).fill("12.50");
+            await page.getByLabel("Status", { exact: true }).selectOption("pending");
+          }
+          expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+        } else {
+          await expect(page.locator("app-finances-page")).toContainText("administrators only");
+          await expect(page.locator(".summary-grid")).toHaveCount(0);
+        }
       }
 
       const mapSurfaces = page.locator("app-google-map-2d, google-map, .gm-style");
@@ -2039,6 +2066,21 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       verifiedAdult: route.verifiedAdult === true,
     },
   );
+
+  if (route.path === "/finances") {
+    await page.addInitScript(() => {
+      (window as typeof window & { __PKSPOT_SCREENSHOT_FINANCES__?: unknown }).__PKSPOT_SCREENSHOT_FINANCES__ = {
+        settings: { notes: 'Synthetic visual fixture. No real financial records.', rates: null },
+        entries: [
+          { id: 'hosting', date: '2026-10-01', description: 'Web application hosting', partner: 'Example provider', kind: 'expense', category: 'infrastructure', status: 'settled', amount_chf_cents: 12500, notes: '' },
+          { id: 'reimbursement', date: '2026-10-02', description: 'Hosting reimbursement', partner: 'Example supporter', kind: 'income', category: 'reimbursement', status: 'settled', amount_chf_cents: 7500, notes: '' },
+          { id: 'funding', date: '2026-10-01', description: 'Founder contribution', partner: '', kind: 'founder', category: 'founder', status: 'settled', amount_chf_cents: 10000, notes: '' },
+          { id: 'pending', date: '2026-10-15', description: 'Partner payment', partner: 'Example partner', kind: 'income', category: 'partnership', status: 'pending', amount_chf_cents: 20000, notes: 'Expected payment' },
+          { id: 'ticket', date: '2026-08-01', description: 'Camp admission', partner: 'Example partner', kind: 'in_kind', category: 'partnership', status: 'settled', amount_chf_cents: null, notes: 'Provided in exchange for project services' },
+        ],
+      };
+    });
+  }
 
   await page.goto(`/de${route.path}`, { waitUntil: "domcontentloaded" });
   await page.addStyleTag({

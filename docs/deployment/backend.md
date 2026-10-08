@@ -4,6 +4,19 @@ Pending Functions, indexes, provider fixes and data jobs. Check live state befor
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Private finances ledger
+
+The view is disabled through `features.finances: false` in every environment,
+including development and CI. The route and dashboard link are omitted. These
+checks are required only before a separately approved enablement.
+
+- [ ] Before releasing `/finances`, run `npm run test:emulator:finances`, then
+      deploy `npx firebase deploy --project prod --only firestore:rules`.
+      Verify an administrator can save and reload `finance_years/{year}` and
+      its `entries` subcollection; signed-out and ordinary signed-in clients
+      must be denied reads and writes. Financial data must not be indexed or
+      copied into public documents. No financial records are seeded by release.
+
 ### Event subscription discovery rules
 
 - [ ] Deploy `npx firebase deploy --project prod --only firestore:rules` after

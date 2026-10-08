@@ -73,6 +73,7 @@
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/notifications" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/reports/outcomes" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/about" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/finances" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/support" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/contact" />
         <data android:scheme="https" android:host="pkspot.app"

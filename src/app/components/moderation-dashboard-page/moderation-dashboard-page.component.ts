@@ -1,3 +1,4 @@
+import { financesFeatureEnabled } from "../../features/finances-feature";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -66,6 +67,7 @@ import { AgeAssuranceAdminService } from "../../services/age-assurance-admin.ser
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationDashboardPageComponent implements OnDestroy {
+  readonly financesEnabled = financesFeatureEnabled;
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
 
   private readonly _reportsService = inject(ModerationReportsService);

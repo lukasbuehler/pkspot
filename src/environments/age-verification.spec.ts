@@ -5,6 +5,10 @@ import { environment as staging } from "./environment.staging";
 import { environment as ci } from "./environment.ci";
 
 describe("release feature availability", () => {
+  it.each([defaults, production, staging, ci])("keeps finances off in $name", (environment) => {
+    expect(environment.features.finances).toBe(false);
+  });
+
   it.each([defaults, production, staging, ci])("keeps OneID off in $name", (environment) => {
     expect(environment.features.ageVerification).toEqual({
       google_play: true,
