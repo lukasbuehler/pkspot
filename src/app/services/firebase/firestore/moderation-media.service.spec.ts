@@ -9,6 +9,7 @@ import { UsersService } from "./users.service";
 describe("ModerationMediaService", () => {
   const firestore = {
     getCollection: vi.fn(),
+    getDocument: vi.fn(),
   };
   const functions = {
     call: vi.fn(),
@@ -23,6 +24,7 @@ describe("ModerationMediaService", () => {
 
   beforeEach(() => {
     firestore.getCollection.mockReset();
+    firestore.getDocument.mockReset();
     functions.call.mockReset();
     search.searchSpotPreviewsByIds.mockReset();
     search.searchSpotPreviewsByIds.mockResolvedValue([]);
@@ -186,5 +188,68 @@ describe("ModerationMediaService", () => {
       "markMediaUploadSafe",
       { review_id: "review-1" },
     );
+  });
+
+  it("loads a linked review directly even when it is outside the latest uploads", async () => {
+    firestore.getDocument.mockResolvedValue({
+      status: "needs_review",
+      intake_path: "media_intake/uploader/old-review/image.jpg",
+      content_type: "image/jpeg",
+    });
+
+    expect(await service.getReview("old-review")).toEqual([
+      expect.objectContaining({ id: "old-review", canMarkSafe: true }),
+    ]);
+    expect(firestore.getDocument).toHaveBeenCalledWith("media_upload_reviews/old-review");
+    expect(firestore.getCollection).not.toHaveBeenCalled();
+  });
+
+  it("returns an empty review for missing or invalid links", async () => {
+    firestore.getDocument.mockResolvedValue(null);
+    expect(await service.getReview("missing-review")).toEqual([]);
+    firestore.getDocument.mockClear();
+    expect(await service.getReview("../users/someone")).toEqual([]);
+    expect(await service.getReview("")).toEqual([]);
+    expect(firestore.getDocument).not.toHaveBeenCalled();
+  });
+
+  it("describes legacy racy flags accurately without changing stored evidence", async () => {
+    firestore.getCollection.mockResolvedValue([{
+      id: "legacy", status: "needs_review", scan_result: {
+        provider: "google_vision_safe_search", severity: "explicit_non_child",
+        decision: "block", labels: { adult: "UNLIKELY", racy: "LIKELY" },
+      },
+    }]);
+    const [review] = await service.getUploadStream();
+    expect(review.statusLabel).toBe("Needs review");
+    expect(review.safetyLabel).toBe("Potentially suggestive content");
+    expect(review.provider).toBe("Google Vision SafeSearch");
+    expect(review.labelEntries).toContainEqual({ name: "Suggestive content", value: "Likely" });
+    expect(review.canMarkFalsePositive).toBe(true);
+    expect(review.canEscalate).toBe(true);
+  });
+
+  it("prevents normal review actions on dismissed or escalated media", async () => {
+    firestore.getCollection.mockResolvedValue([
+      { id: "dismissed", status: "dismissed" },
+      { id: "incident", status: "needs_review", incident_path: "safety_incidents/one" },
+    ]);
+    const reviews = await service.getUploadStream();
+    for (const review of reviews) {
+      expect(review.canReveal).toBe(false);
+      expect(review.canMarkSafe).toBe(false);
+      expect(review.canMarkFalsePositive).toBe(false);
+    }
+    expect(reviews[0].isFalsePositive).toBe(true);
+    expect(reviews[1].canEscalate).toBe(true);
+  });
+
+  it("uses distinct callables for non-publishing decisions and incident escalation", async () => {
+    functions.call.mockResolvedValue({ incident_path: "safety_incidents/one" });
+    await service.markFalsePositive("review-1");
+    expect(await service.createIncident("review-1")).toBe("safety_incidents/one");
+    expect(functions.call).toHaveBeenCalledWith("markMediaUploadFalsePositive", { review_id: "review-1" });
+    expect(functions.call).toHaveBeenCalledWith("createSafetyIncident", { report_path: "reports/scanner_review-1" });
+    expect(functions.call).not.toHaveBeenCalledWith("markMediaUploadSafe", expect.anything());
   });
 });

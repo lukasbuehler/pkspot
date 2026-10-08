@@ -4,6 +4,25 @@ Pending Functions, indexes, provider fixes and data jobs. Check live state befor
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Media review decisions and incident handoff
+
+- [ ] Before releasing the moderation UI, deploy the compatible functions in
+      `europe-west1`: `npx firebase deploy --project prod --only functions:markMediaUploadFalsePositive,functions:markMediaUploadSafe,functions:createSafetyIncident,functions:getModerationMediaPreview,functions:processMediaIntakeUpload,functions:runMediaIntakeBackfill,functions:runMediaModerationAudit`.
+      The separate false-positive callable fails safely if the backend is not yet
+      deployed. Retain the legacy `explicit_non_child` classification for readers;
+      new scans distinguish `suggestive`, `adult_content`, and `graphic_violence`.
+- [ ] Verify an administrator can dismiss a controlled false positive without
+      changing its current profile picture, published objects, or upload status.
+      Repeated calls must create one audit action. Verify incident escalation
+      opens one incident with source/hash context and disables ordinary preview,
+      release, and false-positive dismissal. Verify restricted matches cannot
+      use either approval action. No external report is submitted by escalation.
+- [ ] Verify the new localized buttons, explanations, and incident navigation on
+      desktop and mobile after the web release. Historical flags must remain
+      readable, and automated retries must retain manual decisions. If a release
+      is interrupted with `release_in_progress` still set, inspect Storage and
+      review/report state before manually clearing the lock; never retry blindly.
+
 ### Private finances ledger
 
 The view is disabled through `features.finances: false` in every environment,

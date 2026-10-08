@@ -13,6 +13,8 @@ import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
 import { UserReportSchema } from "../../../../db/schemas/UserReportSchema";
 import { SearchService } from "../../search.service";
 import { isFirstPartyStorageUrl } from "../../../utils/first-party-media-url";
+import { mediaSafetyPresentation } from "../../../shared/media-moderation-labels";
+import { reportReasonsLabel } from "../../../shared/report-labels";
 import {
   FirestoreAdapterService,
   QueryConstraintOptions,
@@ -36,6 +38,7 @@ export interface ModerationReportItem {
   kind: ModerationReportKind;
   status: ModerationReportStatus;
   reason: string;
+  reasonLabel?: string;
   createdAt: unknown;
   createdAtMillis: number;
   reporterLabel: string;
@@ -62,6 +65,7 @@ export interface ModerationReportItem {
   mediaSource?: "storage" | "external";
   mediaSourceLabel?: string;
   requiresManualReview: boolean;
+  mediaReviewId?: string;
   scannerProvider?: string;
   scannerDecision?: string;
   scannerReason?: string;
@@ -447,8 +451,12 @@ export class ModerationReportsService {
       requiresManualReview,
       scannerProvider,
       scannerDecision,
-      scannerReason: scanner?.reason,
+      scannerReason: mediaSafetyPresentation(scanner).description ?? scanner?.reason,
+      reasonLabel: mediaSafetyPresentation(scanner).label ?? reportReasonsLabel(report.reasons ?? [report.reason]),
       scannerLabels: scanner?.labels,
+      mediaReviewId: report.review_path?.match(
+        /^media_upload_reviews\/([A-Za-z0-9_-]+)$/,
+      )?.[1],
       incidentPath: report.incident_path,
       raw: report,
     };

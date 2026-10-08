@@ -673,6 +673,13 @@ missing target side effect, updates review/status/report, creates a moderation
 action, and deletes quarantine. The exact operation count depends on audit vs.
 intake and whether the approved object or side effect already exists.
 
+`markMediaUploadFalsePositive` records an administrator's false-positive decision
+and resolves the scanner report transactionally, without writing Storage, target,
+profile, or publication state. The review becomes `dismissed`. Incident escalation
+links the review and report to one incident; normal release and preview are then
+blocked. Release holds a review lock so it cannot race those decisions. Automated
+retries and audits retain manual decisions and incident holds.
+
 ## 10. Notifications
 
 ### Durable intent and feed projection
@@ -1046,6 +1053,7 @@ Source modules: [`importFunctions.ts`](functions/src/importFunctions.ts),
 | --- | --- | --- |
 | `processMediaIntakeUpload` | finalize `media_intake/...` | Moderation/release pipeline in section 9. |
 | `markMediaUploadSafe` | admin callable | Releases eligible quarantine/audit media and repairs target/report/action state. |
+| `markMediaUploadFalsePositive` | admin callable | Closes an ordinary scanner false positive without publishing or changing its target. |
 | `runMediaIntakeBackfill` | create maintenance doc | Lists intake objects, processes up to requested limit, writes summary, deletes trigger. |
 | `reconcilePublishedMediaReviews` | create maintenance doc | Two review queries, object existence/metadata checks, repair writes, summary, trigger delete. |
 | `runMediaModerationAudit` | create maintenance doc | Lists configured public prefixes, downloads/scans each eligible object, writes audit review/report/incident records and summary. |

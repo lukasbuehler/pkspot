@@ -21,6 +21,10 @@
   justify-content: space-between;
 }
 
+.moderation-media__actions {
+  flex-wrap: wrap;
+}
+
 .moderation-media__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
@@ -30,6 +34,19 @@
 .media-card {
   overflow: hidden;
   border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.media-card mat-card-actions {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.media-card mat-card-actions button {
+  max-width: 100%;
+  height: auto;
+  min-height: 40px;
+  padding-block: 0.6rem;
+  white-space: normal;
 }
 
 .media-card__preview,

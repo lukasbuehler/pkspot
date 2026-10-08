@@ -139,6 +139,7 @@ export {
   runMediaIntakeBackfill,
   runMediaModerationAudit,
 } from "./mediaModerationFunctions";
+export { markMediaUploadFalsePositive } from "./mediaReviewActionFunctions";
 
 // spot challenge functions
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";

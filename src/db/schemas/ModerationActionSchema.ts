@@ -7,6 +7,8 @@ export type ModerationActionType =
   | "resolve_duplicate_spot"
   | "archive_contact_message"
   | "delete_contact_message"
+  | "approve_media_upload"
+  | "dismiss_media_false_positive"
   | "safety_case_decision";
 
 export type ModerationActionSourceType =
@@ -14,6 +16,7 @@ export type ModerationActionSourceType =
   | "media_report"
   | "user_report"
   | "contact_message"
+  | "media_upload_review"
   | "safety_case";
 
 export type ModerationActionTargetType =

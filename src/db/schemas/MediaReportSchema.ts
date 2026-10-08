@@ -1,4 +1,5 @@
 import { UserReferenceSchema } from "./UserSchema";
+import type { MediaSafetySeverity } from "./MediaModerationSchema";
 
 /**
  * `superseded` is retained only for records produced by the temporary legacy
@@ -43,11 +44,7 @@ export interface MediaSafetyScanSchema {
   provider: string;
   provider_version: string;
   decision: "allow" | "block" | "needs_review" | "reportable_match";
-  severity:
-    | "none"
-    | "explicit_non_child"
-    | "possible_child_safety"
-    | "known_csam_match";
+  severity: MediaSafetySeverity;
   reason?: string;
   labels?: Record<string, string>;
   thresholds?: Record<string, string>;

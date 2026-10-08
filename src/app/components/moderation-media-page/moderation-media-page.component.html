@@ -13,6 +13,12 @@
     </div>
     @if (isAdmin()) {
       <div class="moderation-media__actions">
+        @if (reviewId() !== null) {
+          <a matButton="outlined" routerLink="/moderation/media">
+            <mat-icon>image</mat-icon>
+            <span i18n>Media stream</span>
+          </a>
+        }
         <a matButton="outlined" routerLink="/moderation/reports">
           <mat-icon>shield</mat-icon>
           <span i18n>Open reports</span>
@@ -38,7 +44,11 @@
       <span i18n>Loading media stream...</span>
     </div>
   } @else if (media().length === 0) {
+    @if (reviewId() !== null) {
+      <p class="mat-body-medium" i18n>Media review not found.</p>
+    } @else {
     <p class="mat-body-medium" i18n>No scanned media yet.</p>
+    }
   } @else {
     <div class="moderation-media__grid">
       @for (item of media(); track item.id) {
@@ -89,12 +99,19 @@
           } @else {
             <div class="media-card__hidden">
               <mat-icon>{{ item.isRestricted ? "lock" : "shield" }}</mat-icon>
-              @if (item.isRestricted) {
+              @if (item.isFalsePositive) {
+                <strong i18n>False positive recorded</strong>
+                <span i18n>No media was published or replaced.</span>
+              } @else if (item.incidentPath) {
+                <strong i18n>Escalated to incident</strong>
+                <span i18n>Continue assessment and reporting in the incident workflow.</span>
+              } @else if (item.isRestricted) {
                 <strong i18n>Restricted incident media</strong>
                 <span i18n>Do not preview or release this file.</span>
               } @else {
                 <strong i18n>Quarantined media hidden</strong>
                 <span i18n>Reveal only when you are ready to review it.</span>
+                @if (item.canReveal) {
                 <button
                   matButton="outlined"
                   type="button"
@@ -104,12 +121,13 @@
                   <mat-icon>image</mat-icon>
                   <span i18n>Reveal to review</span>
                 </button>
+                }
               }
             </div>
           }
 
           <mat-card-header>
-            <mat-card-title>{{ item.status }}</mat-card-title>
+            <mat-card-title>{{ item.statusLabel }}</mat-card-title>
             <mat-card-subtitle>
               {{ item.createdAtMillis | systemDate: "medium" }}
             </mat-card-subtitle>
@@ -120,7 +138,7 @@
                 <mat-icon matChipAvatar>{{
                   item.isApproved ? "check_circle" : "shield"
                 }}</mat-icon>
-                <span>{{ item.decision || item.status }}</span>
+                <span>{{ item.safetyLabel || item.statusLabel }}</span>
               </mat-chip>
               @if (item.provider) {
                 <mat-chip>{{ item.provider }}</mat-chip>
@@ -165,7 +183,7 @@
               } @else if (item.targetKind || item.targetId) {
                 <div>
                   <dt i18n>Target</dt>
-                  <dd>{{ item.targetKind || "media" }} · {{ item.targetId }}</dd>
+                  <dd>{{ item.targetKind || "media" }} @if (item.targetId) { · {{ item.targetId }} }</dd>
                 </div>
               }
               @if (item.storagePath) {
@@ -204,17 +222,37 @@
                 <span i18n>Open released media</span>
               </a>
             </mat-card-actions>
-          } @else if (!item.isRestricted) {
+          } @else {
             <mat-card-actions>
               @if (previewUrls()[item.id]) {
+                @if (item.canMarkFalsePositive) {
+                  <button matButton="filled" type="button" [disabled]="!!actionId()"
+                    (click)="markFalsePositive(item)">
+                    <mat-icon>check_circle</mat-icon>
+                    <span i18n>Mark as false positive without publishing</span>
+                  </button>
+                }
+                @if (item.canMarkSafe) {
                 <button
-                  matButton="filled"
+                  matButton="outlined"
                   type="button"
-                  [disabled]="actionId() === item.id"
+                  [disabled]="!!actionId()"
                   (click)="markSafe(item)"
                 >
                   <mat-icon>check_circle</mat-icon>
                   <span i18n>Mark safe and release</span>
+                </button>
+                }
+              }
+              @if (item.canEscalate) {
+                <button matButton="outlined" type="button" [disabled]="!!actionId()"
+                  (click)="openIncident(item)">
+                  <mat-icon>policy</mat-icon>
+                  @if (item.incidentPath) {
+                    <span i18n>Open incident</span>
+                  } @else {
+                    <span i18n>Escalate to incident</span>
+                  }
                 </button>
               }
             </mat-card-actions>

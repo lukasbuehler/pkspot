@@ -1,4 +1,5 @@
 import type { OwnReportSummary } from "../../db/schemas/ReportLifecycleSchema";
+import { mediaSafetyLabels } from "./media-moderation-labels";
 
 export const reportStatusLabels: Record<OwnReportSummary["status"], string> = {
   open: $localize`Open`,
@@ -7,6 +8,7 @@ export const reportStatusLabels: Record<OwnReportSummary["status"], string> = {
   withdrawn: $localize`Withdrawn`,
 };
 const reasonLabels: Record<string, string> = {
+  ...mediaSafetyLabels,
   duplicate: $localize`Duplicate`,
   "torn down": $localize`Torn down`,
   "does not exist": $localize`Does not exist`,

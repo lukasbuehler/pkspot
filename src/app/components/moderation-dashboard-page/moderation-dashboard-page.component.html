@@ -417,15 +417,24 @@
                         report.kind === "profile" ? "profile" : report.kind
                       }}
                     </mat-chip>
-                    <mat-chip>{{ report.reason }}</mat-chip>
+                    <mat-chip>{{ report.reasonLabel || report.reason }}</mat-chip>
                   </mat-chip-set>
                 </mat-card-content>
-                @if (report.targetPath) {
+                @if (report.mediaReviewId || report.targetPath) {
                   <mat-card-actions align="end">
+                    @if (report.mediaReviewId) {
+                      <a matButton="filled" routerLink="/moderation/media"
+                        [queryParams]="{ review: report.mediaReviewId }">
+                        <mat-icon>image</mat-icon>
+                        <span i18n>Review media</span>
+                      </a>
+                    }
+                    @if (report.targetPath) {
                     <a matButton="outlined" [routerLink]="report.targetPath">
                       <mat-icon>open_in_new</mat-icon>
                       <span i18n>Target</span>
                     </a>
+                    }
                   </mat-card-actions>
                 }
               </mat-card>

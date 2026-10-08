@@ -248,6 +248,7 @@ describe("Cloud Functions generation policy", () => {
 
     expect(indexSource).toContain("processMediaIntakeUpload");
     expect(indexSource).toContain("markMediaUploadSafe");
+    expect(indexSource).toContain("markMediaUploadFalsePositive");
     expect(indexSource).toContain("reconcilePublishedMediaReviews");
     expect(indexSource).toContain("runMediaIntakeBackfill");
     expect(indexSource).toContain("runMediaModerationAudit");
