@@ -90,6 +90,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
   private readonly animationDurationMs = 500;
   private readonly minDragDistance = 10;
+  // WebKit can report fractional offsets or negative rubber-band overscroll.
+  private readonly scrollEdgeTolerance = 1;
   // Velocity threshold in pixels per millisecond for flick gestures
   private readonly flickVelocityThreshold = 0.5;
 
@@ -178,7 +180,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       if (
         el.clientHeight !== 0 &&
         el.scrollHeight > el.clientHeight + 2 &&
-        el.scrollTop !== 0
+        el.scrollTop > this.scrollEdgeTolerance
       ) {
         return true;
       }
@@ -324,9 +326,13 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.contentElement.style.overflowY = "hidden";
       this.addListener(this.contentElement, "scroll", () => {
         if (!this.contentElement) return;
-        this.isContentAtTop.set(this.contentElement.scrollTop === 0);
+        this.isContentAtTop.set(
+          this.contentElement.scrollTop <= this.scrollEdgeTolerance,
+        );
       });
-      this.isContentAtTop.set(this.contentElement.scrollTop === 0);
+      this.isContentAtTop.set(
+        this.contentElement.scrollTop <= this.scrollEdgeTolerance,
+      );
     }
 
     // Defer height calculation to next microtask to ensure layout is fully computed
@@ -587,8 +593,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     let startY = 0;
     let hasDragged = false;
     let isHorizontalScrollTarget = false;
-    let isScrollableUp = false;
-    let isScrollableDown = false;
+    let wasScrolling = false;
+    let dragStartY = 0;
     let alwaysVisible = 0;
     let removeTouchMove: (() => void) | null = null;
     let removeTouchEnd: (() => void) | null = null;
@@ -611,18 +617,18 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.activeTouchId = touch.identifier;
       originalTarget = target;
       originalTouch = touch;
-      lastY = touch.pageY;
+      lastY = touch.clientY;
       initialX = touch.clientX;
       initialY = touch.clientY;
       startTime = performance.now();
-      startY = touch.pageY;
+      startY = touch.clientY;
+      dragStartY = touch.clientY;
+      wasScrolling = false;
       shiftY = touch.clientY - this.currentOffset;
       hasDragged = false;
       isHorizontalScrollTarget =
         target?.closest(this.horizontalScrollSelector) !== null;
       alwaysVisible = this.getAlwaysVisible(sheetEl);
-      isScrollableUp = this.checkScrollableUp(target, sheetEl);
-      isScrollableDown = this.checkScrollableDown(target, sheetEl);
 
       // Prevent content scrolling during drag if sheet is not fully open.
       this.syncContentOverflow();
@@ -656,9 +662,12 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       const pageY = touch.clientY;
       const absDeltaX = Math.abs(touch.clientX - initialX);
       const absDeltaY = Math.abs(touch.clientY - initialY);
+      const deltaY = pageY - lastY;
+      lastY = pageY;
 
       if (!hasDragged) {
         if (
+          !wasScrolling &&
           isHorizontalScrollTarget &&
           absDeltaX > absDeltaY
         ) {
@@ -674,23 +683,27 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        // If sheet is fully open and content is scrollable, allow native scroll
-        // pageY > initialY means swiping down (scrolling up in content)
-        // pageY < initialY means swiping up (scrolling down in content)
+        // Keep observing native scrolling: a finger can reach the top during
+        // this press. Use current offsets and direction, not the touchstart state.
         if (this.currentOffset === 0) {
-          if (
-            (isScrollableUp && pageY > initialY) ||
-            (isScrollableDown && pageY < initialY)
-          ) {
-            this.cleanupTouchListeners(
-              removeTouchMove,
-              removeTouchEnd,
-              removeTouchCancel,
-            );
-            this.activeTouchId = null;
-            originalTarget = null;
-            originalTouch = null;
+          if (deltaY === 0) return;
+          const canScroll =
+            (deltaY > 0 && this.checkScrollableUp(originalTarget, sheetEl)) ||
+            (deltaY < 0 && this.checkScrollableDown(originalTarget, sheetEl));
+          if (canScroll) {
+            wasScrolling = true;
             return;
+          }
+          if (wasScrolling) {
+            // Only a deliberate downward pull at the top can close the sheet.
+            // Rebase at the boundary so prior scrolling adds no jump or velocity.
+            if (deltaY <= 0 || this.checkScrollableUp(originalTarget, sheetEl)) {
+              return;
+            }
+            dragStartY = pageY;
+            startY = pageY;
+            startTime = performance.now();
+            wasScrolling = false;
           }
         }
 
@@ -710,10 +723,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           return;
         }
         event.preventDefault();
-        if (absDeltaY <= this.minDragDistance) return;
+        if (Math.abs(pageY - dragStartY) <= this.minDragDistance) return;
 
         this.cancelAnimation();
-        shiftY = initialY - this.currentOffset;
+        shiftY = dragStartY - this.currentOffset;
         hasDragged = true;
 
         // Cancel the touch on the original target (e.g., button) so it releases
@@ -731,13 +744,6 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         return;
       }
       event.preventDefault();
-
-      if (pageY - shiftY >= 0 && isScrollableUp) {
-        this.contentElement!.style.overflowY = "scroll";
-        return;
-      }
-
-      lastY = pageY;
 
       let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
       this.currentOffset = newTop;
@@ -766,11 +772,12 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
       // Calculate velocity based on total distance and time
       const endTime = performance.now();
-      const endY = touch.pageY;
+      const endY = touch.clientY;
       const deltaTime = endTime - startTime;
       const deltaY = endY - startY;
       // Velocity in px/ms (positive = down, negative = up)
-      const velocity = deltaTime > 0 ? deltaY / deltaTime : 0;
+      const velocity =
+        event.type === "touchend" && deltaTime > 0 ? deltaY / deltaTime : 0;
 
       const offset = this.currentOffset;
       const { targetOffset, overflowY } = this.calculateTargetOffset(

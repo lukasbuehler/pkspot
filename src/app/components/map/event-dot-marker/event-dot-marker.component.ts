@@ -1,3 +1,4 @@
+import { NativeMarkerClickDirective } from "../../../directives/native-marker-click.directive";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,7 +23,7 @@ import type { SeriesDocument } from "../../../services/firebase/firestore/series
  */
 @Component({
   selector: "app-event-dot-marker",
-  imports: [EventCardComponent, MapAdvancedMarker, MatIconModule],
+  imports: [NativeMarkerClickDirective,EventCardComponent, MapAdvancedMarker, MatIconModule],
   templateUrl: "./event-dot-marker.component.html",
   styleUrl: "./event-dot-marker.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

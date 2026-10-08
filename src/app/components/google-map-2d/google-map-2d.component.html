@@ -288,7 +288,7 @@
         [content]="checkInSpotMarkerNode.elementRef.nativeElement"
         [zIndex]="60001"
         [gmpClickable]="true"
-        (gmpClick)="spotClick.emit(checkInSpot()!)"
+        (appNativeMarkerClick)="spotClick.emit(checkInSpot()!)"
       ></map-advanced-marker>
       <app-marker
         #checkInSpotMarkerNode

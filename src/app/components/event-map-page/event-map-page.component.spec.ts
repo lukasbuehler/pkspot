@@ -157,7 +157,7 @@ describe("EventMapPageComponent", () => {
       '<ng-content select="[spotDetailsAfterMedia]"',
     );
     const navigationIndex = spotDetailsTemplate.indexOf(
-      "<!-- Navigate and open in google buttons",
+      '(click)="openSpotInMaps()"',
     );
 
     expect(projectionIndex).toBeGreaterThan(mediaIndex);

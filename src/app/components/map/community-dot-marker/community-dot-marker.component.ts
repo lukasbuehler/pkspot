@@ -1,3 +1,4 @@
+import { NativeMarkerClickDirective } from "../../../directives/native-marker-click.directive";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -37,7 +38,7 @@ export interface CommunityMapMarker {
 
 @Component({
   selector: "app-community-dot-marker",
-  imports: [MapAdvancedMarker],
+  imports: [NativeMarkerClickDirective,MapAdvancedMarker],
   templateUrl: "./community-dot-marker.component.html",
   styleUrl: "./community-dot-marker.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

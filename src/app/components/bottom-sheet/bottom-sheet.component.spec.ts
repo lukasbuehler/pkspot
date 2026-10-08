@@ -100,6 +100,125 @@ describe("BottomSheetComponent touch gestures", () => {
     expect(sheet.style.transform).toBe("translateY(40px)");
   });
 
+  it.each([-12, 0.4, 1])("accepts a fresh pull at a WebKit top offset of %s", async (offset) => {
+    openSheet();
+    content.scrollTop = offset;
+    content.dispatchEvent(new Event("scroll"));
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector(".handle-region").classList.contains("content-at-top")).toBe(true);
+    touch("touchstart", 300);
+    expect(touch("touchmove", 303).defaultPrevented).toBe(true);
+    touch("touchmove", 340);
+    expect(sheet.style.transform).toBe("translateY(40px)");
+  });
+
+  it("hands a cancellable scroll to dragging without counting earlier movement", () => {
+    openSheet();
+    content.scrollTop = 100;
+    touch("touchstart", 200);
+    expect(touch("touchmove", 250).defaultPrevented).toBe(false);
+    content.scrollTop = 0;
+    expect(touch("touchmove", 300).defaultPrevented).toBe(true);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+    touch("touchmove", 320);
+    expect(sheet.style.transform).toBe("translateY(20px)");
+  });
+
+  it("does not use the preceding scroll velocity to dismiss a small pull", () => {
+    openSheet();
+    vi.spyOn(performance, "now").mockReturnValue(0);
+    content.scrollTop = 200;
+    touch("touchstart", 100);
+    touch("touchmove", 300);
+    content.scrollTop = 0;
+    vi.mocked(performance.now).mockReturnValue(100);
+    touch("touchmove", 400);
+    vi.mocked(performance.now).mockReturnValue(300);
+    touch("touchmove", 420);
+    touch("touchend", 420);
+    frame(301);
+    frame(901);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
+  it("keeps native scrolling when the finger reverses before reaching the top", () => {
+    openSheet();
+    content.scrollTop = 100;
+    touch("touchstart", 200);
+    touch("touchmove", 250);
+    expect(touch("touchmove", 240).defaultPrevented).toBe(false);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
+  it("does not interrupt native scrolling on a move with no vertical delta", () => {
+    openSheet();
+    content.scrollTop = 100;
+    touch("touchstart", 200);
+    touch("touchmove", 250);
+    expect(touch("touchmove", 250).defaultPrevented).toBe(false);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
+  it("waits for nested content to reach the top too", () => {
+    openSheet();
+    const nested = document.createElement("div");
+    content.append(nested);
+    nested.scrollTop = 50;
+    touch("touchstart", 200, { target: nested });
+    expect(touch("touchmove", 230, { target: nested }).defaultPrevented).toBe(false);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+    nested.scrollTop = 0;
+    touch("touchmove", 250, { target: nested });
+    touch("touchmove", 270, { target: nested });
+    expect(sheet.style.transform).toBe("translateY(20px)");
+  });
+
+  it("allows a fresh pull immediately after an uncancellable native scroll", () => {
+    openSheet();
+    content.scrollTop = 100;
+    touch("touchstart", 200);
+    touch("touchmove", 250, { cancelable: false });
+    content.scrollTop = 0;
+    expect(touch("touchmove", 300, { cancelable: false }).defaultPrevented).toBe(false);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+    touch("touchend", 300);
+    touch("touchstart", 300);
+    expect(touch("touchmove", 303).defaultPrevented).toBe(true);
+    touch("touchmove", 330);
+    expect(sheet.style.transform).toBe("translateY(30px)");
+  });
+
+  it("does not turn momentum scroll events into a sheet drag", () => {
+    openSheet();
+    content.scrollTop = 100;
+    touch("touchstart", 200);
+    touch("touchmove", 250);
+    touch("touchend", 250);
+    content.scrollTop = -10;
+    content.dispatchEvent(new Event("scroll"));
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
+  it("lets the handle drag while the content is still scrolled", () => {
+    openSheet();
+    content.scrollTop = 100;
+    const handle = fixture.nativeElement.querySelector(".handle-region");
+    touch("touchstart", 100, { target: handle });
+    expect(touch("touchmove", 103, { target: handle }).defaultPrevented).toBe(true);
+    touch("touchmove", 140, { target: handle });
+    expect(sheet.style.transform).toBe("translateY(40px)");
+  });
+
+  it("snaps a cancelled small drag back without treating cancellation as a flick", () => {
+    openSheet();
+    touch("touchstart", 300);
+    touch("touchmove", 320);
+    touch("touchcancel", 320);
+    frame(1);
+    frame(601);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
   it("releases horizontal scrollers before the drag threshold", () => {
     const scroller = document.createElement("div");
     scroller.setAttribute("data-horizontal-scroll", "");

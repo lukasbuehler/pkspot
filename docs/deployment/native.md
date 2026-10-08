@@ -4,6 +4,19 @@ Build, signing and physical-device checks. Restore Credentials remain disabled; 
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Bottom-sheet scroll and drag handoff
+
+- [ ] On fresh iOS and Android development builds, scroll Spot/event details to
+      the top and immediately pull down again. Check slow scrolling and a fast
+      flick without waiting for momentum, including nested content and horizontal
+      photo/chip rows. A cancellable touch may continue into a sheet drag from the
+      top without jumping or inheriting scroll velocity. If WebKit owns the touch,
+      the sheet must stay still until release; a fresh pull or the handle must
+      work without an app-imposed delay. Momentum alone must never close it.
+      Unit and browser checks do not verify iOS momentum ownership. If the delay
+      persists, capture touch cancelability and scroll offsets on-device before
+      replacing native scrolling or introducing native gesture coordination.
+
 ### Opening a Spot in Maps
 
 - [ ] Build a fresh iOS binary containing `MapsLauncherPlugin`. Verify the single

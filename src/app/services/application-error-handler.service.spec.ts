@@ -57,6 +57,13 @@ function configureHandler(options: {
 }
 
 describe("ApplicationErrorHandler", () => {
+  it("keeps native console errors readable after JSON serialization", () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { handler } = configureHandler();
+    handler.handleError(new TypeError("Network request failed"));
+    expect(JSON.stringify(log.mock.calls)).toContain("TypeError: Network request failed");
+  });
+
   afterEach(() => {
     TestBed.resetTestingModule();
     vi.restoreAllMocks();

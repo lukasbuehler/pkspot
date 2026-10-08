@@ -1,3 +1,4 @@
+import { NativeMarkerClickDirective } from "../../directives/native-marker-click.directive";
 import { MatButtonModule } from "@angular/material/button";
 import { observeMapLongPress } from "./map-long-press";
 import { inject as injectFeatureTelemetry } from "@angular/core";
@@ -221,7 +222,7 @@ interface WatchedMapCanvas {
   selector: "app-google-map-2d",
   templateUrl: "./google-map-2d.component.html",
   styleUrls: ["./google-map-2d.component.scss"],
-  imports: [
+  imports: [NativeMarkerClickDirective,
     GoogleMap,
     MapCircle,
     MapPolygon,
@@ -2249,7 +2250,7 @@ export class GoogleMap2dComponent
     if (!boundary || !map || typeof google === "undefined") {
       return;
     }
-    if (!this._appSettings.enableVectorMaps()) {
+    if (!this._appSettings.enableVectorMaps() || map.getRenderingType() !== "VECTOR") {
       this._mapProfiler.recordThrottled(
         "google-map-2d:feature-boundary-skipped-raster",
         { featureType: boundary.featureType },
@@ -2270,7 +2271,7 @@ export class GoogleMap2dComponent
     const featureType = await this._getFeatureBoundaryFeatureType(
       boundary.featureType,
     );
-    if (requestVersion !== this._featureBoundaryRequestVersion) {
+    if (requestVersion !== this._featureBoundaryRequestVersion || map.getRenderingType() !== "VECTOR") {
       return;
     }
     if (!featureType) {

@@ -76,7 +76,11 @@ export class ApplicationErrorHandler implements ErrorHandler {
       this.reloadOnceForRecoverableModuleError();
     }
 
-    console.error(error);
+    // Error properties are non-enumerable, so Capacitor's console bridge can
+    // reduce them to {}. Send readable text while retaining the original above.
+    console.error("[AppError]", error instanceof Error
+      ? error.stack || `${error.name}: ${error.message}`
+      : collectErrorSignals(error).join("\n") || String(error));
   }
 
   private reloadOnceForRecoverableModuleError(): void {

@@ -1,3 +1,4 @@
+import { NativeMarkerClickDirective } from "../../../directives/native-marker-click.directive";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -20,7 +21,7 @@ import type { MapMarkerSchema } from "../markers/map-marker.model";
  */
 @Component({
   selector: "app-advanced-map-marker",
-  imports: [MapAdvancedMarker, MatIconModule, MarkerComponent],
+  imports: [NativeMarkerClickDirective,MapAdvancedMarker, MatIconModule, MarkerComponent],
   templateUrl: "./advanced-map-marker.component.html",
   styleUrl: "./advanced-map-marker.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
