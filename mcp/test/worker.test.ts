@@ -1,3 +1,4 @@
+import { Script } from "node:vm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { handle } from "../src/worker";
 import { QuotaStore, LIMITS } from "../src/quota";
@@ -45,7 +46,7 @@ describe("Worker with real MCP SDK transport", () => {
     expect((await handle(new Request(url), environment(), context)).status).toBe(404);
     expect((await handle(new Request(url.replace("mcp.pkspot.app", "other.example")), env, context)).status).toBe(421);
   });
-  it("initializes and advertises six portable read-only tools", async () => {
+  it("initializes and advertises seven portable read-only tools", async () => {
     const env = environment();
     const init = await handle(request({ jsonrpc: "2.0", id: 1, method: "initialize", params: {
       protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "1" },
@@ -54,8 +55,21 @@ describe("Worker with real MCP SDK transport", () => {
     expect((await init.json()).result.serverInfo.name).toBe("PK Spot");
     const response = await handle(request({ jsonrpc: "2.0", id: 2, method: "tools/list" }), env, context);
     const tools = (await response.json()).result.tools;
-    expect(tools).toHaveLength(6);
+    expect(tools).toHaveLength(7);
     expect(tools.every((tool: { annotations: { readOnlyHint: boolean } }) => tool.annotations.readOnlyHint)).toBe(true);
+  });
+  it("serves the versioned UI resource through the guarded HTTP transport", async () => {
+    const env = environment();
+    const list = await handle(request({ jsonrpc: "2.0", id: 1, method: "resources/list" }), env, context);
+    const resource = (await list.json()).result.resources[0];
+    expect(resource.uri).toBe("ui://pkspot/results-angular-1.1.0.html");
+    const response = await handle(request({ jsonrpc: "2.0", id: 2, method: "resources/read", params: { uri: resource.uri } }), env, context);
+    const content = (await response.json()).result.contents[0];
+    expect(content.mimeType).toBe("text/html;profile=mcp-app");
+    expect(content.text).toContain("PK Spot");
+    const script = content.text.match(/<script>([\s\S]*?)<\/script>/)[1];
+    expect(() => new Script(script)).not.toThrow();
+    expect(content._meta.ui.csp.frameDomains).toContain("https://pkspot.app");
   });
   it("calls the real SDK tool handler through HTTP and hides upstream errors", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("SECRET response")));

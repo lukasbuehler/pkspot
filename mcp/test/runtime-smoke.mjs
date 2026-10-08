@@ -10,9 +10,14 @@ const client = new Client({ name: "pkspot-local-smoke", version: "1" });
 try {
   await client.connect(new StreamableHTTPClientTransport(endpoint));
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 6);
+  assert.equal(tools.length, 7);
+  const resources = await client.listResources();
+  assert.equal(resources.resources[0].uri, "ui://pkspot/results-angular-1.1.0.html");
+  const resource = await client.readResource({ uri: resources.resources[0].uri });
+  assert.equal(resource.contents[0].mimeType, "text/html;profile=mcp-app");
+  assert.ok(resource.contents[0].text.includes("PK Spot"));
   const result = await client.callTool({ name: "search_spots", arguments: {} });
   assert.equal(result.isError, true);
   assert.equal(result.structuredContent.error, "invalid_area");
-  console.log("Worker runtime smoke passed: MCP initialization, six tools, tool call and durable quotas.");
+  console.log("Worker runtime smoke passed: MCP initialization, seven tools, tool call and durable quotas.");
 } finally { await client.close(); }

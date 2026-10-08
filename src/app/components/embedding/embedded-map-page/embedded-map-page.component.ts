@@ -1,4 +1,6 @@
-import { Component, ChangeDetectionStrategy } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { Component, ChangeDetectionStrategy, inject, computed } from "@angular/core";
 import { SpotMapComponent } from "../../spot-map/spot-map.component";
 
 @Component({
@@ -8,4 +10,9 @@ import { SpotMapComponent } from "../../spot-map/spot-map.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./embedded-map-page.component.scss",
 })
-export class EmbeddedMapPageComponent {}
+export class EmbeddedMapPageComponent {
+  private readonly route = inject(ActivatedRoute);
+  private readonly params = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
+  readonly showSatelliteToggle = computed(() => this.params().get("showSatelliteToggle") === "true");
+  readonly showGeolocation = computed(() => this.params().get("showGeolocation") === "true");
+}

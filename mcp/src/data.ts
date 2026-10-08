@@ -8,11 +8,11 @@ export const text = (value: unknown, max = 600): string | undefined =>
   typeof value === "string" ? value.slice(0, max) : undefined;
 export const number = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? value : undefined;
-export const localized = (value: unknown, locale: string): string | undefined => {
-  if (typeof value === "string") return text(value);
+export const localized = (value: unknown, locale: string, max = 600): string | undefined => {
+  if (typeof value === "string") return text(value, max);
   const map = record(value);
   const item = map[locale] ?? map[locale.split("-")[0]!] ?? map.en ?? Object.values(map)[0];
-  return text(typeof item === "string" ? item : record(item).text);
+  return text(typeof item === "string" ? item : record(item).text, max);
 };
 export function safeUrl(value: unknown): string | undefined {
   if (typeof value !== "string" || value.length > 2000) return undefined;
@@ -93,8 +93,12 @@ function communityPath(doc: Document, id: string): string {
 export function project(kind: Kind, id: string, doc: Document, locale: string, detail: boolean): Document {
   const path = kind === "spot" ? `/map/${encodeURIComponent(id)}` : kind === "event"
     ? `/events/${encodeURIComponent(text(doc.slug, 160) || id)}` : communityPath(doc, id);
-  const common = { id, name: localized(doc.name ?? doc.title ?? doc.displayName, locale),
-    url: `https://pkspot.app${path}`, description: localized(doc.description, locale) };
+  const fullDescription = localized(doc.description, locale, 12000);
+  const descriptionLimit = detail ? 4000 : 600;
+  const shortened = Boolean(fullDescription && fullDescription.length > descriptionLimit);
+  const common = { id, kind, name: localized(doc.name ?? doc.title ?? doc.displayName, locale),
+    url: `https://pkspot.app${path}`, description: shortened ? fullDescription!.slice(0, descriptionLimit).replace(/\s+\S*$/, "") + "…" : fullDescription,
+    description_truncated: shortened };
   if (kind === "spot") {
     const amenities = record(doc.amenities);
     const provenance = record(doc.public_import_provenance);
@@ -106,6 +110,8 @@ export function project(kind: Kind, id: string, doc: Document, locale: string, d
         ...(Array.isArray(doc.media) && doc.media.length > 0 ? ["Photos or media available on PK Spot"] : []),
         ...(doc.is_reported === true ? ["Reported: check current conditions on PK Spot"] : []),
       ],
+      amenity_status: Object.fromEntries(["indoor", "outdoor", "covered", "lighting", "entry_fee", "drinking_water", "wc"]
+        .map((key) => [key, amenities[key] === true ? "yes" : amenities[key] === false ? "no" : "not specified"])),
       amenities: Object.fromEntries(["indoor", "outdoor", "covered", "lighting", "entry_fee", "drinking_water", "wc"]
         .map((key) => [key, typeof amenities[key] === "boolean" ? amenities[key] : null])),
       locality: text(record(doc.address).locality, 100),
@@ -117,7 +123,8 @@ export function project(kind: Kind, id: string, doc: Document, locale: string, d
     };
   }
   if (kind === "event") {
-    return { ...common, venue: text(doc.venue_string, 200), locality: text(doc.locality_string, 100),
+    return { ...common, timing_note: record(doc.timing).mode === "date_only"
+      ? "Dates only. Start and end times are not specified; legacy start/end timestamps are date boundaries, not event times." : undefined, venue: text(doc.venue_string, 200), locality: text(doc.locality_string, 100),
       timing: { mode: text(record(doc.timing).mode, 40), start_date: text(record(doc.timing).start_date, 10),
         end_date: text(record(doc.timing).end_date, 10), start_time: text(record(doc.timing).start_time, 8),
         end_time: text(record(doc.timing).end_time, 8) },

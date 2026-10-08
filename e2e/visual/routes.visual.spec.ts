@@ -614,6 +614,12 @@ const routeVisualCases: RouteVisualCase[] = [
     eventIndexFixture: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
   },
+  { name: "embed-spot-picker", path: "/embed?embedType=spot", viewport: mobileViewport, eventIndexFixture: true },
+  { name: "embed-community-picker", path: "/embed?embedType=community", viewport: mobileViewport, eventIndexFixture: true },
+  { name: "embed-alain", path: "/embed?embedType=spot", viewport: alainMobileViewport, eventIndexFixture: true,
+    assertAlainClearance: { axis: "block", target: "app-embed-page h2" } },
+  { name: "embedded-selection-event", path: "/embedded/results?refs=" + encodeURIComponent(JSON.stringify([{ kind: "event", id: "visual-city-jam" }])), viewport: mobileViewport, eventIndexFixture: true, fixedTime: "2026-07-20T12:00:00.000Z" },
+  { name: "embedded-selection-empty", path: "/embedded/results", viewport: mobileViewport },
   {
     name: "embedded-event",
     path: "/embedded/events/swissjam25",
@@ -1455,6 +1461,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               id: "visual-city-jam",
               slug: "visual-city-jam",
               name: "City Parkour Jam",
+              published: true,
+              visibility: "public",
+              discoverability: { audience: "global" },
               venue_string: "Riverside Park",
               locality_string: "Basel, Switzerland",
               location_raw: { lat: 47.5596, lng: 7.5886 },
@@ -1964,6 +1973,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               id: "visual-city-jam",
               slug: "visual-city-jam",
               name: "City Parkour Jam",
+              published: true,
+              visibility: "public",
+              discoverability: { audience: "global" },
               venue_string: "Riverside Park",
               locality_string: "Basel, Switzerland",
               start: "2026-08-01T10:00:00.000Z",
@@ -2172,6 +2184,10 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await expect(
       page.locator("mat-spinner:visible, mat-progress-spinner:visible"),
     ).toHaveCount(0);
+  }
+
+  if (route.name === "embedded-selection-event") {
+    await expect(page.locator("app-embedded-results-page app-event-card")).toContainText("City Parkour Jam");
   }
 
   if (route.name === "embed") {

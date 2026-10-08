@@ -77,7 +77,7 @@ export async function handle(request: Request, env: Environment, context: Execut
   catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
   if (Array.isArray(payload)) return Response.json({ error: "Batch requests are not supported" }, { status: 400 });
   const rpc = record(payload);
-  if (!["initialize", "notifications/initialized", "ping", "tools/list", "tools/call"].includes(String(rpc.method))) {
+  if (!["initialize", "notifications/initialized", "ping", "tools/list", "tools/call", "resources/list", "resources/read", "resources/templates/list"].includes(String(rpc.method))) {
     return Response.json({ jsonrpc: "2.0", id: rpc.id ?? null, error: { code: -32601, message: "Method not found" } }, { status: 400 });
   }
   if (rpc.method === "tools/call") {
@@ -86,7 +86,7 @@ export async function handle(request: Request, env: Environment, context: Execut
       return Response.json({ jsonrpc: "2.0", id: rpc.id ?? null, error: { code: -32602, message: "Invalid tool name or arguments" } }, { status: 400 });
     }
     try {
-      const limited = await reserve(env, ip, String(params.name).startsWith("search_") ? 10 : 1, false);
+      const limited = await reserve(env, ip, String(params.name).startsWith("search_") || params.name === "display_results" ? 10 : 1, false);
       if (limited) return limited;
     } catch { return Response.json({ error: "Quota service unavailable" }, { status: 503 }); }
   }

@@ -10,6 +10,7 @@ const limit = z.number().int().min(1).max(10).default(5);
 const community = id.optional().describe("Public community ID returned by search_communities. Use it as a place reference, not a user's address.");
 const date = z.string().datetime({ offset: true });
 export const schemas = {
+  display_results: z.object({ items: z.array(z.object({ kind: z.enum(["spot", "event", "community"]), id }).strict()).min(1).max(10), locale }).strict(),
   search_spots: z.object({ query: query.optional(), community_id: community, limit, locale,
     sort: z.enum(["recommended", "rating", "nearest"]).default("recommended"),
     radius_km: z.number().min(0.5).max(50).default(10),
@@ -27,6 +28,7 @@ export const schemas = {
 export type ToolName = keyof typeof schemas;
 export const toolNames = Object.keys(schemas) as ToolName[];
 export const descriptions: Record<ToolName, string> = {
+  display_results: "Display selected PK Spot search results as cards and a map. First search or read records, then pass only their returned kind and ID. Up to ten results; current public records are checked again. No arbitrary card content or export.",
   search_spots: "Find up to ten public parkour Spots by phrase, referenced community, or coarse host location. For a named city, resolve search_communities and pass community_id; omit radius_km to use 10 km without asking. For near me, use host location or resolve a city already supplied in the conversation. Ask for a city only if no usable location is available. Recommended ranks a limited rating-selected candidate set, not every Spot. Distances are straight-line from the search center, not travel times. No pagination or export.",
   search_events: "Find upcoming public parkour events by phrase or referenced community. Supply explicit ISO date-time bounds with offsets for weekend/date queries. Canceled events remain labeled. No pagination or export.",
   search_communities: "Find public parkour communities by name or topic. Returns community references usable for Spot and event discovery. Do not send private user addresses.",
@@ -65,6 +67,24 @@ export class Discovery {
 
   async run(name: ToolName, input: unknown, meta: Document = {}): Promise<Document> {
     const args = schemas[name].parse(input);
+    if ("items" in args) {
+      const refs = [...new Map(args.items.map((item) => [item.kind + ":" + item.id, item])).values()];
+      const items = await Promise.all(refs.map(async ({ kind, id }) => {
+        const doc = await this.source.read(kind, id);
+        if (!doc || !isPublic(kind, doc)) return null;
+        const item = project(kind, id, doc, args.locale, true);
+        const raw = record(doc.location_raw), geo = record(doc.location);
+        const lat = number(raw.lat) ?? number(geo.latitude), lng = number(raw.lng) ?? number(geo.longitude);
+        const media = Array.isArray(doc.media) ? doc.media.map(record).find(m => m.type === "image" && m.isReported !== true && m.origin !== "streetview") : undefined;
+        const image = media && typeof media.src === "string" ? media.src : typeof doc.thumbnail_medium_url === "string" ? doc.thumbnail_medium_url : undefined;
+        // Only first-party thumbnails; never cause requests to arbitrary source URLs.
+        const imageUrl = image && /^https:\/\/(?:firebasestorage\.googleapis\.com|storage\.googleapis\.com|pkspot\.app)\//.test(image) ? image : undefined;
+        return { ...item, image_url: imageUrl, image_credit: imageUrl && media ? String(media.attribution_text ?? [record(media.attribution).title, record(media.attribution).author, record(media.attribution).license].filter(value => typeof value === "string").join(" · ")) : undefined,
+          ...(lat !== undefined && lng !== undefined && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
+            ? { coordinates: { lat, lng } } : {}) };
+      }));
+      return { items: items.filter((item) => item !== null), scope: "Selected public PK Spot records. Map pins are locations, not routes or access guarantees." };
+    }
     const kind: Kind = name.endsWith("communities") || name.endsWith("community") ? "community" : name.endsWith("spots") || name.endsWith("spot") ? "spot" : "event";
     if ("id" in args) {
       const doc = await this.source.read(kind, args.id);

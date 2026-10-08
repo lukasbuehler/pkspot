@@ -1,6 +1,6 @@
 import { ParamMap } from "@angular/router";
 
-export type EmbedType = "map" | "event" | "event-map";
+export type EmbedType = "map" | "event" | "event-map" | "spot" | "community";
 
 export type SupportedEmbedLanguage =
   | "en"
@@ -66,7 +66,7 @@ export const embedCreditTextByLanguage: Record<
 };
 
 export function coerceEmbedType(value: string | null): EmbedType | null {
-  if (value === "map" || value === "event" || value === "event-map") {
+  if (value === "map" || value === "event" || value === "event-map" || value === "spot" || value === "community") {
     return value;
   }
 
@@ -121,11 +121,19 @@ export function buildEmbedPageQueryParams(input: {
   eventId: string;
   embedType: EmbedType;
   language: EmbedLanguage;
+  spotIds?: string[];
+  communityId?: string;
+  communitySlug?: string;
+  showMap?: boolean;
 }): Record<string, string | null> {
   const eventId = input.eventId.trim();
 
   return {
     eventId: eventId || null,
+    ...(input.spotIds?.length ? { spotIds: input.spotIds.join(",") } : {}),
+    ...(input.communityId ? { communityId: input.communityId } : {}),
+    ...(input.communitySlug ? { communitySlug: input.communitySlug } : {}),
+    ...(input.showMap === false ? { showMap: "false" } : {}),
     embedType: input.embedType,
     language: input.language === "auto" ? null : input.language,
   };

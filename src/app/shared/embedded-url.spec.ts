@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { buildUnembeddedUrlFromHref } from "./embedded-url";
 
 describe("buildUnembeddedUrlFromHref", () => {
+  it("opens the real map rather than a nonexistent results page", () => {
+    expect(buildUnembeddedUrlFromHref("https://pkspot.app/de/embedded/results?refs=test&showMap=false", { includeEmbedCtaUtm: false })).toBe("https://pkspot.app/de/map");
+  });
   it("removes embedded path segment and embed-only header query", () => {
     expect(
       buildUnembeddedUrlFromHref(

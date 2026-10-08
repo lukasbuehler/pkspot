@@ -11,6 +11,15 @@ migration or a web/mobile release. Deployment and directory submissions require
 separate maintainer approval. It provides anonymous, read-only discovery and
 individual detail tools, with no exports or pagination.
 
+- [ ] Deploy the Angular `/embedded/results` route and updated `/embed` builder first,
+      through the separately approved web release. Verify public selections, shared cards,
+      map controls and frame headers on `https://pkspot.app/embedded/results`.
+      Only then deploy MCP 1.1.0 and rescan the existing plugin. Its UI resource is a thin
+      MCP Apps bridge embedding the Angular page, with `https://pkspot.app` in `frameDomains`.
+      Verify the nested frame, links, CSP and selected references in ChatGPT and Claude.
+      Keep the existing six data tools usable without UI. The display tool reserves ten
+      record slots; the Angular embed uses the existing public website read path.
+      Record a new UI walkthrough before submitting 1.1.0; the old video covers text only.
 - [ ] Deploy the native-fetch receiver and manual-redirect fixes, then verify
       live MCP search and detail reads. Local workerd now completes a public
       Typesense-to-Firestore read; deployed data access still needs retesting.
