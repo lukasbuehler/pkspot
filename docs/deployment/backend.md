@@ -4,12 +4,20 @@ Pending Functions, indexes, provider fixes and data jobs. Check live state befor
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
-### Storage SDK refresh
+### Backend dependency security refresh
 
-- [ ] Include the Functions lockfile update to Google Cloud Storage 7.22.0 in the
-      next separately approved backend deployment. Verify a controlled moderated
-      upload and download afterward. SDK checksum validation remains enabled by
-      default; do not disable `validation` to bypass a checksum mismatch.
+- [ ] Deploy the reviewed Functions dependency lockfile in a separately approved
+      backend rollout. It includes Google Cloud Storage 7.22.0, Sharp 0.35.5,
+      grpc-js 1.14.5 or newer, Busboy 3.2.2 or newer, and proxy-addr 2.0.8 or newer.
+      The local audit is clean, but existing deployed revisions retain their old
+      dependencies. Inventory the live functions and include every supported
+      consumer; updating only one image callable does not patch other revisions.
+      Review pending compatibility changes before choosing the deployment scope.
+      Verify deployed revisions use the updated lockfile, authenticated callable
+      and Firestore operations work, and a controlled moderated image upload,
+      derivative generation, download, and share-card render succeed. Do not
+      trigger a backfill for this verification. SDK checksum validation remains
+      enabled by default; do not disable `validation` to bypass a mismatch.
 
 ### Media review decisions and incident handoff
 

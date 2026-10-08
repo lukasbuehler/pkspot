@@ -42,37 +42,34 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
   returning HTTP 200, and no legacy canonical host in the sitemap. These checks
   do not establish Google's actual indexing decision.
 
-### September 2026 dependency security hotfix
+### Dependency security release checks
 
 - Preserve Angular build-tool compatibility when updating security overrides:
-  the builder pins Vite 8.1.5. Forcing Vite 7 ignores SSR prebundle defines and
+  the Angular 22.2 builder uses Vite 8.3.0. Forcing Vite 7 ignores SSR prebundle defines and
   crashes `ng serve` in event replay. Refresh local dependencies with
   `npm ci --ignore-scripts` and restart development servers after this update.
 
-- Release the reviewed main-based hotfix through the normal main/App Hosting
-  workflow. Verify the localized web app renders real SSR HTML and key map,
-  Event, authentication, and navigation flows still work. Angular framework,
-  SSR and build tooling are aligned to 22.1.6 locally, including the malformed
-  DOCTYPE SSR denial-of-service fix. This dependency update still needs the
-  authorized web release. Do not include unfinished 1.2
-  features in this release. PR-open workflow triggers remain unchanged.
-- Verify an authorized production image upload completes moderation and
-  derivative generation on the updated Sharp 0.35.4 Functions. Local image and
-  emulator checks passed; deployed revisions and their source lockfiles were
-  verified, but no new production test image was uploaded. Do not trigger
-  backfills for this verification.
-- [ ] Resolve and re-run the dependency audits before release. The 2026-10-08
-  audit after the Firebase refresh supersedes the clean September snapshot:
-  root has 42 findings (3 critical, 27 high, 11 moderate, 1 low), the root
-  production tree has 12 (1 critical, 9 high, 1 moderate, 1 low), Functions has
-  14 (1 critical, 13 high), MCP has 6 high, and the Horizn importer has 4 high.
-  Run `npm audit`, `npm audit --omit=dev`, `npm --prefix functions audit`,
-  `npm --prefix mcp audit`, and `npm --prefix scripts/horizn-import audit`.
-  Review fixes for proxy-addr, Angular SSR/router, Piscina, grpc-js, and the
-  remaining transitive dependencies; do not apply suggested major downgrades
-  or `npm audit fix --force` without checking compatibility. Re-run the unit,
-  build/SSR, and relevant backend tests after fixes; success is zero unresolved
-  findings or an explicitly reviewed, documented exception.
+- [ ] Release the dependency patch through the normal authorized main/App
+  Hosting workflow. Angular framework, SSR, and build tooling are aligned to
+  22.2.1, with Analog 2.8.0 for the changed compiler cache API. Keep Babel 7
+  security overrides scoped to Babel 7 consumers; the builder uses Babel 8.
+  Verify the hosting runtime meets Angular's Node 22.22.3 minimum, localized SSR
+  HTML, authentication, map/search, Events, and navigation on the release build.
+- [ ] Track the remaining development-only Firebase CLI advisory
+  [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
+  The 2026-10-08 patched audit has three high entries for one dependency chain:
+  `firebase-tools > chokidar@3.6.0 > braces@3.0.3`. Root production, Functions,
+  MCP, and the Horizn importer each audit clean. No patched `braces` release is
+  available; the latest CLI still uses this watcher. Exposure is deeply nested
+  glob input in local tooling, so use trusted repository/configuration inputs.
+  This reviewed tooling limitation remains open; do not describe the full root
+  audit as clean. Update when upstream fixes it, rerun `npm audit`,
+  `npm audit --omit=dev`, `npm --prefix functions audit`, `npm --prefix mcp audit`,
+  and `npm --prefix scripts/horizn-import audit` plus local emulator/build checks,
+  then remove this item. Do not downgrade
+  Firebase CLI to npm audit's suggested 6.8.0 or force Chokidar 4/5, which changes
+  glob support. Patched deployed dependencies require the separate backend and
+  MCP releases in their owning checklists.
   Firebase CLI 15.31.0 supports the patched csv-parse and stream-json versions;
   retain its upstream integration rather than forcing those major versions
   into an older CLI. The scoped xcode UUID override uses the CommonJS-compatible

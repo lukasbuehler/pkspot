@@ -11,6 +11,12 @@ migration or a web/mobile release. Deployment and directory submissions require
 separate maintainer approval. It provides anonymous, read-only discovery and
 individual detail tools, with no exports or pagination.
 
+- [ ] Include the patched MCP SDK 1.32.1 and lockfile in the next separately
+      approved Worker deployment, after the Angular embed dependency below.
+      Verify a fresh initialize/tools/list/tools/call exchange and the embedded
+      result UI. A clean local npm audit and Wrangler dry run do not patch the
+      running Worker.
+
 - [ ] Deploy the Angular `/embedded/results` route and updated `/embed` builder first,
       through the separately approved web release. Verify public selections, shared cards,
       map controls and frame headers on `https://pkspot.app/embedded/results`.
