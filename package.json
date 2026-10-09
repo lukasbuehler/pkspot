@@ -133,7 +133,7 @@
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.1",
     "@analogjs/vitest-angular": "^2.6.1",
-    "@angular/build": "22.1.4",
+    "@angular/build": "22.2.2",
     "@angular/cli": "22.1.4",
     "@angular/compiler-cli": "22.1.4",
     "@angular/language-service": "22.1.4",
