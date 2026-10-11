@@ -78,35 +78,36 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
-### September 2026 dependency security hotfix
+### October 2026 pre-1.2 dependency security hotfix
 
 - Release the reviewed main-based hotfix through the normal main/App Hosting
-  workflow. Verify the localized web app renders real SSR HTML and key map,
-  Event, authentication, and navigation flows still work. Angular framework,
-  SSR and build tooling are aligned to 22.1.4. Do not include unfinished 1.2
-  features in this release. PR-open workflow triggers remain unchanged.
-- Separately deploy the Sharp-dependent image/moderation entry points from this
-  hotfix checkout after Functions compilation and image-processing checks:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:processImageUpload,functions:backfillStorageImageSizes,functions:processMediaIntakeUpload,functions:markMediaUploadSafe,functions:reconcilePublishedMediaReviews,functions:runMediaIntakeBackfill,functions:runMediaModerationAudit
-  ```
-
-  Verify deployed revisions use Sharp 0.35.4/libheif 1.23.2 and an authorized
-  image upload completes moderation and derivative generation. Updating web
-  hosting does not patch existing Functions revisions. Do not trigger backfills
-  as part of this deployment. No backend deployment has been performed yet.
+  workflow after approval. Angular framework, SSR and build tooling are aligned
+  to 22.2.1; compression and vulnerable transitive dependencies are patched.
+  Use Node 22.22.3 or a newer supported runtime for the Angular build. Verify
+  localized SSR HTML and representative map, Event, sign-in and navigation
+  flows after release. This branch retains the 1.1.5 feature set.
+- Rebuild and test Android and iOS with Capacitor 8.4.3, then submit the native
+  security update separately. The Capacitor proxy advisory GHSA-rvm3-566m-v7fv
+  requires a native binary update; publishing web assets alone does not patch
+  installed apps. Verify external-link handling, authentication and native
+  plugin calls on both platforms. Bump store build/version numbers before
+  submission; this dependency PR does not submit or publish binaries.
+- Separately apply the Functions dependency fixes to the source matching the
+  currently deployed backend and deploy only after approval and verification.
+  Production may already contain compatible 1.2 backend changes: do not deploy
+  the older main-based Functions source wholesale and roll those changes back.
+  Verify compilation, emulator flows and image processing with Sharp 0.35.5,
+  then confirm deployed dependency versions and an authorized image upload.
+  Updating App Hosting does not update existing Functions revisions. No rules,
+  migrations or backfills are required by this dependency-only hotfix.
 - Re-run root, production-only root, Functions and Horizn importer audits before
-  release. The hotfix clears production and Functions advisories. Root tooling
-  still reports three moderate package findings: csv-parse, stream-json and their
-  parent firebase-tools (two underlying advisories). Do not force npm's proposed
-  Firebase CLI downgrade or override stream-json 1.x with 3.x: Firebase CLI uses
-  CommonJS extensionless subpaths, while 3.x exports ESM src paths. Resolve this
-  in a separate compatible CLI update; avoid untrusted Auth/database import
-  files in the meantime.
-- Carry the security dependency changes into development without enabling its
-  pending features. Assess the Angular host-binding advisory against native
-  rendering before deciding whether a separate expedited store build is needed.
+  release. The remaining root tooling exception is braces through chokidar 3
+  in firebase-tools (GHSA-vfj7-8cjw-p6xm, three high package findings for one
+  advisory). No compatible upstream fix is available. Do not force npm's
+  proposed downgrade to Firebase CLI 6.8.0 or replace chokidar 3 with a major
+  version through an override. Revisit when Firebase CLI updates its watcher.
+- Reconcile the final security dependency changes with development before 1.2,
+  retaining its newer compatible dependencies and features.
 
 
 Keep an item unchecked until the action has actually been performed and verified.
