@@ -421,6 +421,16 @@
   ],
   "fieldOverrides": [
     {
+      "collectionGroup": "live_update_subscribers",
+      "fieldPath": "user_id",
+      "indexes": [
+        { "queryScope": "COLLECTION", "order": "ASCENDING" },
+        { "queryScope": "COLLECTION", "order": "DESCENDING" },
+        { "queryScope": "COLLECTION", "arrayConfig": "CONTAINS" },
+        { "queryScope": "COLLECTION_GROUP", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "reports",
       "fieldPath": "user.uid",
       "indexes": [

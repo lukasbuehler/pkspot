@@ -22,8 +22,8 @@ describe("Firestore index contracts", () => {
     });
   });
 
-  it.each(["registrations", "rsvps"])(
-    "supports %s notification migration lookups by user",
+  it.each(["registrations", "rsvps", "live_update_subscribers"])(
+    "supports %s notification lookups by user",
     (collectionGroup) => {
       const config = JSON.parse(
         readFileSync("firestore.indexes.json", "utf8"),
