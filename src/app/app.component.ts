@@ -1329,31 +1329,39 @@ html.pkspot-roboto-loaded body {
   }
 
   private installNavigationClickLogging(): void {
-    document.addEventListener(
-      "click",
-      (event) => {
-        const target = event.target;
-        if (!(target instanceof Element)) {
-          return;
-        }
+    const logClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
 
-        const anchor = target.closest("a");
-        const button = target.closest("button");
-        const element = anchor ?? button;
-        if (!element) {
-          return;
-        }
+      const anchor = target.closest("a");
+      const element = anchor ?? target.closest("button");
+      if (!element) {
+        return;
+      }
 
-        this.writeNavigationPerformanceLog("info", {
-          phase: "Click",
-          tagName: element.tagName.toLowerCase(),
-          href: anchor?.getAttribute("href") ?? undefined,
-          text: element.textContent?.trim().slice(0, 80) ?? "",
-          path: window.location.pathname,
-        });
-      },
-      { capture: true },
-    );
+      this.writeNavigationPerformanceLog("info", {
+        phase: event.eventPhase === Event.CAPTURING_PHASE ? "Click" : "ClickHandled",
+        tagName: element.tagName.toLowerCase(),
+        href: anchor?.getAttribute("href") ?? undefined,
+        target: anchor?.getAttribute("target") ?? undefined,
+        text: element.textContent?.trim().slice(0, 80) ?? "",
+        path: window.location.pathname,
+        button: event.button,
+        ctrlKey: event.ctrlKey,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        metaKey: event.metaKey,
+        defaultPrevented: event.defaultPrevented,
+        isTrusted: event.isTrusted,
+      });
+    };
+
+    // Capture records the input even if propagation stops. The bubble record
+    // shows whether RouterLink prevented the anchor's document navigation.
+    document.addEventListener("click", logClick, { capture: true });
+    document.addEventListener("click", logClick);
   }
 
   private installLongTaskLogging(): void {

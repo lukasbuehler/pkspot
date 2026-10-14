@@ -57,6 +57,18 @@ function configureHandler(options: {
 }
 
 describe("ApplicationErrorHandler", () => {
+  it("preserves the error message when WebKit supplies a frames-only stack", () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { handler, reload } = configureHandler();
+    const error = new Error("Script error.");
+    error.stack = "r@capacitor://pkspot.app/de/chunk.js:4:23474";
+
+    handler.handleError(error);
+
+    expect(log).toHaveBeenCalledWith("[AppError]", `Error: Script error.\n${error.stack}`);
+    expect(reload).not.toHaveBeenCalled();
+  });
+
   it("keeps native console errors readable after JSON serialization", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const { handler } = configureHandler();
