@@ -7,6 +7,11 @@
   // page background into that space so the final section does not end on the
   // app shell's surface color.
   box-sizing: border-box;
+  // Paint through shell safe-area gutters while keeping content inside them.
+  margin-block-start: calc(-1 * var(--page-safe-top, 0px));
+  margin-inline: calc(-1 * var(--page-safe-left, 0px)) calc(-1 * var(--page-safe-right, 0px));
+  padding-block-start: var(--page-safe-top, 0px);
+  padding-inline: var(--page-safe-left, 0px) var(--page-safe-right, 0px);
   margin-block-end: calc(-1 * var(--navigation-bottom-clearance, 0px));
   min-height: 100%;
   padding-block-end: var(--navigation-bottom-clearance, 0px);
@@ -182,9 +187,9 @@ section {
 }
 
 .carousel-container {
-  width: 90vw;
-  margin-left: calc(50% - 45vw);
-  margin-right: calc(50% - 45vw);
+  // Viewport widths include the navigation rail and side cutouts.
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
   position: relative;
   mask-image: linear-gradient(

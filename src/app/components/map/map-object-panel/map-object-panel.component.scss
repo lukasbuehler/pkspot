@@ -86,35 +86,38 @@
   }
 }
 
+.peek-title {
+  // Follow the sheet continuously, just like the area heading above the chips.
+  max-height: calc(var(--open-progress, 1) * 32px);
+  padding-top: calc(var(--open-progress, 1) * 4px);
+  margin-bottom: calc(var(--open-progress, 1) * 0.5rem);
+  opacity: var(--open-progress, 1);
+  overflow: hidden;
+  transition:
+    max-height 0.2s ease-out,
+    padding-top 0.2s ease-out,
+    margin-bottom 0.2s ease-out,
+    opacity 0.2s ease-out;
+
+  &[data-collapsed="true"] {
+    max-height: 0;
+    padding-top: 0;
+    margin-bottom: 0;
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .area-header,
-  .area-weather {
+  .area-weather,
+  .area-title,
+  .peek-title {
     transition: none;
   }
 
   .weather-chip-enter {
     animation: none;
   }
-}
-
-.peek-title {
-  max-height: 32px;
-  margin-bottom: 0.5rem;
-  opacity: 1;
-  overflow: hidden;
-  transform: translateY(0);
-  transition:
-    max-height 180ms ease,
-    margin-bottom 180ms ease,
-    opacity 160ms ease,
-    transform 180ms ease;
-}
-
-.peek-title--hidden {
-  max-height: 0;
-  margin-bottom: 0;
-  opacity: 0;
-  transform: translateY(-6px);
 }
 
 .show-more-spots {

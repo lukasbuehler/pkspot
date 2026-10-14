@@ -126,4 +126,22 @@ describe("ContinuousEventCalendarComponent", () => {
     expect(fixture.componentInstance.monthKeys()).toContain("2027-02");
     expect(jumps).toEqual(["2027-02-10"]);
   });
+
+  it("restores a shared day beyond the initial window without resetting on taps", async () => {
+    fixture.componentRef.setInput("selectedDay", "2027-08-10");
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    expect(component.monthKeys()).toContain("2027-08");
+    expect(component.selectedDayModel()?.key).toBe("2027-08-10");
+    const months = component.monthKeys();
+    component.daySelected.subscribe(day => fixture.componentRef.setInput("selectedDay", day));
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('[data-day="2027-09-12"]');
+    button.click();
+    await fixture.whenStable();
+
+    expect(component.selectedDayModel()?.key).toBe("2027-09-12");
+    expect(component.monthKeys()).toBe(months);
+    expect(loader).toHaveBeenCalledTimes(1);
+  });
 });

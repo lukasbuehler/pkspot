@@ -236,8 +236,8 @@
   }
 
   .calendar-scroll {
-    height: 58dvh;
-    min-height: 360px;
+    height: clamp(220px, 34dvh, 300px);
+    min-height: 0;
   }
 
   .day-cell {

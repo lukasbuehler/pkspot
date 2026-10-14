@@ -18,7 +18,7 @@ import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
-import { ActivatedRoute, ParamMap, Router } from "@angular/router";
+import { ActivatedRoute, type NavigationExtras, ParamMap, Router } from "@angular/router";
 import {
   type EventCategory,
   type EventListingTier,
@@ -51,6 +51,7 @@ import {
   buildEventCalendarMonth,
   currentMonthKey,
   eventLocalDateKey,
+  isDayKey,
   isMonthKey,
   shiftMonthKey,
 } from "./event-calendar.model";
@@ -274,10 +275,7 @@ export class EventsPageComponent {
   );
   readonly selectedDay = computed(() => {
     const requested = this.requestedDay();
-    if (
-      /^\d{4}-\d{2}-\d{2}$/u.test(requested) &&
-      this.calendarRange().days.some((day) => day.key === requested)
-    ) {
+    if (this._isSelectableDay(requested)) {
       return requested;
     }
     return defaultDayForMonth(this.month());
@@ -681,7 +679,8 @@ export class EventsPageComponent {
   }
 
   selectDay(day: string): void {
-    void this._updateQueryParams({ day });
+    // Selecting within the calendar is not a page navigation.
+    void this._updateQueryParams({ day }, false, { scroll: "manual" });
   }
 
   jumpToCalendarDate(day: string): void {
@@ -765,9 +764,7 @@ export class EventsPageComponent {
     this.month.set(this._hasValidMonthParam ? month : currentMonthKey());
     const requestedDay = params.get("day") ?? "";
     this.requestedDay.set(requestedDay);
-    this._hasValidDayParam =
-      /^\d{4}-\d{2}-\d{2}$/u.test(requestedDay) &&
-      this.calendarRange().days.some((day) => day.key === requestedDay);
+    this._hasValidDayParam = this._isSelectableDay(requestedDay);
     this._hasPeriodParam =
       params.get("when") === "upcoming" || params.get("when") === "past";
     this.resultLimit.set(LIST_PAGE_SIZE);
@@ -776,13 +773,21 @@ export class EventsPageComponent {
   private _updateQueryParams(
     queryParams: Record<string, string | null>,
     replaceUrl = false,
+    options: Pick<NavigationExtras, "scroll"> = {},
   ): Promise<boolean> {
     return this._router.navigate([], {
       relativeTo: this._route,
       queryParams,
       queryParamsHandling: "merge",
       replaceUrl,
+      ...options,
     });
+  }
+
+  private _isSelectableDay(day: string): boolean {
+    // The continuous grid can extend far beyond its original month anchor.
+    return isDayKey(day) && (this.usesContinuousCalendar() ||
+      this.calendarRange().days.some((candidate) => candidate.key === day));
   }
 
   private _ensureShareableUrlDefaults(): void {

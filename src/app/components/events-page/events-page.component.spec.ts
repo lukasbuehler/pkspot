@@ -615,6 +615,7 @@ describe("EventsPageComponent", () => {
       queryParams: { day: "2026-08-14" },
       queryParamsHandling: "merge",
       replaceUrl: false,
+      scroll: "manual",
     });
 
     component.onPeriodChange("upcoming");
@@ -729,6 +730,22 @@ describe("EventsPageComponent", () => {
 
     expect(component.discoveryResource.isLoading()).toBe(false);
     expect(component.discoveryResult()).toBe(refreshedResult);
+  });
+
+  it("accepts continuous-calendar selections beyond the anchor month", async () => {
+    const { component, queryParams, router } = createComponent({
+      queryParams: { view: "calendar", month: "2026-08", day: "2026-08-01" },
+    });
+    await flushResources();
+    router.navigate.mockClear();
+    queryParams.next(convertToParamMap({
+      view: "calendar", month: "2026-08", day: "2026-09-19",
+    }));
+    await flushResources();
+
+    expect(component.selectedDay()).toBe("2026-09-19");
+    expect(component.month()).toBe("2026-08");
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it("does not reload calendar results when only the selected day changes", async () => {

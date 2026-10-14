@@ -228,10 +228,6 @@ body:has(#alainMenuButton) {
   padding-bottom: 16px;
 }
 
-.debug-keyboard-open .cdk-overlay-pane.mat-mdc-dialog-panel {
-  max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
-}
-
 .keyboard-open .cdk-global-overlay-wrapper {
   align-items: center !important;
   overflow-y: auto;
@@ -247,10 +243,6 @@ body:has(#alainMenuButton) {
   padding-bottom: 16px;
 }
 
-.keyboard-open .cdk-overlay-pane.mat-mdc-dialog-panel {
-  max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
-}
-
 .keyboard-open .keyboard-scroll-space {
   box-sizing: border-box;
   scroll-padding-bottom: calc(var(--keyboard-scroll-space, 0px) + 16px);
@@ -262,10 +254,6 @@ body:has(#alainMenuButton) {
   flex: 0 0 auto;
   min-height: var(--keyboard-scroll-space, 0px);
   pointer-events: none;
-}
-
-.keyboard-open .mat-mdc-dialog-surface {
-  max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
 }
 
 // Utility: marks form-like pages as the preferred keyboard spacing target.
@@ -344,13 +332,17 @@ app-root {
 // Backgrounds fill the viewport. Only document content and navigation reserve
 // safe areas; fixed overlays already use viewport-relative safe-area offsets.
 app-root:not(.immersive-map-route) .main-content {
-  padding-top: max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height));
-  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --page-safe-top: max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height));
+  --page-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --page-safe-left: 0px;
+  padding-top: var(--page-safe-top);
+  padding-right: var(--page-safe-right);
 }
 app-root:not(.has-navigation-rail) {
   --map-leading-safe-area: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
   &:not(.immersive-map-route) .main-content {
-    padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+    --page-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+    padding-left: var(--page-safe-left);
   }
 }
 app-root.has-navigation-rail { --map-leading-safe-area: 0px; }
@@ -404,18 +396,9 @@ app-root.event-map-route {
   color: var(--app-access-private) !important;
 }
 
-.cdk-global-overlay-wrapper:has(.image-crop-dialog-panel) {
-  box-sizing: border-box;
-  padding: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-    calc(16px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
-    calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
-    calc(16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
-}
 .cdk-overlay-pane.mat-mdc-dialog-panel.image-crop-dialog-panel {
-  --crop-safe-height: calc(100dvh - 32px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
   max-width: 100% !important;
-  max-height: var(--crop-safe-height) !important;
-  .mat-mdc-dialog-surface { max-height: var(--crop-safe-height); overflow: auto; }
+  .mat-mdc-dialog-surface { overflow: auto; }
 }
 
 /* Alternative: Hide the badge entirely if preferred (only if you show the reCAPTCHA terms elsewhere) */
@@ -429,17 +412,9 @@ app-root.event-map-route {
 //   flex-basis: 0 !important;
 // }
 
-// Center this failure dialog within the usable rectangle, not behind a cutout.
 .cdk-global-overlay-wrapper:has(.app-check-safe-dialog) {
-  box-sizing: border-box;
-  padding: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-    calc(16px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
-    calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
-    calc(16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
-
   .app-check-safe-dialog {
     max-width: min(560px, 100%) !important;
-    max-height: 100%;
   }
 }
 
@@ -457,4 +432,27 @@ app-log-entry-editor,
 app-training-session-detail,
 app-notification-settings {
   @include mat.theme((typography: Roboto));
+}
+
+// Every dialog uses the usable rectangle, including side cutouts on foldables.
+// Keep this after the keyboard rules so safe-area padding also survives typing.
+.cdk-global-overlay-wrapper:has(.mat-mdc-dialog-panel) {
+  --dialog-safe-height: calc(100dvh - var(--keyboard-offset, 0px) - 32px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  box-sizing: border-box;
+  padding: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+    calc(16px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
+    calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+    calc(16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+
+  .cdk-overlay-pane.mat-mdc-dialog-panel {
+    max-height: var(--dialog-safe-height) !important;
+  }
+
+  .mat-mdc-dialog-surface {
+    max-height: var(--dialog-safe-height);
+  }
+
+  .my-events-safe-dialog {
+    max-width: min(760px, 100%) !important;
+  }
 }

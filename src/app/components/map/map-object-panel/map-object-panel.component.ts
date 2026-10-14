@@ -95,7 +95,6 @@ export class MapObjectPanelComponent {
     return this.visibleSpotCount() > limit;
   });
   titleCollapsed = computed(() => this.openProgress() < 0.1);
-  hidePeekTitles = computed(() => this.openProgress() < 0.2);
   visibleSpotCount = computed(() => {
     const highlightedIds = new Set(
       this.highlightedSpots().flatMap((spot) =>

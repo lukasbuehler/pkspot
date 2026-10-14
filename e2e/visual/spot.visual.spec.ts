@@ -11,6 +11,10 @@ test.beforeEach(async ({ page }) => {
 
 type SpotFixtureState = "loaded" | "loading";
 
+// Dialog screenshots include their transparent rounded corners. Use a fixed
+// surface behind them so independently loading fixture photos cannot change pixels.
+const dialogScreenshotStyle = ".cdk-global-overlay-wrapper { background: var(--mat-sys-surface) !important; }";
+
 async function openSpotFixture(
   page: Page,
   viewport = { width: 390, height: 844 },
@@ -45,6 +49,19 @@ async function openSpotFixture(
     await expect(details).toContainText(
       /Loading spot details|Spotdetails werden geladen/u,
     );
+  }
+  if (state === "loaded") {
+    // Photo decoding updates the carousel's aspect ratios and schedules a resize.
+    // Wait for both before comparing pixels, especially under full-suite load.
+    await expect.poll(() => details.locator("app-img-carousel img").evaluateAll(images =>
+      images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0),
+    )).toBe(true);
+    await details.locator("app-img-carousel img").evaluateAll(images =>
+      Promise.all(images.map(image => (image as HTMLImageElement).decode())),
+    );
+    await page.evaluate(() => new Promise<void>(resolve =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    ));
   }
   await page.waitForTimeout(700);
 }
@@ -214,16 +231,27 @@ test.describe("Spot Details Visual Regression @visual", () => {
     await page.waitForTimeout(100);
 
     await expect(sheet).toContainText("Riverside Training Walls");
+    // Measure the crop only after the header's collapse transitions and fonts
+    // settle. Screenshot animation disabling happens too late for a precomputed clip.
+    await page.evaluate(() => document.fonts.ready);
+    await sheet.evaluate(async element => {
+      await Promise.all(element.getAnimations({subtree: true}).map(animation => animation.finished.catch(() => undefined)));
+    });
     const box = await sheet.boundingBox();
     expect(box).not.toBeNull();
     if (!box) return;
 
+    const headerBox = await sheet.locator("mat-card-header").first().boundingBox();
+    expect(headerBox).not.toBeNull();
+    if (!headerBox) return;
+    // This assertion protects the collapsed header. Carousel imagery has separate
+    // full-sheet coverage and should not make a header regression nondeterministic.
     await expect(page).toHaveScreenshot("spot-details-bottom-sheet-collapsed.png", {
       clip: {
         x: box.x,
         y: box.y,
         width: box.width,
-        height: Math.min(box.height, 220),
+        height: Math.ceil(headerBox.y + headerBox.height - box.y),
       },
       maxDiffPixels: 150,
       animations: "disabled",
@@ -287,6 +315,7 @@ for (const mode of ["target", "review"]) {
     await expect(dialog).toBeVisible();
     if (mode === "target") await expect(dialog.locator("app-spot-picker")).toBeVisible();
     else await expect(dialog.locator("app-media-upload img").first()).toBeVisible();
+    await page.addStyleTag({content: dialogScreenshotStyle});
     await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-photo-${mode}.png`);
   });
 }
@@ -299,6 +328,7 @@ for (const width of [390, 1000]) {
     const dialog = page.locator("app-shared-map-drafts-dialog");
     await expect(dialog.locator("article")).toHaveCount(2);
     await expect(dialog.getByRole("button", {name: "Spot erstellen"})).toHaveCount(1);
+    await page.addStyleTag({content: dialogScreenshotStyle});
     await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-map-drafts-${width}.png`);
     await dialog.getByRole("button", {name: "Entwurf entfernen"}).first().click();
     await expect(dialog.locator("article")).toHaveCount(1);

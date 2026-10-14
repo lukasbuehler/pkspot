@@ -24,6 +24,7 @@ interface RouteVisualCase {
   eventMapLayout?: "full" | "embedded";
   eventIndexFixture?: boolean;
   liveEventFixture?: boolean;
+  myEventsDialogFixture?: boolean;
   trainFixture?: boolean;
   assertTrainPage?: boolean;
   assertFabAboveBottomNavigation?: string;
@@ -806,6 +807,7 @@ test.describe("Route visual regression @visual", () => {
         const contextButton = page.locator("button.training-context-button");
         const trainingHistory = page.locator("section.training-history");
         await expect(contextButton).toHaveClass(/mat-mdc-button-base/);
+        await expect(contextButton.locator(".training-context-button__area")).toContainText("(Zürich)");
         await expect(page.locator(".train-nav")).toHaveCount(0);
         await expect(trainingHistory).toBeVisible();
         await expect(
@@ -815,6 +817,10 @@ test.describe("Route visual regression @visual", () => {
           trainingHistory.locator("app-training-activity-contribution-graph button.cell"),
         ).toHaveCount(0);
         await expect(trainingHistory.locator(".training-history__metrics > div")).toHaveCount(4);
+        for (const metric of await trainingHistory.locator(".training-history__metrics > div").all()) {
+          await expect(metric).toHaveCSS("border-inline-start-width", "0px");
+          await expect(metric).toHaveCSS("border-inline-end-width", "0px");
+        }
         await expect(trainingHistory.locator("a[href$='/train/log']")).toHaveClass(
           /mat-mdc-button-base/,
         );
@@ -1148,6 +1154,53 @@ test.describe("Route visual regression @visual", () => {
     }
   });
 
+  test("fades and shrinks map section headings with the area heading while dragging", async ({ page }) => {
+    await prepareRoute(page, {
+      name: "map-heading-collapse", path: "/map",
+      viewport: { width: 390, height: 844 },
+    });
+    await page.evaluate(() => document.fonts.ready);
+    const sheet = page.locator(".map-bottom-sheet .sheet");
+    const handle = sheet.locator(".handle-region");
+    const areaTitle = sheet.locator(".area-title");
+    const sectionTitles = sheet.locator(".peek-title");
+    await handle.click();
+    await expect(areaTitle).toHaveCSS("opacity", "1");
+    const expandedHeight = (await sectionTitles.first().boundingBox())!.height;
+    const box = (await handle.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y + 180, { steps: 12 });
+    // Hold an intermediate drag position: headings must already fade and shrink,
+    // rather than waiting for the old near-closed threshold to start hiding.
+    await expect.poll(async () => Number(await areaTitle.evaluate(el => getComputedStyle(el).opacity)))
+      .toBeLessThan(0.9);
+    await expect.poll(async () => Number(await sectionTitles.first().evaluate(el => getComputedStyle(el).opacity)))
+      .toBeLessThan(0.9);
+    await sheet.evaluate(async el => {
+      await Promise.all(el.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => undefined)));
+    });
+    const areaOpacity = Number(await areaTitle.evaluate(el => getComputedStyle(el).opacity));
+    expect(areaOpacity).toBeGreaterThan(0.2);
+    for (const title of await sectionTitles.all()) {
+      expect(Number(await title.evaluate(el => getComputedStyle(el).opacity))).toBeCloseTo(areaOpacity, 2);
+      expect((await title.boundingBox())!.height).toBeLessThan(expandedHeight);
+    }
+    await page.mouse.move(x, 820, { steps: 12 });
+    await page.mouse.up();
+    await expect(areaTitle).toHaveCSS("opacity", "0");
+    for (const title of await sectionTitles.all()) {
+      await expect(title).toHaveCSS("opacity", "0");
+      await expect(title).toHaveCSS("max-height", "0px");
+      await expect(title).toHaveCSS("padding-top", "0px");
+      await expect(title).toHaveCSS("margin-bottom", "0px");
+    }
+    await handle.click();
+    await expect(sectionTitles.first()).toHaveCSS("opacity", "1");
+  });
+
   test("scrolls the chip row horizontally without dragging the bottom sheet", async ({ page }) => {
     await prepareRoute(page, { name: "sheet-chip-gesture", path: "/map", viewport: { width: 390, height: 650 } });
     const sheet = page.locator(".map-bottom-sheet .sheet");
@@ -1227,6 +1280,16 @@ test.describe("Route visual regression @visual", () => {
 async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.setViewportSize(route.viewport ?? desktopViewport);
   if (route.trainFixture) {
+    // Keep locality labels deterministic and never geocode real locations in visual tests.
+    await page.route("https://maps.googleapis.com/maps/api/js?**", route => route.fulfill({
+      contentType: "application/javascript",
+      body: `window.google = { maps: { importLibrary: async () => ({
+        Settings: { getInstance: () => ({}) },
+        Geocoder: class { async geocode() { return { results: [{ address_components: [
+          { long_name: "Zürich", types: ["locality"] }
+        ] }] }; } }
+      }) } }; window.mapsCallback();`,
+    }));
     await page.context().grantPermissions(["geolocation"]);
     await page.context().setGeolocation({
       latitude: 47.3769,
@@ -1245,6 +1308,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       eventIndexFixture,
       invalidEventFixture,
       liveEventFixture,
+      myEventsDialogFixture,
       publicProfile,
       signedIn,
       trainFixture,
@@ -2011,6 +2075,13 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             },
           ];
         }
+        if (myEventsDialogFixture) {
+          (window as typeof window & {__PKSPOT_SCREENSHOT_ATTENDED_EVENTS__?: unknown}).__PKSPOT_SCREENSHOT_ATTENDED_EVENTS__ = Array.from({length: 12}, (_, index) => ({
+            id: `past-jam-${index}`, slug: `past-jam-${index}`, name: `Past community jam ${index + 1}`,
+            published: true, visibility: "public", venue_string: "Riverside Park",
+            start: "2026-08-01T10:00:00.000Z", end: "2026-08-01T18:00:00.000Z", time_zone: "Europe/Zurich",
+          }));
+        }
         const now = Date.now();
         screenshotWindow.__PKSPOT_SCREENSHOT_NOTIFICATIONS__ = [
           {
@@ -2070,6 +2141,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       eventIndexFixture: route.eventIndexFixture === true,
       invalidEventFixture: route.invalidEventFixture === true,
       liveEventFixture: route.liveEventFixture === true,
+      myEventsDialogFixture: route.myEventsDialogFixture === true,
       publicProfile: route.publicProfile === true,
       signedIn: route.signedIn === true,
       trainFixture: route.trainFixture === true,
@@ -2329,4 +2401,173 @@ async function waitForResizeToSettle(locator: Locator): Promise<void> {
       }),
     500,
   );
+}
+
+for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
+  test(`My Events dialog respects safe areas ${viewport.width} @visual`, async ({page}) => {
+    await prepareRoute(page, {name: "my-events-dialog-safe", path: "/events", viewport,
+      signedIn: true, eventIndexFixture: true, myEventsDialogFixture: true, fixedTime: "2026-10-13T12:00:00Z"});
+    await page.evaluate(() => {
+      for (const [edge, value] of Object.entries({top: 44, bottom: 34, left: 20, right: 32}))
+        document.documentElement.style.setProperty(`--safe-area-inset-${edge}`, `${value}px`);
+    });
+    await page.locator("app-my-events-panel .my-events-more button").click();
+    const dialog = page.locator("app-my-events-dialog");
+    await expect(dialog).toBeVisible();
+    await page.locator(".my-events-safe-dialog").evaluate(async el => {
+      await Promise.all(el.getAnimations({subtree: true}).map(animation => animation.finished.catch(() => undefined)));
+    });
+    const surface = page.locator(".my-events-safe-dialog .mat-mdc-dialog-surface");
+    const bounds = (await surface.boundingBox())!;
+    expect(bounds.y).toBeGreaterThanOrEqual(60);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height - 50);
+    expect(bounds.x).toBeGreaterThanOrEqual(36);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width - 48);
+    const headerY = (await dialog.locator(".dialog-header").boundingBox())!.y;
+    const content = dialog.locator("mat-dialog-content");
+    await content.evaluate(el => { el.scrollTop = el.scrollHeight; });
+    expect(await content.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    expect((await dialog.locator(".dialog-header").boundingBox())!.y).toBe(headerY);
+    await expect(dialog.locator("app-my-event-list a").last()).toBeInViewport();
+    await expect(page).toHaveScreenshot(`my-events-safe-${viewport.width}.png`);
+  });
+}
+
+test("recent check-in prompt has space above the card @visual", async ({page}) => {
+  await prepareRoute(page, {name: "training-log-prompt-spacing", path: "/train/log", viewport: mobileViewport,
+    signedIn: true, trainingLogFixture: true, unloggedCheckIn: true, fixedTime: "2026-08-20T12:00:00Z"});
+  const prompt = page.locator("app-check-in-log-prompt .prompt");
+  await expect(prompt).toBeVisible();
+  const preceding = (await page.locator(".activity-details").boundingBox())!;
+  const card = (await prompt.boundingBox())!;
+  expect(card.y - preceding.y - preceding.height).toBeGreaterThanOrEqual(23);
+});
+
+test.describe("Mobile calendar selection @visual", () => {
+  test.use({ hasTouch: true });
+
+  test("selects later-month days and displays their events without jumping", async ({ page }) => {
+    await prepareRoute(page, {
+      name: "mobile-calendar-selection",
+      path: "/events?view=calendar&month=2026-08&day=2026-08-01",
+      viewport: mobileViewport,
+      eventIndexFixture: true,
+      fixedTime: "2026-07-20T12:00:00.000Z",
+    });
+    const calendar = page.locator("app-continuous-event-calendar");
+    const grid = calendar.locator(".calendar-scroll");
+    expect((await grid.boundingBox())!.height).toBeLessThanOrEqual(300);
+    const day = calendar.locator('[data-day="2026-09-19"]');
+    await day.scrollIntoViewIfNeeded();
+    const before = await grid.evaluate(el => ({ grid: el.scrollTop, page: window.scrollY }));
+    await day.tap();
+    await expect(day).toHaveClass(/is-selected/);
+    await expect(page).toHaveURL(/day=2026-09-19/);
+    await expect(calendar.locator(".day-agenda")).toContainText("Movement Weekend");
+    const after = await grid.evaluate(el => ({ grid: el.scrollTop, page: window.scrollY }));
+    expect(after.grid).toBeCloseTo(before.grid, 0);
+    expect(after.page).toBeCloseTo(before.page, 0);
+
+    const emptyDay = calendar.locator('[data-day="2026-09-21"]');
+    await emptyDay.tap();
+    await expect(emptyDay).toHaveClass(/is-selected/);
+    await expect(calendar.locator(".day-agenda .empty-day")).toBeVisible();
+    await page.goBack();
+    await expect(day).toHaveClass(/is-selected/);
+    await expect(calendar.locator(".day-agenda")).toContainText("Movement Weekend");
+  });
+});
+
+test.describe("Account top navigation @visual", () => {
+  test.use({ hasTouch: true });
+
+  for (const route of ["about", "support"]) {
+    test(`opens ${route} without restarting the app`, async ({page}) => {
+      await prepareRoute(page, {name: "account-navigation", path: "/account", viewport: mobileViewport});
+      const app = await page.locator("app-root").elementHandle();
+      const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+      const documents: string[] = [];
+      page.on("request", request => {
+        if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documents.push(request.url());
+      });
+      for (const activation of ["tap", "non-mouse"] as const) {
+        const control = page.locator(`.language-strip [routerlink="/${route}"]`);
+        if (activation === "tap") await control.tap();
+        else {
+          // Non-mouse activations must not fall back to a native anchor load.
+          await control.dispatchEvent("click", {button: -1, bubbles: true, cancelable: true});
+        }
+        await expect(page).toHaveURL(new RegExp(`/de/${route}$`));
+        await expect(page.locator(`app-${route}-page`)).toBeVisible();
+        expect(await app!.evaluate(el => el === document.querySelector("app-root"))).toBe(true);
+        expect(await page.evaluate(() => performance.timeOrigin)).toBe(timeOrigin);
+        await expect(page.locator("#app-splash-screen")).toHaveCount(0);
+        expect(documents).toEqual([]);
+        if (activation === "tap") await page.goBack();
+      }
+    });
+  }
+});
+
+test("dialogs respect Duo side cutouts after rotation and with a keyboard @visual", async ({ page }) => {
+  await prepareRoute(page, { name: "duo-training-dialog", path: "/train",
+    viewport: { width: 466, height: 678 }, trainFixture: true, signedIn: true,
+    trainingLogFixture: true, fixedTime: "2026-08-20T12:00:00Z" });
+  await page.locator(".training-context-button").click();
+  const surface = page.locator(".mat-mdc-dialog-surface");
+  await expect(page.locator("app-train-context-dialog")).toBeVisible();
+  for (const state of [
+    { width: 466, height: 678, left: 0, right: 84, top: 0, bottom: 20, keyboard: 0 },
+    { width: 678, height: 466, left: 84, right: 0, top: 24, bottom: 20, keyboard: 0 },
+    { width: 466, height: 678, left: 0, right: 84, top: 0, bottom: 20, keyboard: 240 },
+  ]) {
+    await page.setViewportSize(state);
+    // Browser viewport resizing does not emit the native orientation event.
+    await page.evaluate(() => window.dispatchEvent(new Event("orientationchange")));
+    await expect.poll(() => page.evaluate(() =>
+      getComputedStyle(document.body).getPropertyValue("--keyboard-offset").trim(),
+    )).toBe("0px");
+    await page.evaluate(({left, right, top, bottom, keyboard}) => {
+      for (const [edge, value] of Object.entries({left, right, top, bottom}))
+        document.documentElement.style.setProperty(`--safe-area-inset-${edge}`, `${value}px`);
+      for (const element of [document.documentElement, document.body]) {
+        element.style.setProperty("--keyboard-offset", `${keyboard}px`);
+        element.classList.toggle("keyboard-open", keyboard > 0);
+      }
+    }, state);
+    await waitForResizeToSettle(surface);
+    const bounds = (await surface.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(state.left + 16);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(state.width - state.right - 16);
+    expect(bounds.y).toBeGreaterThanOrEqual(state.top + 16);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(state.height - state.keyboard - state.bottom - 16);
+    await expect(page).toHaveScreenshot(`duo-dialog-${state.width}-${state.keyboard}.png`);
+  }
+});
+
+for (const viewport of [{width: 466, height: 678}, {width: 1040, height: 768}]) {
+  test(`About background and carousel respect Duo layout ${viewport.width} @visual`, async ({page}) => {
+    await prepareRoute(page, {name: "duo-about", path: "/about", viewport});
+    await page.evaluate(() => {
+      document.documentElement.style.setProperty("--safe-area-inset-right", "84px");
+      document.documentElement.style.setProperty("--safe-area-inset-top", "24px");
+    });
+    const background = page.locator(".about-page-background");
+    const box = (await background.boundingBox())!;
+    expect(box.y).toBeCloseTo(0, 0);
+    expect(box.x + box.width).toBeCloseTo(viewport.width, 0);
+    const content = (await page.locator(".about-page").boundingBox())!;
+    expect(content.x + content.width).toBeLessThanOrEqual(viewport.width - 84);
+    await expect(page).toHaveScreenshot(`duo-about-${viewport.width}.png`);
+    const carousel = page.locator(".carousel-container");
+    await carousel.scrollIntoViewIfNeeded();
+    const carouselBox = (await carousel.boundingBox())!;
+    expect(carouselBox.x).toBeGreaterThanOrEqual(content.x);
+    expect(carouselBox.x + carouselBox.width).toBeLessThanOrEqual(content.x + content.width);
+    if (viewport.width > 768) {
+      const rail = (await page.locator(".nav-rail").boundingBox())!;
+      expect(carouselBox.x).toBeGreaterThanOrEqual(rail.x + rail.width);
+    }
+    await expect(page).toHaveScreenshot(`duo-carousel-${viewport.width}.png`);
+  });
 }

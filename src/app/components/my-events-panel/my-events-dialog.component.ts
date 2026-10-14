@@ -21,8 +21,9 @@ import type { MyEventsDialogData, MyEventsTab } from "./my-events.types";
 
 export const MY_EVENTS_DIALOG_CONFIG = {
   width: "760px",
+  panelClass: "my-events-safe-dialog",
   maxWidth: "calc(100vw - 24px)",
-  maxHeight: "calc(100dvh - 24px)",
+  maxHeight: "var(--dialog-safe-height)",
   autoFocus: "dialog",
   restoreFocus: true,
 } satisfies MatDialogConfig<MyEventsDialogData>;

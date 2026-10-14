@@ -10,7 +10,7 @@ for (const { mode, granted } of [
   { mode: "on", granted: false },
   { mode: "temporary", granted: false },
 ] as const) {
-  test(`startup does not request location with ${mode} preferences and ${granted ? "granted" : "unset"} permission`, async ({ page, context }) => {
+  test(`startup does not request location with ${mode} preferences and ${granted ? "granted" : "unset"} permission`, async ({ page, context, isMobile }) => {
     if (granted) await context.grantPermissions(["geolocation"]);
     await page.addLocatorHandler(page.locator("app-app-check-error-dialog"), async (dialog) => {
       await dialog.locator("[mat-dialog-close]").click();
@@ -31,7 +31,9 @@ for (const { mode, granted } of [
 
     for (const route of ["train", "about", "map"]) {
       await page.goto(`/de/${route}`);
-      await expect(page.locator("app-root")).toHaveClass(/has-navigation-rail/);
+      await expect(page.locator("app-root")).toHaveClass(
+        isMobile ? /has-floating-bottom-navigation/ : /has-navigation-rail/,
+      );
       await expect(page.locator(`app-${route}-page`)).toBeAttached();
       // Allow deferred map and training initialization to attempt passive access.
       await page.waitForTimeout(2000);
