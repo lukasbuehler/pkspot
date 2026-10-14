@@ -118,6 +118,35 @@ checks below.
       Release the web/native client through the normal `main` workflow only
       after those production checks. Do not operate App Hosting directly.
 
+### Private training logs before the profile pass
+
+The maintainer confirmed on 2026-10-14 that training logs exist only in test
+clients, so there is no released shared-log client contract to preserve. The
+owner-only rules are deployed and the exact source was read back. The scoped
+production rule artifact passed owner round trips and anonymous/non-owner
+denial tests in the emulator; unit and build/SSR verification also passed.
+
+Training logs are owner-only for the 1.2 release. This is separate from public
+profile eligibility and from delayed public Spot activity. Existing entries,
+including records with legacy `public`, `followers`, or `friends` visibility,
+remain available to their author. No deletion or bulk data migration is required.
+The new client writes `visibility: private` on create/update, and the rules ignore
+legacy audience fields for reads while rejecting new non-private writes.
+
+- [ ] Using controlled fixtures, verify the deployed owner can list/read/delete
+      legacy entries and edit one into private visibility with its text and
+      creation timestamps preserved. Non-owners must be denied even when they
+      know the exact document path, follow the author, or use an old client.
+      Old-client sharing writes must fail rather than reopen access. Existing
+      downloaded content cannot be revoked by a rules update.
+- [ ] Release the compatible web/native clients after the rules restriction is
+      verified. Confirm the editor has no audience selector or sharing promise,
+      other profiles have no training-log link, and `/u/:userID/logs` no longer
+      displays entries. Owners retain their private log/history routes. Check-ins
+      still contribute independently of optional notes, with public aggregate
+      delay and thresholds unchanged. Older clients may need an update to edit
+      entries previously saved with a shared visibility value.
+
 ### User profile privacy cutover
 
 The backend rollout is deliberately separate from the client rollout. Do not

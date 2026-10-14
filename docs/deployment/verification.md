@@ -4,6 +4,16 @@ Browser, product-flow and operational checks. These entries are not a list of mi
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Development tooling audit
+
+- [ ] Recheck `braces` advisory `GHSA-vfj7-8cjw-p6xm` when a compatible patch
+      becomes available. On 2026-10-14, the latest published version remained
+      3.0.3 and the root audit reported three high findings in the development-only
+      `firebase-tools` → `chokidar` → `braces` chain. Do not apply npm's suggested
+      downgrade to Firebase CLI 6.8.0. The production-only app audit and the full
+      Functions audit both reported zero vulnerabilities. Re-run both after any
+      dependency change; these results are dated observations, not permanent guarantees.
+
 ### Public status page
 
 - [ ] After the web release, verify the Support page's System status link opens

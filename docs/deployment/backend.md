@@ -4,28 +4,30 @@ Pending Functions, indexes, provider fixes and data jobs. Check live state befor
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
-### Backend dependency security refresh
+### Backend SDK live acceptance
 
-- [ ] Deploy the reviewed Functions dependency lockfile in a separately approved
-      backend rollout. It includes Google Cloud Storage 7.22.0, Sharp 0.35.5,
-      grpc-js 1.14.5 or newer, Busboy 3.2.2 or newer, and proxy-addr 2.0.8 or newer.
-      The local audit is clean, but existing deployed revisions retain their old
-      dependencies. Inventory the live functions and include every supported
-      consumer; updating only one image callable does not patch other revisions.
-      Review pending compatibility changes before choosing the deployment scope.
-      Verify deployed revisions use the updated lockfile, authenticated callable
-      and Firestore operations work, and a controlled moderated image upload,
-      derivative generation, download, and share-card render succeed. Do not
-      trigger a backfill for this verification. SDK checksum validation remains
-      enabled by default; do not disable `validation` to bypass a mismatch.
+The 2026-10-14 scoped rollout refreshed all 181 existing application Functions
+and added the six enabled 1.2 endpoints/workers. The 164 dependency-only updates
+retained deployed application code and runtime configuration, including the
+legacy Auth trigger in `us-central1`; the other 17 existing Functions received
+the reviewed check-in, sharing, and moderation fixes. All new Functions use
+`europe-west1`. The six extension-managed Functions were not repackaged.
+App Hosting, client releases, disabled feature endpoints, and privacy cutover
+flags were not changed.
+
+- [ ] Verify authenticated callable and Firestore operations on signed clients,
+      plus a controlled moderated image upload, derivative generation, download,
+      and share-card render. Emulator coverage passed for the image pipeline,
+      check-ins, expiry, sharing, and owner-only logs; it does not prove device
+      App Check attestation. Do not trigger a backfill for this verification.
+      Storage checksum validation remains enabled; never disable `validation`
+      to bypass a mismatch.
 
 ### Media review decisions and incident handoff
 
-- [ ] Before releasing the moderation UI, deploy the compatible functions in
-      `europe-west1`: `npx firebase deploy --project prod --only functions:markMediaUploadFalsePositive,functions:markMediaUploadSafe,functions:createSafetyIncident,functions:getModerationMediaPreview,functions:processMediaIntakeUpload,functions:runMediaIntakeBackfill,functions:runMediaModerationAudit`.
-      The separate false-positive callable fails safely if the backend is not yet
-      deployed. Retain the legacy `explicit_non_child` classification for readers;
-      new scans distinguish `suggestive`, `adult_content`, and `graphic_violence`.
+Retain legacy `explicit_non_child` classifications for readers. New scans
+separate `suggestive`, `adult_content`, and `graphic_violence`.
+
 - [ ] Verify an administrator can dismiss a controlled false positive without
       changing its current profile picture, published objects, or upload status.
       Repeated calls must create one audit action. Verify incident escalation
@@ -51,13 +53,15 @@ checks are required only before a separately approved enablement.
       must be denied reads and writes. Financial data must not be indexed or
       copied into public documents. No financial records are seeded by release.
 
-### Event subscription discovery rules
+### Event subscription device verification
 
-- [ ] Deploy `npx firebase deploy --project prod --only firestore:rules` after
-      the rules emulator suite passes. Verify a signed-in user's owner-filtered
-      `live_update_subscribers` collection-group listener succeeds on iOS and web,
-      while anonymous, unfiltered, and other-user queries remain denied. This
-      enables legacy event discovery; existing per-event write rules stay intact.
+- [ ] Verify the signed-in owner's `live_update_subscribers` collection-group
+      listener on iOS and web. The owner-filtered rule is deployed and the
+      ascending collection-group index is READY as of 2026-10-14. The exact
+      production rules passed real-client owner/denial tests in the emulator.
+      Per-event write rules were preserved. The reported iPhone subscription
+      write failure is not explained by the missing query index: capture the
+      fresh native write error and payload shape if it persists, without tokens.
 
 ### External backend canary
 
@@ -114,6 +118,12 @@ checks are required only before a separately approved enablement.
 
 ### Share cards (enabled for 1.2; release verification pending)
 
+The October 14 fixes use modular Firestore imports, preserve current render
+leases when delayed invalidation arrives, and serve the bundled fallback when a
+prepared object is missing. Live malformed-reference 400, missing-entity 404,
+missing-credential 401, and public PNG/no-store checks passed. GET remains
+read-only. Authenticated preparation and receiving-app checks remain below.
+
 The lab (`npm run share-cards:lab`, port 4318) and backend use the same renderer.
 The branded static fallback is generated with `npm run share-cards:fallback`
 and checked in as `src/assets/banner_1200x630.png`.
@@ -161,16 +171,12 @@ Existing image processors skip the `share_cards/` prefix.
 
 ### Spot and Event localization
 
-The five entity place-name Functions below are absent from production as of the
-2026-10-01 live inventory. Keep rules, deployment and backfill in this order.
+The five entity place-name Functions are ACTIVE in `europe-west1` as of
+2026-10-14, with `GEONAMES_USERNAME=pkspot`. Public `place_names` reads are
+get-only; source and job collections remain private. Backfill is separate from
+deployment; each hourly worker handles at most 20 jobs and shares cached town
+results with the community worker.
 
-- Deploy Firestore rules before releasing the client: `place_names/{key}` permits
-  public single-document reads only. `place_name_sources` and `place_name_jobs`
-  remain covered by default-deny rules. They are never exposed in SSR payloads.
-- With explicit backend deployment authorization, deploy `queueSpotPlaceNames`,
-  `queueEventPlaceNames`, `enrichEntityPlaceNames`, `publishEntityPlaceNames`,
-  `backfillEntityPlaceNames` in `europe-west1`. Set `GEONAMES_USERNAME=pkspot`. Each hourly worker handles at
-  most 20 jobs (at most 80 provider requests); the two workers share cached town results.
 - After authorization, call `backfillEntityPlaceNames` as an App Check-verified
   admin, first with `{collection: "spots"}`, then `{collection: "events"}`.
   Repeat each collection with `{collection, startAfter: nextCursor}` until null.
@@ -191,6 +197,11 @@ The five entity place-name Functions below are absent from production as of the
   authoring, routing or schema changes are included in this release work.
 
 ### Community place names and SSR localization
+
+The live Spot, Event and Community Typesense schemas match the checked-in
+contracts as of 2026-10-14, including optional stored region names. The Spot
+extension forwards `recent_activity_min_30d` and `is_iconic`. Existing enrichment
+Functions already match the reviewed regional-name implementation.
 
 - For the remaining communities, after explicit backfill authorization, invoke the admin/App-Check
   callable `backfillCommunityPlaceLocalizations` with `{}` and repeat with
@@ -271,6 +282,12 @@ contact messages to support; it is not general user notification email.
 
 ### Private check-ins and delayed Spot activity
 
+The October 14 regression fixes reject malformed IDs/time zones and retain
+cleanup jobs for deleted Spots until contributions expire. Fourteen callable
+integration tests and seven rollup tests passed, including deletion, duplicate
+accounts, retention and concurrent job updates. Deployed callables remain
+App Check protected and reject missing credentials with 401.
+
 - [ ] Verify a fresh check-in retains the Spot name from both legacy string
       translations and `{text, provider}` translations. The additive snapshot
       correction was deployed October 1; the callable still rejects missing
@@ -318,15 +335,8 @@ not a test switch. Compatible Functions must be active before a Spot is moved
 to that policy. The Firestore rule permits a vote only for a public, pending
 community-vote edit, so deploying the rules before the client is required.
 
-- [ ] Verify and, if needed, deploy the reviewed voting rules before releasing
-      the web client. All three compatible Functions (`applySpotEditOnCreate`,
-      `evaluateSpotEditVotesOnVoteWrite`, `evaluatePendingSpotEditVotesOnSchedule`)
-      are ACTIVE from September 29; their deployed `spotEditFunctions.ts` matches
-      the local source exactly (checked 2026-10-01). Live rules could not be read
-      with the available Google Cloud identity (403), so their status remains
-      unverified. Review unrelated pending rules cutovers before any deployment.
-
-- [ ] After both backend deployments succeed, make the separately approved
+- [ ] With the voting Functions and matching rules verified live on 2026-10-14,
+      make the separately approved
       production data migration for Dame du Lac (`1QsdgLHOpzDIReNaFDLw`): replace
       `edit_policy.force_voting` with `{ community_voting: true }`; change its
       pending test edit to `VOTING_OPEN` and `visibility: "public"`; retain its
