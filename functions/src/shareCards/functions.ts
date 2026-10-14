@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
@@ -64,7 +65,7 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
     const now = Date.now(), fresh = !old || now - Number(old.started) > 60_000;
     if (!fresh && Number(old.count) >= 12) throw new HttpsError("resource-exhausted", "Please try again shortly");
     tx.set(rate, { started: fresh ? now : old!.started, count: fresh ? 1 : Number(old!.count) + 1,
-      expires_at: admin.firestore.Timestamp.fromMillis(now + 86400_000) });
+      expires_at: Timestamp.fromMillis(now + 86400_000) });
   });
   const current = await load(kind, id);
   if (!current) throw new HttpsError("permission-denied", "Public preview unavailable");
@@ -76,7 +77,7 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
     const old = (await tx.get(ref)).data();
     if (available && old?.path === persistedPath && old?.revision === current.revision && JSON.stringify(media) === JSON.stringify(old.media)) return { reused: true, old };
     if (Number(old?.lease_until) > Date.now()) throw new HttpsError("aborted", "Preview is being prepared");
-    tx.set(ref, { kind, id, lease, lease_until: Date.now() + 65_000 }, { merge: true });
+    tx.set(ref, { kind, id, lease, lease_revision: current.revision, lease_until: Date.now() + 65_000 }, { merge: true });
     return { reused: false, old };
   });
   try {
@@ -102,7 +103,7 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
         const [entity, card] = await Promise.all([tx.get(sourceRef(kind, id)), tx.get(ref)]);
         const latest = projectCard(kind, entity.data());
         if (!latest || sourceFingerprint(latest) !== current.revision || card.data()?.lease !== lease) throw new HttpsError("aborted", "Preview changed during preparation");
-        tx.set(ref, { kind, id, revision: current.revision, path, media, generated_at: admin.firestore.FieldValue.serverTimestamp() });
+        tx.set(ref, { kind, id, revision: current.revision, path, media, generated_at: FieldValue.serverTimestamp() });
       });
       published = true;
     } finally { if (!published) await removeFile(path); }
@@ -112,7 +113,7 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
   } catch (error) {
     await db.runTransaction(async tx => {
       const card = await tx.get(ref);
-      if (card.data()?.lease === lease) tx.update(ref, { lease_until: 0, lease: admin.firestore.FieldValue.delete() });
+      if (card.data()?.lease === lease) tx.update(ref, { lease_until: 0, lease: FieldValue.delete() });
     });
     logger.error("share_card_preparation_failed", { kind, code: error instanceof HttpsError ? error.code : "internal" });
     throw error instanceof HttpsError ? error : new HttpsError("internal", "Preview preparation failed");
@@ -142,11 +143,20 @@ export const shareCardImage = onRequest({ region: "europe-west1", cors: true, in
     const card = (await cardRef(kind, id).get()).data();
     if (card?.revision === current.revision && typeof card.path === "string" && card.path.startsWith("share_cards/") &&
       JSON.stringify(await mediaState(current.source.media)) === JSON.stringify(card.media)) {
-      const [png] = await bucket().file(card.path).download();
-      response.type("png").send(png); return;
+      try {
+        const [png] = await bucket().file(card.path).download();
+        response.type("png").send(png); return;
+      } catch (error) {
+        // Cleanup or replacement can remove a prepared image before its record.
+        // GET remains read-only and uses the same fallback as an unprepared card.
+        if ((error as { code?: number }).code !== 404) throw error;
+      }
     }
     response.type("png").send(await readFile(resolve(assets, "fallback.png")));
   } catch (error) {
+    if (error instanceof HttpsError && error.code === "invalid-argument") {
+      response.status(400).end(); return;
+    }
     logger.warn("share_card_image_failed", { code: error instanceof HttpsError ? error.code : "unavailable" });
     response.status(503).end();
   }
@@ -161,8 +171,14 @@ function invalidate(kind: EntityKind) {
     const path = await db.runTransaction(async tx => {
       const [card, entity] = await Promise.all([tx.get(ref), tx.get(sourceRef(kind, event.params.id))]);
       const latest = projectCard(kind, entity.data());
-      // Delayed trigger deliveries must not remove a newer, already-correct card.
-      if (latest && card.data()?.revision === sourceFingerprint(latest) && !card.data()?.lease) return undefined;
+      // Delayed triggers must preserve both current cards and renders of the
+      // current source. Publication still rechecks privacy, revision and lease.
+      const data = card.data();
+      if (latest) {
+        const revision = sourceFingerprint(latest);
+        if ((!data?.lease && data?.revision === revision) ||
+          (data?.lease && data.lease_revision === revision && Number(data.lease_until) > Date.now())) return undefined;
+      }
       tx.delete(ref); return card.data()?.path;
     });
     await removeFile(path);
@@ -194,7 +210,7 @@ export const cleanupShareCards = onSchedule({ schedule: "every 24 hours", region
     }
     await file.delete({ ignoreNotFound: true });
   }
-  const expired = await db.collection("share_card_limits").where("expires_at", "<", admin.firestore.Timestamp.now()).limit(500).get();
+  const expired = await db.collection("share_card_limits").where("expires_at", "<", Timestamp.now()).limit(500).get();
   const batch = db.batch();
   expired.docs.forEach(doc => batch.delete(doc.ref));
   await batch.commit();

@@ -24,7 +24,7 @@ describe("ShareCardService failure isolation", () => {
       {provide:MatSnackBar,useValue:{open:vi.fn()}},
     ] });
   });
-  afterEach(() => { environment.features.shareCards = enabled; vi.useRealTimers(); });
+  afterEach(() => { environment.features.shareCards = enabled; vi.useRealTimers(); vi.unstubAllGlobals(); });
   it("still opens the native link share when generation fails, without files", async () => {
     call.mockRejectedValue({code:"unavailable"});
     await TestBed.inject(ShareCardService).share({kind:"spot",id:"spot"},"https://pkspot.app/map/spots/spot","Spot");
@@ -32,7 +32,7 @@ describe("ShareCardService failure isolation", () => {
     expect(failure).toHaveBeenCalledWith("share-card","prepare-preview",{code:"unavailable"});
   });
   it("bounds a hung preparation and releases the busy state", async () => {
-    vi.useFakeTimers(); call.mockReturnValue(new Promise(() => {}));
+    vi.useFakeTimers(); call.mockReturnValue(new Promise(() => { /* Intentionally pending to exercise the deadline. */ }));
     const service=TestBed.inject(ShareCardService);
     const work=service.share({kind:"spot",id:"spot"},"https://pkspot.app/map/spots/spot","Spot");
     expect(service.preparing()).toBe(true);
@@ -48,6 +48,48 @@ describe("ShareCardService failure isolation", () => {
     nativeShare.mockRejectedValue(new Error("Bridge unavailable"));
     await TestBed.inject(ShareCardService).share({kind:"spot",id:"spot"},"https://pkspot.app/map/spots/spot","Spot");
     expect(plainShare).toHaveBeenCalledWith({url:"https://pkspot.app/map/spots/spot",title:"Spot"});
+  });
+
+  const link = "https://pkspot.app/map/spots/spot";
+  const endpoint = `https://europe-west1-${environment.keys.firebaseConfig.projectId}.cloudfunctions.net/shareCardImage?kind=spot&id=spot`;
+  it("hands a validated PNG to the native preview bridge and closes preparation", async () => {
+    call.mockResolvedValue({imageUrl: endpoint, reused: true});
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ok: true, blob: async () => new Blob(["png-fixture"], {type: "image/png"})}));
+    const service = TestBed.inject(ShareCardService);
+    await service.share({kind: "spot", id: "spot"}, link, "Spot");
+    expect(nativeShare).toHaveBeenCalledWith({url: link, title: "Spot", imageBase64: btoa("png-fixture")});
+    expect(close).toHaveBeenCalledOnce();
+    expect(service.preparing()).toBe(false);
+  });
+  it("rejects an unexpected preview host without fetching it", async () => {
+    call.mockResolvedValue({imageUrl: "https://attacker.invalid/image.png", reused: false});
+    const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
+    await TestBed.inject(ShareCardService).share({kind: "spot", id: "spot"}, link, "Spot");
+    expect(fetch).not.toHaveBeenCalled();
+    expect(nativeShare).toHaveBeenCalledWith({url: link, title: "Spot", imageBase64: undefined});
+  });
+  it.each(["text/html", "oversize"])("shares only the link when the preview is %s", async type => {
+    call.mockResolvedValue({imageUrl: endpoint, reused: false});
+    const blob = type === "oversize" ? new Blob([new Uint8Array(3 * 1024 * 1024 + 1)], {type: "image/png"}) : new Blob(["html"], {type});
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ok: true, blob: async () => blob}));
+    await TestBed.inject(ShareCardService).share({kind: "spot", id: "spot"}, link, "Spot");
+    expect(nativeShare).toHaveBeenCalledWith({url: link, title: "Spot", imageBase64: undefined});
+    expect(failure).toHaveBeenCalledWith("share-card", "download-preview", expect.any(Error));
+  });
+  it("does not start multiple preparations on repeated taps", async () => {
+    vi.useFakeTimers(); call.mockReturnValue(new Promise(() => { /* Intentionally pending to exercise the deadline. */ }));
+    const service = TestBed.inject(ShareCardService);
+    const first = service.share({kind: "spot", id: "spot"}, link, "Spot");
+    await service.share({kind: "spot", id: "spot"}, link, "Spot");
+    expect(call).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(8000); await first;
+    expect(nativeShare).toHaveBeenCalledOnce();
+  });
+  it("respects cancellation without opening a second share sheet", async () => {
+    call.mockRejectedValue({code: "unavailable"});
+    nativeShare.mockResolvedValue({cancelled: true});
+    await TestBed.inject(ShareCardService).share({kind: "spot", id: "spot"}, link, "Spot");
+    expect(plainShare).not.toHaveBeenCalled();
   });
 
 });
