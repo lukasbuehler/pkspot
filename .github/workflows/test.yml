@@ -171,6 +171,15 @@ jobs:
       - name: Run Firestore rules security tests
         run: npm run test:emulator:rules
 
+      - name: Run check-in callable and privacy tests
+        run: npm run test:emulator:check-ins
+
+      - name: Run statistics expiry and concurrency tests
+        run: npm run test:emulator:check-in-rollups
+
+      - name: Run share-card privacy and rendering tests
+        run: npm run test:emulator:share-cards && npm run test:share-cards
+
       - name: Run community edit emulator tests
         run: npm run test:emulator:community-edits
 

@@ -21,7 +21,7 @@ async function run() {
   let calls = 0;
   const counts = await processCommunityPlaces(db, async page => {
     calls++;
-    return { source: "geonames", geonamesId: 2867714, names: { it: "Monaco di Baviera" }, center: [48.137, 11.575], fingerprint: placeFingerprint(page), updatedAtMs: 1 };
+    return { source: "geonames", version: 2, geonamesId: 2867714, names: { it: "Monaco di Baviera" }, center: [48.137, 11.575], fingerprint: placeFingerprint(page), updatedAtMs: 1 };
   }, { pages: "place_name_sources", queue: "place_name_jobs" });
   assert.equal(calls, 1); assert.equal(counts.completed, 1);
   const source = (await db.doc(`place_name_sources/${entityPlaceKey(input)}`).get()).data();
