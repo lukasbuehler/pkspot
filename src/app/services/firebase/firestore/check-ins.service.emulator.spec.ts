@@ -1,3 +1,13 @@
+import { TestBed } from "@angular/core/testing";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+import { environment } from "../../../../environments/environment.default";
+import { PlatformService } from "../../platform.service";
+import { FirebaseAppCheckService } from "../app-check.service";
+import { AuthenticationService } from "../authentication.service";
+import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FIREBASE_APP, FIREBASE_FUNCTIONS } from "../firebase-client.providers";
+import { SessionRecordsService } from "./session-records.service";
+
 import { deleteApp, initializeApp, type FirebaseApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInAnonymously } from "firebase/auth";
 import { CustomProvider, initializeAppCheck } from "firebase/app-check";
@@ -7,7 +17,11 @@ import {
   httpsCallable,
 } from "firebase/functions";
 import * as admin from "firebase-admin";
-import { afterAll, afterEach, describe, expect, it } from "vitest";
+import {
+  collection, collectionGroup, connectFirestoreEmulator, deleteDoc, doc,
+  getDoc, getDocs, getFirestore, setDoc, updateDoc,
+} from "firebase/firestore";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import type {
   ConfirmCheckInRequest,
   ConfirmCheckInResponse,
@@ -15,6 +29,12 @@ import type {
   DeleteCheckInResponse,
 } from "../../../../db/schemas/CheckInActivitySchema";
 
+// Only the native credential bridge is substituted. Both platform paths use
+// the real app services, HTTP transport, callable handlers and Firestore.
+vi.mock("@capacitor-firebase/authentication", () => ({
+  FirebaseAuthentication: {getIdToken: vi.fn()},
+}));
+const originalProduction = environment.production;
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
 const authHost = process.env["FIREBASE_AUTH_EMULATOR_HOST"];
 const functionsHost = process.env["FUNCTIONS_EMULATOR_HOST"] ?? "127.0.0.1:5001";
@@ -52,6 +72,7 @@ function emulatorAppCheckToken(projectId: string): string {
 
 async function authenticatedCallable() {
   const projectId = process.env["GCLOUD_PROJECT"] ?? "demo-pkspot";
+  if (!projectId.startsWith("demo-")) throw new Error("Check-in tests require a demo project");
   const app = initializeApp(
     { apiKey: "demo-api-key", authDomain: `${projectId}.firebaseapp.com`, projectId },
     `check-ins-${Date.now()}-${Math.random()}`,
@@ -79,8 +100,23 @@ async function authenticatedCallable() {
   const functions = getFunctions(app, "europe-west1");
   const [functionsEmulatorHost, functionsPort] = parseHostPort(functionsHost);
   connectFunctionsEmulator(functions, functionsEmulatorHost, functionsPort);
+  const firestore = getFirestore(app);
+  const [firestoreEmulatorHost, firestorePort] = parseHostPort(firestoreHost!);
+  connectFirestoreEmulator(firestore, firestoreEmulatorHost, firestorePort);
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${await credential.user.getIdToken()}`,
+    "X-Firebase-AppCheck": emulatorAppCheckToken(projectId),
+  };
   return {
+    app, functions,
     uid: credential.user.uid,
+    firestore,
+    headers,
+    post: (name: string, data: unknown, requestHeaders: Record<string, string> = headers) => fetch(
+      `http://${functionsHost}/${projectId}/europe-west1/${name}`,
+      {method: "POST", headers: requestHeaders, body: JSON.stringify({data})},
+    ),
     confirm: httpsCallable<ConfirmCheckInRequest, ConfirmCheckInResponse>(
       functions,
       "confirmCheckIn",
@@ -117,6 +153,8 @@ function request(spotId: string): ConfirmCheckInRequest {
 
 runWithEmulator("private check-in callables", () => {
   afterEach(async () => {
+    localStorage.removeItem("pkspot:e2e:firebaseEmulators");
+    environment.production = originalProduction;
     await Promise.all(apps.splice(0).map((app) => deleteApp(app)));
   });
 
@@ -124,6 +162,38 @@ runWithEmulator("private check-in callables", () => {
     await adminApp?.delete();
     adminApp = undefined;
   });
+
+  it.each([false, true])("confirms and deletes through the real app service and HTTP adapter (native=%s)", async native => {
+    const client = await authenticatedCallable();
+    const spotId = `adapter-${client.uid}`;
+    await seedSpot(spotId);
+    environment.production = false;
+    const [host, port] = parseHostPort(functionsHost);
+    localStorage.setItem("pkspot:e2e:firebaseEmulators", JSON.stringify({functions: {host, port}}));
+    vi.mocked(FirebaseAuthentication.getIdToken).mockResolvedValue({
+      token: client.headers.Authorization.slice("Bearer ".length),
+    });
+    TestBed.configureTestingModule({providers: [
+      SessionRecordsService,
+      {provide: FIREBASE_APP, useValue: client.app},
+      {provide: FIREBASE_FUNCTIONS, useValue: client.functions},
+      {provide: PlatformService, useValue: {isNative: () => native}},
+      {provide: AuthenticationService, useValue: {user: {uid: client.uid}}},
+      {provide: FirestoreAdapterService, useValue: {}},
+      {provide: FirebaseAppCheckService, useValue: {
+        getTokenForRequest: async () => client.headers["X-Firebase-AppCheck"],
+      }},
+    ]});
+    const service = TestBed.inject(SessionRecordsService);
+    const confirmed = await service.confirmCheckIn(request(spotId));
+    expect(confirmed.duplicate).toBe(false);
+    const session = await getDoc(doc(client.firestore, `users/${client.uid}/session_records/${confirmed.sessionRecordId}`));
+    expect(session.data()?.["spot_visits"]).toEqual(expect.arrayContaining([
+      expect.objectContaining({spot_id: spotId, check_in_id: confirmed.checkInId}),
+    ]));
+    await service.deleteCheckIn(confirmed.checkInId);
+    expect((await getDoc(session.ref)).exists()).toBe(false);
+  }, 90_000);
 
   it("keeps confirmation private, deduplicates it, and removes one occurrence without touching authored logs", async () => {
     const client = await authenticatedCallable();
@@ -262,5 +332,154 @@ runWithEmulator("private check-in callables", () => {
     await expect(client.confirm(request(spotIds[12]))).rejects.toThrow(/Too many check-ins/i);
     await expect(client.deleteAll({})).resolves.toMatchObject({ data: { deleted: 12 } });
     expect((await db().collection(`users/${client.uid}/check_in_lookup`).get()).empty).toBe(true);
+  }, 90_000);
+
+  it("enforces Auth and App Check at the HTTP boundary, including deletion", async () => {
+    const client = await authenticatedCallable();
+    for (const name of ["confirmCheckIn", "deleteCheckIn", "deleteAllCheckIns"]) {
+      for (const missing of ["Authorization", "X-Firebase-AppCheck"] as const) {
+        const headers = {...client.headers};
+        delete (headers as Partial<typeof headers>)[missing];
+        const response = await client.post(name, request("untrusted"), headers);
+        expect(response.status, `${name} without ${missing}`).toBe(401);
+        expect(await response.json()).toMatchObject({error: {status: "UNAUTHENTICATED"}});
+      }
+      // The emulator accepts unsigned App Check tokens; genuine attestation
+      // remains a device/deployment check, not something this suite can prove.
+    }
+    expect((await db().collection(`users/${client.uid}/session_records`).get()).empty).toBe(true);
+  }, 90_000);
+
+  it("requires App Check for share preparation and refuses private targets even when authenticated", async () => {
+    const client = await authenticatedCallable();
+    const id = `private-share-${client.uid}`;
+    await db().doc(`spots/${id}`).set({name: "Private fixture", visibility: "private"});
+    const withoutAppCheck = {"Content-Type": "application/json", Authorization: client.headers.Authorization};
+    const missing = await client.post("prepareShareCard", {kind: "spot", id}, withoutAppCheck);
+    expect(missing.status).toBe(401);
+    const forbidden = await client.post("prepareShareCard", {kind: "spot", id});
+    expect(forbidden.status).toBe(403);
+    // Signed-out sharing is allowed in principle but must never reveal a private
+    // entity. This request uses only the emulator's unsigned App Check token.
+    const signedOut = {"Content-Type": "application/json", "X-Firebase-AppCheck": client.headers["X-Firebase-AppCheck"]};
+    expect((await client.post("prepareShareCard", {kind: "spot", id}, signedOut)).status).toBe(403);
+    for (const data of [{kind: "users", id}, {kind: "spot", id: "../users"}, {kind: "spot", id: "."}]) {
+      expect((await client.post("prepareShareCard", data)).status).toBe(400);
+    }
+  }, 90_000);
+
+  it("prepares, reuses and serves a public share card through callable HTTP with no authentication", async () => {
+    const client = await authenticatedCallable();
+    const id = `http-share-${client.uid}`;
+    await db().doc(`spots/${id}`).set({name: "Public HTTP card"});
+    const headers = {"Content-Type": "application/json", "X-Firebase-AppCheck": client.headers["X-Firebase-AppCheck"]};
+    const first = await client.post("prepareShareCard", {kind: "spot", id}, headers);
+    expect(first.status, await first.clone().text()).toBe(200);
+    expect(await first.json()).toMatchObject({result: {reused: false, imageUrl: expect.stringContaining("shareCardImage?")}});
+    const reused = await client.post("prepareShareCard", {kind: "spot", id}, headers);
+    expect(await reused.json()).toMatchObject({result: {reused: true}});
+    const url = `http://${functionsHost}/${client.app.options.projectId}/europe-west1/shareCardImage?kind=spot&id=${id}`;
+    const image = await fetch(url);
+    expect(image.status).toBe(200);
+    expect(image.headers.get("content-type")).toContain("image/png");
+    expect([...new Uint8Array(await image.arrayBuffer()).slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+    await db().doc(`spots/${id}`).update({visibility: "private"});
+    expect((await fetch(url)).status).toBe(404);
+  }, 90_000);
+
+  it("rejects malformed coordinates, document paths and time zones without writing history", async () => {
+    const client = await authenticatedCallable();
+    const spotId = `validation-${client.uid}`;
+    await seedSpot(spotId);
+    for (const changes of [
+      {spotId: "../users"}, {spotId: "."}, {spotId: ".."},
+      {location: {lat: 91, lng: 8}}, {location: {lat: 47, lng: -181}},
+      {location: {lat: "47", lng: 8}}, {location: null},
+      {accuracyMeters: -1}, {accuracyMeters: 10_001},
+      {timeZone: "not/a-time-zone"}, {timeZone: ""},
+    ]) {
+      const response = await client.post("confirmCheckIn", {...request(spotId), ...changes});
+      expect(response.status, JSON.stringify(changes)).toBe(400);
+      expect(await response.json()).toMatchObject({error: {status: "INVALID_ARGUMENT"}});
+    }
+    expect((await db().collection(`users/${client.uid}/session_records`).get()).empty).toBe(true);
+    expect((await db().collection(`spots/${spotId}/check_in_aggregate_contributions`).get()).empty).toBe(true);
+  }, 90_000);
+
+  it("keeps history owner-only and denies direct writes to check-ins and aggregation internals", async () => {
+    const owner = await authenticatedCallable();
+    const attacker = await authenticatedCallable();
+    const spotId = `privacy-${owner.uid}`;
+    await seedSpot(spotId);
+    const {data: checkIn} = await owner.confirm(request(spotId));
+    const sessionPath = `users/${owner.uid}/session_records/${checkIn.sessionRecordId}`;
+    expect((await getDoc(doc(owner.firestore, sessionPath))).exists()).toBe(true);
+    const denied = {code: "permission-denied"};
+    await expect(getDoc(doc(attacker.firestore, sessionPath))).rejects.toMatchObject(denied);
+    await expect(getDocs(collection(attacker.firestore, `users/${owner.uid}/session_records`))).rejects.toMatchObject(denied);
+    await expect(getDocs(collectionGroup(attacker.firestore, "session_records"))).rejects.toMatchObject(denied);
+    for (const client of [owner, attacker]) {
+      for (const path of [
+        `spots/${spotId}/check_in_aggregate_contributions/${checkIn.checkInId}`,
+        `users/${owner.uid}/check_in_lookup/${checkIn.checkInId}`,
+        `users/${owner.uid}/check_in_integrity/main`,
+        `users/${owner.uid}/check_in_dedup/${spotId}`,
+        `check_in_activity_rollups/${spotId}`,
+      ]) {
+        await expect(getDoc(doc(client.firestore, path))).rejects.toMatchObject(denied);
+        await expect(setDoc(doc(client.firestore, path), {owner_id: client.uid, eligibility: "accepted"})).rejects.toMatchObject(denied);
+      }
+      await expect(deleteDoc(doc(client.firestore, sessionPath))).rejects.toMatchObject(denied);
+      await expect(updateDoc(doc(client.firestore, sessionPath), {source: "manual"})).rejects.toMatchObject(denied);
+      await expect(updateDoc(doc(client.firestore, `spots/${spotId}`), {recent_activity_min_30d: 25})).rejects.toMatchObject(denied);
+      await expect(setDoc(doc(client.firestore, `spot_activity_public/${spotId}`), {bucket: "25+"})).rejects.toMatchObject(denied);
+    }
+    // Knowing the victim's opaque ID never authorizes deleting their occurrence.
+    await expect(attacker.deleteOne({checkInId: checkIn.checkInId})).resolves.toMatchObject({data: {deleted: false}});
+    await expect(attacker.post("deleteAllCheckIns", {uid: owner.uid})).resolves.toHaveProperty("status", 200);
+    expect((await db().doc(sessionPath).get()).exists).toBe(true);
+  }, 90_000);
+
+  it("deduplicates concurrent confirmations and ignores forged ownership and public statistics", async () => {
+    const client = await authenticatedCallable();
+    const spotId = `parallel-${client.uid}`;
+    await seedSpot(spotId);
+    const results = await Promise.all(Array.from({length: 5}, () => client.post("confirmCheckIn", {
+      ...request(spotId), owner_id: "victim", accepted_at: 1, eligibility: "accepted",
+      recent_activity_min_30d: 25,
+    }).then(async response => {
+      expect(response.status).toBe(200);
+      return (await response.json()).result as ConfirmCheckInResponse;
+    })));
+    expect(new Set(results.map(result => result.checkInId)).size).toBe(1);
+    expect(results.filter(result => !result.duplicate)).toHaveLength(1);
+    const contributions = await db().collection(`spots/${spotId}/check_in_aggregate_contributions`).get();
+    expect(contributions.size).toBe(1);
+    expect(contributions.docs[0].get("owner_id")).toBe(client.uid);
+    expect(contributions.docs[0].get("accepted_at").toMillis()).toBeGreaterThan(Date.now() - 60_000);
+    expect((await db().doc(`spots/${spotId}`).get()).get("recent_activity_min_30d")).toBeUndefined();
+    expect((await db().doc(`spot_activity_public/${spotId}`).get()).exists).toBe(false);
+  }, 90_000);
+
+  it("accepts both mobile raw bounds and GeoPoints, but excludes an outside geofence", async () => {
+    const client = await authenticatedCallable();
+    const polygon = [
+      {lat: 47.376, lng: 8.541}, {lat: 47.378, lng: 8.541},
+      {lat: 47.378, lng: 8.543}, {lat: 47.376, lng: 8.543},
+    ];
+    for (const shape of ["raw", "geopoint", "outside"] as const) {
+      const spotId = `${shape}-${client.uid}`;
+      await db().doc(`spots/${spotId}`).set({
+        name: {de: "Testplatz"},
+        ...(shape === "raw" ? {bounds_raw: polygon} : shape === "geopoint"
+          ? {bounds: polygon.map(p => new admin.firestore.GeoPoint(p.lat, p.lng))}
+          : {location_raw: {lat: 47.4, lng: 8.6}}),
+      });
+      const {data} = await client.confirm(request(spotId));
+      const contribution = await db().doc(`spots/${spotId}/check_in_aggregate_contributions/${data.checkInId}`).get();
+      expect(contribution.get("eligibility")).toBe(shape === "outside" ? "excluded" : "accepted");
+      const session = await db().doc(`users/${client.uid}/session_records/${data.sessionRecordId}`).get();
+      expect(session.get("spot_visits").at(-1).spot_name).toBe("Testplatz");
+    }
   }, 90_000);
 });

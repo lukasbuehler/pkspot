@@ -163,7 +163,14 @@ export class CheckInService {
       .searchSpotsNearLocation(location, 500, 50)
       .then((result) => {
         this._isQuerying = false;
-        this._findClosestSpotFromHits(location, result.hits);
+        // Permission and position can change while the query is in flight.
+        const current = this._getGeolocationService().currentLocation();
+        if (!this._locationAccess.enabled() || !current ||
+            current.accuracy > this.ACCURACY_THRESHOLD_METERS) {
+          this.currentProximitySpot.set(null);
+          return;
+        }
+        this._findClosestSpotFromHits(current.location, result.hits);
       })
       .catch(() => {
         this._isQuerying = false;
@@ -263,16 +270,9 @@ export class CheckInService {
       spotLoc,
     );
 
-    // If spot has no bounds, just use center distance
-    if (!spot.bounds || spot.bounds.length === 0) {
-      return centerDistance;
-    }
-
-    // Connect the paths (polygon coordinates)
-    const polygon = spot.bounds.map((p) => ({
-      lat: p.latitude,
-      lng: p.longitude,
-    }));
+    // Native/search data can carry raw bounds without Firestore GeoPoints.
+    const polygon = spot.bounds_raw?.length ? spot.bounds_raw :
+      (spot.bounds ?? []).map(p => ({lat: p.latitude, lng: p.longitude}));
 
     if (polygon.length < 3) {
       return centerDistance;
@@ -410,7 +410,9 @@ export class CheckInService {
   public async checkIn(spotId: SpotId): Promise<void> {
     if (!this.isEnabled) return;
     const location = this._getGeolocationService().currentLocation();
-    if (!this._locationAccess.enabled() || !location) return;
+    if (!this._locationAccess.enabled() || !location) {
+      throw new Error("Current location is unavailable. Enable location and try again.");
+    }
     await this._injector.get(SessionRecordsService).confirmCheckIn({
       spotId,
       location: location.location,

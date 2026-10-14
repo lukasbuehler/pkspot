@@ -53,6 +53,8 @@ test('does not recreate a deleted Spot during a queued rollup', async () => {
   await contribution(spot, 'a', 'one'); await contribution(spot, 'b', 'two');
   await enqueue(spot); await recomputeCheckInActivity.run({});
   assert.equal((await db.doc(`spots/${spot}`).get()).exists, false);
+  assert.equal((await db.doc(`spot_activity_public/${spot}`).get()).exists, false);
+  assert.equal((await db.doc(`check_in_activity_rollups/${spot}`).get()).exists, true);
 });
 
 test('expires a published band and removes its daily job when all contributions age out', async () => {
@@ -96,4 +98,48 @@ test('advancing the clock expires a band without any new check-ins', async () =>
   } finally {
     Timestamp.now = realNow;
   }
+});
+
+test('publishes only coarse distinct-account bands, with no identity, timestamps or exact totals', async () => {
+  for (const [count, minimum, bucket] of [
+    [1, null, null], [2, 2, '2–4'], [3, 2, '2–4'], [4, 2, '2–4'],
+    [5, 5, '5–9'], [9, 5, '5–9'], [10, 10, '10–24'],
+    [24, 10, '10–24'], [25, 25, '25+'], [31, 25, '25+'],
+  ]) {
+    const spot = `${root}-band-${count}`;
+    await db.doc(`spots/${spot}`).set({name: 'Band fixture', rating: 4});
+    await Promise.all(Array.from({length: count}, (_, i) => contribution(spot, `visit-${i}`, `owner-${i}`)));
+    await contribution(spot, 'repeat', 'owner-0');
+    await contribution(spot, 'excluded', 'excluded-owner', 'excluded');
+    await contribution(spot, 'pending', 'pending-owner', 'pending');
+    await enqueue(spot); await recomputeCheckInActivity.run({});
+    const publicData = (await db.doc(`spot_activity_public/${spot}`).get()).data();
+    assert.deepEqual(publicData, bucket ? {status: 'recently_trained', bucket, window_days: 30} : undefined);
+    const projected = (await db.doc(`spots/${spot}`).get()).data();
+    assert.equal(projected.recent_activity_min_30d ?? null, minimum);
+    assert.equal(projected.rating, 4);
+    assert.deepEqual(Object.keys(projected).sort(), minimum ? ['name', 'rating', 'recent_activity_min_30d'] : ['name', 'rating']);
+  }
+});
+
+test('does not publish queued activity before the scheduled job, and retries a concurrent deletion', async () => {
+  const spot = `${root}-delete-race`;
+  await db.doc(`spots/${spot}`).set({name: 'Privacy race'});
+  await contribution(spot, 'a', 'one'); await contribution(spot, 'b', 'two'); await enqueue(spot);
+  assert.equal((await db.doc(`spot_activity_public/${spot}`).get()).exists, false);
+  const original = Query.prototype.get;
+  let deleted = false;
+  Query.prototype.get = async function (...args) {
+    const snapshot = await original.apply(this, args);
+    if (!deleted && snapshot.docs?.some(doc => doc.ref.path === `spots/${spot}/check_in_aggregate_contributions/b`)) {
+      deleted = true;
+      await db.doc(`spots/${spot}/check_in_aggregate_contributions/b`).delete();
+      await enqueue(spot);
+    }
+    return snapshot;
+  };
+  try { await recomputeCheckInActivity.run({}); } finally { Query.prototype.get = original; }
+  assert.equal(deleted, true);
+  assert.equal((await db.doc(`spot_activity_public/${spot}`).get()).exists, false);
+  assert.equal((await db.doc(`spots/${spot}`).get()).get('recent_activity_min_30d') ?? null, null);
 });

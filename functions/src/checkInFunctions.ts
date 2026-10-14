@@ -28,7 +28,7 @@ const DAY_MS = 24 * HOUR_MS;
 const ACTIVITY_WINDOW_MS = 30 * DAY_MS;
 const MAX_PER_HOUR = 12;
 const MAX_TRAVEL_SPEED_KMH = 250;
-const SPOT_ID_PATTERN = /^[^/]{1,150}$/u;
+const SPOT_ID_PATTERN = /^(?!\.{1,2}$)[^/]{1,150}$/u;
 
 type RecordValue = Record<string, unknown>;
 type Coordinate = {lat: number; lng: number};
@@ -153,6 +153,11 @@ const parseConfirmInput = (value: unknown): ConfirmCheckInRequest => {
     throw new HttpsError("invalid-argument", "A valid current location is required.");
   }
   if (!timeZone || timeZone.length > 100) {
+    throw new HttpsError("invalid-argument", "A valid time zone is required.");
+  }
+  try {
+    new Intl.DateTimeFormat("en", {timeZone});
+  } catch {
     throw new HttpsError("invalid-argument", "A valid time zone is required.");
   }
   return {spotId, location, accuracyMeters, timeZone};
@@ -529,7 +534,9 @@ const rebuildSpotActivity = async (spotId: string, now: Timestamp): Promise<void
     if (spot.exists && (spot.get("recent_activity_min_30d") ?? null) !== activityMin) {
       transaction.update(spotRef, {recent_activity_min_30d: activityMin});
     }
-    if (!bucket) transaction.delete(publicRef);
+    // Deleted Spots must lose their public summary. Keep the daily job until
+    // retained contributions expire so deleting a Spot cannot orphan private data.
+    if (!spot.exists || !bucket) transaction.delete(publicRef);
     else transaction.set(publicRef, {status: "recently_trained", bucket, window_days: 30} satisfies SpotActivityPublicSchema);
     if (remaining.empty) transaction.delete(jobRef);
     else transaction.set(jobRef, {spot_id: spotId, next_rollup_at: Timestamp.fromMillis(now.toMillis() + DAY_MS)});
