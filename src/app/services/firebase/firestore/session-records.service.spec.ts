@@ -49,6 +49,20 @@ describe("SessionRecordsService check-ins", () => {
     );
   });
 
+  it("keeps owner scoping and the default cap, but reads complete statistics when explicitly requested", async () => {
+    firestore.getCollection.mockResolvedValue([]);
+    await service.listMine();
+    expect(firestore.getCollection).toHaveBeenLastCalledWith(
+      "users/check-in-owner/session_records", [],
+      [{type: "orderBy", fieldPath: "started_at_raw_ms", direction: "desc"}, {type: "limit", limit: 50}],
+    );
+    await service.listMine(null);
+    expect(firestore.getCollection).toHaveBeenLastCalledWith(
+      "users/check-in-owner/session_records", [],
+      [{type: "orderBy", fieldPath: "started_at_raw_ms", direction: "desc"}],
+    );
+  });
+
   it("lists and exports only server-confirmed check-in occurrences", async () => {
     firestore.getCollection.mockResolvedValue([
       {

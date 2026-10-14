@@ -10,6 +10,7 @@ import { LogEntriesService } from "../../services/firebase/firestore/log-entries
 import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
 import { SeriesService } from "../../services/firebase/firestore/series.service";
 import { GeolocationService } from "../../services/geolocation.service";
+import { MapsApiService } from "../../services/maps-api.service";
 import { LocationAccessService } from "../../services/location-access.service";
 import {
   EventDiscoverySearchResult,
@@ -17,6 +18,7 @@ import {
 } from "../../services/search.service";
 import { WeatherService } from "../../weather/weather.service";
 import { TrainPageComponent } from "./train-page.component";
+import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
 
 const eventResult: EventDiscoverySearchResult = {
   items: [
@@ -107,6 +109,7 @@ describe("TrainPageComponent", () => {
     );
     expect(series.getSeriesByIds).toHaveBeenCalledWith(["parkour-earth"]);
     expect(component.seriesById()).toEqual(seriesById);
+    await vi.waitFor(() => expect(component.nearbyLocality.value()).toBe("Zürich"));
   });
 
   it("does not request location when permission is not already granted", async () => {
@@ -194,7 +197,7 @@ describe("TrainPageComponent", () => {
     ]);
   });
 
-  it("builds the history graph from the signed-in user's private log entries", async () => {
+  it("counts private check-ins independently of optional log entries", async () => {
     const logs = {
       listMine: vi.fn().mockResolvedValue([
         {
@@ -230,6 +233,12 @@ describe("TrainPageComponent", () => {
       },
       locationAccess: { enabled: signal(false), startWatchingIfEnabled: vi.fn() },
       logs,
+      sessions: {listMine: vi.fn().mockResolvedValue([{
+        id: "session-1", source: "check_in", time_zone: "Europe/Zurich",
+        started_at_raw_ms: new Date("2026-08-20T18:00:00Z").getTime(),
+        last_activity_raw_ms: new Date("2026-08-20T19:30:00Z").getTime(),
+        spot_visits: [{spot_id: "spot-1", check_in_id: "confirmed-1"}],
+      } as SessionRecordDocument])},
       search: {
         searchEventDiscovery: vi.fn().mockResolvedValue({ ...eventResult, items: [] }),
         searchTopSpotPreviewsNearLocation: vi.fn().mockResolvedValue([]),
@@ -246,10 +255,22 @@ describe("TrainPageComponent", () => {
         key: "2026-08-20",
         entryIds: ["entry-1"],
         sessionCount: 1,
-        durationMinutes: 90,
-        spotCount: 2,
+        durationMinutes: 0,
+        spotCount: 1,
       },
     ]);
+    expect(TestBed.inject(SessionRecordsService).listMine).toHaveBeenCalledWith(null);
+    component.trainingLogs.set([]);
+    expect(component.trainingActivityDays()[0]).toMatchObject({sessionCount: 1, spotCount: 1, durationMinutes: 0, entryIds: []});
+    logs.listMine.mockRejectedValue(new Error("Optional notes unavailable"));
+    await component.loadTrainingHistory();
+    expect(component.trainingHistoryFailed()).toBe(true);
+    expect(component.trainingSessionsLoaded()).toBe(true);
+    expect(component.trainingActivityDays()[0].sessionCount).toBe(1);
+    vi.mocked(TestBed.inject(SessionRecordsService).listMine).mockRejectedValue(new Error("Sessions unavailable"));
+    await component.loadTrainingHistory();
+    expect(component.trainingHistoryFailed()).toBe(true);
+    expect(component.trainingSessionsLoaded()).toBe(false);
   });
 });
 
@@ -257,6 +278,7 @@ function createComponent({
   authUser = null,
   follows = { listMine: vi.fn().mockResolvedValue([]) },
   logs = { listMine: vi.fn().mockResolvedValue([]) },
+  sessions = { listMine: vi.fn().mockResolvedValue([]) },
   recoveryPauses = { listMine: vi.fn().mockResolvedValue([]) },
   geolocation,
   locationAccess,
@@ -266,6 +288,7 @@ function createComponent({
   authUser?: { uid: string } | null;
   follows?: { listMine: ReturnType<typeof vi.fn> };
   logs?: { listMine: ReturnType<typeof vi.fn> };
+  sessions?: { listMine: ReturnType<typeof vi.fn> };
   recoveryPauses?: { listMine: ReturnType<typeof vi.fn> };
   geolocation: {
     currentLocation: ReturnType<typeof signal>;
@@ -294,9 +317,10 @@ function createComponent({
       { provide: AuthenticationService, useValue: auth },
       { provide: CommunityFollowsService, useValue: follows },
       { provide: LogEntriesService, useValue: logs },
-      { provide: SessionRecordsService, useValue: { listMine: vi.fn().mockResolvedValue([]) } },
+      { provide: SessionRecordsService, useValue: sessions },
       { provide: RecoveryPausesService, useValue: recoveryPauses },
       { provide: GeolocationService, useValue: geolocation },
+      { provide: MapsApiService, useValue: { getLocalityName: vi.fn().mockResolvedValue("Zürich") } },
       { provide: LocationAccessService, useValue: locationAccess },
       { provide: SearchService, useValue: search },
       { provide: SeriesService, useValue: series },

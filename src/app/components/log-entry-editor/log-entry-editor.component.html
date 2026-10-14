@@ -2,7 +2,7 @@
   <header>
     <a matButton="text" class="back" routerLink="/train/log"><mat-icon>arrow_back</mat-icon><span i18n>Training log</span></a>
     <h1>{{ title }}</h1>
-    <p i18n="@@logEditor.intro">Describe your training and decide who can see the summary.</p>
+    <p i18n="@@trainingLog.subtitle">A private timeline for the Spots, sessions, and people that made up your training.</p>
   </header>
 
   @if (loading()) {
@@ -22,21 +22,12 @@
       <section>
         <div class="section-title">
 
-          <div><h2 i18n="@@logEditor.entryTitle">What did you practise?</h2><p i18n="@@logEditor.entryHelp">Add the part you want to remember or share.</p></div>
+          <div><h2 i18n="@@logEditor.entryTitle">What did you practise?</h2></div>
         </div>
         <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
           <mat-label i18n="@@logEditor.note">Note</mat-label>
           <textarea matInput formControlName="note" rows="4" maxlength="4000"></textarea>
           <mat-hint align="end">{{ form.controls.note.value.length }}/4000</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
-          <mat-label i18n="@@logEditor.visibility">Visibility</mat-label>
-          <mat-select formControlName="visibility">
-            @for (visibility of visibilities; track visibility.value) {
-              <mat-option [value]="visibility.value">{{ visibility.label }}</mat-option>
-            }
-          </mat-select>
-          <mat-hint i18n="@@logEditor.visibilityHint">Private is the default. Shared summaries never include exact spots, times, or people.</mat-hint>
         </mat-form-field>
       </section>
 

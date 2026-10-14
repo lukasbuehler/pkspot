@@ -175,7 +175,7 @@ test.describe("profile privacy follow request workflows", () => {
       timeout: 30_000,
     });
     await page.locator("#app-splash-screen").waitFor({ state: "detached" });
-    await expect(profile).toContainText("Follow requests");
+    await expect(profile).toContainText(/Follow requests|Folgeanfragen/u);
     await expect(profile).toContainText(requester.displayName);
     const profileLink = profile.getByTestId("follow-request-profile");
     await expect(

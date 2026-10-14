@@ -5,18 +5,13 @@ import {
   LogEntryDocument,
   LogEntrySchema,
   LogEntrySessionSummarySchema,
-  LogEntryVisibility,
 } from "../../../../db/schemas/LogEntrySchema";
 import type { SessionRecordDocument } from "../../../../db/schemas/SessionRecordSchema";
 import { AuthenticationService } from "../authentication.service";
-import {
-  FirestoreAdapterService,
-  QueryFilter,
-} from "../firestore-adapter.service";
+import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 export interface SaveLogEntryInput {
   note: string;
-  visibility: LogEntryVisibility;
   sessions: readonly SessionRecordDocument[];
 }
 
@@ -32,30 +27,21 @@ export class LogEntriesService {
   private readonly auth = inject(AuthenticationService);
 
   async listMine(limit = 50): Promise<LogEntryDocument[]> {
+    const uid = this.requireUserId();
     const fixture = this.screenshotEntries();
-    if (fixture) return fixture.slice(0, limit);
-    return this.listForOwner(this.requireUserId(), limit);
-  }
-
-  async listForOwner(
-    ownerId: string,
-    limit = 20,
-  ): Promise<LogEntryDocument[]> {
-    const allowed = await this.allowedVisibilities(ownerId);
-    if (allowed === "all") return this.query(ownerId, [], limit);
-    const filters: QueryFilter[] = [
-      allowed.length === 1
-        ? { fieldPath: "visibility", opStr: "==", value: allowed[0] }
-        : { fieldPath: "visibility", opStr: "in", value: allowed },
-    ];
-    return this.query(ownerId, filters, limit);
+    if (fixture) return fixture.filter(entry => entry.owner_id === uid).slice(0, limit);
+    return this.firestore.getCollection<LogEntryDocument>(
+      this.collectionPath(uid), [],
+      [{type: "orderBy", fieldPath: "activity_at_raw_ms", direction: "desc"}, {type: "limit", limit}],
+    );
   }
 
   async getMine(entryId: string): Promise<LogEntryDocument | null> {
+    const uid = this.requireUserId();
     const fixture = this.screenshotEntries();
-    if (fixture) return fixture.find((entry) => entry.id === entryId) ?? null;
+    if (fixture) return fixture.find(entry => entry.id === entryId && entry.owner_id === uid) ?? null;
     const result = await this.firestore.getDocument<LogEntrySchema>(
-      `${this.collectionPath(this.requireUserId())}/${entryId}`,
+      `${this.collectionPath(uid)}/${entryId}`,
     );
     return result ? { ...result, id: entryId } : null;
   }
@@ -73,7 +59,7 @@ export class LogEntriesService {
       return this.firestore.addDocument(this.collectionPath(uid), {
         owner_id: uid,
         note: input.note.trim(),
-        visibility: input.visibility,
+        visibility: "private",
         session_record_ids: input.sessions.map((session) => session.id),
         session_summaries: input.sessions.map((session) =>
           this.summary(session),
@@ -102,7 +88,7 @@ export class LogEntriesService {
         `${this.collectionPath(this.requireUserId())}/${entryId}`,
         {
           note: input.note.trim(),
-          visibility: input.visibility,
+          visibility: "private",
           session_record_ids: input.sessions.map((session) => session.id),
           session_summaries: input.sessions.map((session) =>
             this.summary(session),
@@ -124,41 +110,6 @@ export class LogEntriesService {
       );
 
     }, true);
-  }
-
-  private async allowedVisibilities(
-    ownerId: string,
-  ): Promise<"all" | LogEntryVisibility[]> {
-    const viewerId = this.auth.user.uid;
-    if (viewerId === ownerId) return "all";
-    if (!viewerId) return ["public"];
-    const [following, followedBy] = await Promise.all([
-      this.firestore.getDocument(`users/${viewerId}/following/${ownerId}`),
-      this.firestore.getDocument(`users/${viewerId}/followers/${ownerId}`),
-    ]);
-    if (following && followedBy) {
-      return ["public", "followers", "friends"];
-    }
-    return following ? ["public", "followers"] : ["public"];
-  }
-
-  private query(
-    ownerId: string,
-    filters: QueryFilter[],
-    limit: number,
-  ): Promise<LogEntryDocument[]> {
-    return this.firestore.getCollection<LogEntryDocument>(
-      this.collectionPath(ownerId),
-      filters,
-      [
-        {
-          type: "orderBy",
-          fieldPath: "activity_at_raw_ms",
-          direction: "desc",
-        },
-        { type: "limit", limit },
-      ],
-    );
   }
 
   private summary(

@@ -287,14 +287,6 @@ export const routes: Routes = [
             ),
           data: { routeName: "Training Session" },
         },
-        {
-          path: "u/:userID/logs",
-          loadComponent: () =>
-            import("./components/public-training-log/public-training-log.component").then(
-              (m) => m.PublicTrainingLogComponent,
-            ),
-          data: { routeName: "Training Log" },
-        },
       ]
     : []),
   {

@@ -7,6 +7,7 @@ import { BehaviorSubject } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
 import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
+import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
 import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
@@ -48,6 +49,48 @@ const recoveryPause: RecoveryPauseDocument = {
 
 describe("TrainingLogPageComponent", () => {
   beforeEach(() => TestBed.resetTestingModule());
+
+  it("renders legacy notes as private without changing the saved audience field", async () => {
+    createComponent();
+    const fixture = TestBed.createComponent(TrainingLogPageComponent);
+    await fixture.whenStable();
+    const legacy = {...trainingEntry, visibility: "public" as const};
+    fixture.componentInstance.logs.set([legacy]);
+    await fixture.whenStable();
+    const badge = (fixture.nativeElement as HTMLElement).querySelector(".session-card .visibility");
+    expect(badge?.textContent).toContain("Private");
+    expect(badge?.textContent).not.toContain("Public");
+    expect(legacy.visibility).toBe("public");
+  });
+
+  it("includes unlogged check-ins in the private graph without resurrecting deleted sessions from notes", async () => {
+    const component = createComponent();
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    expect(TestBed.inject(SessionRecordsService).listMine).toHaveBeenCalledWith(null);
+    const session = {
+      id: "session-1", source: "check_in", time_zone: "Europe/Zurich",
+      started_at_raw_ms: new Date("2026-08-04T12:00:00Z").getTime(),
+      spot_visits: [{spot_id: "spot-1", check_in_id: "confirmed-1"}],
+    } as SessionRecordDocument;
+    component.sessions.set([session]);
+    component.logs.set([]);
+    expect(component.activityDays()).toEqual([{key: "2026-08-04", entryIds: [], sessionCount: 1, durationMinutes: 0, spotCount: 1}]);
+    component.logs.set([trainingEntry]);
+    expect(component.activityDays()[0]).toMatchObject({sessionCount: 1, durationMinutes: 0, spotCount: 1});
+    component.sessions.set([]);
+    expect(component.activityDays()).toEqual([]);
+    vi.mocked(TestBed.inject(LogEntriesService).listMine).mockRejectedValue(new Error("Optional notes unavailable"));
+    vi.mocked(TestBed.inject(SessionRecordsService).listMine).mockResolvedValue([session]);
+    await component.load();
+    expect(component.loadFailed()).toBe(true);
+    expect(component.sessionsLoaded()).toBe(true);
+    expect(component.activityDays()[0].sessionCount).toBe(1);
+    expect(component.checkIns()[0].checkInId).toBe("confirmed-1");
+    vi.mocked(TestBed.inject(SessionRecordsService).listMine).mockRejectedValue(new Error("Session history unavailable"));
+    await component.load();
+    expect(component.loadFailed()).toBe(true);
+    expect(component.sessionsLoaded()).toBe(false);
+  });
 
   it("resolves missing check-in names instead of displaying document IDs", async () => {
     const component = createComponent();
@@ -102,7 +145,7 @@ describe("TrainingLogPageComponent", () => {
 
     await vi.waitFor(() => expect(component.loading()).toBe(false));
     expect(component.loadFailed()).toBe(true);
-    expect(component.logs()).toEqual([]);
+    expect(component.logs()).toEqual([trainingEntry]);
 
     await component.load();
     expect(component.loadFailed()).toBe(false);

@@ -9,6 +9,7 @@ import {
   PLATFORM_ID,
   computed,
   inject,
+  resource,
   signal,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
@@ -29,6 +30,7 @@ import {
   SeriesService,
 } from "../../services/firebase/firestore/series.service";
 import { GeolocationService } from "../../services/geolocation.service";
+import { MapsApiService } from "../../services/maps-api.service";
 import { LocationAccessService } from "../../services/location-access.service";
 import {
   CommunitySearchPreview,
@@ -64,7 +66,7 @@ import {
   type WeatherForecastDialogData,
 } from "../weather-forecast-dialog/weather-forecast-dialog.component";
 import {
-  buildTrainingActivityDays,
+  buildSessionActivityDays,
   formatDuration,
   monthKey,
   summarizeTrainingMonth,
@@ -95,6 +97,7 @@ export class TrainPageComponent {
   private readonly auth = inject(AuthenticationService);
   private readonly follows = inject(CommunityFollowsService);
   private readonly geolocation = inject(GeolocationService);
+  private readonly mapsApi = inject(MapsApiService);
   private readonly locationAccess = inject(LocationAccessService);
   private readonly dialog = inject(MatDialog);
   private readonly search = inject(SearchService);
@@ -103,6 +106,8 @@ export class TrainPageComponent {
   private readonly sessionsService = inject(SessionRecordsService);
   private historyGeneration = 0;
   readonly trainingSessions = signal<SessionRecordDocument[]>([]);
+  readonly trainingHistoryFailed = signal(false);
+  readonly trainingSessionsLoaded = signal(false);
   private readonly logsService = inject(LogEntriesService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
@@ -119,6 +124,18 @@ export class TrainPageComponent {
   readonly followedCommunities = signal<CommunitySearchPreview[]>([]);
   readonly weather = signal<WeatherResponse | null>(null);
   readonly area = signal<CommunitySearchPreview | null>(null);
+  readonly nearbyLocality = resource({
+    params: () => {
+      const location = this.geolocation.currentLocation()?.location;
+      if (!this.isBrowser || this.area() || !location) return undefined;
+      // Avoid another lookup for every small GPS correction.
+      return `${location.lat.toFixed(3)},${location.lng.toFixed(3)}`;
+    },
+    loader: ({ params }) => {
+      const [lat, lng] = params.split(",").map(Number);
+      return this.mapsApi.getLocalityName({ lat, lng });
+    },
+  });
   readonly signedIn = signal(false);
   readonly radiusKm = signal(25);
   readonly weatherIcon = computed(() =>
@@ -132,7 +149,7 @@ export class TrainPageComponent {
   );
   readonly bestSpots = computed(() => this.spots().slice(0, 4));
   readonly trainingActivityDays = computed(() =>
-    buildTrainingActivityDays(this.trainingLogs()),
+    buildSessionActivityDays(this.trainingSessions(), this.trainingLogs()),
   );
   readonly trainingMonthSummary = computed(() =>
     summarizeTrainingMonth(this.trainingActivityDays(), monthKey(Date.now())),
@@ -420,20 +437,28 @@ export class TrainPageComponent {
     return formatDuration(minutes);
   }
 
-  private async loadTrainingHistory(): Promise<void> {
+  async loadTrainingHistory(): Promise<void> {
     const generation = ++this.historyGeneration;
     const uid = this.auth.user.uid;
     this.trainingLogs.set([]);
     this.trainingSessions.set([]);
+    this.trainingHistoryFailed.set(false);
+    this.trainingSessionsLoaded.set(false);
     if (!uid) return;
     try {
-      const [logs, sessions] = await Promise.all([
-        this.logsService.listMine(), this.sessionsService.listMine(),
+      const [logs, sessions] = await Promise.allSettled([
+        this.logsService.listMine(), this.sessionsService.listMine(null),
       ]);
       if (generation !== this.historyGeneration || uid !== this.auth.user.uid) return;
-      this.trainingLogs.set(logs);
-      this.trainingSessions.set(sessions);
+      if (logs.status === "fulfilled") this.trainingLogs.set(logs.value);
+      if (sessions.status === "fulfilled") {
+        this.trainingSessions.set(sessions.value);
+        this.trainingSessionsLoaded.set(true);
+      }
+      this.trainingHistoryFailed.set(logs.status === "rejected" || sessions.status === "rejected");
     } catch (error) {
+      if (generation !== this.historyGeneration || uid !== this.auth.user.uid) return;
+      this.trainingHistoryFailed.set(true);
       console.warn("[Train] training history unavailable", error);
     }
   }

@@ -16,11 +16,6 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSelectModule } from "@angular/material/select";
-import {
-  LOG_ENTRY_VISIBILITIES,
-  LogEntryVisibility,
-} from "../../../db/schemas/LogEntrySchema";
 import type {
   SessionPersonReference,
   SessionRecordDocument,
@@ -43,7 +38,6 @@ import { UserPickerComponent } from "../user-picker/user-picker.component";
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     SpotPickerComponent,
     UserPickerComponent,
   ],
@@ -84,19 +78,8 @@ export class LogEntryEditorComponent {
   readonly sessionPlaces = computed(() => new Map(this.sessions().map(session => [
     session.id, session.spot_visits.map(visit => visit.spot_name || this.spotNames().get(visit.spot_id) || $localize`:@@training.loadingSpot:Loading Spot…`).join(', '),
   ])));
-  readonly visibilities = LOG_ENTRY_VISIBILITIES.map(value => ({ value, label:
-    value === 'public' ? $localize`:@@trainingLog.visibility.public:Public` :
-    value === 'friends' ? $localize`:@@trainingLog.visibility.friends:Friends` :
-    value === 'followers' ? $localize`:@@trainingLog.visibility.followers:Followers` :
-    $localize`:@@trainingLog.visibility.private:Private`,
-  }));
-
   readonly form = new FormGroup({
     note: new FormControl("", { nonNullable: true }),
-    visibility: new FormControl<LogEntryVisibility>("private", {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
   });
   readonly sessionForm = new FormGroup({
     startedAt: new FormControl(toLocalInput(new Date()), {
@@ -168,7 +151,6 @@ export class LogEntryEditorComponent {
       }
       const input = {
         note: this.form.controls.note.value,
-        visibility: this.form.controls.visibility.value,
         sessions: selected,
       };
       if (this.entryId) await this.logs.update(this.entryId, input);
@@ -200,7 +182,6 @@ export class LogEntryEditorComponent {
         if (!entry) throw new Error($localize`:@@logEditor.notFound:Log entry not found.`);
         this.form.setValue({
           note: entry.note,
-          visibility: entry.visibility,
         });
         this.selectedIds.set(entry.session_record_ids);
       } else if (this.route.snapshot.queryParamMap.get("sessionRecord")) {

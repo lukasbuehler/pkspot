@@ -1,14 +1,70 @@
 import { describe, expect, it } from "vitest";
+import { Timestamp } from "firebase/firestore";
+import type { SessionRecordDocument } from "../../db/schemas/SessionRecordSchema";
 import type { LogEntryDocument } from "../../db/schemas/LogEntrySchema";
 import type { RecoveryPauseDocument } from "../../db/schemas/RecoveryPauseSchema";
 import {
   buildTrainingActivityDays,
+  buildSessionActivityDays,
   buildTrainingContributionWeeks,
   buildTrainingTimeline,
   filterTrainingEntriesByMonth,
   formatDuration,
   summarizeTrainingMonth,
 } from "./training-log-activity";
+
+function checkInSession(overrides: Partial<SessionRecordDocument> = {}): SessionRecordDocument {
+  const start = Timestamp.fromDate(new Date("2026-08-01T00:30:00Z"));
+  return {
+    id: "session-1", owner_id: "user-1", source: "check_in",
+    started_at: start, started_at_raw_ms: start.toMillis(),
+    last_activity_at: start, last_activity_raw_ms: start.toMillis() + 60 * 60_000,
+    time_zone: "Europe/Zurich", people_present: [],
+    spot_visits: [{check_in_id: "check-1", spot_id: "spot-1", arrived_at: start, arrived_at_raw_ms: start.toMillis()}],
+    time_created: start, time_created_raw_ms: start.toMillis(),
+    time_updated: start, time_updated_raw_ms: start.toMillis(),
+    ...overrides,
+  };
+}
+
+describe("private session activity statistics", () => {
+  it("counts confirmed check-ins without notes and never infers duration from last activity", () => {
+    const session = checkInSession();
+    const days = buildSessionActivityDays([session, session]);
+    expect(days).toEqual([{key: "2026-08-01", entryIds: [], sessionCount: 1, durationMinutes: 0, spotCount: 1}]);
+    expect(summarizeTrainingMonth(days, "2026-08")).toMatchObject({activityDays: 1, sessionCount: 1, spotCount: 1, durationMinutes: 0});
+  });
+
+  it("optional, duplicated, stale or deleted notes cannot change session totals", () => {
+    const session = checkInSession();
+    const notes = [entries[0], {...entries[0], id: "duplicate-note"}];
+    const withNotes = summarizeTrainingMonth(buildSessionActivityDays([session], notes), "2026-08");
+    const withoutNotes = summarizeTrainingMonth(buildSessionActivityDays([session]), "2026-08");
+    expect({...withNotes, entryCount: 0}).toEqual(withoutNotes);
+    expect(withNotes.entryCount).toBe(2);
+    expect(buildSessionActivityDays([], notes)).toEqual([]);
+  });
+
+  it("uses the session timezone at month boundaries and only explicit end times", () => {
+    const session = checkInSession({time_zone: "America/Los_Angeles"});
+    const ended = checkInSession({id: "manual", source: "manual", ended_at_raw_ms: session.started_at_raw_ms + 90 * 60_000});
+    const days = buildSessionActivityDays([session, ended]);
+    expect(summarizeTrainingMonth(days, "2026-07")).toMatchObject({sessionCount: 1, durationMinutes: 0, activityDays: 1});
+    expect(summarizeTrainingMonth(days, "2026-08")).toMatchObject({sessionCount: 1, durationMinutes: 90, activityDays: 1});
+  });
+
+  it("counts each confirmed Spot once per session and ignores empty deleted check-in records", () => {
+    const session = checkInSession();
+    session.spot_visits.push({...session.spot_visits[0], check_in_id: "check-2"}, {...session.spot_visits[0], check_in_id: undefined, spot_id: "unconfirmed"});
+    expect(buildSessionActivityDays([session])[0].spotCount).toBe(1);
+    expect(buildSessionActivityDays([checkInSession({spot_visits: []})], entries)).toEqual([]);
+  });
+
+  it("does not truncate more than fifty sessions in a month", () => {
+    const sessions = Array.from({length: 60}, (_, index) => checkInSession({id: `session-${index}`}));
+    expect(summarizeTrainingMonth(buildSessionActivityDays(sessions), "2026-08").sessionCount).toBe(60);
+  });
+});
 
 const entries: LogEntryDocument[] = [
   {

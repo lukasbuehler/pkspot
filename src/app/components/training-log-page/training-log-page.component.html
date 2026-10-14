@@ -16,12 +16,18 @@
     </section>
   } @else if (loading()) {
     <section class="empty"><mat-progress-spinner diameter="36" mode="indeterminate" /></section>
-  } @else if (loadFailed()) {
+  } @else if (loadFailed() && !sessionsLoaded()) {
     <section class="empty" role="alert">
       <p i18n="@@trainingLog.loadError">Your training log could not be loaded.</p>
       <button matButton="outlined" type="button" (click)="load()" i18n="@@notification_center.retry">Retry</button>
     </section>
   } @else {
+    @if (loadFailed()) {
+      <section class="empty" role="alert">
+        <p i18n="@@trainingLog.loadError">Your training log could not be loaded.</p>
+        <button matButton="outlined" type="button" (click)="load()" i18n="@@notification_center.retry">Retry</button>
+      </section>
+    }
     <section class="summary" aria-label="Training summary" i18n-aria-label="@@trainingLog.summary.ariaLabel">
       <div class="summary__lead">
         <mat-icon>calendar_month</mat-icon>
@@ -117,7 +123,7 @@
                       <div class="session-card__marker"><mat-icon>calendar_month</mat-icon></div>
                       <div class="session-card__body">
                         <div class="session-card__topline">
-                          <span class="visibility"><mat-icon>{{ item.entry.visibility === "private" ? "lock" : item.entry.visibility === "public" ? "public" : "groups" }}</mat-icon>{{ visibilityLabel(item.entry.visibility) }}</span>
+                          <span class="visibility"><mat-icon>lock</mat-icon><span i18n="@@trainingLog.visibility.private">Private</span></span>
                           @if (item.includesCheckIn) {
                             <span class="check-in-tag"><mat-icon>check_circle</mat-icon><span i18n="@@trainingLog.timeline.confirmedCheckIn">Confirmed check-in</span></span>
                           }
@@ -162,7 +168,6 @@
           <section class="empty">
             <mat-icon>history_edu</mat-icon>
             <h2 i18n="@@trainingLog.emptyTitle">Your first entry starts here</h2>
-            <p i18n="@@trainingLog.emptyBody">Record what happened. It stays private unless you choose otherwise.</p>
             <a matButton="filled" routerLink="/train/log/new" i18n="@@trainingLog.createFirst">Create first entry</a>
           </section>
         }

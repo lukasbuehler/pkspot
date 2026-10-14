@@ -21,14 +21,13 @@ import { FabMenuComponent, type FabMenuAction } from "../fab-menu/fab-menu.compo
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import {
   type LogEntryDocument,
-  type LogEntryVisibility,
 } from "../../../db/schemas/LogEntrySchema";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
 import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
 import type { CheckInHistoryItem } from "../../services/firebase/firestore/session-records.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
-  buildTrainingActivityDays,
+  buildSessionActivityDays,
   buildTrainingTimeline,
   dateKeyToMs,
   formatDuration,
@@ -116,6 +115,7 @@ export class TrainingLogPageComponent {
 
   readonly loading = signal(true);
   readonly loadFailed = signal(false);
+  readonly sessionsLoaded = signal(false);
   readonly logs = signal<LogEntryDocument[]>([]);
   readonly recoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly sessions = signal<SessionRecordDocument[]>([]);
@@ -125,7 +125,7 @@ export class TrainingLogPageComponent {
   readonly logBySession = computed(() => new Map(
     this.logs().flatMap(log => log.session_record_ids.map(id => [id, log.id] as const)),
   ));
-  readonly activityDays = computed(() => buildTrainingActivityDays(this.logs()));
+  readonly activityDays = computed(() => buildSessionActivityDays(this.sessions(), this.logs()));
   readonly monthSummary = computed(() =>
     summarizeTrainingMonth(this.activityDays(), monthKey(Date.now())),
   );
@@ -228,19 +228,6 @@ export class TrainingLogPageComponent {
     return formatDuration(minutes);
   }
 
-  visibilityLabel(visibility: LogEntryVisibility): string {
-    switch (visibility) {
-      case "friends":
-        return $localize`:@@trainingLog.visibility.friends:Friends`;
-      case "public":
-        return $localize`:@@trainingLog.visibility.public:Public`;
-      case "followers":
-        return $localize`:@@trainingLog.visibility.followers:Followers`;
-      default:
-        return $localize`:@@trainingLog.visibility.private:Private`;
-    }
-  }
-
   recoveryReasonLabel(pause: RecoveryPauseDocument): string {
     switch (pause.reason) {
       case "illness":
@@ -287,6 +274,7 @@ export class TrainingLogPageComponent {
     const generation = ++this.loadGeneration;
     const uid = this.auth.user.uid;
     this.loadFailed.set(false);
+    this.sessionsLoaded.set(false);
     this.logs.set([]);
     this.sessions.set([]);
     this.recoveryPauses.set([]);
@@ -298,20 +286,24 @@ export class TrainingLogPageComponent {
     }
     this.loading.set(true);
     try {
-      const [logs, sessions, recoveryPauses] = await Promise.all([
+      const [logs, sessionResult, recoveryPauses] = await Promise.allSettled([
         this.logsService.listMine(),
-        this.sessionsService.listMine(),
+        this.sessionsService.listMine(null),
         this.recoveryPausesService.listMine(),
       ]);
       // An earlier account's private history must never replace a newer load.
       if (generation !== this.loadGeneration || uid !== this.auth.user.uid) return;
-      this.logs.set(logs);
+      this.loadFailed.set([logs, sessionResult, recoveryPauses].some(result => result.status === "rejected"));
+      if (logs.status === "fulfilled") this.logs.set(logs.value);
+      if (recoveryPauses.status === "fulfilled") this.recoveryPauses.set(recoveryPauses.value);
+      if (sessionResult.status === "rejected") return;
+      const sessions = sessionResult.value;
+      this.sessionsLoaded.set(true);
       this.sessions.set(sessions);
       void this.spotData.resolveVisitNames(sessions.flatMap(session => session.spot_visits), this.locale)
         .then(names => {
           if (generation === this.loadGeneration && uid === this.auth.user.uid) this.spotNames.set(names);
         });
-      this.recoveryPauses.set(recoveryPauses);
       this.checkIns.set(
         sessions
           .flatMap((session) =>

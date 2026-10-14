@@ -1,5 +1,6 @@
 import type { LogEntryDocument } from "../../db/schemas/LogEntrySchema";
 import type { RecoveryPauseDocument } from "../../db/schemas/RecoveryPauseSchema";
+import type { SessionRecordDocument } from "../../db/schemas/SessionRecordSchema";
 
 export interface TrainingActivityDay {
   key: string;
@@ -40,6 +41,50 @@ export interface TrainingContributionWeek {
 export type TrainingContributionSelection =
   | { kind: "training-day"; dayKey: string }
   | { kind: "recovery-pause"; recoveryPauseId: string };
+
+/** Private statistics come from session records; optional notes only link entries.
+ * Public Spot activity has a separate delayed, thresholded server rollup.
+ */
+export function buildSessionActivityDays(
+  sessions: readonly SessionRecordDocument[],
+  entries: readonly LogEntryDocument[] = [],
+): TrainingActivityDay[] {
+  const entriesBySession = new Map<string, Set<string>>();
+  for (const entry of entries) {
+    for (const id of entry.session_record_ids) {
+      const ids = entriesBySession.get(id) ?? new Set<string>();
+      ids.add(entry.id);
+      entriesBySession.set(id, ids);
+    }
+  }
+  const days = new Map<string, TrainingActivityDay>();
+  for (const session of new Map(sessions.map(record => [record.id, record])).values()) {
+    const visits = (session.spot_visits ?? []).filter(visit =>
+      session.source !== "check_in" || !!visit.check_in_id,
+    );
+    if (session.source === "check_in" && !visits.length) continue;
+    const startedAt = new Date(session.started_at_raw_ms);
+    if (!Number.isFinite(startedAt.getTime())) continue;
+    let formatter: Intl.DateTimeFormat;
+    try {
+      formatter = new Intl.DateTimeFormat("en", {timeZone: session.time_zone || "UTC", year: "numeric", month: "2-digit", day: "2-digit"});
+    } catch {
+      formatter = new Intl.DateTimeFormat("en", {timeZone: "UTC", year: "numeric", month: "2-digit", day: "2-digit"});
+    }
+    const parts = formatter.formatToParts(startedAt);
+    const key = ["year", "month", "day"].map(type => parts.find(part => part.type === type)?.value).join("-");
+    const day = days.get(key) ?? {key, entryIds: [], sessionCount: 0, durationMinutes: 0, spotCount: 0};
+    // Check-ins confirm presence at a point in time, not time spent training.
+    const duration = session.ended_at_raw_ms === undefined ? 0 :
+      Math.max(0, Math.round((session.ended_at_raw_ms - session.started_at_raw_ms) / 60_000));
+    day.entryIds = [...new Set([...day.entryIds, ...(entriesBySession.get(session.id) ?? [])])];
+    day.sessionCount++;
+    day.durationMinutes += Number.isFinite(duration) ? duration : 0;
+    day.spotCount += new Set(visits.map(visit => visit.spot_id)).size;
+    days.set(key, day);
+  }
+  return [...days.values()].sort((left, right) => right.key.localeCompare(left.key));
+}
 
 export function buildTrainingActivityDays(
   entries: readonly LogEntryDocument[],

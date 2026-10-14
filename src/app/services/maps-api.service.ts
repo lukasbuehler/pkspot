@@ -17,6 +17,8 @@ import {
   of,
   take,
   firstValueFrom,
+  filter,
+  timeout,
 } from "rxjs";
 import { ExternalImage } from "../../db/models/Media";
 import { ConsentAwareService } from "./consent-aware.service";
@@ -118,6 +120,39 @@ export class MapsApiService extends ConsentAwareService {
    * Dedupes concurrent metadata checks for the same location.
    */
   private streetViewMetadataInFlight = new Map<string, Promise<boolean>>();
+  private readonly localityNames = new Map<string, Promise<string | null>>();
+
+  /** City/town label only, never a street address. Cache for this app session. */
+  getLocalityName(location: google.maps.LatLngLiteral): Promise<string | null> {
+    if (!this.hasConsent() || !isFiniteLatLngLiteral(location)) return Promise.resolve(null);
+    const key = `${location.lat},${location.lng}`;
+    const cached = this.localityNames.get(key);
+    if (cached) return cached;
+    const lookup = (async () => {
+      try {
+        this.loadGoogleMapsApi();
+        if (!this.isApiLoaded()) {
+          await firstValueFrom(this.isLoading$.pipe(filter(loading => !loading), take(1), timeout(10_000)));
+        }
+        if (!this.isApiLoaded()) return null;
+        const { Geocoder } = await google.maps.importLibrary("geocoding") as google.maps.GeocodingLibrary;
+        const { results } = await new Geocoder().geocode({ location });
+        const components = results.flatMap(result => result.address_components);
+        for (const type of ["locality", "postal_town", "administrative_area_level_2"]) {
+          const name = components.find(component => component.types.includes(type))?.long_name;
+          if (name) return name;
+        }
+        return null;
+      } catch {
+        // An optional label must not block training recommendations.
+        this.localityNames.delete(key);
+        return null;
+      }
+    })();
+    if (this.localityNames.size >= 50) this.localityNames.clear();
+    this.localityNames.set(key, lookup);
+    return lookup;
+  }
 
   constructor() {
     super();

@@ -55,9 +55,10 @@ export class SessionRecordsService {
   private readonly auth = inject(AuthenticationService);
   private readonly functions = inject(FunctionsAdapterService);
 
-  async listMine(limit = 50): Promise<SessionRecordDocument[]> {
+  /** Statistics need complete owner history; other pickers retain the default cap. */
+  async listMine(limit: number | null = 50): Promise<SessionRecordDocument[]> {
     const fixture = this.screenshotSessions();
-    if (fixture) return fixture.slice(0, limit);
+    if (fixture) return limit === null ? fixture : fixture.slice(0, limit);
     return this.firestore.getCollection<SessionRecordDocument>(
       this.collectionPath(this.requireUserId()),
       [],
@@ -67,7 +68,7 @@ export class SessionRecordsService {
           fieldPath: "started_at_raw_ms",
           direction: "desc",
         },
-        { type: "limit", limit },
+        ...(limit === null ? [] : [{ type: "limit" as const, limit }]),
       ],
     );
   }

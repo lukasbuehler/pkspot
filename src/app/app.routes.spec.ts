@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { routes } from "./app.routes";
 
 describe("app routes", () => {
+  it("keeps training notes owner-only with no public profile log route", () => {
+    expect(routes.some(route => route.path === "u/:userID/logs")).toBe(false);
+    for (const path of ["train/log", "train/log/new", "train/log/:entryId", "train/log/:entryId/edit"]) {
+      expect(routes.some(route => route.path === path)).toBe(true);
+    }
+  });
   const legacyCommunityPrefix = ["map", "community"].join("/");
   const legacyCommunityRoute = `${legacyCommunityPrefix}/:slug`;
 

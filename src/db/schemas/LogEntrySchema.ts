@@ -1,13 +1,7 @@
 import type { Timestamp } from "firebase/firestore";
 
-export const LOG_ENTRY_VISIBILITIES = [
-  "private",
-  "friends",
-  "followers",
-  "public",
-] as const;
-
-export type LogEntryVisibility = (typeof LOG_ENTRY_VISIBILITIES)[number];
+/** Legacy audience values remain readable for owners; all new writes are private. */
+export type LogEntryVisibility = "private" | "friends" | "followers" | "public";
 
 export interface LogEntrySessionSummarySchema {
   session_record_id: string;

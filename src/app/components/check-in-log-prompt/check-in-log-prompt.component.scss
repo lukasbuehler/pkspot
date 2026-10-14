@@ -1,5 +1,5 @@
 :host { display: block; }
-.prompt { display: flex; gap: 14px; margin-bottom: 24px; padding: 16px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; background: var(--mat-sys-surface-container-low); color: var(--mat-sys-on-surface); }
+.prompt { display: flex; gap: 14px; margin-block: 24px; padding: 16px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; background: var(--mat-sys-surface-container-low); color: var(--mat-sys-on-surface); }
 .prompt-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; border-radius: 13px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-primary); }
 .prompt-body { min-width: 0; }
 h2 { margin: 0 0 6px; font-size: 18px; line-height: 1.3; }

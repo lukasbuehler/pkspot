@@ -71,3 +71,39 @@ describe("Street View image requests", () => {
     } finally { fetch.mockRestore(); }
   });
 });
+
+describe("training locality labels", () => {
+  it("uses the locality instead of a street address and reuses the lookup", async () => {
+    const { MapsApiService } = await import("./maps-api.service");
+    const geocode = vi.fn().mockResolvedValue({ results: [{ address_components: [
+      { long_name: "Private street", types: ["route"] },
+      { long_name: "Zürich", types: ["locality", "political"] },
+    ] }] });
+    const service = Object.assign(Object.create(MapsApiService.prototype) as MapsApiService, {
+      localityNames: new Map(), hasConsent: () => true,
+      isApiLoaded: () => true, loadGoogleMapsApi: vi.fn(),
+    });
+    vi.stubGlobal("google", { maps: { importLibrary: vi.fn().mockResolvedValue({
+      Geocoder: class { geocode = geocode; },
+    }) } });
+    try {
+      const location = { lat: 47.377, lng: 8.542 };
+      expect(await service.getLocalityName(location)).toBe("Zürich");
+      expect(await service.getLocalityName(location)).toBe("Zürich");
+      expect(geocode).toHaveBeenCalledTimes(1);
+      geocode.mockRejectedValueOnce(new Error("Unavailable"));
+      expect(await service.getLocalityName({ lat: 48, lng: 9 })).toBeNull();
+      expect(await service.getLocalityName({ lat: 48, lng: 9 })).toBe("Zürich");
+    } finally { vi.unstubAllGlobals(); }
+  });
+
+  it("does not load Google without consent", async () => {
+    const { MapsApiService } = await import("./maps-api.service");
+    const loadGoogleMapsApi = vi.fn();
+    const service = Object.assign(Object.create(MapsApiService.prototype) as MapsApiService, {
+      hasConsent: () => false, loadGoogleMapsApi,
+    });
+    expect(await service.getLocalityName({ lat: 47, lng: 8 })).toBeNull();
+    expect(loadGoogleMapsApi).not.toHaveBeenCalled();
+  });
+});

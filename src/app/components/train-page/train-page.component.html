@@ -21,7 +21,10 @@
       @if (area()?.displayName; as areaLabel) {
         <span class="training-context-button__area">{{ areaLabel }}</span>
       } @else {
-        <span class="training-context-button__area" i18n="@@train.nearYou">Near you</span>
+        <span class="training-context-button__area">
+          <span i18n="@@train.nearYou">Near you</span>
+          @if (nearbyLocality.value(); as locality) { <span> ({{ locality }})</span> }
+        </span>
       }
       @if (contextWeather(); as weather) {
         <span class="training-context-button__conditions">
@@ -42,6 +45,13 @@
     <p class="state">{{ error() }}</p>
   } @else {
     @if (signedIn()) {
+      @if (trainingHistoryFailed()) {
+        <section class="state" role="alert">
+          <p i18n="@@trainingLog.loadError">Your training log could not be loaded.</p>
+          <button matButton="outlined" type="button" (click)="loadTrainingHistory()" i18n="@@notification_center.retry">Retry</button>
+        </section>
+      }
+      @if (trainingSessionsLoaded()) {
       <app-check-in-log-prompt [sessions]="trainingSessions()" [logs]="trainingLogs()" />
       <section class="training-history">
         <header class="training-history__header">
@@ -81,6 +91,7 @@
 
 
       </section>
+      }
     }
 
     @if (nearbyEventOptions().length) {

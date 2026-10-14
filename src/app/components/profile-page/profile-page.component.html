@@ -186,12 +186,10 @@
                       </div>
                     }
 
-                    @if (trainingFeatureEnabled && hasExpandedProfileAccess) {
+                    @if (trainingFeatureEnabled && isMyProfile) {
                       <a
                         mat-stroked-button
-                        [routerLink]="
-                          isMyProfile ? '/train/log' : ['/u', userId, 'logs']
-                        "
+                        routerLink="/train/log"
                       >
                         <mat-icon>book_2</mat-icon>
                         <span i18n="@@profile.trainingLog">Training log</span>
