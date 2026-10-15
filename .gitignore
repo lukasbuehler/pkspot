@@ -245,3 +245,4 @@ docs/
 # Legacy locations: private documents belong under ignored docs/.
 /ideas/
 /mcp/submission/review-preparation.json
+/user_stories.md
