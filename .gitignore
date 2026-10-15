@@ -238,3 +238,6 @@ __pycache__
 *.p8
 
 docs/
+
+# Private feature planning stays on this machine.
+/feature-passes/
