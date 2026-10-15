@@ -241,3 +241,7 @@ docs/
 
 # Private feature planning stays on this machine.
 /feature-passes/
+
+# Legacy locations: private documents belong under ignored docs/.
+/ideas/
+/mcp/submission/review-preparation.json

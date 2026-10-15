@@ -2,6 +2,15 @@
 
 These instructions apply to all work in this repository.
 
+## Private documents
+
+- Keep product ideas and feature plans in ignored `docs/planning/`, submission
+  preparation in `docs/release/`, and deployment checklists in `docs/deployment/`.
+- These are local maintainer records. Do not force-add ignored documents or copy
+  private planning/assessment contents into tracked files without explicit approval.
+- Keep contributor setup and implementation documentation in Git when useful,
+  but do not include unpublished roadmap details by default.
+
 ## Angular standards
 
 - This repository uses Angular 22. For Angular-specific work, prefer the official `angular-developer` Codex skill when available and check the installed Angular version before applying version-sensitive guidance.
