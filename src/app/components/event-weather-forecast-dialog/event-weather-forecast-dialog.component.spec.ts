@@ -98,7 +98,7 @@ describe("EventWeatherForecastDialogComponent", () => {
     const hourStyles = readFileSync(
       join(
         componentRoot,
-        "event-weather-hours/event-weather-hours.component.scss",
+        "hourly-forecast-strip/hourly-forecast-strip.component.scss",
       ),
       "utf8",
     );

@@ -277,7 +277,7 @@
     <unit id="6340024479572008870">
       <segment state="initial">
         <source>No media was published or replaced.</source>
-        <target>Aucun média n'a été publié ni remplacé.</target>
+        <target>Aucun média n&apos;a été publié ni remplacé.</target>
       </segment>
     </unit>
     <unit id="6340970481322850527">
@@ -289,7 +289,7 @@
     <unit id="6349573350509049547">
       <segment state="initial">
         <source>Escalate this media for incident assessment? Normal preview and release will be disabled. No external report is sent automatically.</source>
-        <target>Transmettre ce média pour évaluation d'un incident ? La prévisualisation et la publication habituelles seront désactivées. Aucun signalement externe ne sera envoyé automatiquement.</target>
+        <target>Transmettre ce média pour évaluation d&apos;un incident ? La prévisualisation et la publication habituelles seront désactivées. Aucun signalement externe ne sera envoyé automatiquement.</target>
       </segment>
     </unit>
     <unit id="6350615969580028001">
@@ -3098,7 +3098,7 @@
     <unit id="1275736201928462859">
       <segment state="initial">
         <source>Open incident</source>
-        <target>Ouvrir l'incident</target>
+        <target>Ouvrir l&apos;incident</target>
       </segment>
     </unit>
     <unit id="1283895920974679461">
@@ -3893,7 +3893,7 @@
     <unit id="8360850802637390671">
       <segment state="initial">
         <source>Failed to record the false positive</source>
-        <target>Impossible d'enregistrer le faux positif</target>
+        <target>Impossible d&apos;enregistrer le faux positif</target>
       </segment>
     </unit>
     <unit id="8361822038727829961">
@@ -3965,7 +3965,7 @@
     <unit id="8600926992878784762">
       <segment state="initial">
         <source>The scanner detected potentially sexual or adult imagery. A human review is required.</source>
-        <target>L'analyse a détecté des images potentiellement sexuelles ou pour adultes. Un examen humain est nécessaire.</target>
+        <target>L&apos;analyse a détecté des images potentiellement sexuelles ou pour adultes. Un examen humain est nécessaire.</target>
       </segment>
     </unit>
     <unit id="8609785202570000921">
@@ -6412,22 +6412,82 @@
         <target>Training log</target>
       </segment>
     </unit>
-    <unit id="publicLog.empty">
-      <segment state="initial">
-        <source>No log entries are visible to you.</source>
-        <target>No log entries are visible to you.</target>
+    <unit id="train.now.addNotes">
+      <segment state="translated">
+        <source>Add notes</source>
+        <target>Ajouter des notes</target>
       </segment>
     </unit>
-    <unit id="publicLog.subtitle">
-      <segment state="initial">
-        <source>Entries this person chose to share with you.</source>
-        <target>Entries this person chose to share with you.</target>
+    <unit id="train.now.checkedInAt">
+      <segment state="translated">
+        <source>Checked in at <ph id="0" equiv="time" disp="since"/></source>
+        <target>Enregistré à <ph id="0" equiv="time" disp="since"/></target>
       </segment>
     </unit>
-    <unit id="publicLog.title">
-      <segment state="initial">
-        <source>Training log</source>
-        <target>Training log</target>
+    <unit id="train.now.going">
+      <segment state="translated">
+        <source>You&apos;re going</source>
+        <target>Tu y vas</target>
+      </segment>
+    </unit>
+    <unit id="train.now.label">
+      <segment state="translated">
+        <source>Happening now</source>
+        <target>En ce moment</target>
+      </segment>
+    </unit>
+    <unit id="train.now.live">
+      <segment state="translated">
+        <source>Live now</source>
+        <target>En direct</target>
+      </segment>
+    </unit>
+    <unit id="train.now.openEvent">
+      <segment state="translated">
+        <source>Open event</source>
+        <target>Ouvrir l&apos;événement</target>
+      </segment>
+    </unit>
+    <unit id="train.now.openSession">
+      <segment state="translated">
+        <source>Open session</source>
+        <target>Ouvrir la session</target>
+      </segment>
+    </unit>
+    <unit id="train.now.saved">
+      <segment state="translated">
+        <source>Saved</source>
+        <target>Enregistré</target>
+      </segment>
+    </unit>
+    <unit id="train.now.startsAt">
+      <segment state="translated">
+        <source>Starts at <ph id="0" equiv="time" disp="time"/></source>
+        <target>Commence à <ph id="0" equiv="time" disp="time"/></target>
+      </segment>
+    </unit>
+    <unit id="train.now.startsInMinutes">
+      <segment state="translated">
+        <source>Starts in <ph id="0" equiv="minutes" disp="minutesUntilStart"/> min</source>
+        <target>Commence dans <ph id="0" equiv="minutes" disp="minutesUntilStart"/> min</target>
+      </segment>
+    </unit>
+    <unit id="train.now.training">
+      <segment state="translated">
+        <source>Training now</source>
+        <target>Entraînement en cours</target>
+      </segment>
+    </unit>
+    <unit id="train.now.yourPlan">
+      <segment state="translated">
+        <source>Your planned session</source>
+        <target>Ta session prévue</target>
+      </segment>
+    </unit>
+    <unit id="train.now.yourSession">
+      <segment state="translated">
+        <source>Your session</source>
+        <target>Ta session</target>
       </segment>
     </unit>
     <unit id="5691718088491056716">
@@ -10684,12 +10744,6 @@
         <target>Événements</target>
       </segment>
     </unit>
-    <unit id="events.upcoming">
-      <segment state="initial">
-        <source>Upcoming events</source>
-        <target>Upcoming events</target>
-      </segment>
-    </unit>
     <unit id="events_label">
       <notes>
         <note category="description">A very short label for the navbar events page button</note>
@@ -11210,7 +11264,7 @@
     <unit id="2881056693971347073">
       <segment state="initial">
         <source>Restricted child safety match</source>
-        <target>Correspondance restreinte de protection de l'enfance</target>
+        <target>Correspondance restreinte de protection de l&apos;enfance</target>
       </segment>
     </unit>
     <unit id="2882100937757413407">
@@ -11360,7 +11414,7 @@
     <unit id="792767725784996680">
       <segment state="initial">
         <source>The automated scan did not flag this media.</source>
-        <target>L'analyse automatique n'a pas signalé ce média.</target>
+        <target>L&apos;analyse automatique n&apos;a pas signalé ce média.</target>
       </segment>
     </unit>
     <unit id="7932219281550877290">
@@ -11601,22 +11655,10 @@
         <target>Modifier la note</target>
       </segment>
     </unit>
-    <unit id="logEditor.entryHelp">
-      <segment state="translated">
-        <source>Add the part you want to remember or share.</source>
-        <target>Note ce que tu veux retenir ou partager.</target>
-      </segment>
-    </unit>
     <unit id="logEditor.entryTitle">
       <segment state="translated">
         <source>What did you practise?</source>
         <target>Qu’as-tu pratiqué ?</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.intro">
-      <segment state="translated">
-        <source>Describe your training and decide who can see the summary.</source>
-        <target>Décris ton entraînement et choisis qui peut voir le résumé.</target>
       </segment>
     </unit>
     <unit id="logEditor.invalidTimes">
@@ -11689,18 +11731,6 @@
       <segment state="translated">
         <source>Training details</source>
         <target>Détails de l’entraînement</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.visibility">
-      <segment state="translated">
-        <source>Visibility</source>
-        <target>Visibilité</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.visibilityHint">
-      <segment state="translated">
-        <source>Private is the default. Shared summaries never include exact spots, times, or people.</source>
-        <target>Privé par défaut. Les résumés partagés ne contiennent jamais les Spots précis, les horaires ou les personnes.</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -14641,7 +14671,7 @@
     <unit id="2363968011819595318">
       <segment state="initial">
         <source>The scanner detected potentially violent imagery. A human review is required.</source>
-        <target>L'analyse a détecté des images potentiellement violentes. Un examen humain est nécessaire.</target>
+        <target>L&apos;analyse a détecté des images potentiellement violentes. Un examen humain est nécessaire.</target>
       </segment>
     </unit>
     <unit id="2365683588441896071">
@@ -15248,24 +15278,6 @@
         <target>All events</target>
       </segment>
     </unit>
-    <unit id="train.bestSpots">
-      <segment state="translated">
-        <source>Good places to train within reach</source>
-        <target>De bons endroits où s&apos;entraîner à portée de main</target>
-      </segment>
-    </unit>
-    <unit id="train.eyebrow">
-      <segment state="translated">
-        <source>Train</source>
-        <target>S’entraîner</target>
-      </segment>
-    </unit>
-    <unit id="train.loadError">
-      <segment state="initial">
-        <source>Training options could not be loaded.</source>
-        <target>Training options could not be loaded.</target>
-      </segment>
-    </unit>
     <unit id="train.nav">
       <notes>
         <note category="description">A very short label for training planning</note>
@@ -15276,16 +15288,10 @@
         <target>S’entraîner</target>
       </segment>
     </unit>
-    <unit id="train.nearbySpots">
-      <segment state="translated">
-        <source>Nearby Spots</source>
-        <target>Spots à proximité</target>
-      </segment>
-    </unit>
     <unit id="train.noSpots">
       <segment state="translated">
-        <source> No Spots found in this area yet. </source>
-        <target> Aucun Spot trouvé dans cette zone pour le moment. </target>
+        <source>No Spots found in this area yet.</source>
+        <target>Aucun Spot trouvé dans cette zone pour le moment.</target>
       </segment>
     </unit>
     <unit id="train.openMap">
@@ -15294,16 +15300,106 @@
         <target>Ouvrir la carte</target>
       </segment>
     </unit>
+    <unit id="train.rail.label">
+      <segment state="translated">
+        <source>Conditions and your rhythm</source>
+        <target>Conditions et ton rythme</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.empty">
+      <segment state="translated">
+        <source>Your training history appears here after your first check-in or log entry.</source>
+        <target>Ton historique d&apos;entraînement apparaîtra ici après ton premier check-in ou ta première entrée.</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.longestStreak">
+      <segment state="translated">
+        <source>longest daily streak</source>
+        <target>plus longue série de jours</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.oneSpot">
+      <segment state="translated">
+        <source>1 Spot</source>
+        <target>1 Spot</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.recent">
+      <segment state="translated">
+        <source>Recent training entries</source>
+        <target>Entrées d&apos;entraînement récentes</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.spotCount">
+      <segment state="translated">
+        <source><ph id="0" equiv="count" disp="spotCount"/> Spots</source>
+        <target><ph id="0" equiv="count" disp="spotCount"/> Spots</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.title">
+      <segment state="translated">
+        <source>Looking back</source>
+        <target>Rétrospective</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.untitledEntry">
+      <segment state="translated">
+        <source>Training session</source>
+        <target>Session d&apos;entraînement</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.vsLastMonth">
+      <segment state="translated">
+        <source><ph id="0" equiv="delta" disp="signed"/> vs last month</source>
+        <target><ph id="0" equiv="delta" disp="signed"/> par rapport au mois dernier</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.log">
+      <segment state="translated">
+        <source>Log</source>
+        <target>Journal</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.logSession">
+      <segment state="translated">
+        <source>Log a session</source>
+        <target>Noter une session</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.thisWeek">
+      <segment state="translated">
+        <source>sessions this week</source>
+        <target>sessions cette semaine</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.title">
+      <segment state="translated">
+        <source>Your rhythm</source>
+        <target>Ton rythme</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.weeksInARow">
+      <segment state="translated">
+        <source>weeks in a row</source>
+        <target>semaines d&apos;affilée</target>
+      </segment>
+    </unit>
     <unit id="train.spotFilters">
       <segment state="translated">
         <source>Spot filters</source>
         <target>Filtres de Spot</target>
       </segment>
     </unit>
+    <unit id="train.spots.title">
+      <segment state="translated">
+        <source>Spots to train at</source>
+        <target>Spots pour s&apos;entraîner</target>
+      </segment>
+    </unit>
     <unit id="train.spotsNeedArea">
       <segment state="translated">
-        <source> Choose a training area to see nearby Spots. </source>
-        <target> Choisissez une zone d&apos;entraînement pour voir les Spots à proximité. </target>
+        <source>Choose a training area to see nearby Spots.</source>
+        <target>Choisissez une zone d&apos;entraînement pour voir les Spots à proximité.</target>
       </segment>
     </unit>
     <unit id="train.useLocation">
@@ -15314,26 +15410,68 @@
     </unit>
     <unit id="train.weatherDryFilter">
       <segment state="translated">
-        <source> Dry Spots are prioritised for the forecast. </source>
-        <target> Les Spots secs sont privilégiés selon les prévisions. </target>
+        <source>Dry Spots are prioritised for the forecast.</source>
+        <target>Les Spots secs sont privilégiés selon les prévisions.</target>
       </segment>
     </unit>
-    <unit id="train.communityEvents.eyebrow">
+    <unit id="train.comingUp.error">
       <segment state="translated">
-        <source>Your communities</source>
-        <target>Vos communautés</target>
+        <source>Events could not be loaded.</source>
+        <target>Impossible de charger les événements.</target>
       </segment>
     </unit>
-    <unit id="train.communityEvents.summary">
+    <unit id="train.comingUp.followedCommunity">
       <segment state="translated">
-        <source> Worth knowing about, even when they are farther away. </source>
-        <target> À connaître, même lorsqu&apos;ils sont plus loin. </target>
+        <source>From your communities: <ph id="0" equiv="INTERPOLATION" disp="{{ community }}"/></source>
+        <target>De tes communautés : <ph id="0" equiv="INTERPOLATION" disp="{{ community }}"/></target>
       </segment>
     </unit>
-    <unit id="train.communityEvents.title">
+    <unit id="train.comingUp.going">
       <segment state="translated">
-        <source>Events from people you follow</source>
-        <target>Événements des personnes que vous suivez</target>
+        <source>Going</source>
+        <target>J&apos;y vais</target>
+      </segment>
+    </unit>
+    <unit id="train.comingUp.title">
+      <segment state="translated">
+        <source>Coming up</source>
+        <target>À venir</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.dry">
+      <segment state="translated">
+        <source>Dry for now</source>
+        <target>Sec pour l&apos;instant</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.dryUntil">
+      <segment state="translated">
+        <source>Dry until <ph id="0" equiv="time" disp="this.formatTime(outlook.time, weather.timeZone)"/></source>
+        <target>Sec jusqu&apos;à <ph id="0" equiv="time" disp="this.formatTime(outlook.time, weather.timeZone)"/></target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.forecast">
+      <segment state="translated">
+        <source>Forecast</source>
+        <target>Prévisions</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.rainNow">
+      <segment state="translated">
+        <source>Rain now</source>
+        <target>Pluie en ce moment</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.title">
+      <segment state="translated">
+        <source>Conditions</source>
+        <target>Conditions</target>
+      </segment>
+    </unit>
+    <unit id="train.context.area">
+      <segment state="translated">
+        <source>Change training area</source>
+        <target>Changer de zone d&apos;entraînement</target>
       </segment>
     </unit>
     <unit id="train.context.chooseAction">
@@ -15360,22 +15498,28 @@
         <target> Zone d&apos;entraînement </target>
       </segment>
     </unit>
+    <unit id="train.context.group">
+      <segment state="translated">
+        <source>Training area and weather</source>
+        <target>Zone d&apos;entraînement et météo</target>
+      </segment>
+    </unit>
     <unit id="train.context.intro">
       <segment state="translated">
         <source> Use your location for nearby ideas, or search for a community to plan a session somewhere else. </source>
         <target> Utilisez votre position pour trouver des idées à proximité, ou cherchez une communauté pour planifier une session ailleurs. </target>
       </segment>
     </unit>
-    <unit id="train.context.open">
-      <segment state="translated">
-        <source>Change training area or view weather</source>
-        <target>Modifier la zone d&apos;entraînement ou voir la météo</target>
-      </segment>
-    </unit>
     <unit id="train.context.title">
       <segment state="translated">
         <source>Choose your training area</source>
         <target>Choisissez votre zone d&apos;entraînement</target>
+      </segment>
+    </unit>
+    <unit id="train.context.weather">
+      <segment state="translated">
+        <source>Show weather forecast</source>
+        <target>Voir les prévisions météo</target>
       </segment>
     </unit>
     <unit id="train.context.weatherAction">
@@ -15390,22 +15534,16 @@
         <target>Consultez les prochaines heures avant de partir.</target>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.eyebrow">
+    <unit id="train.context.weatherUnavailable">
       <segment state="translated">
-        <source>Happening soon</source>
-        <target>Bientôt</target>
+        <source>Weather unavailable</source>
+        <target>Météo indisponible</target>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.summary">
+    <unit id="train.event.goingCount">
       <segment state="translated">
-        <source> The soonest upcoming sessions within reach. </source>
-        <target> Les prochaines sessions facilement accessibles. </target>
-      </segment>
-    </unit>
-    <unit id="train.nearbyEvents.title">
-      <segment state="translated">
-        <source>Events near your area</source>
-        <target>Événements près de chez vous</target>
+        <source><ph id="0" equiv="count" disp="going"/> going</source>
+        <target><ph id="0" equiv="count" disp="going"/> y vont</target>
       </segment>
     </unit>
     <unit id="train.history.allLogs">
@@ -15420,10 +15558,22 @@
         <target>Historique d’entraînement</target>
       </segment>
     </unit>
-    <unit id="train.summary">
+    <unit id="train.teaser.body">
       <segment state="translated">
-        <source> Nearby Spots and events from the communities you follow. </source>
-        <target> Des Spots à proximité et les événements des communautés que vous suivez. </target>
+        <source> Track where and how often you train, keep notes on what you practised, and see your consistency grow. </source>
+        <target>Note où et à quelle fréquence tu t&apos;entraînes, ce que tu as travaillé, et regarde ta régularité progresser.</target>
+      </segment>
+    </unit>
+    <unit id="train.teaser.signIn">
+      <segment state="translated">
+        <source>Sign in to start</source>
+        <target>Se connecter pour commencer</target>
+      </segment>
+    </unit>
+    <unit id="train.teaser.title">
+      <segment state="translated">
+        <source>Keep a training diary</source>
+        <target>Tiens un journal d&apos;entraînement</target>
       </segment>
     </unit>
     <unit id="train.title">
@@ -15448,12 +15598,6 @@
       <segment state="initial">
         <source>Delete this log entry?</source>
         <target>Delete this log entry?</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.emptyBody">
-      <segment state="initial">
-        <source>Record what happened. It stays private unless you choose otherwise.</source>
-        <target>Record what happened. It stays private unless you choose otherwise.</target>
       </segment>
     </unit>
     <unit id="trainingLog.emptyTitle">
@@ -15732,28 +15876,10 @@
         <target>Training log</target>
       </segment>
     </unit>
-    <unit id="trainingLog.visibility.followers">
-      <segment state="initial">
-        <source>Followers</source>
-        <target>Followers</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.visibility.friends">
-      <segment state="initial">
-        <source>Friends</source>
-        <target>Friends</target>
-      </segment>
-    </unit>
     <unit id="trainingLog.visibility.private">
       <segment state="initial">
         <source>Private</source>
         <target>Privé</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.visibility.public">
-      <segment state="initial">
-        <source>Public</source>
-        <target>Public</target>
       </segment>
     </unit>
     <unit id="7102657004519673825">
@@ -16020,7 +16146,7 @@
     <unit id="1201945688098851518">
       <segment state="initial">
         <source>Scan failed</source>
-        <target>Échec de l'analyse</target>
+        <target>Échec de l&apos;analyse</target>
       </segment>
     </unit>
     <unit id="1210302373806182896">
@@ -16535,7 +16661,7 @@
     <unit id="1600082992393362456">
       <segment state="initial">
         <source>False positive recorded. No media was published or replaced.</source>
-        <target>Faux positif enregistré. Aucun média n'a été publié ni remplacé.</target>
+        <target>Faux positif enregistré. Aucun média n&apos;a été publié ni remplacé.</target>
       </segment>
     </unit>
     <unit id="1603041043712955298">
@@ -16803,7 +16929,7 @@
     <unit id="7794536791466704117">
       <segment state="initial">
         <source>The scanner detected a potentially suggestive pose or presentation. This does not establish explicit nudity or illegal content.</source>
-        <target>L'analyse a détecté une pose ou une présentation potentiellement suggestive. Cela ne prouve ni nudité explicite ni contenu illégal.</target>
+        <target>L&apos;analyse a détecté une pose ou une présentation potentiellement suggestive. Cela ne prouve ni nudité explicite ni contenu illégal.</target>
       </segment>
     </unit>
     <unit id="7795965715171252279">
@@ -17193,7 +17319,7 @@
     <unit id="7252953739661141621">
       <segment state="initial">
         <source>Continue assessment and reporting in the incident workflow.</source>
-        <target>Poursuivez l'évaluation et le signalement dans le processus de gestion des incidents.</target>
+        <target>Poursuivez l&apos;évaluation et le signalement dans le processus de gestion des incidents.</target>
       </segment>
     </unit>
     <unit id="726336810858265673">
@@ -19220,6 +19346,30 @@
       <segment state="initial">
         <source>Use while using the app</source>
         <target>Utiliser pendant l’utilisation de l’application</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.amount">
+      <segment state="translated">
+        <source>Amount</source>
+        <target>Quantité</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.chance">
+      <segment state="translated">
+        <source>Chance</source>
+        <target>Probabilité</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.dry">
+      <segment state="translated">
+        <source>No precipitation expected</source>
+        <target>Aucune précipitation prévue</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.peak">
+      <segment state="translated">
+        <source>Up to <ph id="0" equiv="amount" disp="amount"/> per hour, heaviest around <ph id="1" equiv="time" disp="time"/></source>
+        <target>Jusqu&apos;à <ph id="0" equiv="amount" disp="amount"/> par heure, maximum vers <ph id="1" equiv="time" disp="time"/></target>
       </segment>
     </unit>
     <unit id="profile.actions.acceptFollowRequest">

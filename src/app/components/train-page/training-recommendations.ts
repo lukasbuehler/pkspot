@@ -11,10 +11,14 @@ export interface NearbyTrainingEvents {
   radiusKm: number;
 }
 
-interface RankedSpotCandidate {
+/** A recommended Spot with its straight-line distance from the training area. */
+export interface RankedTrainingSpot {
   spot: SpotPreviewData;
-  index: number;
   distanceKm?: number;
+}
+
+interface RankedSpotCandidate extends RankedTrainingSpot {
+  index: number;
 }
 
 /**
@@ -26,11 +30,7 @@ export function rankNearbyTrainingEvents(
   nowSeconds: number,
   center?: readonly [number, number],
 ): NearbyTrainingEvents {
-  const items = events.map((event): RankedTrainingEvent => ({
-    ...event,
-    distanceKm: distanceToEvent(event, center),
-    live: event.startSeconds <= nowSeconds && event.endSeconds >= nowSeconds,
-  }));
+  const items = withTrainingEventContext(events, nowSeconds, center);
   const radiusKm = selectEventRadius(items, !!center);
   return {
     radiusKm,
@@ -43,6 +43,22 @@ export function rankNearbyTrainingEvents(
       )
       .sort(compareTrainingEvents),
   };
+}
+
+/**
+ * Adds distance and live state without filtering, for callers that apply
+ * their own relevance rules (such as the Train page "now" card).
+ */
+export function withTrainingEventContext(
+  events: readonly EventDiscoveryItem[],
+  nowSeconds: number,
+  center?: readonly [number, number],
+): RankedTrainingEvent[] {
+  return events.map((event) => ({
+    ...event,
+    distanceKm: distanceToEvent(event, center),
+    live: event.startSeconds <= nowSeconds && event.endSeconds >= nowSeconds,
+  }));
 }
 
 /**
@@ -74,7 +90,7 @@ export function rankTrainingSpots(
   center: readonly [number, number],
   radiusKm: number,
   maxResults: number,
-): SpotPreviewData[] {
+): RankedTrainingSpot[] {
   return spots
     .map((spot, index) => ({
       spot,
@@ -90,7 +106,7 @@ export function rankTrainingSpots(
       return left.index - right.index;
     })
     .slice(0, maxResults)
-    .map(({ spot }) => spot);
+    .map(({ spot, distanceKm }) => ({ spot, distanceKm }));
 }
 
 function compareTrainingEvents(

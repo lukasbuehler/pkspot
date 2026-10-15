@@ -1,0 +1,71 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.precipitation-chart {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.precipitation-chart__plot {
+  display: block;
+  width: 100%;
+  height: 56px;
+}
+
+.precipitation-chart__chance {
+  fill: var(--mat-sys-primary-container);
+}
+
+.precipitation-chart__amount {
+  fill: var(--mat-sys-primary);
+}
+
+.precipitation-chart__baseline {
+  stroke: var(--mat-sys-outline-variant);
+  stroke-width: 1;
+}
+
+.precipitation-chart__axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--mat-sys-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+
+.precipitation-chart__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.precipitation-chart__legend,
+.precipitation-chart__legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.precipitation-chart__legend {
+  gap: 10px;
+}
+
+.swatch {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.swatch--amount {
+  background: var(--mat-sys-primary);
+}
+
+.swatch--chance {
+  background: var(--mat-sys-primary-container);
+}

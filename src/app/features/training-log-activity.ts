@@ -216,6 +216,76 @@ export function buildTrainingContributionWeeks(
   return weeks;
 }
 
+export interface TrainingStreaks {
+  /** Consecutive weeks with at least one session, ending this week or last. */
+  currentWeeks: number;
+  /** Longest run of consecutive training days ever recorded. */
+  longestDays: number;
+}
+
+/**
+ * Consistency is measured in weeks so rest days never break it. The current
+ * week counts once it has a session but does not end the streak while it is
+ * still in progress. A week covered by a recovery pause neither counts nor
+ * breaks the streak, so recording an injury is never punished.
+ */
+export function summarizeTrainingStreaks(
+  days: readonly TrainingActivityDay[],
+  recoveryPauses: readonly RecoveryPauseDocument[],
+  firstWeekday: 0 | 1,
+  now = new Date(),
+): TrainingStreaks {
+  const activeKeys = new Set(
+    days.filter((day) => day.sessionCount > 0).map((day) => day.key),
+  );
+  const today = atNoon(now);
+  const todayKey = dateKeyFromDate(today);
+
+  let currentWeeks = 0;
+  const earliestKey = [...activeKeys].sort()[0];
+  const earliest = earliestKey ? dateFromKey(earliestKey) : today;
+  for (
+    let weekStart = startOfWeek(today, firstWeekday), isCurrentWeek = true;
+    weekStart >= startOfWeek(earliest, firstWeekday);
+    weekStart = addDays(weekStart, -7), isCurrentWeek = false
+  ) {
+    const weekKeys = Array.from({ length: 7 }, (_, index) =>
+      dateKeyFromDate(addDays(weekStart, index)),
+    ).filter((key) => key <= todayKey);
+    if (weekKeys.some((key) => activeKeys.has(key))) {
+      currentWeeks++;
+      continue;
+    }
+    if (isCurrentWeek) continue;
+    const paused = weekKeys.some((key) =>
+      recoveryPauseOn(key, recoveryPauses, today),
+    );
+    if (!paused) break;
+  }
+
+  let longestDays = 0;
+  let run = 0;
+  let previous: Date | null = null;
+  for (const key of [...activeKeys].sort()) {
+    const date = dateFromKey(key);
+    run =
+      previous && dateKeyFromDate(addDays(previous, 1)) === key ? run + 1 : 1;
+    longestDays = Math.max(longestDays, run);
+    previous = date;
+  }
+
+  return { currentWeeks, longestDays };
+}
+
+/** Locales whose week starts on Sunday get 0, everyone else Monday (1). */
+export function localeFirstWeekday(locale: string): 0 | 1 {
+  const localeWithWeekInfo = new Intl.Locale(locale) as Intl.Locale & {
+    getWeekInfo?: () => { firstDay: number };
+  };
+  const firstDay = localeWithWeekInfo.getWeekInfo?.().firstDay;
+  return firstDay === 7 || firstDay === 0 ? 0 : 1;
+}
+
 export function summarizeTrainingMonth(
   days: readonly TrainingActivityDay[],
   month: string,

@@ -1,192 +1,194 @@
 :host {
+  // Material's tonal buttons use the secondary (green) container, which this
+  // app reserves for live state. Tonal actions on this page are highlights.
+  --mat-button-tonal-container-color: var(--mat-sys-primary-container);
+  --mat-button-tonal-label-text-color: var(--mat-sys-on-primary-container);
+  --mat-button-tonal-icon-color: var(--mat-sys-on-primary-container);
 
   display: block;
 }
 
 .train-page {
-  max-width: 1180px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: clamp(20px, 4vw, 48px);
   color: var(--mat-sys-on-surface);
 }
 
-.train-header,
-.section-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.train-header > div {
-  min-width: 0;
-}
-
 h1 {
-  margin: 4px 0 0;
+  margin: 0;
   font: var(--mat-sys-headline-large);
 }
 
 h2 {
-  margin: 3px 0 0;
-  font: var(--mat-sys-headline-small);
-}
-
-.eyebrow {
   margin: 0;
-  color: var(--mat-sys-primary);
-  font: var(--mat-sys-label-large);
-}
-
-.header-summary,
-.section-summary {
-  margin: 8px 0 0;
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.training-context-button {
-  align-items: center;
-  flex: 0 0 auto;
-  max-width: min(42vw, 360px);
-  margin-block-start: 8px;
-  white-space: nowrap;
-}
-
-::ng-deep button.training-context-button > span.mdc-button__label {
-  display: flex;
-  align-items: center;
-}
-
-.training-context-button__area {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.training-context-button__weather {
-  color: var(--mat-sys-primary);
-}
-
-.training-context-button__conditions {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 4px;
-  margin-inline-start: 10px;
-}
-
-.train-section {
-  margin-top: 44px;
-}
-.train-section--first {
-  margin-top: 44px;
-}
-
-.training-history {
-  margin-top: 28px;
-  padding: 20px;
-  border-radius: 24px;
-  background: var(--mat-sys-surface-container-low);
-}
-
-.training-history__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.training-history__header h2 {
-  margin: 3px 0 0;
   font: var(--mat-sys-title-large);
 }
 
-.training-history__period {
-  margin: 4px 0 0;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
-}
+// Header and context -----------------------------------------------------------
 
-.training-history__metrics {
+.train-header {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 14px;
+  gap: 14px;
 }
 
-.training-history__metrics > div {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0 8px;
-  align-items: center;
-  min-height: 56px;
-  padding: 12px;
+.train-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
 }
 
-.training-history__metrics mat-icon {
-  grid-row: span 2;
-  color: var(--mat-sys-primary);
+.training-context-button,
+.training-weather-button {
+  max-width: 100%;
+  min-width: 0;
 }
 
-.training-history__metrics strong {
+.training-context-button__area,
+.training-weather-button__label {
+  min-width: 0;
   overflow: hidden;
-  font: var(--mat-sys-title-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.training-history__metrics span {
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-label-small);
+// Layout: main column with a context rail on wide screens -----------------------
+
+.train-layout {
+  display: grid;
+  gap: 32px;
+  margin-top: 28px;
 }
 
-.training-history app-training-activity-contribution-graph {
-  display: block;
-  margin-top: 12px;
+.train-main,
+.train-rail {
+  display: grid;
+  align-content: start;
+  gap: 32px;
+  min-width: 0;
 }
+
+.train-rail {
+  gap: 16px;
+}
+
+@media (min-width: 1100px) {
+  .train-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+
+  .train-rail {
+    position: sticky;
+    top: 24px;
+  }
+
+  // The rail carries "Log a session" on wide screens.
+  .train-fab {
+    display: none;
+  }
+}
+
+.train-section {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  > a {
+    flex-shrink: 0;
+    margin-inline-end: -12px;
+  }
+}
+
+.section-progress {
+  border-radius: 4px;
+}
+
+// Now and soon: the secondary tonal card marks something you can join now -------
+
+.train-now {
+  display: grid;
+  gap: 12px;
+}
+
+.moment-card {
+  --mat-card-outlined-container-color: var(--mat-sys-secondary-container);
+  --mat-card-outlined-outline-color: var(--mat-sys-secondary);
+  --mat-card-outlined-container-shape: 18px;
+  --mat-button-filled-container-color: var(--mat-sys-secondary);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-secondary);
+
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.moment-card__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-secondary);
+  background: var(--mat-sys-secondary);
+}
+
+.moment-card__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moment-card__eyebrow,
+.moment-card__detail {
+  margin: 0;
+}
+
+.moment-card__title {
+  overflow-wrap: anywhere;
+}
+
+// Spots ---------------------------------------------------------------------
 
 .spot-filter-row {
   display: flex;
-  align-items: center;
   min-width: 0;
-  margin-top: 14px;
-}
 
-.spot-filter-row app-filter-chips-bar {
-  flex: 1;
-  min-width: 0;
+  app-filter-chips-bar {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .weather-filter-note {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 8px;
+  margin: 0;
   color: var(--mat-sys-primary);
-  font: var(--mat-sys-label-medium);
-}
 
-.weather-filter-note mat-icon {
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
-}
-
-.preview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.event-section-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
 }
 
 .spot-preview-grid {
+  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .spot-preview-link {
@@ -194,109 +196,291 @@ h2 {
   min-width: 0;
   color: inherit;
   text-decoration: none;
+
+  app-spot-preview-card {
+    height: 100%;
+  }
 }
 
-.spot-preview-link app-spot-preview-card {
-  height: 100%;
+// Coming up -----------------------------------------------------------------
+
+.coming-up__card,
+.recent-card {
+  overflow: hidden;
 }
 
-.state,
-.empty {
-  padding: 32px 0;
+.coming-up__list,
+.recent-card mat-nav-list {
+  // Date badges are rounded squares, not Material's circular avatars.
+  --mat-list-list-item-leading-avatar-shape: 12px;
+  --mat-list-list-item-leading-avatar-color: var(--mat-sys-primary-container);
+  --mat-list-list-item-leading-avatar-size: 52px;
+  --mat-list-list-item-two-line-container-height: 76px;
+  --mat-list-list-item-three-line-container-height: 92px;
+
+  padding-block: 4px;
+}
+
+.date-badge {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px;
+  color: var(--mat-sys-on-primary-container);
+  line-height: 1;
+}
+
+.date-badge__month {
+  font: var(--mat-sys-label-small);
+  text-transform: uppercase;
+}
+
+.date-badge__day {
+  font: var(--mat-sys-title-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.date-badge__day--small {
+  font: var(--mat-sys-label-large);
+}
+
+.coming-up__community {
+  color: var(--mat-sys-primary);
+}
+
+.coming-up__relationship {
+  color: var(--mat-sys-primary);
+}
+
+// Rail ------------------------------------------------------------------------
+
+.rail-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.rail-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  > a,
+  > button {
+    margin-inline-end: -12px;
+  }
+}
+
+.rail-card__title {
+  font: var(--mat-sys-title-medium);
+}
+
+.rail-card__text {
+  margin: 0;
   color: var(--mat-sys-on-surface-variant);
-  text-align: center;
 }
 
-.empty--context {
+.conditions-card__now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.conditions-card__temperature {
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-headline-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.rhythm-card__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  > div {
+    display: grid;
+  }
+
+  strong {
+    font: var(--mat-sys-headline-small);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-medium);
+  }
+}
+
+.rhythm-card__action {
+  justify-self: stretch;
+}
+
+// Looking back ----------------------------------------------------------------
+
+.looking-back {
+  margin-top: 48px;
+}
+
+.looking-back__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: start;
+  gap: 16px;
+}
+
+.month-card {
+  display: grid;
+  gap: 4px;
+  padding: 16px 20px;
+}
+
+.month-card__title {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-small);
+}
+
+.month-card__headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+
+  strong {
+    font: var(--mat-sys-display-small);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.month-card__delta {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+
+  &.is-up {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.month-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+
+  > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  dt {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-small);
+  }
+
+  dd {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+    font-variant-numeric: tabular-nums;
+
+    mat-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--mat-sys-primary);
+      font-size: 18px;
+    }
+  }
+}
+
+.recent-card {
+  margin-top: 4px;
+}
+
+// Empty states ------------------------------------------------------------------
+
+.empty {
   display: grid;
   justify-items: center;
   gap: 8px;
-
-  > mat-icon {
-    display: grid;
-    width: 40px;
-    height: 40px;
-    place-items: center;
-    border-radius: 13px;
-    color: var(--mat-sys-on-primary-container);
-    background: var(--mat-sys-primary-container);
-  }
+  padding: 24px 0;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
 
   p {
     margin: 0;
   }
 }
 
-@media (max-width: 900px) {
-  .preview-grid,
-  .spot-preview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.empty--context > mat-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+// Responsive --------------------------------------------------------------------
+
+@media (max-width: 899.98px) {
+  .looking-back__grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 599.98px) {
   .train-page {
-    padding: 20px 16px 96px;
-  }
-
-  .train-header {
-    flex-direction: column;
-    gap: 12px;
+    padding: 20px 16px 120px;
   }
 
   h1 {
     font: var(--mat-sys-headline-medium);
   }
 
-  .training-context-button {
-    max-width: calc(100vw - 32px);
-    margin-block-start: 4px;
-    padding-inline: 10px;
-
-    > mat-icon {
-      margin-inline: 0 4px;
-    }
+  .train-layout {
+    margin-top: 20px;
   }
 
-  .section-heading {
-    gap: 12px;
+  .moment-card {
+    grid-template-columns: 40px minmax(0, 1fr);
   }
 
-  .section-heading > a {
-    margin-inline-end: -8px;
+  .moment-card__action {
+    grid-column: 1 / -1;
   }
 
-  .header-summary,
-  .section-summary {
-    font: var(--mat-sys-body-medium);
-  }
-
-  .train-section {
-    margin-top: 36px;
-  }
-  .train-section--first {
-    margin-top: 28px;
-  }
-
-  .training-history__header {
-    gap: 12px;
-  }
-
-  .training-history__header > a {
-    margin-inline-end: -8px;
-  }
-
-  .training-history__metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .weather-filter-note {
-    white-space: normal;
-  }
-
-  .preview-grid,
+  // A swipeable row keeps four Spots to one screen height instead of four.
   .spot-preview-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 72%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline mandatory;
+    scroll-padding-inline: 16px;
+    margin-inline: -16px;
+    padding: 0 16px 4px;
+  }
+
+  .spot-preview-link {
+    scroll-snap-align: start;
   }
 }
 
@@ -311,7 +495,3 @@ h2 {
     );
   }
 }
-
-.training-history__header { flex-wrap: wrap; }
-.training-history__header > a,
-.section-heading > a { flex-shrink: 0; }

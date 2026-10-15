@@ -36,19 +36,9 @@
         <source>Edit log entry</source>
       </segment>
     </unit>
-    <unit id="logEditor.entryHelp">
-      <segment>
-        <source>Add the part you want to remember or share.</source>
-      </segment>
-    </unit>
     <unit id="logEditor.entryTitle">
       <segment>
         <source>What did you practise?</source>
-      </segment>
-    </unit>
-    <unit id="logEditor.intro">
-      <segment>
-        <source>Describe your training and decide who can see the summary.</source>
       </segment>
     </unit>
     <unit id="logEditor.invalidTimes">
@@ -109,16 +99,6 @@
     <unit id="logEditor.trainingDetails">
       <segment>
         <source>Training details</source>
-      </segment>
-    </unit>
-    <unit id="logEditor.visibility">
-      <segment>
-        <source>Visibility</source>
-      </segment>
-    </unit>
-    <unit id="logEditor.visibilityHint">
-      <segment>
-        <source>Private is the default. Shared summaries never include exact spots, times, or people.</source>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -1170,19 +1150,69 @@
         <source>Training log</source>
       </segment>
     </unit>
-    <unit id="publicLog.empty">
+    <unit id="train.now.addNotes">
       <segment>
-        <source>No log entries are visible to you.</source>
+        <source>Add notes</source>
       </segment>
     </unit>
-    <unit id="publicLog.subtitle">
+    <unit id="train.now.checkedInAt">
       <segment>
-        <source>Entries this person chose to share with you.</source>
+        <source>Checked in at <ph id="0" equiv="time" disp="since"/></source>
       </segment>
     </unit>
-    <unit id="publicLog.title">
+    <unit id="train.now.going">
       <segment>
-        <source>Training log</source>
+        <source>You&apos;re going</source>
+      </segment>
+    </unit>
+    <unit id="train.now.label">
+      <segment>
+        <source>Happening now</source>
+      </segment>
+    </unit>
+    <unit id="train.now.live">
+      <segment>
+        <source>Live now</source>
+      </segment>
+    </unit>
+    <unit id="train.now.openEvent">
+      <segment>
+        <source>Open event</source>
+      </segment>
+    </unit>
+    <unit id="train.now.openSession">
+      <segment>
+        <source>Open session</source>
+      </segment>
+    </unit>
+    <unit id="train.now.saved">
+      <segment>
+        <source>Saved</source>
+      </segment>
+    </unit>
+    <unit id="train.now.startsAt">
+      <segment>
+        <source>Starts at <ph id="0" equiv="time" disp="time"/></source>
+      </segment>
+    </unit>
+    <unit id="train.now.startsInMinutes">
+      <segment>
+        <source>Starts in <ph id="0" equiv="minutes" disp="minutesUntilStart"/> min</source>
+      </segment>
+    </unit>
+    <unit id="train.now.training">
+      <segment>
+        <source>Training now</source>
+      </segment>
+    </unit>
+    <unit id="train.now.yourPlan">
+      <segment>
+        <source>Your planned session</source>
+      </segment>
+    </unit>
+    <unit id="train.now.yourSession">
+      <segment>
+        <source>Your session</source>
       </segment>
     </unit>
     <unit id="5691718088491056716">
@@ -6504,11 +6534,6 @@
         <source>Events</source>
       </segment>
     </unit>
-    <unit id="events.upcoming">
-      <segment>
-        <source>Upcoming events</source>
-      </segment>
-    </unit>
     <unit id="events_label">
       <notes>
         <note category="description">A very short label for the navbar events page button</note>
@@ -9996,16 +10021,6 @@
         <source>All events</source>
       </segment>
     </unit>
-    <unit id="train.bestSpots">
-      <segment>
-        <source>Good places to train within reach</source>
-      </segment>
-    </unit>
-    <unit id="train.eyebrow">
-      <segment>
-        <source>Train</source>
-      </segment>
-    </unit>
     <unit id="train.history.allLogs">
       <segment>
         <source>View all logs</source>
@@ -10014,11 +10029,6 @@
     <unit id="train.history.title">
       <segment>
         <source>Training history</source>
-      </segment>
-    </unit>
-    <unit id="train.loadError">
-      <segment>
-        <source>Training options could not be loaded.</source>
       </segment>
     </unit>
     <unit id="train.nav">
@@ -10030,14 +10040,9 @@
         <source>Train</source>
       </segment>
     </unit>
-    <unit id="train.nearbySpots">
-      <segment>
-        <source>Nearby Spots</source>
-      </segment>
-    </unit>
     <unit id="train.noSpots">
       <segment>
-        <source> No Spots found in this area yet. </source>
+        <source>No Spots found in this area yet.</source>
       </segment>
     </unit>
     <unit id="train.openMap">
@@ -10045,14 +10050,89 @@
         <source>Open map</source>
       </segment>
     </unit>
+    <unit id="train.rail.label">
+      <segment>
+        <source>Conditions and your rhythm</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.empty">
+      <segment>
+        <source>Your training history appears here after your first check-in or log entry.</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.longestStreak">
+      <segment>
+        <source>longest daily streak</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.oneSpot">
+      <segment>
+        <source>1 Spot</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.recent">
+      <segment>
+        <source>Recent training entries</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.spotCount">
+      <segment>
+        <source><ph id="0" equiv="count" disp="spotCount"/> Spots</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.title">
+      <segment>
+        <source>Looking back</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.untitledEntry">
+      <segment>
+        <source>Training session</source>
+      </segment>
+    </unit>
+    <unit id="train.reflection.vsLastMonth">
+      <segment>
+        <source><ph id="0" equiv="delta" disp="signed"/> vs last month</source>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.log">
+      <segment>
+        <source>Log</source>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.logSession">
+      <segment>
+        <source>Log a session</source>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.thisWeek">
+      <segment>
+        <source>sessions this week</source>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.title">
+      <segment>
+        <source>Your rhythm</source>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.weeksInARow">
+      <segment>
+        <source>weeks in a row</source>
+      </segment>
+    </unit>
     <unit id="train.spotFilters">
       <segment>
         <source>Spot filters</source>
       </segment>
     </unit>
+    <unit id="train.spots.title">
+      <segment>
+        <source>Spots to train at</source>
+      </segment>
+    </unit>
     <unit id="train.spotsNeedArea">
       <segment>
-        <source> Choose a training area to see nearby Spots. </source>
+        <source>Choose a training area to see nearby Spots.</source>
       </segment>
     </unit>
     <unit id="train.useLocation">
@@ -10062,22 +10142,57 @@
     </unit>
     <unit id="train.weatherDryFilter">
       <segment>
-        <source> Dry Spots are prioritised for the forecast. </source>
+        <source>Dry Spots are prioritised for the forecast.</source>
       </segment>
     </unit>
-    <unit id="train.communityEvents.eyebrow">
+    <unit id="train.comingUp.error">
       <segment>
-        <source>Your communities</source>
+        <source>Events could not be loaded.</source>
       </segment>
     </unit>
-    <unit id="train.communityEvents.summary">
+    <unit id="train.comingUp.followedCommunity">
       <segment>
-        <source> Worth knowing about, even when they are farther away. </source>
+        <source>From your communities: <ph id="0" equiv="INTERPOLATION" disp="{{ community }}"/></source>
       </segment>
     </unit>
-    <unit id="train.communityEvents.title">
+    <unit id="train.comingUp.going">
       <segment>
-        <source>Events from people you follow</source>
+        <source>Going</source>
+      </segment>
+    </unit>
+    <unit id="train.comingUp.title">
+      <segment>
+        <source>Coming up</source>
+      </segment>
+    </unit>
+    <unit id="train.conditions.dry">
+      <segment>
+        <source>Dry for now</source>
+      </segment>
+    </unit>
+    <unit id="train.conditions.dryUntil">
+      <segment>
+        <source>Dry until <ph id="0" equiv="time" disp="this.formatTime(outlook.time, weather.timeZone)"/></source>
+      </segment>
+    </unit>
+    <unit id="train.conditions.forecast">
+      <segment>
+        <source>Forecast</source>
+      </segment>
+    </unit>
+    <unit id="train.conditions.rainNow">
+      <segment>
+        <source>Rain now</source>
+      </segment>
+    </unit>
+    <unit id="train.conditions.title">
+      <segment>
+        <source>Conditions</source>
+      </segment>
+    </unit>
+    <unit id="train.context.area">
+      <segment>
+        <source>Change training area</source>
       </segment>
     </unit>
     <unit id="train.context.chooseAction">
@@ -10100,19 +10215,24 @@
         <source> Training area </source>
       </segment>
     </unit>
+    <unit id="train.context.group">
+      <segment>
+        <source>Training area and weather</source>
+      </segment>
+    </unit>
     <unit id="train.context.intro">
       <segment>
         <source> Use your location for nearby ideas, or search for a community to plan a session somewhere else. </source>
       </segment>
     </unit>
-    <unit id="train.context.open">
-      <segment>
-        <source>Change training area or view weather</source>
-      </segment>
-    </unit>
     <unit id="train.context.title">
       <segment>
         <source>Choose your training area</source>
+      </segment>
+    </unit>
+    <unit id="train.context.weather">
+      <segment>
+        <source>Show weather forecast</source>
       </segment>
     </unit>
     <unit id="train.context.weatherAction">
@@ -10125,24 +10245,29 @@
         <source>See the next few hours before you head out.</source>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.eyebrow">
+    <unit id="train.context.weatherUnavailable">
       <segment>
-        <source>Happening soon</source>
+        <source>Weather unavailable</source>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.summary">
+    <unit id="train.event.goingCount">
       <segment>
-        <source> The soonest upcoming sessions within reach. </source>
+        <source><ph id="0" equiv="count" disp="going"/> going</source>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.title">
+    <unit id="train.teaser.body">
       <segment>
-        <source>Events near your area</source>
+        <source> Track where and how often you train, keep notes on what you practised, and see your consistency grow. </source>
       </segment>
     </unit>
-    <unit id="train.summary">
+    <unit id="train.teaser.signIn">
       <segment>
-        <source> Nearby Spots and events from the communities you follow. </source>
+        <source>Sign in to start</source>
+      </segment>
+    </unit>
+    <unit id="train.teaser.title">
+      <segment>
+        <source>Keep a training diary</source>
       </segment>
     </unit>
     <unit id="train.title">
@@ -10163,11 +10288,6 @@
     <unit id="trainingLog.deleteConfirm">
       <segment>
         <source>Delete this log entry?</source>
-      </segment>
-    </unit>
-    <unit id="trainingLog.emptyBody">
-      <segment>
-        <source>Record what happened. It stays private unless you choose otherwise.</source>
       </segment>
     </unit>
     <unit id="trainingLog.emptyTitle">
@@ -10400,24 +10520,9 @@
         <source>Training log</source>
       </segment>
     </unit>
-    <unit id="trainingLog.visibility.followers">
-      <segment>
-        <source>Followers</source>
-      </segment>
-    </unit>
-    <unit id="trainingLog.visibility.friends">
-      <segment>
-        <source>Friends</source>
-      </segment>
-    </unit>
     <unit id="trainingLog.visibility.private">
       <segment>
         <source>Private</source>
-      </segment>
-    </unit>
-    <unit id="trainingLog.visibility.public">
-      <segment>
-        <source>Public</source>
       </segment>
     </unit>
     <unit id="1218334388194408974">
@@ -16095,6 +16200,26 @@
     <unit id="locationAccess.persistent">
       <segment>
         <source>Use while using the app</source>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.amount">
+      <segment>
+        <source>Amount</source>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.chance">
+      <segment>
+        <source>Chance</source>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.dry">
+      <segment>
+        <source>No precipitation expected</source>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.peak">
+      <segment>
+        <source>Up to <ph id="0" equiv="amount" disp="amount"/> per hour, heaviest around <ph id="1" equiv="time" disp="time"/></source>
       </segment>
     </unit>
     <unit id="profile.actions.acceptFollowRequest">

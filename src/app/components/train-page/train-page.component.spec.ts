@@ -18,6 +18,9 @@ import {
 } from "../../services/search.service";
 import { WeatherService } from "../../weather/weather.service";
 import { TrainPageComponent } from "./train-page.component";
+import { MyEventsService } from "../../services/my-events.service";
+import { PlannedSessionsService } from "../../services/planned-sessions.service";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
 
 const eventResult: EventDiscoverySearchResult = {
@@ -107,8 +110,9 @@ describe("TrainPageComponent", () => {
       12,
       "none",
     );
-    expect(series.getSeriesByIds).toHaveBeenCalledWith(["parkour-earth"]);
-    expect(component.seriesById()).toEqual(seriesById);
+    expect(component.comingUp()).toEqual([
+      expect.objectContaining({ id: "event-1", title: "Community Jam", community: null }),
+    ]);
     await vi.waitFor(() => expect(component.nearbyLocality.value()).toBe("Zürich"));
   });
 
@@ -192,9 +196,12 @@ describe("TrainPageComponent", () => {
     await vi.waitFor(() => expect(component.loading()).toBe(false));
 
     expect(search.searchEventDiscovery).toHaveBeenCalledTimes(2);
-    expect(component.communityEventOptions()).toEqual([
+    expect(component.communityEvents()).toEqual([
       expect.objectContaining({ id: "event-remote" }),
     ]);
+    expect(component.comingUp()).toContainEqual(
+      expect.objectContaining({ id: "event-remote", community: "Switzerland" }),
+    );
   });
 
   it("counts private check-ins independently of optional log entries", async () => {
@@ -272,6 +279,96 @@ describe("TrainPageComponent", () => {
     expect(component.trainingHistoryFailed()).toBe(true);
     expect(component.trainingSessionsLoaded()).toBe(false);
   });
+
+  it("shows Spots before the forecast arrives, then prefers dry Spots when rain is likely", async () => {
+    let resolveWeather: (value: unknown) => void = () => undefined;
+    const weather = {
+      getCurrentAndNearFutureForTileAt: vi.fn(
+        () => new Promise((resolve) => { resolveWeather = resolve; }),
+      ),
+    };
+    const search = {
+      searchEventDiscovery: vi.fn().mockResolvedValue({ ...eventResult, items: [] }),
+      searchTopSpotPreviewsNearLocation: vi.fn().mockResolvedValue([
+        { id: "spot-1", name: "Riverside", locality: "Zurich", imageSrc: "", isIconic: false },
+      ]),
+    };
+    const component = createComponent({
+      geolocation: nearZurich(),
+      locationAccess: { enabled: signal(true), startWatchingIfEnabled: vi.fn() },
+      search,
+      series: { getSeriesByIds: vi.fn() },
+      weather,
+    });
+
+    await vi.waitFor(() => expect(component.bestSpots()).toHaveLength(1));
+    expect(component.weatherLoading()).toBe(true);
+    expect(search.searchTopSpotPreviewsNearLocation).toHaveBeenLastCalledWith(
+      expect.anything(), 25, 12, "none",
+    );
+
+    resolveWeather({
+      current: { time: "2026-08-20T12:00:00Z", condition: "rain", precipitationMm: 2 },
+      forecast: [],
+      insights: { precipitationRisk: "high", surfaceDrying: { status: "wet" } },
+    });
+    await vi.waitFor(() =>
+      expect(search.searchTopSpotPreviewsNearLocation).toHaveBeenLastCalledWith(
+        expect.anything(), 25, 12, "dry",
+      ),
+    );
+    expect(component.weatherFilterActive()).toBe(true);
+    expect(component.weatherSummary()?.outlook).toBe("Rain now");
+  });
+
+  it("keeps Spots available when events fail to load", async () => {
+    const component = createComponent({
+      geolocation: nearZurich(),
+      locationAccess: { enabled: signal(true), startWatchingIfEnabled: vi.fn() },
+      search: {
+        searchEventDiscovery: vi.fn().mockRejectedValue(new Error("Search offline")),
+        searchTopSpotPreviewsNearLocation: vi.fn().mockResolvedValue([
+          { id: "spot-1", name: "Riverside", locality: "Zurich", imageSrc: "", isIconic: false },
+        ]),
+      },
+      series: { getSeriesByIds: vi.fn() },
+    });
+
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    expect(component.eventsFailed()).toBe(true);
+    expect(component.bestSpots()).toHaveLength(1);
+  });
+
+  it("shows a nearby live event in the green card and leaves far-away live events out", async () => {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const live = (id: string, location: [number, number]) => ({
+      ...eventResult.items[0],
+      id,
+      slug: id,
+      name: id,
+      location,
+      startSeconds: nowSeconds - 3_600,
+      endSeconds: nowSeconds + 3 * 3_600,
+    });
+    const component = createComponent({
+      geolocation: nearZurich(),
+      locationAccess: { enabled: signal(true), startWatchingIfEnabled: vi.fn() },
+      search: {
+        searchEventDiscovery: vi.fn().mockResolvedValue({
+          ...eventResult,
+          items: [live("zurich-jam", [47.38, 8.54]), live("tokyo-jam", [35.68, 139.69])],
+        }),
+        searchTopSpotPreviewsNearLocation: vi.fn().mockResolvedValue([]),
+      },
+      series: { getSeriesByIds: vi.fn() },
+    });
+
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    expect(component.momentViews()).toEqual([
+      expect.objectContaining({ key: "event:zurich-jam", eyebrow: "Live now", link: ["/events", "zurich-jam"] }),
+    ]);
+    expect(component.comingUp().map((item) => item.id)).not.toContain("zurich-jam");
+  });
 });
 
 function createComponent({
@@ -284,6 +381,20 @@ function createComponent({
   locationAccess,
   search,
   series,
+  weather = {
+    getCurrentAndNearFutureForTileAt: vi.fn().mockResolvedValue({
+      current: null,
+      insights: {
+        precipitationRisk: "none",
+        surfaceDrying: { status: "likely_dry" },
+      },
+    }),
+  },
+  myEvents = {
+    goingEventIds: signal<string[]>([]),
+    savedEventIds: signal<string[]>([]),
+    relationshipFor: () => null,
+  },
 }: {
   authUser?: { uid: string } | null;
   follows?: { listMine: ReturnType<typeof vi.fn> };
@@ -305,6 +416,12 @@ function createComponent({
     searchTopSpotPreviewsNearLocation: ReturnType<typeof vi.fn>;
   };
   series: { getSeriesByIds: ReturnType<typeof vi.fn> };
+  weather?: { getCurrentAndNearFutureForTileAt: ReturnType<typeof vi.fn> };
+  myEvents?: {
+    goingEventIds: ReturnType<typeof signal<string[]>>;
+    savedEventIds: ReturnType<typeof signal<string[]>>;
+    relationshipFor: (id: string) => "going" | "saved" | null;
+  };
 }): TrainPageComponent {
   const auth = {
     authState$: new BehaviorSubject(authUser),
@@ -325,22 +442,21 @@ function createComponent({
       { provide: SearchService, useValue: search },
       { provide: SeriesService, useValue: series },
       { provide: MatDialog, useValue: { open: vi.fn() } },
-      {
-        provide: WeatherService,
-        useValue: {
-          getCurrentAndNearFutureForTileAt: vi
-            .fn()
-            .mockResolvedValue({
-              current: null,
-              insights: {
-                precipitationRisk: "none",
-                surfaceDrying: { status: "likely_dry" },
-              },
-            }),
-        },
-      },
+      { provide: MyEventsService, useValue: myEvents },
+      { provide: PlannedSessionsService, useValue: { list: vi.fn().mockResolvedValue([]) } },
+      { provide: AccountPreferencesService, useValue: { temperatureUnit: () => "celsius" } },
+      { provide: WeatherService, useValue: weather },
     ],
   });
 
   return TestBed.runInInjectionContext(() => new TrainPageComponent());
+}
+
+function nearZurich() {
+  return {
+    currentLocation: signal({ location: { lat: 47.3769, lng: 8.5417 }, accuracy: 20 }),
+    error: signal<unknown | null>(null),
+    checkPermissions: vi.fn(),
+    startWatching: vi.fn(),
+  };
 }

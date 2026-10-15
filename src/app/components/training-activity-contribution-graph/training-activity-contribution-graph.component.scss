@@ -9,6 +9,12 @@
   background: var(--mat-sys-surface-container-low);
 }
 
+.contribution-graph--bare {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 .contribution-graph__header,
 .contribution-graph__legend,
 .contribution-graph__legend > span {
@@ -49,6 +55,14 @@ p { margin: 1px 0 0; color: var(--mat-sys-on-surface-variant); font: var(--mat-s
 .cell.recovery-pause:focus-visible,
 .cell.recovery-pause.is-selected { outline-color: var(--mat-sys-tertiary); }
 .cell.is-today { border-color: var(--mat-sys-primary); }
+
+// Single-week row: one column per day, sized to fill the container.
+.week-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.week-strip__day { display: grid; justify-items: center; gap: 4px; }
+.week-strip__label { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-label-small); }
+.week-strip .cell { width: 100%; height: auto; aspect-ratio: 1; max-width: 32px; border-radius: 6px; }
+.week-strip .cell.day-active { cursor: default; }
+.week-strip .cell.is-future { border: 1px dashed var(--mat-sys-outline-variant); background: transparent; }
 
 @media (max-width: 599.98px) {
   .contribution-graph { padding: 14px 16px; }

@@ -416,3 +416,17 @@ a.featured-participant-name {
   display: block;
   margin-bottom: 1rem;
 }
+
+// Data-source attribution belongs at the end of the page, not in the header.
+.event-attribution {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35em;
+  margin-block: 32px 8px;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: inherit;
+  }
+}

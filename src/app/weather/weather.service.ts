@@ -8,6 +8,20 @@ import type {
   WeatherTile,
 } from "./weather.models";
 import { getWeatherTile } from "./weather-map-tile";
+import { environment } from "../../environments/environment.default";
+
+/**
+ * Visual tests run without the weather function. A fixture is honoured only in
+ * the non-production CI build, so it can never replace real forecasts.
+ */
+function readScreenshotWeatherFixture(): WeatherResponse | undefined {
+  if (environment.name !== "CI" || environment.production) return undefined;
+  return (
+    globalThis as typeof globalThis & {
+      __PKSPOT_SCREENSHOT_WEATHER__?: WeatherResponse;
+    }
+  ).__PKSPOT_SCREENSHOT_WEATHER__;
+}
 
 @Injectable({
   providedIn: "root",
@@ -114,6 +128,9 @@ export class WeatherService {
     key: string,
     requestData: CurrentWeatherRequest | EventWeatherRequest,
   ): Promise<WeatherResponse> {
+    const fixture = readScreenshotWeatherFixture();
+    if (fixture) return Promise.resolve(fixture);
+
     const cached = this.responseCache.get(key);
     if (cached) {
       if (Date.parse(cached.expiresAt) > Date.now()) {

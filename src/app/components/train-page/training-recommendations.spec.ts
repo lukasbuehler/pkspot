@@ -49,7 +49,7 @@ describe("training recommendations", () => {
 
     const ranked = rankTrainingSpots(spots, [0, 0], 25, 4);
 
-    expect(ranked.map((item) => item.id)).toEqual([
+    expect(ranked.map((item) => item.spot.id)).toEqual([
       "excellent-far",
       "good-near",
       "similar-near",

@@ -11,6 +11,8 @@ import {
   filterTrainingEntriesByMonth,
   formatDuration,
   summarizeTrainingMonth,
+  summarizeTrainingStreaks,
+  type TrainingActivityDay,
 } from "./training-log-activity";
 
 function checkInSession(overrides: Partial<SessionRecordDocument> = {}): SessionRecordDocument {
@@ -243,5 +245,60 @@ describe("training log activity helpers", () => {
       sessionCount: 3,
       activityDays: 2,
     });
+  });
+});
+
+describe("training streaks", () => {
+  const day = (key: string): TrainingActivityDay => ({
+    key, entryIds: [], sessionCount: 1, durationMinutes: 0, spotCount: 1,
+  });
+  // Thursday, 20 August 2026. Weeks start on Monday.
+  const now = new Date(2026, 7, 20, 15);
+
+  it("counts consecutive weeks and keeps an empty current week from breaking it", () => {
+    const streaks = summarizeTrainingStreaks(
+      [day("2026-08-12"), day("2026-08-04"), day("2026-07-28"), day("2026-07-14")],
+      [],
+      1,
+      now,
+    );
+    expect(streaks.currentWeeks).toBe(3);
+  });
+
+  it("includes the current week once it has a session", () => {
+    expect(
+      summarizeTrainingStreaks([day("2026-08-18"), day("2026-08-12")], [], 1, now)
+        .currentWeeks,
+    ).toBe(2);
+  });
+
+  it("does not break the streak for a week covered by a recovery pause", () => {
+    const pause: RecoveryPauseDocument = {
+      ...recoveryPause,
+      started_on: "2026-08-03",
+      ended_on: "2026-08-09",
+    };
+    expect(
+      summarizeTrainingStreaks([day("2026-08-12"), day("2026-07-29")], [pause], 1, now)
+        .currentWeeks,
+    ).toBe(2);
+    expect(
+      summarizeTrainingStreaks([day("2026-08-12"), day("2026-07-29")], [], 1, now)
+        .currentWeeks,
+    ).toBe(1);
+  });
+
+  it("finds the longest run of consecutive training days", () => {
+    const streaks = summarizeTrainingStreaks(
+      [day("2026-07-30"), day("2026-07-31"), day("2026-08-01"), day("2026-08-05"), day("2026-08-06")],
+      [],
+      1,
+      now,
+    );
+    expect(streaks.longestDays).toBe(3);
+  });
+
+  it("returns zero without training history", () => {
+    expect(summarizeTrainingStreaks([], [], 1, now)).toEqual({ currentWeeks: 0, longestDays: 0 });
   });
 });

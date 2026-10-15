@@ -69,11 +69,17 @@
           </div>
         </div>
         <div class="d-flex align-items-center justify-content-between gap-2">
-        @if(displayLocation() || countryFlagEmoji()) {
+        @if(displayLocation() || countryFlagEmoji() || distanceLabel()) {
         <span
           class="mat-title-small d-flex align-items-center gap-1"
           style="flex-shrink: 1; min-width: 0"
         >
+          @if(distanceLabel(); as distance) {
+          <span class="spot-distance flex-shrink-0">{{ distance }}</span>
+          @if(displayLocation() || countryFlagEmoji()) {
+          <span class="flex-shrink-0" aria-hidden="true">·</span>
+          }
+          }
           @if(displayLocation()) {
           <span class="text-truncate">{{ displayLocation() }}</span>
           } @if(countryFlagEmoji()) {

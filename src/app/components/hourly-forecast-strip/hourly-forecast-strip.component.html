@@ -1,0 +1,49 @@
+<div class="hourly-strip" role="list">
+  @for (hour of columns(); track hour.key) {
+    <div
+      class="weather-hour"
+      role="listitem"
+      [class.highlighted]="hour.highlighted"
+      [attr.data-highlighted]="hour.highlighted ?? false"
+    >
+      @if (showBars()) {
+        <div class="precipitation-bar" aria-hidden="true">
+          @if (hour.chancePercent > 0) {
+            <span class="precipitation-bar__chance" [style.height.%]="hour.chancePercent"></span>
+          }
+          @if (hour.amountPercent > 0) {
+            <span class="precipitation-bar__amount" [style.height.%]="hour.amountPercent"></span>
+          }
+        </div>
+      }
+      <div class="weather-hour__card">
+        <time class="mat-label-medium">{{ hour.time }}</time>
+        <mat-icon
+          class="forecast-icon"
+          [class.is-wet]="hour.iconTone === 'wet'"
+          [class.has-warning]="hour.iconTone === 'warning'"
+          [class.is-night]="hour.iconTone === 'night'"
+          [attr.aria-label]="hour.condition"
+          >{{ hour.icon }}</mat-icon
+        >
+        <strong class="temperature">{{ hour.temperature ?? "–" }}</strong>
+        <span class="rain-detail mat-label-small">
+          <mat-icon aria-hidden="true">water_drop</mat-icon>
+          {{ hour.chancePercent }}%
+        </span>
+        @if (showAmounts()) {
+          <span class="rain-amount mat-label-small">{{ hour.amountLabel ?? "" }}</span>
+        }
+      </div>
+    </div>
+  }
+</div>
+<p class="hourly-summary">
+  <span class="mat-body-small">{{ summary() }}</span>
+  @if (showBars()) {
+    <span class="hourly-summary__legend mat-label-small" aria-hidden="true">
+      <span><i class="swatch swatch--amount"></i><span i18n="@@precipitationChart.amount">Amount</span></span>
+      <span><i class="swatch swatch--chance"></i><span i18n="@@precipitationChart.chance">Chance</span></span>
+    </span>
+  }
+</p>

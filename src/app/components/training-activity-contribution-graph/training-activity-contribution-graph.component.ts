@@ -13,6 +13,7 @@ import {
 import type { LocaleCode } from "../../../db/models/Interfaces";
 import {
   buildTrainingContributionWeeks,
+  localeFirstWeekday,
   type TrainingActivityDay,
   type TrainingContributionDay,
   type TrainingContributionSelection,
@@ -34,6 +35,13 @@ export class TrainingActivityContributionGraphComponent {
   readonly recoveryPauses = input<readonly RecoveryPauseDocument[]>([]);
   readonly selected = input<TrainingContributionSelection | null>(null);
   readonly interactive = input(true);
+  /**
+   * Limits the graph to the most recent weeks; the full history remains the
+   * default. A single week renders as one row of days (used by the Train page
+   * rail together with `showHeader` off).
+   */
+  readonly weeks = input<number | null>(null);
+  readonly showHeader = input(true);
   readonly selectionChange = output<TrainingContributionSelection | null>();
   readonly weekdays = computed(() => {
     const formatter = new Intl.DateTimeFormat(this.locale, { weekday: "narrow" });
@@ -41,12 +49,19 @@ export class TrainingActivityContributionGraphComponent {
       formatter.format(new Date(2024, 0, 7 + this.firstWeekday + index)),
     );
   });
-  readonly weeks = computed(() =>
-    buildTrainingContributionWeeks(
+  readonly visibleWeeks = computed(() => {
+    const weeks = buildTrainingContributionWeeks(
       this.days(),
       this.recoveryPauses(),
       this.firstWeekday,
-    ),
+    );
+    const shown = this.weeks();
+    return shown && shown > 0 ? weeks.slice(-shown) : weeks;
+  });
+
+  readonly singleWeek = computed(() => this.weeks() === 1);
+  readonly currentWeekDays = computed(
+    () => this.visibleWeeks().at(-1)?.days ?? [],
   );
 
   constructor() {
@@ -118,12 +133,4 @@ function recoveryReasonLabel(reason: RecoveryPauseDocument["reason"]): string {
 
 function recoveryPauseLabel(): string {
   return $localize`:@@trainingContributionGraph.recovery:Recovery pause`;
-}
-
-function localeFirstWeekday(locale: string): 0 | 1 {
-  const localeWithWeekInfo = new Intl.Locale(locale) as Intl.Locale & {
-    getWeekInfo?: () => { firstDay: number };
-  };
-  const firstDay = localeWithWeekInfo.getWeekInfo?.().firstDay;
-  return firstDay === 7 || firstDay === 0 ? 0 : 1;
 }

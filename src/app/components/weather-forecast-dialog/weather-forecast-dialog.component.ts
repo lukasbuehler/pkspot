@@ -38,6 +38,11 @@ import { AccountPreferencesService } from "../../services/account-preferences.se
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { formatTemperature } from "../../weather/weather-temperature";
 import { getWeatherAlertDisplay } from "../../weather/weather-alert-display";
+import { formatPrecipitationMm } from "../../weather/weather-precipitation";
+import {
+  HourlyForecastStripComponent,
+  type HourlyForecastColumn,
+} from "../hourly-forecast-strip/hourly-forecast-strip.component";
 
 export interface WeatherForecastDialogData {
   spotName: string;
@@ -45,16 +50,6 @@ export interface WeatherForecastDialogData {
   countryCode?: string;
   covered?: boolean;
   context?: "spot" | "map-region";
-}
-
-interface WeatherHourView {
-  time: string;
-  icon: string;
-  condition: string;
-  temperature?: string;
-  rainProbability?: number;
-  precipitationMm?: number;
-  iconTone: WeatherForecastIconTone;
 }
 
 interface WeatherDayView {
@@ -66,6 +61,7 @@ interface WeatherDayView {
   minTemperature?: string;
   rainProbability?: number;
   precipitationMm?: number;
+  precipitationLabel?: string;
   iconTone: WeatherForecastIconTone;
 }
 
@@ -91,6 +87,7 @@ interface WeatherAlertView extends WeatherAlert {
     MatDialogTitle,
     MatIcon,
     MatIconButton,
+    HourlyForecastStripComponent,
   ],
   templateUrl: "./weather-forecast-dialog.component.html",
   styleUrl: "./weather-forecast-dialog.component.scss",
@@ -162,15 +159,17 @@ export class WeatherForecastDialogComponent {
     $localize`:@@weather.alert.source:Source:`;
   protected readonly hours = computed(() =>
     (this.response.forecast ?? []).map(
-      (point): WeatherHourView => {
+      (point): HourlyForecastColumn => {
         const context = { ...point, condition: this.getCondition(point) };
         return {
+          key: point.time,
           time: this.formatTime(point.time),
           icon: getWeatherForecastStateIcon(context),
           condition: getWeatherForecastState(context).label,
           temperature: this.displayTemperature(point.temperatureC),
-          rainProbability: point.precipitationProbabilityPercent,
           precipitationMm: point.precipitationMm,
+          precipitationProbabilityPercent:
+            point.precipitationProbabilityPercent,
           iconTone: getWeatherForecastIconTone(context),
         };
       },
@@ -219,6 +218,10 @@ export class WeatherForecastDialogComponent {
       minTemperature: this.displayTemperature(point.minTemperatureC),
       rainProbability: point.precipitationProbabilityPercent,
       precipitationMm: point.precipitationMm,
+      precipitationLabel: formatPrecipitationMm(
+        point.precipitationMm,
+        this.locale,
+      ),
       iconTone: getDailyWeatherForecastIconTone({
         ...context,
       }),

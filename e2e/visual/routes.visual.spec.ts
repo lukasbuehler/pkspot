@@ -14,6 +14,7 @@ interface RouteVisualCase {
   openFabMenu?: boolean;
   openNavigationFab?: boolean;
   openRecoveryPauseDialog?: boolean;
+  openTrainWeatherDialog?: boolean;
   openInvalidEventsDialog?: boolean;
   openProfilePrivacySelect?: boolean;
   invalidEventFixture?: boolean;
@@ -26,6 +27,8 @@ interface RouteVisualCase {
   liveEventFixture?: boolean;
   myEventsDialogFixture?: boolean;
   trainFixture?: boolean;
+  /** Moves the first nearby fixture event so it is live at the fixed time. */
+  trainLiveEventFixture?: boolean;
   assertTrainPage?: boolean;
   assertFabAboveBottomNavigation?: string;
   trainingLogFixture?: boolean;
@@ -115,7 +118,37 @@ const routeVisualCases: RouteVisualCase[] = [
     trainFixture: true,
     trainingLogFixture: true,
     fixedTime: "2026-08-20T12:00:00.000Z",
-    scrollToSelector: ".community-event-preview-grid",
+    scrollToSelector: ".coming-up",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "train-now",
+    path: "/train",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainFixture: true,
+    trainLiveEventFixture: true,
+    trainingLogFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "train-weather-dialog",
+    path: "/train",
+    signedIn: true,
+    trainFixture: true,
+    trainingLogFixture: true,
+    openTrainWeatherDialog: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "train-signed-out",
+    path: "/train",
+    viewport: mobileViewport,
+    trainFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    fullPage: true,
     maxDiffPixels: 2_000,
   },
   {
@@ -805,42 +838,43 @@ test.describe("Route visual regression @visual", () => {
 
       if (route.assertTrainPage) {
         const contextButton = page.locator("button.training-context-button");
-        const trainingHistory = page.locator("section.training-history");
+        const weatherButton = page.locator("button.training-weather-button");
         await expect(contextButton).toHaveClass(/mat-mdc-button-base/);
         await expect(contextButton.locator(".training-context-button__area")).toContainText("(Zürich)");
+        await expect(weatherButton).toHaveClass(/mat-mdc-button-base/);
+        await expect(weatherButton).toContainText("Trocken bis");
         await expect(page.locator(".train-nav")).toHaveCount(0);
-        await expect(trainingHistory).toBeVisible();
-        await expect(
-          trainingHistory.locator("app-training-activity-contribution-graph"),
-        ).toHaveCount(0);
-        await expect(
-          trainingHistory.locator("app-training-activity-contribution-graph button.cell"),
-        ).toHaveCount(0);
-        await expect(trainingHistory.locator(".training-history__metrics > div")).toHaveCount(4);
-        for (const metric of await trainingHistory.locator(".training-history__metrics > div").all()) {
-          await expect(metric).toHaveCSS("border-inline-start-width", "0px");
-          await expect(metric).toHaveCSS("border-inline-end-width", "0px");
-        }
-        await expect(trainingHistory.locator("a[href$='/train/log']")).toHaveClass(
-          /mat-mdc-button-base/,
-        );
-        const [headerBounds, contextBounds] = await Promise.all([
-          page.locator(".train-header > div").boundingBox(),
-          contextButton.boundingBox(),
-        ]);
-        expect(headerBounds).not.toBeNull();
-        expect(contextBounds).not.toBeNull();
-        expect(contextBounds!.y).toBeGreaterThanOrEqual(headerBounds!.y + 4);
-        await expect(page.locator(".log-prompt")).toHaveCount(0);
-        await expect(page.locator("app-event-discovery-card")).toHaveCount(3);
-        expect(
-          await page.locator("app-event-discovery-card").evaluateAll((cards) =>
-            cards.every((card) => !card.classList.contains("compact")),
-          ),
-        ).toBe(true);
-        await expect(page.locator(".section-heading > a[href$='/events']")).toHaveCount(0);
-        await expect(page.locator(".event-section-actions a[href$='/events']")).toHaveCount(2);
+        // Only events you can act on get the green card; the fixture has none.
+        await expect(page.locator(".moment-card")).toHaveCount(0);
         await expect(page.locator("app-spot-preview-card")).toHaveCount(4);
+        await expect(page.locator(".spot-distance").first()).toContainText("km");
+        await expect(page.locator(".coming-up a.mat-mdc-list-item")).toHaveCount(3);
+        await expect(page.locator(".coming-up__community")).toContainText("Communities: Switzerland");
+        await expect(page.locator("app-event-discovery-card")).toHaveCount(0);
+        await expect(page.locator(".conditions-card app-precipitation-chart svg")).toBeVisible();
+        await expect(
+          page.locator(".rhythm-card app-training-activity-contribution-graph .week-strip__day"),
+        ).toHaveCount(7);
+        await expect(
+          page.locator(".rhythm-card app-training-activity-contribution-graph button.cell"),
+        ).toHaveCount(0);
+        await expect(page.locator(".looking-back app-training-activity-contribution-graph")).toBeVisible();
+        await expect(page.locator(".looking-back a[href$='/train/log']")).toHaveClass(/mat-mdc-button-base/);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth))
+          .toBeLessThanOrEqual((route.viewport ?? desktopViewport).width);
+      }
+
+      if (route.name === "train-now") {
+        const moment = page.locator(".moment-card");
+        await expect(moment).toHaveCount(1);
+        await expect(moment).toContainText("Jetzt live");
+        await expect(moment).toContainText("Evening lines at the river");
+        await expect(page.locator(".coming-up")).not.toContainText("Evening lines at the river");
+      }
+
+      if (route.name === "train-signed-out") {
+        await expect(page.locator(".looking-back")).toHaveCount(0);
+        await expect(page.locator(".train-rail a[href$='/sign-in']")).toBeVisible();
       }
 
       if (route.name === "events-mobile-list") {
@@ -919,7 +953,7 @@ test.describe("Route visual regression @visual", () => {
         await page.locator('app-check-in-log-prompt button').click();
         await expect(page.locator('app-check-in-log-prompt .prompt')).toHaveCount(0);
         await page.reload();
-        await expect(page.locator('.training-history')).toBeVisible();
+        await expect(page.locator('.looking-back')).toBeVisible();
         await expect(page.locator('app-check-in-log-prompt .prompt')).toHaveCount(0);
       }
 
@@ -1312,6 +1346,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       publicProfile,
       signedIn,
       trainFixture,
+      trainLiveEventFixture,
       trainingLogFixture,
       unloggedCheckIn,
       verifiedAdult,
@@ -1367,8 +1402,8 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               hasVenueSpot: true,
               venueSpotCount: 1,
               location: [47.3773, 8.539],
-              startSeconds: Date.UTC(2026, 7, 20, 16) / 1_000,
-              endSeconds: Date.UTC(2026, 7, 20, 19) / 1_000,
+              startSeconds: Date.UTC(2026, 7, 20, trainLiveEventFixture ? 11 : 16) / 1_000,
+              endSeconds: Date.UTC(2026, 7, 20, trainLiveEventFixture ? 15 : 19) / 1_000,
               timeZone: "Europe/Zurich",
               lifecycleStatus: "planned",
               eventLinks: [],
@@ -1497,6 +1532,42 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               canonicalPath: "/map/communities/switzerland",
             },
           ],
+        };
+        // Dry now, rain from 17:00 Zurich time, so the precipitation chart has shape.
+        const rainMm = [0, 0, 0, 0.4, 1.8, 2.6, 1.2, 0.3, 0, 0, 0, 0];
+        (
+          window as typeof window & { __PKSPOT_SCREENSHOT_WEATHER__?: unknown }
+        ).__PKSPOT_SCREENSHOT_WEATHER__ = {
+          provider: "open-meteo",
+          mode: "current-and-near-future",
+          location: { lat: 47.3769, lng: 8.5417 },
+          countryCode: "CH",
+          generatedAt: "2026-08-20T12:00:00Z",
+          expiresAt: "2099-01-01T00:00:00Z",
+          timeZone: "Europe/Zurich",
+          current: {
+            time: "2026-08-20T12:00:00Z",
+            temperatureC: 21,
+            condition: "partly-cloudy",
+            precipitationMm: 0,
+            precipitationProbabilityPercent: 10,
+            isDay: true,
+          },
+          forecast: rainMm.map((precipitationMm, index) => ({
+            time: new Date(Date.UTC(2026, 7, 20, 12 + index)).toISOString(),
+            temperatureC: 21 - Math.floor(index / 3),
+            condition: precipitationMm >= 1 ? "rain" : precipitationMm > 0 ? "drizzle" : "partly-cloudy",
+            precipitationMm,
+            precipitationProbabilityPercent: precipitationMm > 0 ? 70 : 10,
+            isDay: index < 8,
+          })),
+          insights: {
+            summary: "Rain expected later",
+            rainStartsAt: "2026-08-20T15:00:00Z",
+            precipitationRisk: "medium",
+            sunExposure: "low",
+            surfaceDrying: { status: "likely_dry", confidence: "low", factors: [] },
+          },
         };
         (
           window as typeof window & {
@@ -2145,6 +2216,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       publicProfile: route.publicProfile === true,
       signedIn: route.signedIn === true,
       trainFixture: route.trainFixture === true,
+      trainLiveEventFixture: route.trainLiveEventFixture === true,
       trainingLogFixture: route.trainingLogFixture === true,
       unloggedCheckIn: route.unloggedCheckIn === true,
       verifiedAdult: route.verifiedAdult === true,
@@ -2223,6 +2295,13 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await actions.evaluate((element) => { element.scrollTop = 0; });
   }
 
+  if (route.openTrainWeatherDialog) {
+    await page.locator("button.training-weather-button").click();
+    const strip = page.locator("app-weather-forecast-dialog app-hourly-forecast-strip");
+    await expect(strip).toBeVisible();
+    await expect(strip.locator(".weather-hour")).toHaveCount(12);
+    await expect(strip.locator(".precipitation-bar__amount")).toHaveCount(5);
+  }
   if (route.openRecoveryPauseDialog) {
     await page.locator("#trainingLogFabMenu .fab-menu__launcher").click();
     await page

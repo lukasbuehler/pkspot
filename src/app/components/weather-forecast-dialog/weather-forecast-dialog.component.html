@@ -216,33 +216,7 @@
     <h3 class="mat-title-medium" i18n="@@weather.dialog.next_hours">
       Next 12 hours
     </h3>
-    <div class="hourly-strip">
-      @for (hour of hours(); track hour.time) {
-        <div class="weather-hour">
-          <time class="mat-label-medium">{{ hour.time }}</time>
-          <mat-icon
-            class="forecast-icon"
-            [class.is-wet]="hour.iconTone === 'wet'"
-            [class.has-warning]="hour.iconTone === 'warning'"
-            [class.is-night]="hour.iconTone === 'night'"
-            [attr.aria-label]="hour.condition"
-            >{{ hour.icon }}</mat-icon
-          >
-          @if (hour.temperature !== undefined) {
-            <strong>{{ hour.temperature }}</strong>
-          }
-          @if (
-            hour.rainProbability !== undefined ||
-            (hour.precipitationMm ?? 0) > 0
-          ) {
-            <span class="rain-detail mat-label-small">
-              <mat-icon aria-hidden="true">water_drop</mat-icon>
-              {{ hour.rainProbability ?? 0 }}%
-            </span>
-          }
-        </div>
-      }
-    </div>
+    <app-hourly-forecast-strip [hours]="hours()" />
   </section>
 
   @if (days().length > 0) {
@@ -285,6 +259,9 @@
                 <mat-icon aria-hidden="true">water_drop</mat-icon>
                 {{ day.rainProbability ?? 0 }}%
               </span>
+            }
+            @if (day.precipitationLabel) {
+              <span class="rain-amount mat-label-small">{{ day.precipitationLabel }}</span>
             }
           </div>
         }

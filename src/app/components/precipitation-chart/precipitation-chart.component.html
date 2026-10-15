@@ -1,0 +1,59 @@
+@if (bars().length > 0) {
+  <figure class="precipitation-chart">
+    @if (showBars()) {
+    <svg
+      class="precipitation-chart__plot"
+      [attr.viewBox]="viewBox()"
+      preserveAspectRatio="none"
+      role="img"
+      [attr.aria-label]="summary()"
+    >
+      @for (bar of bars(); track bar.key) {
+        <g>
+          <title>{{ bar.label }}</title>
+          @if (bar.chanceHeight > 0) {
+            <rect
+              class="precipitation-chart__chance"
+              [attr.x]="bar.x"
+              [attr.y]="bar.chanceY"
+              [attr.width]="bar.width"
+              [attr.height]="bar.chanceHeight"
+            />
+          }
+          @if (bar.amountHeight > 0) {
+            <rect
+              class="precipitation-chart__amount"
+              [attr.x]="bar.x"
+              [attr.y]="bar.amountY"
+              [attr.width]="bar.width"
+              [attr.height]="bar.amountHeight"
+            />
+          }
+        </g>
+      }
+      <line
+        class="precipitation-chart__baseline"
+        x1="0"
+        [attr.y1]="chartHeight - 0.5"
+        x2="100%"
+        [attr.y2]="chartHeight - 0.5"
+        vector-effect="non-scaling-stroke"
+      />
+    </svg>
+    <div class="precipitation-chart__axis mat-label-small" aria-hidden="true">
+      @for (tick of axisLabels(); track tick.key) {
+        <span>{{ tick.label }}</span>
+      }
+    </div>
+    }
+    <figcaption class="precipitation-chart__caption">
+      <span class="mat-body-small">{{ summary() }}</span>
+      @if (showBars()) {
+      <span class="precipitation-chart__legend mat-label-small" aria-hidden="true">
+        <span><i class="swatch swatch--amount"></i><span i18n="@@precipitationChart.amount">Amount</span></span>
+        <span><i class="swatch swatch--chance"></i><span i18n="@@precipitationChart.chance">Chance</span></span>
+      </span>
+      }
+    </figcaption>
+  </figure>
+}

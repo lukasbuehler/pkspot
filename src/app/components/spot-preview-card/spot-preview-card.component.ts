@@ -14,6 +14,7 @@ import {
   ChangeDetectionStrategy,
   output
 } from "@angular/core";
+import { formatDistanceKm } from "../../shared/distance-format";
 import { Router } from "@angular/router";
 import { MapsApiService } from "../../services/maps-api.service";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -127,6 +128,11 @@ export class SpotPreviewCardComponent
   readonly infoOnly = input<boolean>(false);
   readonly clickable = input<boolean>(false);
   readonly isCompact = input(false);
+  /** Straight-line distance from the viewer's area, shown beside the place. */
+  readonly distanceKm = input<number | null | undefined>(null);
+  readonly distanceLabel = computed(() =>
+    formatDistanceKm(this.distanceKm(), this.locale),
+  );
 
   readonly spotClick = output<Spot | LocalSpot>();
   readonly dismiss = output<boolean>();

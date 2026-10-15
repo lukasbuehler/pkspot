@@ -176,10 +176,6 @@
 
             <app-event-summary-meta [event]="event"></app-event-summary-meta>
             <p class="mat-body-medium">{{ localizedCopy()?.heading }}</p>
-            @if (event.placeNames) {
-              <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
-            }
-
             @if (organizerName()) {
               <div class="event-organizer">
                 <span
@@ -807,6 +803,13 @@
             </article>
           }
         </section>
+      }
+
+      @if (event.placeNames) {
+        <footer class="event-attribution mat-body-small">
+          <span i18n="@@community.placeNames.attribution">Place names:</span>
+          <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a>
+        </footer>
       }
     </article>
   </main>

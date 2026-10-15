@@ -6412,22 +6412,82 @@
         <target>Trainingsverlauf</target>
       </segment>
     </unit>
-    <unit id="publicLog.empty">
-      <segment state="initial">
-        <source>No log entries are visible to you.</source>
-        <target>No log entries are visible to you.</target>
+    <unit id="train.now.addNotes">
+      <segment state="translated">
+        <source>Add notes</source>
+        <target>Notizen hinzufügen</target>
       </segment>
     </unit>
-    <unit id="publicLog.subtitle">
-      <segment state="initial">
-        <source>Entries this person chose to share with you.</source>
-        <target>Entries this person chose to share with you.</target>
+    <unit id="train.now.checkedInAt">
+      <segment state="translated">
+        <source>Checked in at <ph id="0" equiv="time" disp="since"/></source>
+        <target>Eingecheckt um <ph id="0" equiv="time" disp="since"/></target>
       </segment>
     </unit>
-    <unit id="publicLog.title">
-      <segment state="initial">
-        <source>Training log</source>
-        <target>Trainingsverlauf</target>
+    <unit id="train.now.going">
+      <segment state="translated">
+        <source>You&apos;re going</source>
+        <target>Du bist dabei</target>
+      </segment>
+    </unit>
+    <unit id="train.now.label">
+      <segment state="translated">
+        <source>Happening now</source>
+        <target>Jetzt</target>
+      </segment>
+    </unit>
+    <unit id="train.now.live">
+      <segment state="translated">
+        <source>Live now</source>
+        <target>Jetzt live</target>
+      </segment>
+    </unit>
+    <unit id="train.now.openEvent">
+      <segment state="translated">
+        <source>Open event</source>
+        <target>Event öffnen</target>
+      </segment>
+    </unit>
+    <unit id="train.now.openSession">
+      <segment state="translated">
+        <source>Open session</source>
+        <target>Session öffnen</target>
+      </segment>
+    </unit>
+    <unit id="train.now.saved">
+      <segment state="translated">
+        <source>Saved</source>
+        <target>Gespeichert</target>
+      </segment>
+    </unit>
+    <unit id="train.now.startsAt">
+      <segment state="translated">
+        <source>Starts at <ph id="0" equiv="time" disp="time"/></source>
+        <target>Beginnt um <ph id="0" equiv="time" disp="time"/></target>
+      </segment>
+    </unit>
+    <unit id="train.now.startsInMinutes">
+      <segment state="translated">
+        <source>Starts in <ph id="0" equiv="minutes" disp="minutesUntilStart"/> min</source>
+        <target>Beginnt in <ph id="0" equiv="minutes" disp="minutesUntilStart"/> Min.</target>
+      </segment>
+    </unit>
+    <unit id="train.now.training">
+      <segment state="translated">
+        <source>Training now</source>
+        <target>Training läuft</target>
+      </segment>
+    </unit>
+    <unit id="train.now.yourPlan">
+      <segment state="translated">
+        <source>Your planned session</source>
+        <target>Deine geplante Session</target>
+      </segment>
+    </unit>
+    <unit id="train.now.yourSession">
+      <segment state="translated">
+        <source>Your session</source>
+        <target>Deine Session</target>
       </segment>
     </unit>
     <unit id="5691718088491056716">
@@ -10684,12 +10744,6 @@
         <target>Veranstaltungen</target>
       </segment>
     </unit>
-    <unit id="events.upcoming">
-      <segment state="initial">
-        <source>Upcoming events</source>
-        <target>Kommende Events</target>
-      </segment>
-    </unit>
     <unit id="events_label">
       <notes>
         <note category="description">A very short label for the navbar events page button</note>
@@ -11591,22 +11645,10 @@
         <target>Logeintrag bearbeiten</target>
       </segment>
     </unit>
-    <unit id="logEditor.entryHelp">
-      <segment state="translated">
-        <source>Add the part you want to remember or share.</source>
-        <target>Notiere, woran du dich erinnern oder was du teilen möchtest.</target>
-      </segment>
-    </unit>
     <unit id="logEditor.entryTitle">
       <segment state="translated">
         <source>What did you practise?</source>
         <target>Was hast du geübt?</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.intro">
-      <segment state="translated">
-        <source>Describe your training and decide who can see the summary.</source>
-        <target>Halte dein Training fest und entscheide, wer die Zusammenfassung sehen kann.</target>
       </segment>
     </unit>
     <unit id="logEditor.invalidTimes">
@@ -11679,18 +11721,6 @@
       <segment state="translated">
         <source>Training details</source>
         <target>Trainingsdetails</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.visibility">
-      <segment state="translated">
-        <source>Visibility</source>
-        <target>Sichtbarkeit</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.visibilityHint">
-      <segment state="translated">
-        <source>Private is the default. Shared summaries never include exact spots, times, or people.</source>
-        <target>Standardmäßig privat. Geteilte Zusammenfassungen enthalten nie genaue Spots, Zeiten oder Personen.</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -15238,18 +15268,6 @@
         <target>Alle Events</target>
       </segment>
     </unit>
-    <unit id="train.bestSpots">
-      <segment state="translated">
-        <source>Good places to train within reach</source>
-        <target>Gute Trainings-Spots in Reichweite</target>
-      </segment>
-    </unit>
-    <unit id="train.eyebrow">
-      <segment state="translated">
-        <source>Train</source>
-        <target>Trainieren</target>
-      </segment>
-    </unit>
     <unit id="train.history.allLogs">
       <segment state="translated">
         <source>View all logs</source>
@@ -15262,12 +15280,6 @@
         <target>Trainingsverlauf</target>
       </segment>
     </unit>
-    <unit id="train.loadError">
-      <segment state="initial">
-        <source>Training options could not be loaded.</source>
-        <target>Training options could not be loaded.</target>
-      </segment>
-    </unit>
     <unit id="train.nav">
       <notes>
         <note category="description">A very short label for training planning</note>
@@ -15278,16 +15290,10 @@
         <target>Trainieren</target>
       </segment>
     </unit>
-    <unit id="train.nearbySpots">
-      <segment state="translated">
-        <source>Nearby Spots</source>
-        <target>Spots in der Nähe</target>
-      </segment>
-    </unit>
     <unit id="train.noSpots">
       <segment state="translated">
-        <source> No Spots found in this area yet. </source>
-        <target> In diesem Gebiet wurden noch keine Spots gefunden. </target>
+        <source>No Spots found in this area yet.</source>
+        <target>In diesem Gebiet wurden noch keine Spots gefunden.</target>
       </segment>
     </unit>
     <unit id="train.openMap">
@@ -15296,16 +15302,106 @@
         <target>Karte öffnen</target>
       </segment>
     </unit>
+    <unit id="train.rail.label">
+      <segment state="translated">
+        <source>Conditions and your rhythm</source>
+        <target>Bedingungen und dein Rhythmus</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.empty">
+      <segment state="translated">
+        <source>Your training history appears here after your first check-in or log entry.</source>
+        <target>Dein Trainingsverlauf erscheint hier nach deinem ersten Check-in oder Logeintrag.</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.longestStreak">
+      <segment state="translated">
+        <source>longest daily streak</source>
+        <target>längste Tagesserie</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.oneSpot">
+      <segment state="translated">
+        <source>1 Spot</source>
+        <target>1 Spot</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.recent">
+      <segment state="translated">
+        <source>Recent training entries</source>
+        <target>Letzte Trainingseinträge</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.spotCount">
+      <segment state="translated">
+        <source><ph id="0" equiv="count" disp="spotCount"/> Spots</source>
+        <target><ph id="0" equiv="count" disp="spotCount"/> Spots</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.title">
+      <segment state="translated">
+        <source>Looking back</source>
+        <target>Rückblick</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.untitledEntry">
+      <segment state="translated">
+        <source>Training session</source>
+        <target>Trainingssession</target>
+      </segment>
+    </unit>
+    <unit id="train.reflection.vsLastMonth">
+      <segment state="translated">
+        <source><ph id="0" equiv="delta" disp="signed"/> vs last month</source>
+        <target><ph id="0" equiv="delta" disp="signed"/> gegenüber Vormonat</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.log">
+      <segment state="translated">
+        <source>Log</source>
+        <target>Log</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.logSession">
+      <segment state="translated">
+        <source>Log a session</source>
+        <target>Session eintragen</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.thisWeek">
+      <segment state="translated">
+        <source>sessions this week</source>
+        <target>Sessions diese Woche</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.title">
+      <segment state="translated">
+        <source>Your rhythm</source>
+        <target>Dein Rhythmus</target>
+      </segment>
+    </unit>
+    <unit id="train.rhythm.weeksInARow">
+      <segment state="translated">
+        <source>weeks in a row</source>
+        <target>Wochen in Folge</target>
+      </segment>
+    </unit>
     <unit id="train.spotFilters">
       <segment state="translated">
         <source>Spot filters</source>
         <target>Spot-Filter</target>
       </segment>
     </unit>
+    <unit id="train.spots.title">
+      <segment state="translated">
+        <source>Spots to train at</source>
+        <target>Spots zum Trainieren</target>
+      </segment>
+    </unit>
     <unit id="train.spotsNeedArea">
       <segment state="translated">
-        <source> Choose a training area to see nearby Spots. </source>
-        <target> Wähle einen Trainingsbereich, um Spots in deiner Nähe zu sehen. </target>
+        <source>Choose a training area to see nearby Spots.</source>
+        <target>Wähle einen Trainingsbereich, um Spots in deiner Nähe zu sehen.</target>
       </segment>
     </unit>
     <unit id="train.useLocation">
@@ -15316,26 +15412,68 @@
     </unit>
     <unit id="train.weatherDryFilter">
       <segment state="translated">
-        <source> Dry Spots are prioritised for the forecast. </source>
-        <target> Trockene Spots werden für die Vorhersage bevorzugt. </target>
+        <source>Dry Spots are prioritised for the forecast.</source>
+        <target>Trockene Spots werden für die Vorhersage bevorzugt.</target>
       </segment>
     </unit>
-    <unit id="train.communityEvents.eyebrow">
+    <unit id="train.comingUp.error">
       <segment state="translated">
-        <source>Your communities</source>
-        <target>Deine Communities</target>
+        <source>Events could not be loaded.</source>
+        <target>Events konnten nicht geladen werden.</target>
       </segment>
     </unit>
-    <unit id="train.communityEvents.summary">
+    <unit id="train.comingUp.followedCommunity">
       <segment state="translated">
-        <source> Worth knowing about, even when they are farther away. </source>
-        <target> Auch interessant, wenn sie weiter weg sind. </target>
+        <source>From your communities: <ph id="0" equiv="INTERPOLATION" disp="{{ community }}"/></source>
+        <target>Aus deinen Communities: <ph id="0" equiv="INTERPOLATION" disp="{{ community }}"/></target>
       </segment>
     </unit>
-    <unit id="train.communityEvents.title">
+    <unit id="train.comingUp.going">
       <segment state="translated">
-        <source>Events from people you follow</source>
-        <target>Events von Menschen, denen du folgst</target>
+        <source>Going</source>
+        <target>Dabei</target>
+      </segment>
+    </unit>
+    <unit id="train.comingUp.title">
+      <segment state="translated">
+        <source>Coming up</source>
+        <target>Demnächst</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.dry">
+      <segment state="translated">
+        <source>Dry for now</source>
+        <target>Vorerst trocken</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.dryUntil">
+      <segment state="translated">
+        <source>Dry until <ph id="0" equiv="time" disp="this.formatTime(outlook.time, weather.timeZone)"/></source>
+        <target>Trocken bis <ph id="0" equiv="time" disp="this.formatTime(outlook.time, weather.timeZone)"/></target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.forecast">
+      <segment state="translated">
+        <source>Forecast</source>
+        <target>Vorhersage</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.rainNow">
+      <segment state="translated">
+        <source>Rain now</source>
+        <target>Regen jetzt</target>
+      </segment>
+    </unit>
+    <unit id="train.conditions.title">
+      <segment state="translated">
+        <source>Conditions</source>
+        <target>Bedingungen</target>
+      </segment>
+    </unit>
+    <unit id="train.context.area">
+      <segment state="translated">
+        <source>Change training area</source>
+        <target>Trainingsgebiet ändern</target>
       </segment>
     </unit>
     <unit id="train.context.chooseAction">
@@ -15362,22 +15500,28 @@
         <target> Trainingsbereich </target>
       </segment>
     </unit>
+    <unit id="train.context.group">
+      <segment state="translated">
+        <source>Training area and weather</source>
+        <target>Trainingsgebiet und Wetter</target>
+      </segment>
+    </unit>
     <unit id="train.context.intro">
       <segment state="translated">
         <source> Use your location for nearby ideas, or search for a community to plan a session somewhere else. </source>
         <target> Nutze deinen Standort für Ideen in der Nähe oder suche nach einer Community, um eine Session an einem anderen Ort zu planen. </target>
       </segment>
     </unit>
-    <unit id="train.context.open">
-      <segment state="translated">
-        <source>Change training area or view weather</source>
-        <target>Trainingsbereich ändern oder Wetter ansehen</target>
-      </segment>
-    </unit>
     <unit id="train.context.title">
       <segment state="translated">
         <source>Choose your training area</source>
         <target>Wähle deinen Trainingsbereich</target>
+      </segment>
+    </unit>
+    <unit id="train.context.weather">
+      <segment state="translated">
+        <source>Show weather forecast</source>
+        <target>Wettervorhersage anzeigen</target>
       </segment>
     </unit>
     <unit id="train.context.weatherAction">
@@ -15392,28 +15536,34 @@
         <target>Sieh dir die nächsten Stunden an, bevor du losgehst.</target>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.eyebrow">
+    <unit id="train.context.weatherUnavailable">
       <segment state="translated">
-        <source>Happening soon</source>
-        <target>Demnächst</target>
+        <source>Weather unavailable</source>
+        <target>Wetter nicht verfügbar</target>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.summary">
+    <unit id="train.event.goingCount">
       <segment state="translated">
-        <source> The soonest upcoming sessions within reach. </source>
-        <target> Die nächsten Sessions, die du gut erreichen kannst. </target>
+        <source><ph id="0" equiv="count" disp="going"/> going</source>
+        <target><ph id="0" equiv="count" disp="going"/> dabei</target>
       </segment>
     </unit>
-    <unit id="train.nearbyEvents.title">
+    <unit id="train.teaser.body">
       <segment state="translated">
-        <source>Events near your area</source>
-        <target>Events in deiner Nähe</target>
+        <source> Track where and how often you train, keep notes on what you practised, and see your consistency grow. </source>
+        <target>Halte fest, wo und wie oft du trainierst, notiere, was du geübt hast, und sieh, wie deine Beständigkeit wächst.</target>
       </segment>
     </unit>
-    <unit id="train.summary">
+    <unit id="train.teaser.signIn">
       <segment state="translated">
-        <source> Nearby Spots and events from the communities you follow. </source>
-        <target> Spots in deiner Nähe und Events aus den Communities, denen du folgst. </target>
+        <source>Sign in to start</source>
+        <target>Anmelden und loslegen</target>
+      </segment>
+    </unit>
+    <unit id="train.teaser.title">
+      <segment state="translated">
+        <source>Keep a training diary</source>
+        <target>Führe ein Trainingstagebuch</target>
       </segment>
     </unit>
     <unit id="train.title">
@@ -15438,12 +15588,6 @@
       <segment state="initial">
         <source>Delete this log entry?</source>
         <target>Diesen Logeintrag löschen?</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.emptyBody">
-      <segment state="initial">
-        <source>Record what happened. It stays private unless you choose otherwise.</source>
-        <target>Halte fest, was passiert ist. Es bleibt privat, solange du nichts anderes wählst.</target>
       </segment>
     </unit>
     <unit id="trainingLog.emptyTitle">
@@ -15722,28 +15866,10 @@
         <target>Trainingsverlauf</target>
       </segment>
     </unit>
-    <unit id="trainingLog.visibility.followers">
-      <segment state="initial">
-        <source>Followers</source>
-        <target>Follower:innen</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.visibility.friends">
-      <segment state="initial">
-        <source>Friends</source>
-        <target>Freund:innen</target>
-      </segment>
-    </unit>
     <unit id="trainingLog.visibility.private">
       <segment state="initial">
         <source>Private</source>
         <target>Privat</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.visibility.public">
-      <segment state="initial">
-        <source>Public</source>
-        <target>Öffentlich</target>
       </segment>
     </unit>
     <unit id="7102657004519673825">
@@ -19220,6 +19346,30 @@
       <segment state="initial">
         <source>Use while using the app</source>
         <target>Beim Verwenden der App verwenden</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.amount">
+      <segment state="translated">
+        <source>Amount</source>
+        <target>Menge</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.chance">
+      <segment state="translated">
+        <source>Chance</source>
+        <target>Wahrscheinlichkeit</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.dry">
+      <segment state="translated">
+        <source>No precipitation expected</source>
+        <target>Kein Niederschlag erwartet</target>
+      </segment>
+    </unit>
+    <unit id="precipitationChart.peak">
+      <segment state="translated">
+        <source>Up to <ph id="0" equiv="amount" disp="amount"/> per hour, heaviest around <ph id="1" equiv="time" disp="time"/></source>
+        <target>Bis zu <ph id="0" equiv="amount" disp="amount"/> pro Stunde, am stärksten gegen <ph id="1" equiv="time" disp="time"/></target>
       </segment>
     </unit>
     <unit id="profile.actions.acceptFollowRequest">
