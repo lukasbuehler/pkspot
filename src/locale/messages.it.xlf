@@ -15624,6 +15624,24 @@
         <target>Gli Spot asciutti hanno la priorità in base alle previsioni.</target>
       </segment>
     </unit>
+    <unit id="train.checkOut.action">
+      <segment state="translated">
+        <source>Check out</source>
+        <target>Fai check-out</target>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.done">
+      <segment state="translated">
+        <source>Checked out after <ph id="0" equiv="duration" disp="formatDuration(minutes)"/></source>
+        <target>Check-out dopo <ph id="0" equiv="duration" disp="formatDuration(minutes)"/></target>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.failed">
+      <segment state="translated">
+        <source>Couldn&apos;t check out. Please try again.</source>
+        <target>Check-out non riuscito. Riprova.</target>
+      </segment>
+    </unit>
     <unit id="train.comingUp.error">
       <segment state="translated">
         <source>Events could not be loaded.</source>

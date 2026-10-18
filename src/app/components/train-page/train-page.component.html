@@ -65,12 +65,26 @@
                   <p class="moment-card__detail mat-body-medium">{{ moment.detail }}</p>
                 }
               </div>
-              <a
-                matButton="filled"
-                class="moment-card__action"
-                [routerLink]="moment.link"
-                [queryParams]="moment.queryParams"
-              >{{ moment.actionLabel }}</a>
+              <div class="moment-card__actions">
+                @if (moment.checkOutSessionId; as sessionId) {
+                  <a matButton [routerLink]="moment.link" [queryParams]="moment.queryParams">{{ moment.actionLabel }}</a>
+                  <button
+                    matButton="filled"
+                    type="button"
+                    [disabled]="checkingOut() === sessionId"
+                    (click)="checkOut(sessionId)"
+                  >
+                    <mat-icon>logout</mat-icon>
+                    <span i18n="@@train.checkOut.action">Check out</span>
+                  </button>
+                } @else {
+                  <a
+                    matButton="filled"
+                    [routerLink]="moment.link"
+                    [queryParams]="moment.queryParams"
+                  >{{ moment.actionLabel }}</a>
+                }
+              </div>
             </mat-card>
           }
         </section>

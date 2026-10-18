@@ -109,6 +109,19 @@ export interface TrainingRanksSchema {
   computed_at_raw_ms: number;
 }
 
+/** Bounds for a self-reported or checked-out session duration. */
+export const CHECK_IN_SESSION_MIN_MINUTES = 5;
+export const CHECK_IN_SESSION_MAX_MINUTES = 12 * 60;
+
+/**
+ * Checking out ends a session now. Very short sessions round up to the
+ * minimum; the maximum keeps a forgotten session from becoming a marathon.
+ */
+export function checkOutDurationMinutes(startedAtMs: number, nowMs: number): number {
+  const minutes = Math.round((nowMs - startedAtMs) / 60_000);
+  return Math.min(CHECK_IN_SESSION_MAX_MINUTES, Math.max(CHECK_IN_SESSION_MIN_MINUTES, minutes));
+}
+
 export interface SetCheckInSessionDurationRequest {
   sessionRecordId: string;
   durationMinutes: number;

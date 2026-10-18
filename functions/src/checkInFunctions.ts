@@ -16,6 +16,10 @@ import type {
   SetCheckInSessionDurationRequest,
   SetCheckInSessionDurationResponse,
 } from "../../src/db/schemas/TrainingSummarySchema";
+import {
+  CHECK_IN_SESSION_MAX_MINUTES,
+  CHECK_IN_SESSION_MIN_MINUTES,
+} from "../../src/db/schemas/TrainingSummarySchema";
 
 const db = admin.firestore();
 const CALLABLE_OPTIONS = {
@@ -34,8 +38,8 @@ const MAX_PER_HOUR = 12;
 const MAX_TRAVEL_SPEED_KMH = 250;
 const SPOT_ID_PATTERN = /^(?!\.{1,2}$)[^/]{1,150}$/u;
 /** Self-reported training time for a check-in session. */
-const MIN_SESSION_MINUTES = 5;
-const MAX_SESSION_MINUTES = 12 * 60;
+const MIN_SESSION_MINUTES = CHECK_IN_SESSION_MIN_MINUTES;
+const MAX_SESSION_MINUTES = CHECK_IN_SESSION_MAX_MINUTES;
 
 type RecordValue = Record<string, unknown>;
 type Coordinate = {lat: number; lng: number};

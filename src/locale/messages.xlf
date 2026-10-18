@@ -10250,6 +10250,21 @@
         <source>Dry Spots are prioritised for the forecast.</source>
       </segment>
     </unit>
+    <unit id="train.checkOut.action">
+      <segment>
+        <source>Check out</source>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.done">
+      <segment>
+        <source>Checked out after <ph id="0" equiv="duration" disp="formatDuration(minutes)"/></source>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.failed">
+      <segment>
+        <source>Couldn&apos;t check out. Please try again.</source>
+      </segment>
+    </unit>
     <unit id="train.comingUp.error">
       <segment>
         <source>Events could not be loaded.</source>

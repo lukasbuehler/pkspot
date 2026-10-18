@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { checkOutDurationMinutes } from "../schemas/TrainingSummarySchema";
 import {
   buildTrainingMonthSummary,
   buildTrainingSpotSummary,
@@ -185,5 +186,12 @@ describe("training summaries", () => {
     expect(openRankMonths("2026-11-01")).toEqual(["2026-10", "2026-11"]);
     expect(openRankMonths("2026-11-02")).toEqual(["2026-10", "2026-11"]);
     expect(openRankMonths("2026-11-03")).toEqual(["2026-11"]);
+  });
+
+  it("bounds a check-out duration between five minutes and twelve hours", () => {
+    const start = Date.parse("2026-10-19T16:00:00Z");
+    expect(checkOutDurationMinutes(start, start + 60_000)).toBe(5);
+    expect(checkOutDurationMinutes(start, start + 95 * 60_000)).toBe(95);
+    expect(checkOutDurationMinutes(start, start + 20 * 3_600_000)).toBe(720);
   });
 });

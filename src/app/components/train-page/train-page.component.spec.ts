@@ -1,3 +1,5 @@
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { take } from "rxjs";
 import { SessionRecordsService } from '../../services/firebase/firestore/session-records.service';
 import { PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
@@ -277,6 +279,36 @@ describe("TrainPageComponent", () => {
     expect(component.trainingSessionsLoaded()).toBe(false);
   });
 
+  it("checks out a running session from the green card and offers notes afterwards", async () => {
+    const component = createComponent({
+      authUser: { uid: "user-1" },
+      geolocation: {
+        currentLocation: signal(null),
+        error: signal<unknown | null>(null),
+        checkPermissions: vi.fn().mockResolvedValue(false),
+        startWatching: vi.fn(),
+      },
+      locationAccess: { enabled: signal(false), startWatchingIfEnabled: vi.fn() },
+      sessions: { listMine: vi.fn().mockResolvedValue([activeSession(83)]) },
+      search: {
+        searchEventDiscovery: vi.fn().mockResolvedValue({ ...eventResult, items: [] }),
+        searchTopSpotPreviewsNearLocation: vi.fn().mockResolvedValue([]),
+        getCommunityPreviewsByKeys: vi.fn().mockResolvedValue([]),
+      },
+      series: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
+    });
+    await vi.waitFor(() => expect(component.momentViews()[0]?.checkOutSessionId).toBe("active-1"));
+
+    await component.checkOut("active-1");
+
+    expect(TestBed.inject(TrainingSummaryService).setCheckInSessionDuration)
+      .toHaveBeenCalledWith({ sessionRecordId: "active-1", durationMinutes: 83 });
+    // The session is finished, so the green card gives way to the log prompt.
+    expect(component.momentViews()).toEqual([]);
+    expect(component.promptSessions().map((session) => session.id)).toEqual(["active-1"]);
+    expect(snackbar.open).toHaveBeenCalledWith("Checked out after 1h 23m", "Add notes", { duration: 8_000 });
+  });
+
   it("shows Spots before the forecast arrives, then prefers dry Spots when rain is likely", async () => {
     let resolveWeather: (value: unknown) => void = () => undefined;
     const weather = {
@@ -437,8 +469,11 @@ function createComponent({
         useValue: {
           listMyMonths: vi.fn(async () => TrainingSummaryService.deriveMonths(await sessions.listMine())),
           getMyRanks: vi.fn().mockResolvedValue(null),
+          setCheckInSessionDuration: vi.fn(async ({ durationMinutes }: { durationMinutes: number }) =>
+            ({ endedAtRawMs: Date.now() + durationMinutes })),
         },
       },
+      { provide: MatSnackBar, useValue: snackbar },
       { provide: RecoveryPausesService, useValue: recoveryPauses },
       { provide: GeolocationService, useValue: geolocation },
       { provide: MapsApiService, useValue: { getLocalityName: vi.fn().mockResolvedValue("Zürich") } },
@@ -454,6 +489,19 @@ function createComponent({
   });
 
   return TestBed.runInInjectionContext(() => new TrainPageComponent());
+}
+
+const snackbar = {
+  open: vi.fn(() => ({ onAction: () => new BehaviorSubject<void>(undefined).pipe(take(0)) })),
+};
+
+function activeSession(startedMinutesAgo: number): SessionRecordDocument {
+  const started = Date.now() - startedMinutesAgo * 60_000;
+  return {
+    id: "active-1", source: "check_in", time_zone: "Europe/Zurich",
+    started_at_raw_ms: started, last_activity_raw_ms: started,
+    spot_visits: [{ spot_id: "spot-1", spot_name: "Riverside", check_in_id: "check-1", arrived_at_raw_ms: started }],
+  } as SessionRecordDocument;
 }
 
 function nearZurich() {

@@ -15876,6 +15876,24 @@
         <target>Droge Spots krijgen voorrang op basis van de verwachting.</target>
       </segment>
     </unit>
+    <unit id="train.checkOut.action">
+      <segment state="translated">
+        <source>Check out</source>
+        <target>Uitchecken</target>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.done">
+      <segment state="translated">
+        <source>Checked out after <ph id="0" equiv="duration" disp="formatDuration(minutes)"/></source>
+        <target>Uitgecheckt na <ph id="0" equiv="duration" disp="formatDuration(minutes)"/></target>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.failed">
+      <segment state="translated">
+        <source>Couldn&apos;t check out. Please try again.</source>
+        <target>Uitchecken is niet gelukt. Probeer het opnieuw.</target>
+      </segment>
+    </unit>
     <unit id="train.comingUp.error">
       <segment state="translated">
         <source>Events could not be loaded.</source>

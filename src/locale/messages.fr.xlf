@@ -15624,6 +15624,24 @@
         <target>Les Spots secs sont privilégiés selon les prévisions.</target>
       </segment>
     </unit>
+    <unit id="train.checkOut.action">
+      <segment state="translated">
+        <source>Check out</source>
+        <target>Faire le check-out</target>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.done">
+      <segment state="translated">
+        <source>Checked out after <ph id="0" equiv="duration" disp="formatDuration(minutes)"/></source>
+        <target>Check-out après <ph id="0" equiv="duration" disp="formatDuration(minutes)"/></target>
+      </segment>
+    </unit>
+    <unit id="train.checkOut.failed">
+      <segment state="translated">
+        <source>Couldn&apos;t check out. Please try again.</source>
+        <target>Le check-out n&apos;a pas fonctionné. Réessaie.</target>
+      </segment>
+    </unit>
     <unit id="train.comingUp.error">
       <segment state="translated">
         <source>Events could not be loaded.</source>

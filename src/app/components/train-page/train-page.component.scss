@@ -125,6 +125,7 @@ h2 {
   --mat-card-outlined-container-shape: 18px;
   --mat-button-filled-container-color: var(--mat-sys-secondary);
   --mat-button-filled-label-text-color: var(--mat-sys-on-secondary);
+  --mat-button-text-label-text-color: var(--mat-sys-on-secondary-container);
 
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) auto;
@@ -157,6 +158,13 @@ h2 {
 
 .moment-card__title {
   overflow-wrap: anywhere;
+}
+
+.moment-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 // Spots ---------------------------------------------------------------------
@@ -504,8 +512,10 @@ h2 {
     grid-template-columns: 40px minmax(0, 1fr);
   }
 
-  .moment-card__action {
+  .moment-card__actions {
     grid-column: 1 / -1;
+
+    > * { flex: 1 1 auto; }
   }
 
   // A swipeable row keeps four Spots to one screen height instead of four.

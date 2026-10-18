@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Router, RouterLink } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -37,9 +38,10 @@ import {
   spotRankState,
   type SpotRankState,
 } from "../../features/spot-rank";
-import type {
-  TrainingRanksSchema,
-  TrainingMonthSchema,
+import {
+  checkOutDurationMinutes,
+  type TrainingRanksSchema,
+  type TrainingMonthSchema,
 } from "../../../db/schemas/TrainingSummarySchema";
 import { shiftMonth, summarizeTrainingPeriod } from "../../../db/utils/training-summary";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
@@ -131,6 +133,8 @@ export interface TrainingMomentView {
   link: string[];
   queryParams?: Record<string, string>;
   actionLabel: string;
+  /** Set for a running check-in session, which can be checked out from the card. */
+  checkOutSessionId?: string;
 }
 
 export interface ComingUpItem {
@@ -191,6 +195,7 @@ export class TrainPageComponent {
   private readonly locationAccess = inject(LocationAccessService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
+  private readonly snackbar = inject(MatSnackBar);
   private readonly search = inject(SearchService);
   private readonly weatherService = inject(WeatherService);
   private readonly sessionsService = inject(SessionRecordsService);
@@ -247,6 +252,8 @@ export class TrainPageComponent {
   readonly recoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly trainingHistoryFailed = signal(false);
   readonly trainingSessionsLoaded = signal(false);
+  /** The session being checked out, to disable its button while saving. */
+  readonly checkingOut = signal<string | null>(null);
   readonly plannedSessions = signal<PlannedSession[]>([]);
 
   readonly nearbyLocality = resource({
@@ -582,6 +589,45 @@ export class TrainPageComponent {
     return formatDuration(minutes);
   }
 
+  /**
+   * Ends a running check-in session now. Optional: sessions also end on their
+   * own when idle, and the duration stays editable in the log.
+   */
+  async checkOut(sessionId: string): Promise<void> {
+    const session = this.trainingSessions().find((item) => item.id === sessionId);
+    if (!session || this.checkingOut()) return;
+    const minutes = checkOutDurationMinutes(session.started_at_raw_ms, Date.now());
+    this.checkingOut.set(sessionId);
+    try {
+      const { endedAtRawMs } = await this.trainingSummaries.setCheckInSessionDuration({
+        sessionRecordId: sessionId,
+        durationMinutes: minutes,
+      });
+      this.trainingSessions.update((sessions) =>
+        sessions.map((item) => item.id === sessionId ? { ...item, ended_at_raw_ms: endedAtRawMs } : item),
+      );
+      this.snackbar
+        .open(
+          $localize`:@@train.checkOut.done:Checked out after ${formatDuration(minutes)}:duration:`,
+          $localize`:@@train.now.addNotes:Add notes`,
+          { duration: 8_000 },
+        )
+        .onAction()
+        .subscribe(() => {
+          void this.router.navigate(["/train/log/new"], { queryParams: { sessionRecord: sessionId } });
+        });
+    } catch (error) {
+      console.warn("[Train] check-out failed", error);
+      this.snackbar.open(
+        $localize`:@@train.checkOut.failed:Couldn't check out. Please try again.`,
+        undefined,
+        { duration: 5_000 },
+      );
+    } finally {
+      this.checkingOut.set(null);
+    }
+  }
+
   async loadTrainingHistory(): Promise<void> {
     const generation = ++this.historyGeneration;
     const uid = this.auth.user.uid;
@@ -864,6 +910,7 @@ export class TrainPageComponent {
           link: ["/train/log/new"],
           queryParams: { sessionRecord: moment.session.id },
           actionLabel: $localize`:@@train.now.addNotes:Add notes`,
+          checkOutSessionId: moment.session.id,
         };
       }
       case "planned-session":
