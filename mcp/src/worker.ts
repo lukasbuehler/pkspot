@@ -1,5 +1,6 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { capture } from "./analytics";
+import { clientAttribution } from "./client-attribution";
 import { PublicData, record } from "./data";
 import { Discovery, schemas, toolNames, type ToolName } from "./discovery";
 import { reserve } from "./quota";
@@ -90,7 +91,7 @@ export async function handle(request: Request, env: Environment, context: Execut
       if (limited) return limited;
     } catch { return Response.json({ error: "Quota service unavailable" }, { status: 503 }); }
   }
-  const server = createServer(new Discovery(new PublicData(env)), (metric) => context.waitUntil(capture(env, metric)));
+  const server = createServer(new Discovery(new PublicData(env)), (metric) => context.waitUntil(capture(env, { ...metric, ...clientAttribution(request.headers) })));
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
   try {
     await server.connect(transport);

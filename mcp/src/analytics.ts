@@ -1,9 +1,10 @@
 import type { Environment } from "./runtime";
+import type { ClientAttribution } from "./client-attribution";
 import type { Metric } from "./server";
 
-export async function capture(env: Environment, metric: Metric, fetcher: typeof fetch = fetch): Promise<void> {
+export async function capture(env: Environment, metric: Metric & ClientAttribution, fetcher: typeof fetch = fetch): Promise<void> {
   if (!env.POSTHOG_API_KEY) return;
-  // Event-only analytics. No arguments, returned records, IPs, host identity,
+  // Event-only analytics. No arguments, returned records, IPs, raw client headers,
   // conversation IDs or stable visitor IDs. Do not add request autocapture here.
   const host = env.POSTHOG_HOST ?? "https://eu.i.posthog.com";
   if (!["https://eu.i.posthog.com", "https://us.i.posthog.com"].includes(host)) return;

@@ -10,6 +10,8 @@
   // Add the mcp.pkspot.app custom-domain route only at the approved deployment.
   "vars": {
     "FIRESTORE_PROJECT_ID": "parkour-base-project",
+    // Public PostHog project token for event ingestion, not a personal API key.
+    "POSTHOG_API_KEY": "phc_CfGR4HBeaYxkP53Gl4w2wmA2dipZtjFX1FkupF8FNo6",
     "PUBLIC_ORIGIN": "https://mcp.pkspot.app",
     "TYPESENSE_ORIGIN": "https://search.pkspot.app",
     // Public proof of domain ownership, not an authentication credential.

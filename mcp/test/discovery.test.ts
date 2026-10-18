@@ -111,7 +111,7 @@ describe("backend boundary", () => {
   });
   it("analytics is opt-in, minimal and cannot break search", async () => {
     const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new Error("offline"));
-    const metric = { tool: "search_spots" as const, outcome: "success" as const, result_count: 2, duration_ms: 80 };
+    const metric = { tool: "search_spots" as const, outcome: "success" as const, result_count: 2, duration_ms: 80, client: "chatgpt" as const, client_source: "user_agent" as const };
     await capture(env, metric, fetcher);
     expect(fetcher).not.toHaveBeenCalled();
     await capture({ ...env, POSTHOG_API_KEY: "test" }, metric, fetcher);

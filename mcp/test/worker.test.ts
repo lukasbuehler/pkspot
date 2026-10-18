@@ -35,6 +35,23 @@ function request(body: unknown, headers: Record<string, string> = {}) {
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe("Worker with real MCP SDK transport", () => {
+  it("attaches bounded client attribution to tool analytics without an initialization session", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response("{}"));
+    vi.stubGlobal("fetch", fetcher);
+    const tasks: Promise<unknown>[] = [];
+    const response = await handle(request({ jsonrpc: "2.0", id: 1, method: "tools/call",
+      params: { name: "search_spots", arguments: {} },
+    }, { "User-Agent": "ChatGPT/1.0" }), { ...environment(), POSTHOG_API_KEY: "test" },
+    { waitUntil: task => { tasks.push(task); } });
+    expect(response.status).toBe(200);
+    await Promise.all(tasks);
+    const captureCall = fetcher.mock.calls.find(([url]) => String(url).includes("posthog.com"));
+    expect(captureCall).toBeDefined();
+    const event = JSON.parse(String(captureCall![1]?.body));
+    expect(event.properties).toMatchObject({ client: "chatgpt", client_source: "user_agent", surface: "mcp", tool: "search_spots" });
+    expect(JSON.stringify(event)).not.toContain("ChatGPT/1.0");
+    expect(JSON.stringify(event)).not.toContain("192.0.2.1");
+  });
   it("serves the ownership challenge without data credentials and limits methods", async () => {
     const env = { ...environment(), TYPESENSE_SEARCH_KEY: "", OPENAI_DOMAIN_VERIFICATION_TOKEN: "public-proof" };
     const url = "https://mcp.pkspot.app/.well-known/openai-apps-challenge";
