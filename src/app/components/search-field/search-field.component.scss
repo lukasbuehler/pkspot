@@ -67,6 +67,23 @@ mat-icon.typeOrAccesIcon {
   border-radius: 16px !important;
 }
 
+// Show more results than Material's 256px default while staying above the
+// on-screen keyboard.
+::ng-deep .mat-mdc-autocomplete-panel.spot-search-results {
+  max-height: min(560px, calc(100dvh - var(--keyboard-offset, 0px) - 140px)) !important;
+}
+
+.community-result-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
+}
+
 ::ng-deep .spot-autocomplete-panel {
   min-width: auto !important;
 }
