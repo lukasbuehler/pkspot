@@ -397,13 +397,13 @@ describe("EventsPageComponent", () => {
     expect(component.calendar().monthKey).toBe("2026-08");
   });
 
-  it("updates filter counts from the continuous calendar result", async () => {
+  it("keeps unfiltered counts when the continuous calendar results change", async () => {
     const { component } = createComponent({
       queryParams: { view: "calendar", month: "2026-08" },
       searchResult: {
         ...EMPTY_RESULT,
         facets: {
-          categories: [{ value: "jam", count: 1 }],
+          categories: [{ value: "jam", count: 1 }, { value: "competition", count: 4 }],
           series: [{ value: "parkour-earth", count: 1 }],
           communities: [],
         },
@@ -422,29 +422,87 @@ describe("EventsPageComponent", () => {
 
     expect(component.categoryFilterOptions()).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "competition", count: 4 }),
-      expect.objectContaining({ id: "jam", count: 0 }),
+      expect.objectContaining({ id: "jam", count: 1 }),
     ]));
     expect(component.seriesFilterOptions()).toEqual([
-      expect.objectContaining({ id: "parkour-earth", count: 3 }),
+      expect.objectContaining({ id: "parkour-earth", count: 1 }),
     ]);
   });
 
-  it("retains discovered series when a filter removes them from result facets", async () => {
-    const { component } = createComponent({ queryParams: { view: "calendar", month: "2026-08" } });
+  it("hides unused filters but retains available alternatives with zero filtered results", async () => {
+    const available = {
+      ...EMPTY_RESULT,
+      facets: {
+        ...EMPTY_RESULT.facets,
+        categories: [{ value: "jam", count: 2 }, { value: "camp", count: 1 }],
+        series: [{ value: "series-a", count: 2 }, { value: "series-b", count: 1 }],
+        listingTiers: [{ value: "formal", count: 3 }],
+        regions: [{ value: "europe", count: 3 }],
+      },
+    };
+    const { component, searchService } = createComponent({
+      // A filtered deep link must work without visiting the unfiltered page first.
+      queryParams: { view: "calendar", month: "2026-08", category: "jam" },
+    });
+    searchService.searchEventDiscovery.mockResolvedValue(available);
     await flushResources();
-    component.onContinuousCalendarResult({ ...EMPTY_RESULT, facets: {
-      ...EMPTY_RESULT.facets, series: [{ value: "series-a", count: 2 }, { value: "series-b", count: 1 }],
-    }});
-    expect(component.facetSeriesIds()).toEqual(["series-a", "series-b"]);
-    component.selectedCategories.set(["jam"]);
-    component.onContinuousCalendarResult({ ...EMPTY_RESULT, facets: {
-      ...EMPTY_RESULT.facets, series: [{ value: "series-a", count: 1 }],
-    }});
-    expect(component.seriesFilterOptions()).toEqual(expect.arrayContaining([
-      expect.objectContaining({id: "series-b", count: 0}),
-    ]));
+    component.onContinuousCalendarResult(EMPTY_RESULT);
+
+    expect(component.categoryFilterOptions().map(option => [option.id, option.count]))
+      .toEqual([["jam", 2], ["camp", 1]]);
+    expect(component.seriesFilterOptions().map(option => [option.id, option.count])).toEqual([["series-a", 2], ["series-b", 1]]);
+    expect(component.listingTierFilterOptions().map(option => [option.id, option.count])).toEqual([["formal", 3]]);
+    expect(component.regionFilterOptions().map(option => [option.id, option.count])).toEqual([["europe", 3]]);
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledWith({
+      query: "", areaKeys: [], perPage: 1, abortSignal: expect.any(AbortSignal),
+    });
+    expect(component.selectedCategories()).toEqual(["jam"]);
+    const baselineCalls = searchService.searchEventDiscovery.mock.calls.length;
+    component.toggleCategory("camp");
+    await flushResources();
+    expect(component.categoryFilterOptions().map(option => [option.id, option.count])).toEqual([["jam", 2], ["camp", 1]]);
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledTimes(baselineCalls);
+
+    // Changing the search scope should drop choices that no longer have events.
+    searchService.searchEventDiscovery.mockResolvedValue(EMPTY_RESULT);
     component.selectedCategories.set([]);
-    expect(component.facetSeriesIds()).toEqual(["series-a"]);
+    component.query.set("no matching events");
+    await flushResources();
+    expect(component.categoryFilterOptions()).toEqual([]);
+    expect(component.seriesFilterOptions()).toEqual([]);
+    expect(component.listingTierFilterOptions()).toEqual([]);
+    expect(component.regionFilterOptions()).toEqual([]);
+  });
+
+  it("loads list availability for the whole period, not the selected chips or page", async () => {
+    const { component, searchService } = createComponent({
+      queryParams: { view: "list", when: "past", category: "jam", area: "country:ch", q: "parkour" },
+    });
+    await flushResources();
+    const availability = searchService.searchEventDiscovery.mock.calls
+      .map(([request]) => request).find(request => request.perPage === 1);
+    expect(availability).toEqual({
+      query: "parkour", areaKeys: ["country:ch"], perPage: 1,
+      endsBeforeSeconds: expect.any(Number), abortSignal: expect.any(AbortSignal),
+    });
+    const calls = searchService.searchEventDiscovery.mock.calls.length;
+    component.resultLimit.set(48);
+    await flushResources();
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledTimes(calls + 1);
+    expect(searchService.searchEventDiscovery.mock.calls.filter(([request]) => request.perPage === 1)).toHaveLength(1);
+  });
+
+  it("keeps an unavailable selected filter removable", async () => {
+    const { component } = createComponent();
+    component.selectedCategories.set(["camp"]);
+    component.selectedSeriesIds.set(["removed-series"]);
+    component.selectedListingTiers.set(["community"]);
+    component.selectedRegions.set(["europe"]);
+    await flushResources();
+    expect(component.categoryFilterOptions().map(option => option.id)).toEqual(["camp"]);
+    expect(component.seriesFilterOptions().map(option => option.id)).toEqual(["removed-series"]);
+    expect(component.listingTierFilterOptions().map(option => option.id)).toEqual(["community"]);
+    expect(component.regionFilterOptions().map(option => option.id)).toEqual(["europe"]);
   });
 
   it("keeps authorized drafts in a separate Firestore request", async () => {
@@ -704,6 +762,9 @@ describe("EventsPageComponent", () => {
       searchResult: initialResult,
     });
     await flushResources();
+
+    // Read the lazy linked signal as the rendered calendar would.
+    expect(component.discoveryResult()).toBe(initialResult);
 
     let resolveRefresh!: (result: EventDiscoverySearchResult) => void;
     searchService.searchAllEventDiscovery.mockReturnValueOnce(

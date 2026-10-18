@@ -374,36 +374,63 @@ export class EventsPageComponent {
       this.events(),
     ),
   );
-  private readonly currentFacetSeriesIds = computed(() => [
-    ...new Set([
-      ...(this.filterDiscoveryResult()?.facets.series.map(
-        (facet) => facet.value,
-      ) ?? []),
-      ...this.selectedSeriesIds(),
-      ...(this.filterDiscoveryResult()?.items.flatMap(
-        (event) => event.seriesIds,
-      ) ?? []),
-      ...this.invalidEvents().flatMap((event) => event.seriesIds),
-    ]),
-  ]);
-  // Filtered search facets omit zero-count series. Keep discovered choices
-  // within the same browsing scope so selecting a chip cannot erase its peers.
-  readonly facetSeriesIds = linkedSignal({
-    source: () => ({
-      ids: this.currentFacetSeriesIds(),
-      filtered: !!(this.selectedCategories().length || this.selectedSeriesIds().length ||
-        this.selectedListingTiers().length || this.selectedRegions().length),
-      scope: JSON.stringify([this.query(), this.discoveryAreaKeys(), this.view(), this.period(), this.month()]),
+  // Chip visibility and counts are independent of selections and pagination. The continuous
+  // calendar can browse any month, so its pool includes all dates.
+  readonly availableFiltersResource = resource({
+    params: () => ({
+      query: this.query(),
+      areaKeys: this.discoveryAreaKeys(),
+      period: this.view() === "list" ? this.period() : null,
     }),
-    computation: (source, previous): string[] => [...new Set([
-      ...(source.filtered && previous?.source.scope === source.scope ? previous.value : []),
-      ...source.ids,
-    ])],
+    loader: async ({ params, abortSignal }) => {
+      const screenshot = this._screenshotDiscovery({
+        ...params,
+        period: params.period ?? "upcoming",
+        view: "list",
+        month: "",
+        limit: Number.POSITIVE_INFINITY,
+        categories: [], listingTiers: [], regionKeys: [], seriesIds: [],
+      }, params.period === null);
+      if (screenshot) return screenshot.facets;
+
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      const result = await this._search.searchEventDiscovery({
+        query: params.query,
+        areaKeys: params.areaKeys,
+        ...(params.period === "past" ? { endsBeforeSeconds: nowSeconds }
+          : params.period === "upcoming" ? { endsAfterSeconds: nowSeconds } : {}),
+        // Typesense facets cover every match, even when only one hit is fetched.
+        perPage: 1,
+        abortSignal,
+      });
+      return result.facets;
+    },
   });
+  private readonly availableFacets = computed(() =>
+    this.availableFiltersResource.hasValue()
+      ? this.availableFiltersResource.value() : this.filterDiscoveryResult()?.facets,
+  );
+  readonly facetSeriesIds = computed(() => [...new Set([
+    ...(this.availableFacets()?.series.filter(facet => facet.count > 0)
+      .map(facet => facet.value) ?? []),
+    ...this.selectedSeriesIds(),
+  ])]);
+
+  private filterIsAvailable(
+    facets: EventDiscoveryFacets[keyof EventDiscoveryFacets] | undefined,
+    id: string,
+    selected: readonly string[],
+  ): boolean {
+    // Keep an active URL/filter choice removable even if its events disappeared.
+    return selected.includes(id) || !!facets?.some(facet => facet.value === id && facet.count > 0);
+  }
 
   readonly seriesResource = resource({
     params: () => {
-      const ids = this.facetSeriesIds();
+      const ids = [...new Set([
+        ...this.facetSeriesIds(),
+        ...this.invalidEvents().flatMap(event => event.seriesIds),
+      ])];
       return ids.length > 0 ? ids : undefined;
     },
     loader: async ({ params }) =>
@@ -415,12 +442,14 @@ export class EventsPageComponent {
 
   readonly categoryFilterOptions = computed<EventCategoryFilterOption[]>(() => {
     const counts = new Map(
-      (this.filterDiscoveryResult()?.facets.categories ?? []).map((facet) => [
+      (this.availableFacets()?.categories ?? []).map((facet) => [
         facet.value,
         facet.count,
       ]),
     );
-    return EVENT_CATEGORY_FILTERS.map((category) => ({
+    return EVENT_CATEGORY_FILTERS.filter(category => this.filterIsAvailable(
+      this.availableFacets()?.categories, category, this.selectedCategories(),
+    )).map((category) => ({
       id: category,
       icon: categoryIcon(category),
       label: categoryLabel(category),
@@ -430,7 +459,7 @@ export class EventsPageComponent {
 
   readonly seriesFilterOptions = computed<EventSeriesFilterOption[]>(() => {
     const counts = new Map(
-      (this.filterDiscoveryResult()?.facets.series ?? []).map((facet) => [
+      (this.availableFacets()?.series ?? []).map((facet) => [
         facet.value,
         facet.count,
       ]),
@@ -451,11 +480,11 @@ export class EventsPageComponent {
   readonly listingTierFilterOptions = computed<EventListingTierFilterOption[]>(
     () => {
       const counts = new Map(
-        (this.filterDiscoveryResult()?.facets.listingTiers ?? []).map(
+        (this.availableFacets()?.listingTiers ?? []).map(
           (facet) => [facet.value, facet.count],
         ),
       );
-      return [
+      const options: EventListingTierFilterOption[] = [
         {
           id: "formal",
           label: $localize`:@@events.listing_tier_event:Events`,
@@ -467,17 +496,22 @@ export class EventsPageComponent {
           count: counts.get("community") ?? 0,
         },
       ];
+      return options.filter(option => this.filterIsAvailable(
+        this.availableFacets()?.listingTiers, option.id, this.selectedListingTiers(),
+      ));
     },
   );
 
   readonly regionFilterOptions = computed<EventRegionFilterOption[]>(() => {
     const counts = new Map(
-      (this.filterDiscoveryResult()?.facets.regions ?? []).map((facet) => [
+      (this.availableFacets()?.regions ?? []).map((facet) => [
         facet.value,
         facet.count,
       ]),
     );
-    return EVENT_REGION_FILTERS.map((region) => ({
+    return EVENT_REGION_FILTERS.filter(region => this.filterIsAvailable(
+      this.availableFacets()?.regions, region, this.selectedRegions(),
+    )).map((region) => ({
       id: region,
       label: regionLabel(region),
       count: counts.get(region) ?? 0,
@@ -700,6 +734,7 @@ export class EventsPageComponent {
 
   retry(): void {
     this.discoveryResource.reload();
+    this.availableFiltersResource.reload();
   }
 
   openInvalidEventsDialog(): void {
@@ -820,6 +855,7 @@ export class EventsPageComponent {
 
   private _screenshotDiscovery(
     request: DiscoveryRequest,
+    allDates = false,
   ): EventDiscoverySearchResult | null {
     const fixture = this._screenshotEventIndex();
     if (!fixture) return null;
@@ -897,6 +933,7 @@ export class EventsPageComponent {
         ) {
           return false;
         }
+        if (allDates) return true;
         if (range) {
           return (
             event.startSeconds <= range.queryEndSeconds &&
