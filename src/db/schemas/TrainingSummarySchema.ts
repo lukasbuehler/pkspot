@@ -55,9 +55,10 @@ export interface TrainingSpotSchema {
 }
 
 /**
- * `spot_legend_tallies/{month}_{spotId}_{uid}`: server-only. It is used only
- * to tell each person their own private rank at a Spot; no client can read it
- * and no response ever names or counts other people.
+ * `spot_legend_tallies/{month}_{spotId}_{uid}`: server-only working data for
+ * the nightly rank job. No client can read it. Tallies exist only for months
+ * that are still open and are deleted once the month's final ranks are
+ * published into each person's own `training_ranks` document.
  */
 export interface SpotLegendTallySchema {
   uid: string;
@@ -65,29 +66,47 @@ export interface SpotLegendTallySchema {
   month: string;
   verified_days: number;
   last_ms: number;
+  /** What the nightly job last published for this person, to skip unchanged writes. */
+  published?: string;
 }
 
-export interface GetMySpotRanksRequest {
-  /** Defaults to the caller's current month in `timeZone`. */
-  month?: string;
-  timeZone?: string;
-  /** At most 10 Spots. Defaults to the caller's Spots in that month. */
-  spotIds?: string[];
+/**
+ * - `ranked`: enough people checked in at the Spot this month to rank.
+ * - `too_few_people`: the person qualifies, but fewer than
+ *   `RANK_MIN_ACCOUNTS` people checked in there, so no rank is shown.
+ */
+export type TrainingRankStatus = "ranked" | "too_few_people";
+
+/** One Spot in `training_ranks`. */
+export interface TrainingRankSpotSchema {
+  status: TrainingRankStatus;
+  /** The person's verified days when the rank was computed. */
+  verified_days: number;
+  /**
+   * Olympic-style: people with more verified days plus one. Two people tied
+   * for first are both 1 and the next person is 3.
+   */
+  rank?: number;
+  /** Other accounts sharing this rank. */
+  tied_with?: number;
+  /** First place this month. */
+  legend?: boolean;
 }
 
-export interface MySpotRank {
-  spotId: string;
+/**
+ * `users/{uid}/training_ranks/{YYYY-MM}`: the person's own monthly Spot ranks,
+ * published by the server once a night. Ranks are delayed on purpose so a
+ * change cannot reveal when someone else trained. The document stays as the
+ * person's rank history after the month is final; nobody else can read it.
+ */
+export interface TrainingRanksSchema {
+  version: 1;
   month: string;
-  verifiedDays: number;
-  /** 1 is the top. People with the same number of days share a rank. */
-  rank: number;
-  /** Rank 1 with enough verified days to count as this month's legend. */
-  legend: boolean;
-}
-
-export interface GetMySpotRanksResponse {
-  month: string;
-  ranks: MySpotRank[];
+  /** Spots where the person has at least `RANK_MIN_VERIFIED_DAYS` verified days. */
+  spots: Record<string, TrainingRankSpotSchema>;
+  /** True once the month is over and its ranks no longer change. */
+  final: boolean;
+  computed_at_raw_ms: number;
 }
 
 export interface SetCheckInSessionDurationRequest {

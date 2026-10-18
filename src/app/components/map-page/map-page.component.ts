@@ -2586,12 +2586,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const { north, south, east, west } = viewport.bbox;
-    const spotCountries = this.visibleSpots.filter((spot) => {
+    const spotEvidence = this.visibleSpots.flatMap((spot) => {
       const { lat, lng } = spot.location();
-      return lat >= south && lat <= north &&
+      const countryCode = spot.address()?.country?.code;
+      const inView = lat >= south && lat <= north &&
         (west <= east ? lng >= west && lng <= east : lng >= west || lng <= east);
-    }).map((spot) => spot.address()?.country?.code ?? "");
-    return relevantMapCommunities([...visibleByKey.values()], viewport, spotCountries);
+      return inView && countryCode ? [{ countryCode, lat, lng }] : [];
+    });
+    return relevantMapCommunities([...visibleByKey.values()], viewport, spotEvidence);
   }
 
   private _visibleCommunitiesFromLoadedList(
@@ -3893,6 +3895,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.customFilterParams.set(null);
         this.filterChipChanged("");
         return;
+      }
+
+      // Like a filter chip, a changed filter applies to the current area and
+      // closes an open community. Confirming unchanged filters keeps it open.
+      if (!this._areFilterParamsEqual(result, editableState.params)) {
+        this.closeCommunityPanel();
       }
 
       const matchingPreset = this._getMatchingPresetFilter(result);

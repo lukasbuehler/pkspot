@@ -230,7 +230,7 @@ function createComponent(
         provide: TrainingSummaryService,
         useValue: {
           listMyMonths: vi.fn().mockResolvedValue([]),
-          getMySpotRanks: vi.fn().mockResolvedValue({ month: "", ranks: [] }),
+          getMyRanks: vi.fn().mockResolvedValue(null),
         },
       },
       { provide: MatDialog, useValue: { open: vi.fn() } },

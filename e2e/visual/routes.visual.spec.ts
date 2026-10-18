@@ -2059,8 +2059,13 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
           ];
           // Private monthly rank for the verified check-in Spot (only ever shown to its owner).
           screenshotWindow.__PKSPOT_SCREENSHOT_SPOT_RANKS__ = {
+            version: 1,
             month: "2026-08",
-            ranks: [{ spotId: "sihlcity-steps", month: "2026-08", verifiedDays: 1, rank: 2, legend: false }],
+            final: false,
+            computed_at_raw_ms: august(20, 3),
+            spots: {
+              "sihlcity-steps": { status: "ranked", verified_days: 2, rank: 2, tied_with: 0, legend: false },
+            },
           };
           screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__ = [
             {

@@ -5,18 +5,19 @@ import {onSchedule} from "firebase-functions/v2/scheduler";
 import type {
   BackfillTrainingSummariesRequest,
   BackfillTrainingSummariesResponse,
-  GetMySpotRanksRequest,
-  GetMySpotRanksResponse,
-  MySpotRank,
+  SpotLegendTallySchema,
   TrainingMonthSchema,
+  TrainingRanksSchema,
 } from "../../src/db/schemas/TrainingSummarySchema";
 import {
-  LEGEND_MIN_VERIFIED_DAYS,
+  RANK_MIN_VERIFIED_DAYS,
   buildTrainingMonthSummary,
   buildTrainingSpotSummary,
   legendTallyId,
   legendTalliesForMonth,
   localDateKey,
+  openRankMonths,
+  rankSpotTallies,
   sessionMonthKey,
   shiftMonth,
   type TrainingSummarySession,
@@ -28,12 +29,16 @@ import {deleteCheckInForUser} from "./checkInFunctions";
  *
  * - `users/{uid}/training_months/{YYYY-MM}` and `users/{uid}/training_spots/{spotId}`
  *   are owner-readable, server-written views of the person's own history.
- * - `spot_legend_tallies` is server-only. It holds verified-day counts per
- *   person, Spot and month so `getMySpotRanks` can tell each person their own
- *   rank. No response names, lists or counts other people.
+ * - `spot_legend_tallies` is server-only working data: verified-day counts per
+ *   person, Spot and open month.
+ * - `users/{uid}/training_ranks/{YYYY-MM}` holds the person's own ranks. A
+ *   nightly job publishes them so a rank change cannot reveal when someone
+ *   else trained, and only when at least three people checked in at the Spot.
+ *   Once a month is over its ranks become final, stay in the person's own
+ *   document as history, and the month's tallies are deleted.
  *
- * Everything is recomputed from `session_records`, so deleting a check-in or a
- * session removes it from every summary and rank.
+ * Summaries are recomputed from `session_records` on every write, so deleting
+ * a check-in removes it from the summaries, tallies and published ranks.
  */
 
 const db = () => admin.firestore();
@@ -47,8 +52,9 @@ const HOUR_MS = 60 * 60 * 1_000;
 const MONTH_MARGIN_MS = 15 * HOUR_MS;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/u;
 const SPOT_ID_PATTERN = /^(?!\.{1,2}$)[^/]{1,150}$/u;
-const MAX_RANKED_SPOTS = 10;
 const TALLY_COLLECTION = "spot_legend_tallies";
+/** Months, the grace period and the nightly run follow this zone. */
+const RANK_TIME_ZONE = "Europe/Zurich";
 
 type RecordValue = Record<string, unknown>;
 
@@ -128,14 +134,17 @@ export async function rebuildTrainingMonths(
   options: {purge?: boolean} = {},
 ): Promise<number> {
   const touchedSpots = new Set<string>();
+  const openMonths = new Set(openRankMonths(localDateKey(Date.now(), RANK_TIME_ZONE)));
   let written = 0;
   for (const month of new Set(months)) {
     if (!MONTH_PATTERN.test(month)) continue;
     const monthRef = db().doc(`users/${uid}/training_months/${month}`);
+    const ranksRef = db().doc(`users/${uid}/training_ranks/${month}`);
     const {start, end} = monthWindow(month);
     const spots = await db().runTransaction(async (transaction) => {
-      const [previousSnapshot, sessionsSnapshot] = await Promise.all([
+      const [previousSnapshot, ranksSnapshot, sessionsSnapshot] = await Promise.all([
         transaction.get(monthRef),
+        transaction.get(ranksRef),
         options.purge
           ? Promise.resolve(null)
           : transaction.get(
@@ -159,12 +168,27 @@ export async function rebuildTrainingMonths(
       if (summary) transaction.set(monthRef, summary);
       else if (previousSnapshot.exists) transaction.delete(monthRef);
 
-      const tallies = new Map(legendTalliesForMonth(uid, summary).map((tally) => [tally.spot_id, tally]));
-      for (const spotId of affected) {
-        const tallyRef = db().doc(`${TALLY_COLLECTION}/${legendTallyId(month, spotId, uid)}`);
-        const tally = tallies.get(spotId);
-        if (tally) transaction.set(tallyRef, tally);
-        else transaction.delete(tallyRef);
+      // Closed months keep their final ranks; only open months have tallies.
+      if (openMonths.has(month)) {
+        const tallies = new Map(legendTalliesForMonth(uid, summary).map((tally) => [tally.spot_id, tally]));
+        for (const spotId of affected) {
+          const tallyRef = db().doc(`${TALLY_COLLECTION}/${legendTallyId(month, spotId, uid)}`);
+          const tally = tallies.get(spotId);
+          if (tally) transaction.set(tallyRef, tally);
+          else transaction.delete(tallyRef);
+        }
+      }
+
+      // Removing your own visits withdraws a published rank right away. New
+      // ranks still wait for the nightly job.
+      const ranks = ranksSnapshot.data() as TrainingRanksSchema | undefined;
+      if (ranks) {
+        const kept = Object.fromEntries(Object.entries(ranks.spots ?? {}).filter(([spotId]) =>
+          (summary?.spots[spotId]?.verified_days ?? 0) >= RANK_MIN_VERIFIED_DAYS));
+        if (Object.keys(kept).length === 0) transaction.delete(ranksRef);
+        else if (Object.keys(kept).length !== Object.keys(ranks.spots ?? {}).length) {
+          transaction.set(ranksRef, {...ranks, spots: kept});
+        }
       }
       return affected;
     });
@@ -224,88 +248,92 @@ export const onSessionRecordWrittenUpdateTrainingSummary = onDocumentWritten(
   },
 );
 
-const parseTimeZone = (value: unknown): string | undefined => {
-  const timeZone = stringValue(value);
-  if (!timeZone || timeZone.length > 100) return undefined;
-  try {
-    new Intl.DateTimeFormat("en", {timeZone});
-    return timeZone;
-  } catch {
-    return undefined;
-  }
-};
+/**
+ * Publishes every open month's ranks into each person's `training_ranks`
+ * document. Only changed entries are written. When a month's grace period is
+ * over, its ranks are published one last time as final and its tallies deleted.
+ */
+export async function publishSpotRanks(nowMs = Date.now()): Promise<{
+  tallies: number;
+  written: number;
+  finalized: string[];
+}> {
+  const today = localDateKey(nowMs, RANK_TIME_ZONE);
+  const open = openRankMonths(today);
+  const previous = shiftMonth(today.slice(0, 7), -1);
+  const months = open.includes(previous) ? open : [previous, ...open];
+  const result = {tallies: 0, written: 0, finalized: [] as string[]};
 
-export const getMySpotRanks = onCall(
-  CALLABLE_OPTIONS,
-  async (request): Promise<GetMySpotRanksResponse> => {
-    const uid = request.auth?.uid;
-    if (!uid) throw new HttpsError("unauthenticated", "Sign in to see your Spot ranks.");
-    const input = (isRecord(request.data) ? request.data : {}) as GetMySpotRanksRequest;
-    const timeZone = parseTimeZone(input.timeZone) ?? "UTC";
-    const currentMonth = localDateKey(Date.now(), timeZone).slice(0, 7);
-    const month = input.month ?? currentMonth;
-    // Tallies are kept for this month and last month only.
-    if (!MONTH_PATTERN.test(month) || (month !== currentMonth && month !== shiftMonth(currentMonth, -1))) {
-      throw new HttpsError("invalid-argument", "Ranks are available for this month and last month.");
-    }
+  for (const month of months) {
+    const snapshot = await db().collection(TALLY_COLLECTION).where("month", "==", month).get();
+    if (snapshot.empty) continue;
+    const final = !open.includes(month);
+    result.tallies += snapshot.size;
 
-    let spotIds: string[];
-    if (input.spotIds !== undefined) {
-      if (!Array.isArray(input.spotIds) || input.spotIds.length > MAX_RANKED_SPOTS ||
-        !input.spotIds.every((spotId) => typeof spotId === "string" && SPOT_ID_PATTERN.test(spotId))) {
-        throw new HttpsError("invalid-argument", `Request at most ${MAX_RANKED_SPOTS} valid Spots.`);
-      }
-      spotIds = [...new Set(input.spotIds)];
-    } else {
-      const summary = (await db().doc(`users/${uid}/training_months/${month}`).get()).data() as
-        TrainingMonthSchema | undefined;
-      spotIds = Object.entries(summary?.spots ?? {})
-        .filter(([, spot]) => spot.verified_days > 0)
-        .sort(([, left], [, right]) => right.verified_days - left.verified_days)
-        .slice(0, MAX_RANKED_SPOTS)
-        .map(([spotId]) => spotId);
-    }
+    const bySpot = new Map<string, FirebaseFirestore.QueryDocumentSnapshot[]>();
+    snapshot.docs.forEach((document) => {
+      const spotId = stringValue(document.data()["spot_id"]);
+      if (spotId) bySpot.set(spotId, [...(bySpot.get(spotId) ?? []), document]);
+    });
 
-    const ranks: MySpotRank[] = [];
-    for (const spotId of spotIds) {
-      const mine = await db().doc(`${TALLY_COLLECTION}/${legendTallyId(month, spotId, uid)}`).get();
-      const verifiedDays = numberValue(mine.data()?.["verified_days"]) ?? 0;
-      if (verifiedDays < 1) continue;
-      const ahead = await db().collection(TALLY_COLLECTION)
-        .where("spot_id", "==", spotId)
-        .where("month", "==", month)
-        .where("verified_days", ">", verifiedDays)
-        .count()
-        .get();
-      const rank = ahead.data().count + 1;
-      ranks.push({
-        spotId,
-        month,
-        verifiedDays,
-        rank,
-        legend: rank === 1 && verifiedDays >= LEGEND_MIN_VERIFIED_DAYS,
+    const updates = new Map<string, Record<string, unknown>>();
+    const writer = db().bulkWriter();
+    // A tally deleted by a concurrent session write needs no marker.
+    writer.onWriteError((error) => error.code !== 5 && error.failedAttempts < 3);
+    for (const [spotId, documents] of bySpot) {
+      const tallies = documents.map((document) => document.data() as SpotLegendTallySchema);
+      const ranks = rankSpotTallies(tallies);
+      documents.forEach((document, index) => {
+        const tally = tallies[index];
+        const entry = ranks.get(tally.uid);
+        const published = entry ? JSON.stringify(entry) : "";
+        if (!final && (tally.published ?? "") === published) return;
+        if (!final) void writer.update(document.ref, {published});
+        if (!entry && !tally.published) return;
+        const spots = updates.get(tally.uid) ?? {};
+        // Merge writes would keep a previous entry's rank fields, so clear them.
+        const remove = admin.firestore.FieldValue.delete();
+        spots[spotId] = entry ? {rank: remove, tied_with: remove, legend: remove, ...entry} : remove;
+        updates.set(tally.uid, spots);
       });
     }
-    return {month, ranks: ranks.sort((left, right) => left.rank - right.rank || right.verifiedDays - left.verifiedDays)};
-  },
-);
-
-/** Keeps only this month's and last month's tallies. */
-export const pruneSpotLegendTallies = onSchedule(
-  {schedule: "15 4 * * *", timeZone: "Europe/Zurich"},
-  async (): Promise<void> => {
-    const keepFrom = shiftMonth(new Date().toISOString().slice(0, 7), -2);
-    while (true) {
-      const expired = await db().collection(TALLY_COLLECTION)
-        .where("month", "<", keepFrom)
-        .limit(400)
-        .get();
-      if (expired.empty) return;
-      const batch = db().batch();
-      expired.docs.forEach((document) => batch.delete(document.ref));
-      await batch.commit();
-      if (expired.size < 400) return;
+    for (const [uid, spots] of updates) {
+      void writer.set(db().doc(`users/${uid}/training_ranks/${month}`), {
+        version: 1,
+        month,
+        final,
+        computed_at_raw_ms: nowMs,
+        spots,
+      }, {merge: true});
     }
+    await writer.close();
+    result.written += updates.size;
+
+    if (final) {
+      await deleteInBatches(db().collection(TALLY_COLLECTION).where("month", "==", month));
+      result.finalized.push(month);
+    }
+  }
+  return result;
+}
+
+async function deleteInBatches(query: FirebaseFirestore.Query): Promise<void> {
+  while (true) {
+    const page = await query.limit(400).get();
+    if (page.empty) return;
+    const batch = db().batch();
+    page.docs.forEach((document) => batch.delete(document.ref));
+    await batch.commit();
+    if (page.size < 400) return;
+  }
+}
+
+/** Ranks are updated at the end of each day, never right after a check-in. */
+export const publishSpotRanksNightly = onSchedule(
+  {schedule: "30 3 * * *", timeZone: RANK_TIME_ZONE, timeoutSeconds: 540, memory: "512MiB"},
+  async (): Promise<void> => {
+    const result = await publishSpotRanks();
+    console.info("publishSpotRanks", result);
   },
 );
 
@@ -313,14 +341,8 @@ export const pruneSpotLegendTallies = onSchedule(
 export async function deleteTrainingSummariesForUser(uid: string): Promise<void> {
   await db().recursiveDelete(db().collection(`users/${uid}/training_months`));
   await db().recursiveDelete(db().collection(`users/${uid}/training_spots`));
-  while (true) {
-    const tallies = await db().collection(TALLY_COLLECTION).where("uid", "==", uid).limit(400).get();
-    if (tallies.empty) return;
-    const batch = db().batch();
-    tallies.docs.forEach((document) => batch.delete(document.ref));
-    await batch.commit();
-    if (tallies.size < 400) return;
-  }
+  await db().recursiveDelete(db().collection(`users/${uid}/training_ranks`));
+  await deleteInBatches(db().collection(TALLY_COLLECTION).where("uid", "==", uid));
 }
 
 /** Private training subcollections removed with the account. */

@@ -6,10 +6,11 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { SpotPersonalStatsComponent } from "./spot-personal-stats.component";
 
-function render(uid: string | null, spot: unknown, rank: unknown = null) {
+function render(uid: string | null, spot: unknown, rank: unknown = null, verifiedDays = 0) {
   const summaries = {
     getMySpot: vi.fn().mockResolvedValue(spot),
-    getMySpotRanks: vi.fn().mockResolvedValue({ month: "2026-10", ranks: rank ? [rank] : [] }),
+    getMyMonth: vi.fn().mockResolvedValue({ spots: { river: { verified_days: verifiedDays } } }),
+    getMyRanks: vi.fn().mockResolvedValue(rank ? { month: "2026-10", final: false, spots: { river: rank } } : null),
   };
   TestBed.configureTestingModule({
     providers: [
@@ -31,18 +32,44 @@ const spot = {
 
 describe("SpotPersonalStatsComponent", () => {
   it("shows the signed-in person's own visits and private rank", async () => {
-    const { fixture, summaries } = render("me", spot, { spotId: "river", month: "2026-10", verifiedDays: 4, rank: 2, legend: false });
+    const { fixture } = render("me", spot, { status: "ranked", verified_days: 4, rank: 2, tied_with: 1, legend: false }, 4);
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector(".spot-personal-stats")).not.toBeNull();
     });
     const text = fixture.nativeElement.textContent as string;
-    expect(summaries.getMySpotRanks).toHaveBeenCalledWith({ spotIds: ["river"] });
     expect(text).toContain("7");
     expect(text).toContain("9h");
     expect(text).toContain("#2 at this Spot");
+    expect(text).toContain("Tied with 1 other person");
+    expect(text).toContain("4 days this month");
+    expect(text).toContain("update at the end of each day");
     expect(fixture.nativeElement.querySelector("app-spot-rank-icon mat-icon")?.textContent).toContain("military_tech");
     expect(text).toContain("Only you");
+  });
+
+  it("explains why there is no rank yet and still shows the person's days", async () => {
+    const tooFew = render("me", spot, { status: "too_few_people", verified_days: 3 }, 3);
+    await vi.waitFor(() => {
+      tooFew.fixture.detectChanges();
+      expect(tooFew.fixture.nativeElement.textContent).toContain("Not enough people for a local legend yet");
+    });
+    expect(tooFew.fixture.nativeElement.textContent).toContain("Bring some friends");
+    expect(tooFew.fixture.nativeElement.textContent).toContain("3 days this month");
+
+    TestBed.resetTestingModule();
+    const oneDay = render("me", spot, null, 1);
+    await vi.waitFor(() => {
+      oneDay.fixture.detectChanges();
+      expect(oneDay.fixture.nativeElement.textContent).toContain("1 more verified day to get ranked");
+    });
+
+    TestBed.resetTestingModule();
+    const pending = render("me", spot, null, 2);
+    await vi.waitFor(() => {
+      pending.fixture.detectChanges();
+      expect(pending.fixture.nativeElement.textContent).toContain("ranked after tonight's update");
+    });
   });
 
   it("stays hidden when signed out or without visits", async () => {

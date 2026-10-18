@@ -245,9 +245,8 @@ export {
 } from "./checkInFunctions";
 export {
   backfillTrainingSummaries,
-  getMySpotRanks,
   onSessionRecordWrittenUpdateTrainingSummary,
-  pruneSpotLegendTallies,
+  publishSpotRanksNightly,
 } from "./trainingSummaryFunctions";
 export {
   beginAgeAssuranceV3,

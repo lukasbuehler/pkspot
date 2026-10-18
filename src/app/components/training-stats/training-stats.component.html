@@ -75,10 +75,12 @@
                 }
               </span>
               <span matListItemLine>{{ spot.detail }}</span>
-              @if (spot.rank; as rank) {
+              @if (spot.rankLabel) {
                 <span matListItemLine>
                   <span class="stats-spot__rank">
-                    <app-spot-rank-icon [rank]="rank.rank" />
+                    @if (spot.rank) {
+                      <app-spot-rank-icon [rank]="spot.rank" />
+                    }
                     {{ spot.rankLabel }}
                   </span>
                 </span>
@@ -96,7 +98,7 @@
           </button>
         }
         @if (period() === "month" && anchor() === currentMonth) {
-          <p class="training-stats__note" i18n="@@trainingStats.rankNote">Ranks compare verified check-in days at each Spot this month. Only you can see your rank.</p>
+          <p class="training-stats__note" i18n="@@trainingStats.rankNote">Ranks compare days with a verified check-in at each Spot this month, once at least three people checked in. They update at the end of each day. Only you can see yours.</p>
         }
       </mat-card>
     }

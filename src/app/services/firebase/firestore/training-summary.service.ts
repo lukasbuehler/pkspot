@@ -1,11 +1,11 @@
 import { Injectable, inject } from "@angular/core";
+import { type Observable, of } from "rxjs";
 import type { SessionRecordDocument } from "../../../../db/schemas/SessionRecordSchema";
 import type {
-  GetMySpotRanksRequest,
-  GetMySpotRanksResponse,
   SetCheckInSessionDurationRequest,
   SetCheckInSessionDurationResponse,
   TrainingMonthSchema,
+  TrainingRanksSchema,
   TrainingSpotSchema,
 } from "../../../../db/schemas/TrainingSummarySchema";
 import {
@@ -21,13 +21,13 @@ import { SessionRecordsService } from "./session-records.service";
 
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_TRAINING_SESSIONS__?: SessionRecordDocument[];
-  __PKSPOT_SCREENSHOT_SPOT_RANKS__?: GetMySpotRanksResponse;
+  __PKSPOT_SCREENSHOT_SPOT_RANKS__?: TrainingRanksSchema;
 }
 
 /**
  * Reads the person's private training summaries and private Spot ranks. The
- * summaries are written by the server from their session records; ranks are
- * computed on request and only ever describe the caller.
+ * server writes both: summaries on every session write, ranks once a night.
+ * They are plain owner-only documents, so the Firestore cache serves repeats.
  */
 @Injectable({ providedIn: "root" })
 export class TrainingSummaryService {
@@ -65,21 +65,32 @@ export class TrainingSummaryService {
     );
   }
 
-  getMySpotRanks(request: GetMySpotRanksRequest = {}): Promise<GetMySpotRanksResponse> {
-    const fixture = (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_SPOT_RANKS__;
+  /** One month's summary, or null when the person did not train that month. */
+  async getMyMonth(month: string): Promise<TrainingMonthSchema | null> {
+    const fixture = this.fixtureSessions();
     if (fixture) {
-      const requested = request.spotIds ? new Set(request.spotIds) : null;
-      return Promise.resolve({
-        ...fixture,
-        ranks: fixture.ranks.filter((rank) => !requested || requested.has(rank.spotId)),
-      });
+      return TrainingSummaryService.deriveMonths(fixture).find((item) => item.month === month) ?? null;
     }
-    if (this.fixtureSessions()) return Promise.resolve({ month: "", ranks: [] });
-    return this.telemetry.run("training_summary", "getMySpotRanks", () =>
-      this.functions.callAuthenticatedAppChecked<GetMySpotRanksRequest, GetMySpotRanksResponse>(
-        "getMySpotRanks",
-        { timeZone: systemTimeZone(), ...request },
-      ),
+    return this.firestore.getDocument<TrainingMonthSchema>(
+      `users/${this.requireUserId()}/training_months/${month}`,
+    );
+  }
+
+  /** Follows one month's summary, so a fresh check-in shows up once the server counted it. */
+  watchMyMonth(month: string): Observable<TrainingMonthSchema | null> {
+    if (this.fixtureSessions()) return of(null);
+    return this.firestore.documentSnapshots<TrainingMonthSchema>(
+      `users/${this.requireUserId()}/training_months/${month}`,
+    );
+  }
+
+  /** The person's own published Spot ranks for a month. */
+  async getMyRanks(month: string): Promise<TrainingRanksSchema | null> {
+    const fixture = (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_SPOT_RANKS__;
+    if (fixture) return fixture.month === month ? fixture : null;
+    if (this.fixtureSessions()) return null;
+    return this.firestore.getDocument<TrainingRanksSchema>(
+      `users/${this.requireUserId()}/training_ranks/${month}`,
     );
   }
 
@@ -120,8 +131,4 @@ export class TrainingSummaryService {
     if (!uid) throw new Error("Sign in to see your training statistics.");
     return uid;
   }
-}
-
-function systemTimeZone(): string {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 }

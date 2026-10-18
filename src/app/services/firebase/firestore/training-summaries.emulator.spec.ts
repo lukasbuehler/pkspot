@@ -11,11 +11,10 @@ import type {
   DeleteCheckInResponse,
 } from "../../../../db/schemas/CheckInActivitySchema";
 import type {
-  GetMySpotRanksRequest,
-  GetMySpotRanksResponse,
   SetCheckInSessionDurationRequest,
   SetCheckInSessionDurationResponse,
   TrainingMonthSchema,
+  TrainingRanksSchema,
 } from "../../../../db/schemas/TrainingSummarySchema";
 import { legendTallyId, localDateKey } from "../../../../db/utils/training-summary";
 
@@ -92,7 +91,6 @@ async function signedInClient() {
       functions,
       "setCheckInSessionDuration",
     ),
-    ranks: httpsCallable<GetMySpotRanksRequest, GetMySpotRanksResponse>(functions, "getMySpotRanks"),
   };
 }
 
@@ -186,16 +184,17 @@ runWithEmulator("private training summaries and Spot ranks", () => {
     ).toBe(false);
   }, 120_000);
 
-  it("tells each person only their own monthly rank, counting verified days", async () => {
+  it("keeps published ranks private and withdraws them when the owner removes visits", async () => {
     const regular = await signedInClient();
-    const newcomer = await signedInClient();
     const spotId = `rank-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     await seedSpot(spotId);
 
-    // The regular has three verified days this month, written as server data.
+    // Two verified days this month, written as server data.
     const today = Date.now();
     const days = [0, 1, 2].map((offset) => today - offset * 26 * 3_600_000)
-      .filter((time) => localDateKey(time, TIME_ZONE).startsWith(currentMonth()));
+      .filter((time) => localDateKey(time, TIME_ZONE).startsWith(currentMonth()))
+      .slice(0, 2);
+    if (days.length < 2) return; // The first day of a month has only one local day.
     await Promise.all(days.map((time, index) =>
       db().doc(`users/${regular.uid}/session_records/seeded-${index}`).set({
         owner_id: regular.uid,
@@ -208,28 +207,30 @@ runWithEmulator("private training summaries and Spot ranks", () => {
       })));
     await eventually(
       async () => (await monthDoc(regular.uid).get()).data() as TrainingMonthSchema | undefined,
-      (value) => value?.spots[spotId]?.verified_days === days.length,
+      (value) => value?.spots[spotId]?.verified_days === 2,
     );
+    const tally = await db().doc(`spot_legend_tallies/${legendTallyId(currentMonth(), spotId, regular.uid)}`).get();
+    expect(tally.data()).toMatchObject({ verified_days: 2, spot_id: spotId });
 
-    await newcomer.confirm(checkInRequest(spotId));
-    await eventually(
-      async () => (await monthDoc(newcomer.uid).get()).data() as TrainingMonthSchema | undefined,
-      (value) => value?.spots[spotId]?.verified_days === 1,
-    );
+    // Ranks are never written by the session trigger; the nightly job publishes them.
+    const ranksPath = `users/${regular.uid}/training_ranks/${currentMonth()}`;
+    expect((await db().doc(ranksPath).get()).exists).toBe(false);
+    const published: TrainingRanksSchema = {
+      version: 1,
+      month: currentMonth(),
+      final: false,
+      computed_at_raw_ms: today,
+      spots: { [spotId]: { status: "ranked", verified_days: 2, rank: 1, tied_with: 0, legend: true } },
+    };
+    await db().doc(ranksPath).set(published);
 
-    const newcomerRanks = (await newcomer.ranks({ timeZone: TIME_ZONE })).data;
-    const regularRanks = (await regular.ranks({ timeZone: TIME_ZONE, spotIds: [spotId] })).data;
-    const expectedNewcomerRank = days.length > 1 ? 2 : 1;
-    expect(newcomerRanks.ranks).toEqual([
-      { spotId, month: currentMonth(), verifiedDays: 1, rank: expectedNewcomerRank, legend: false },
-    ]);
-    expect(regularRanks.ranks).toEqual([
-      expect.objectContaining({ spotId, rank: 1, verifiedDays: days.length, legend: days.length >= 2 }),
-    ]);
-    // Responses never contain other people's identities or counts.
-    expect(JSON.stringify(newcomerRanks)).not.toContain(regular.uid);
+    const own = await getDoc(doc(regular.firestore, ranksPath));
+    expect(own.data()?.["spots"][spotId]).toMatchObject({ rank: 1 });
+    const stranger = await signedInClient();
+    await expect(getDoc(doc(stranger.firestore, ranksPath))).rejects.toMatchObject({ code: "permission-denied" });
 
-    await expect(newcomer.ranks({ month: "2020-01", timeZone: TIME_ZONE }))
-      .rejects.toMatchObject({ code: "functions/invalid-argument" });
+    // Dropping below two verified days withdraws the rank right away.
+    await db().doc(`users/${regular.uid}/session_records/seeded-1`).delete();
+    await eventually(async () => (await db().doc(ranksPath).get()).exists, (exists) => !exists);
   }, 120_000);
 });

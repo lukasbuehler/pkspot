@@ -436,7 +436,7 @@ function createComponent({
         provide: TrainingSummaryService,
         useValue: {
           listMyMonths: vi.fn(async () => TrainingSummaryService.deriveMonths(await sessions.listMine())),
-          getMySpotRanks: vi.fn().mockResolvedValue({ month: "", ranks: [] }),
+          getMyRanks: vi.fn().mockResolvedValue(null),
         },
       },
       { provide: RecoveryPausesService, useValue: recoveryPauses },

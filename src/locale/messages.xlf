@@ -2164,14 +2164,9 @@
         <source>Your first visit here</source>
       </segment>
     </unit>
-    <unit id="checkInReward.log">
+    <unit id="checkInReward.privateNightly">
       <segment>
-        <source>Log this session</source>
-      </segment>
-    </unit>
-    <unit id="checkInReward.private">
-      <segment>
-        <source>Saved privately to your training log. Verified visits count toward your monthly Spot rank, which only you can see.</source>
+        <source>Saved privately to your training log. Days with a verified check-in count toward your monthly Spot rank, which updates at the end of each day and only you can see.</source>
       </segment>
     </unit>
     <unit id="checkInReward.title">
@@ -10150,19 +10145,19 @@
         <source>Conditions and your rhythm</source>
       </segment>
     </unit>
-    <unit id="train.ranks.private">
+    <unit id="spotRank.rank">
       <segment>
-        <source>Only you can see your ranks.</source>
-      </segment>
-    </unit>
-    <unit id="train.ranks.rank">
-      <segment>
-        <source>#<ph id="0" equiv="rank" disp="rank.rank"/></source>
+        <source>#<ph id="0" equiv="rank" disp="state.rank"/></source>
       </segment>
     </unit>
     <unit id="train.ranks.title">
       <segment>
         <source>Your Spot ranks this month</source>
+      </segment>
+    </unit>
+    <unit id="train.ranks.titleLastMonth">
+      <segment>
+        <source>Your Spot ranks in <ph id="0" equiv="month" disp="name"/></source>
       </segment>
     </unit>
     <unit id="train.reflection.empty">
@@ -10555,11 +10550,6 @@
         <source>last <ph id="0" equiv="date" disp="this.dateTime.format(new Date(spot.lastMs), { day: &quot;numeric&quot;, month: &quot;short&quot; })"/></source>
       </segment>
     </unit>
-    <unit id="trainingStats.legend">
-      <segment>
-        <source>Local legend</source>
-      </segment>
-    </unit>
     <unit id="trainingStats.loadError">
       <segment>
         <source>Your statistics could not be loaded.</source>
@@ -10600,14 +10590,14 @@
         <source>Previous period</source>
       </segment>
     </unit>
-    <unit id="trainingStats.rank">
+    <unit id="spotRank.rankAtSpot">
       <segment>
-        <source>#<ph id="0" equiv="rank" disp="rank.rank"/> this month</source>
+        <source>#<ph id="0" equiv="rank" disp="state.rank"/> at this Spot</source>
       </segment>
     </unit>
     <unit id="trainingStats.rankNote">
       <segment>
-        <source>Ranks compare verified check-in days at each Spot this month. Only you can see your rank.</source>
+        <source>Ranks compare days with a verified check-in at each Spot this month, once at least three people checked in. They update at the end of each day. Only you can see yours.</source>
       </segment>
     </unit>
     <unit id="trainingStats.showAllSpots">
@@ -11865,12 +11855,52 @@
         <source>last visit</source>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.legendBody">
+    <unit id="spotRank.legendBody">
       <segment>
         <source>You trained here on more days than anyone else this month.</source>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.legendTitle">
+    <unit id="spotRank.needsDaysBody">
+      <segment>
+        <source>Ranks count days with a verified check-in. One visit doesn&apos;t make a local legend.</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.needsDaysShort">
+      <segment>
+        <source>1 more day to get ranked</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.needsDaysTitle">
+      <segment>
+        <source>1 more verified day to get ranked</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.note">
+      <segment>
+        <source>Ranks update at the end of each day. Only you can see yours.</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.oneDay">
+      <segment>
+        <source>You checked in here on 1 day this month.</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.pendingShort">
+      <segment>
+        <source>Rank after tonight&apos;s update</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.pendingTitle">
+      <segment>
+        <source>You&apos;ll be ranked after tonight&apos;s update</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.days">
+      <segment>
+        <source>You checked in here on <ph id="0" equiv="count" disp="state.verifiedDays"/> days this month.</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.legend">
       <segment>
         <source>Local legend</source>
       </segment>
@@ -11880,14 +11910,34 @@
         <source>Only you</source>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.rankBody">
+    <unit id="spotRank.rankBody">
       <segment>
         <source>Ranked by days with a verified check-in this month.</source>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.rankTitle">
+    <unit id="spotRank.tiedMany">
       <segment>
-        <source>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> at this Spot</source>
+        <source>Tied with <ph id="0" equiv="count" disp="state.tiedWith"/> other people.</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.tiedOne">
+      <segment>
+        <source>Tied with 1 other person.</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.tooFewBody">
+      <segment>
+        <source>Fewer than three people have checked in here this month. Bring some friends!</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.tooFewShort">
+      <segment>
+        <source>Too few people to rank</source>
+      </segment>
+    </unit>
+    <unit id="spotRank.tooFewTitle">
+      <segment>
+        <source>Not enough people for a local legend yet</source>
       </segment>
     </unit>
     <unit id="spotPersonalStats.since">

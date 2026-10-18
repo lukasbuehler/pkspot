@@ -31,8 +31,14 @@ import {
   monthKey,
   summarizeTrainingStreaks,
 } from "../../features/training-log-activity";
+import {
+  spotRankDetail,
+  spotRankLabel,
+  spotRankState,
+  type SpotRankState,
+} from "../../features/spot-rank";
 import type {
-  MySpotRank,
+  TrainingRanksSchema,
   TrainingMonthSchema,
 } from "../../../db/schemas/TrainingSummarySchema";
 import { shiftMonth, summarizeTrainingPeriod } from "../../../db/utils/training-summary";
@@ -111,6 +117,9 @@ const MAX_COMING_UP = 5;
 const RHYTHM_WEEKS = 1;
 const RECENT_SESSIONS = 30;
 const MAX_TOP_RANKS = 3;
+type RankedState = Extract<SpotRankState, { kind: "ranked" }>;
+/** Days into a new month during which last month's final ranks are shown. */
+const LAST_MONTH_RANK_DAYS = 7;
 const CLOCK_INTERVAL_MS = 60_000;
 
 export interface TrainingMomentView {
@@ -140,6 +149,8 @@ export interface TopRankView {
   rank: number;
   name: string;
   label: string;
+  /** "Tied with 2 others", when the rank is shared. */
+  detail: string | null;
   legend: boolean;
 }
 
@@ -230,7 +241,8 @@ export class TrainPageComponent {
   readonly trainingSessions = signal<SessionRecordDocument[]>([]);
   /** Private monthly summaries; the source for rhythm, streaks and month stats. */
   readonly trainingMonths = signal<TrainingMonthSchema[]>([]);
-  readonly spotRanks = signal<MySpotRank[]>([]);
+  /** Published ranks for this month and last month. */
+  readonly spotRanks = signal<TrainingRanksSchema[]>([]);
   readonly trainingLogs = signal<LogEntryDocument[]>([]);
   readonly recoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly trainingHistoryFailed = signal(false);
@@ -410,20 +422,48 @@ export class TrainPageComponent {
   readonly hasTrainingHistory = computed(
     () => this.trainingActivityDays().length > 0,
   );
-  /** Your best private ranks this month, with names from your own summary. */
+  /**
+   * The month whose ranks the rail shows. Early in a month, before anyone has
+   * a rank, last month's final ranks keep the card from going blank.
+   */
+  private readonly rankMonth = computed<TrainingRanksSchema | null>(() => {
+    const current = this.currentMonthKey();
+    const hasRanked = (ranks: TrainingRanksSchema | undefined) =>
+      !!ranks && Object.values(ranks.spots).some((spot) => spot.status === "ranked");
+    const ranks = this.spotRanks();
+    const now = ranks.find((item) => item.month === current);
+    if (hasRanked(now)) return now!;
+    const previous = ranks.find((item) => item.month === shiftMonth(current, -1));
+    return new Date(this.now()).getDate() <= LAST_MONTH_RANK_DAYS && hasRanked(previous) ? previous! : null;
+  });
+  readonly topRanksTitle = computed(() => {
+    const ranks = this.rankMonth();
+    if (!ranks || ranks.month === this.currentMonthKey()) {
+      return $localize`:@@train.ranks.title:Your Spot ranks this month`;
+    }
+    const [year, month] = ranks.month.split("-").map(Number);
+    const name = this.dateTime.format(new Date(year, month - 1, 15), { month: "long" });
+    return $localize`:@@train.ranks.titleLastMonth:Your Spot ranks in ${name}:month:`;
+  });
+  /** Your best private ranks, with names from your own summary. */
   readonly topRanks = computed<TopRankView[]>(() => {
-    const month = this.trainingMonths().find((item) => item.month === this.currentMonthKey());
-    return this.spotRanks()
-      .filter((rank) => rank.month === this.currentMonthKey())
+    const ranks = this.rankMonth();
+    if (!ranks) return [];
+    const summary = this.trainingMonths().find((item) => item.month === ranks.month);
+    return Object.entries(ranks.spots)
+      .flatMap(([spotId, spot]) => {
+        const state = spotRankState(ranks, spotId, spot.verified_days);
+        return state?.kind === "ranked" ? [{ spotId, state: state as RankedState }] : [];
+      })
+      .sort((left, right) => left.state.rank - right.state.rank || right.state.verifiedDays - left.state.verifiedDays)
       .slice(0, MAX_TOP_RANKS)
-      .map((rank) => ({
-        spotId: rank.spotId,
-        rank: rank.rank,
-        name: month?.spots[rank.spotId]?.name ?? $localize`:@@trainingStats.unnamedSpot:Spot`,
-        label: rank.legend
-          ? $localize`:@@trainingStats.legend:Local legend`
-          : $localize`:@@train.ranks.rank:#${rank.rank}:rank:`,
-        legend: rank.legend,
+      .map(({ spotId, state }) => ({
+        spotId,
+        rank: state.rank,
+        name: summary?.spots[spotId]?.name ?? $localize`:@@trainingStats.unnamedSpot:Spot`,
+        label: spotRankLabel(state),
+        detail: state.tiedWith > 0 ? spotRankDetail(state) : null,
+        legend: state.legend,
       }));
   });
   readonly recentEntries = computed<RecentEntryView[]>(() =>
@@ -559,7 +599,10 @@ export class TrainPageComponent {
         this.sessionsService.listMine(RECENT_SESSIONS),
         this.trainingSummaries.listMyMonths(),
         this.recoveryPausesService.listMine(),
-        this.trainingSummaries.getMySpotRanks(),
+        Promise.all([
+          this.trainingSummaries.getMyRanks(monthKey(Date.now())),
+          this.trainingSummaries.getMyRanks(shiftMonth(monthKey(Date.now()), -1)),
+        ]),
       ]);
       if (generation !== this.historyGeneration || uid !== this.auth.user.uid) return;
       if (logs.status === "fulfilled") this.trainingLogs.set(logs.value);
@@ -570,7 +613,9 @@ export class TrainPageComponent {
       }
       // Recovery pauses and ranks only refine the page; their absence is not an error.
       if (pauses.status === "fulfilled") this.recoveryPauses.set(pauses.value);
-      if (ranks.status === "fulfilled") this.spotRanks.set(ranks.value.ranks);
+      if (ranks.status === "fulfilled") {
+        this.spotRanks.set(ranks.value.filter((item): item is TrainingRanksSchema => item !== null));
+      }
       this.trainingHistoryFailed.set(
         logs.status === "rejected" ||
           sessions.status === "rejected" ||

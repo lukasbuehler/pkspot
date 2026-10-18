@@ -1,5 +1,6 @@
 import type {
   SpotLegendTallySchema,
+  TrainingRankSpotSchema,
   TrainingMonthSchema,
   TrainingMonthSpotSchema,
   TrainingSpotSchema,
@@ -11,8 +12,19 @@ import type {
  * It must stay free of Angular and Firebase imports.
  */
 
-/** Rank 1 needs at least this many verified days to be called the legend. */
-export const LEGEND_MIN_VERIFIED_DAYS = 2;
+/** One visit does not make a regular: a rank needs this many verified days in a month. */
+export const RANK_MIN_VERIFIED_DAYS = 2;
+/**
+ * Ranks are shown only when at least this many accounts checked in at a Spot
+ * that month, counting the person. With fewer, a rank would tell someone
+ * exactly how often one known other person trained there.
+ */
+export const RANK_MIN_ACCOUNTS = 3;
+/**
+ * The previous month stays open this many days into the new month so people in
+ * every time zone finish it, then its ranks become final and tallies are deleted.
+ */
+export const RANK_MONTH_GRACE_DAYS = 2;
 /** Sessions longer than this are treated as data errors, not training time. */
 const MAX_SESSION_MINUTES = 24 * 60;
 
@@ -228,6 +240,43 @@ export function legendTalliesForMonth(
       verified_days: spot.verified_days,
       last_ms: spot.last_ms,
     }));
+}
+
+/**
+ * Ranks every person at one Spot for one month. Olympic-style: rank is the
+ * number of people with more verified days plus one, so a shared first place
+ * leaves second empty. Only people with `RANK_MIN_VERIFIED_DAYS` get an entry.
+ */
+export function rankSpotTallies(
+  tallies: readonly Pick<SpotLegendTallySchema, "uid" | "verified_days">[],
+): Map<string, TrainingRankSpotSchema> {
+  const counted = tallies.filter((tally) => tally.verified_days > 0);
+  const enoughPeople = new Set(counted.map((tally) => tally.uid)).size >= RANK_MIN_ACCOUNTS;
+  const days = counted.map((tally) => tally.verified_days);
+  const ranks = new Map<string, TrainingRankSpotSchema>();
+  for (const tally of counted) {
+    if (tally.verified_days < RANK_MIN_VERIFIED_DAYS) continue;
+    if (!enoughPeople) {
+      ranks.set(tally.uid, { status: "too_few_people", verified_days: tally.verified_days });
+      continue;
+    }
+    const rank = days.filter((value) => value > tally.verified_days).length + 1;
+    ranks.set(tally.uid, {
+      status: "ranked",
+      verified_days: tally.verified_days,
+      rank,
+      tied_with: days.filter((value) => value === tally.verified_days).length - 1,
+      legend: rank === 1,
+    });
+  }
+  return ranks;
+}
+
+/** The month keys whose tallies are still open on a given Zurich-local date. */
+export function openRankMonths(today: string): string[] {
+  const month = today.slice(0, 7);
+  const day = Number(today.slice(8, 10));
+  return day <= RANK_MONTH_GRACE_DAYS ? [shiftMonth(month, -1), month] : [month];
 }
 
 export function legendTallyId(month: string, spotId: string, uid: string): string {

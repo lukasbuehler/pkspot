@@ -5,6 +5,8 @@ import {
   legendTalliesForMonth,
   localDateKey,
   monthRange,
+  openRankMonths,
+  rankSpotTallies,
   shiftMonth,
   summarizeTrainingPeriod,
   type TrainingSummarySession,
@@ -156,5 +158,32 @@ describe("training summaries", () => {
     expect(monthRange("2025-11", "2026-02")).toEqual(["2025-11", "2025-12", "2026-01", "2026-02"]);
     expect(shiftMonth("2026-01", -1)).toBe("2025-12");
     expect(shiftMonth("2026-12", 1)).toBe("2027-01");
+  });
+
+  it("ranks Olympic-style and reports how many people share a rank", () => {
+    const ranks = rankSpotTallies([
+      { uid: "a", verified_days: 6 },
+      { uid: "b", verified_days: 6 },
+      { uid: "c", verified_days: 4 },
+      { uid: "d", verified_days: 1 },
+    ]);
+    expect(ranks.get("a")).toEqual({ status: "ranked", verified_days: 6, rank: 1, tied_with: 1, legend: true });
+    expect(ranks.get("b")?.rank).toBe(1);
+    // A shared first place leaves second empty.
+    expect(ranks.get("c")).toEqual({ status: "ranked", verified_days: 4, rank: 3, tied_with: 0, legend: false });
+    // A single visit counts toward the group size but is not ranked.
+    expect(ranks.has("d")).toBe(false);
+  });
+
+  it("withholds ranks until three people checked in at the Spot", () => {
+    const ranks = rankSpotTallies([{ uid: "a", verified_days: 5 }, { uid: "b", verified_days: 3 }]);
+    expect(ranks.get("a")).toEqual({ status: "too_few_people", verified_days: 5 });
+    expect(ranks.get("b")).toEqual({ status: "too_few_people", verified_days: 3 });
+  });
+
+  it("keeps last month open for the grace days only", () => {
+    expect(openRankMonths("2026-11-01")).toEqual(["2026-10", "2026-11"]);
+    expect(openRankMonths("2026-11-02")).toEqual(["2026-10", "2026-11"]);
+    expect(openRankMonths("2026-11-03")).toEqual(["2026-11"]);
   });
 });

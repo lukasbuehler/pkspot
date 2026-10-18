@@ -1577,6 +1577,11 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      match /training_ranks/{monthId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       match /log_entries/{logEntryId} {
         // Historical audience fields never grant access. Owners retain their
         // entries without a migration; the current client saves them as private.

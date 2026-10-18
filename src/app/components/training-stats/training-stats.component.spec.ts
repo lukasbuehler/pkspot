@@ -53,13 +53,23 @@ async function render(): Promise<ComponentFixture<TrainingStatsComponent>> {
               steps: { visits: 1, name: "Sihlcity steps" },
             }, 3, 120, 2),
           ]),
-          getMySpotRanks: vi.fn().mockResolvedValue({
-            month: current,
-            ranks: [
-              { spotId: "river", month: current, verifiedDays: 3, rank: 1, legend: true },
-              { spotId: "steps", month: current, verifiedDays: 1, rank: 4, legend: false },
-            ],
-          }),
+          getMyRanks: vi.fn(async (key: string) => key === current
+            ? {
+                version: 1,
+                month: current,
+                final: false,
+                computed_at_raw_ms: 0,
+                spots: { river: { status: "ranked", verified_days: 3, rank: 1, tied_with: 1, legend: true } },
+              }
+            : key === previous
+              ? {
+                  version: 1,
+                  month: previous,
+                  final: true,
+                  computed_at_raw_ms: 0,
+                  spots: { river: { status: "too_few_people", verified_days: 2 } },
+                }
+              : null),
         },
       },
     ],
@@ -88,9 +98,19 @@ describe("TrainingStatsComponent", () => {
     expect(rows[0]).toContain("Riverside");
     expect(rows[0]).toContain("Local legend");
     expect(rows[1]).toContain("Sihlcity steps");
-    expect(rows[1]).toContain("#4 this month");
+    // One verified day: progress toward a rank, not a rank.
+    expect(rows[1]).toContain("1 more day to get ranked");
     expect(rows[1]).toContain("New");
-    expect(element.textContent).toContain("Only you can see your rank");
+    expect(element.textContent).toContain("update at the end of each day");
+  });
+
+  it("shows a past month's final ranks without live progress", async () => {
+    const fixture = await render();
+    fixture.componentInstance.step(-1);
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector(".stats-spot")!.textContent).toContain("Too few people to rank");
+    });
   });
 
   it("drops monthly ranks outside the current month and sums the year", async () => {

@@ -337,6 +337,16 @@ h2 {
   --spot-rank-icon-size: 24px;
 }
 
+// Tie details wrap instead of truncating; the row grows with them.
+.rank-list .mat-mdc-list-item:has(.rank-list__detail) {
+  height: auto;
+  padding-block: 8px;
+}
+
+.rank-list__detail {
+  white-space: normal;
+}
+
 .rank-list__label {
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-large);

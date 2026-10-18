@@ -15298,13 +15298,61 @@
         <target>ultima visita</target>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.legendBody">
+    <unit id="spotRank.legendBody">
       <segment state="translated">
         <source>You trained here on more days than anyone else this month.</source>
         <target>Questo mese ti sei allenato qui in più giorni di chiunque altro.</target>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.legendTitle">
+    <unit id="spotRank.needsDaysBody">
+      <segment state="translated">
+        <source>Ranks count days with a verified check-in. One visit doesn&apos;t make a local legend.</source>
+        <target>Le posizioni contano i giorni con un check-in verificato. Una visita non fa di te una leggenda locale.</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.needsDaysShort">
+      <segment state="translated">
+        <source>1 more day to get ranked</source>
+        <target>Ancora 1 giorno per avere una posizione</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.needsDaysTitle">
+      <segment state="translated">
+        <source>1 more verified day to get ranked</source>
+        <target>Ancora 1 giorno verificato per avere una posizione</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.note">
+      <segment state="translated">
+        <source>Ranks update at the end of each day. Only you can see yours.</source>
+        <target>Le posizioni si aggiornano alla fine di ogni giornata. Solo tu puoi vedere la tua.</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.oneDay">
+      <segment state="translated">
+        <source>You checked in here on 1 day this month.</source>
+        <target>Questo mese hai fatto check-in qui 1 giorno.</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.pendingShort">
+      <segment state="translated">
+        <source>Rank after tonight&apos;s update</source>
+        <target>Posizione dopo l&apos;aggiornamento di stanotte</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.pendingTitle">
+      <segment state="translated">
+        <source>You&apos;ll be ranked after tonight&apos;s update</source>
+        <target>Avrai una posizione dopo l&apos;aggiornamento di stanotte</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.days">
+      <segment state="translated">
+        <source>You checked in here on <ph id="0" equiv="count" disp="state.verifiedDays"/> days this month.</source>
+        <target>Questo mese hai fatto check-in qui <ph id="0" equiv="count" disp="state.verifiedDays"/> giorni.</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.legend">
       <segment state="translated">
         <source>Local legend</source>
         <target>Leggenda locale</target>
@@ -15316,16 +15364,40 @@
         <target>Solo tu</target>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.rankBody">
+    <unit id="spotRank.rankBody">
       <segment state="translated">
         <source>Ranked by days with a verified check-in this month.</source>
-        <target>Classifica per giorni con check-in verificato questo mese.</target>
+        <target>Classifica per giorni con un check-in verificato questo mese.</target>
       </segment>
     </unit>
-    <unit id="spotPersonalStats.rankTitle">
+    <unit id="spotRank.tiedMany">
       <segment state="translated">
-        <source>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> at this Spot</source>
-        <target>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> in questo Spot</target>
+        <source>Tied with <ph id="0" equiv="count" disp="state.tiedWith"/> other people.</source>
+        <target>Pari merito con altre <ph id="0" equiv="count" disp="state.tiedWith"/> persone.</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.tiedOne">
+      <segment state="translated">
+        <source>Tied with 1 other person.</source>
+        <target>Pari merito con 1 altra persona.</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.tooFewBody">
+      <segment state="translated">
+        <source>Fewer than three people have checked in here this month. Bring some friends!</source>
+        <target>Questo mese meno di tre persone hanno fatto check-in qui. Porta qualche amico!</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.tooFewShort">
+      <segment state="translated">
+        <source>Too few people to rank</source>
+        <target>Troppe poche persone per una posizione</target>
+      </segment>
+    </unit>
+    <unit id="spotRank.tooFewTitle">
+      <segment state="translated">
+        <source>Not enough people for a local legend yet</source>
+        <target>Non ci sono ancora abbastanza persone per una leggenda locale</target>
       </segment>
     </unit>
     <unit id="spotPersonalStats.since">
@@ -15426,22 +15498,22 @@
         <target>Condizioni e il tuo ritmo</target>
       </segment>
     </unit>
-    <unit id="train.ranks.private">
+    <unit id="spotRank.rank">
       <segment state="translated">
-        <source>Only you can see your ranks.</source>
-        <target>Solo tu puoi vedere le tue posizioni.</target>
-      </segment>
-    </unit>
-    <unit id="train.ranks.rank">
-      <segment state="translated">
-        <source>#<ph id="0" equiv="rank" disp="rank.rank"/></source>
-        <target>#<ph id="0" equiv="rank" disp="rank.rank"/></target>
+        <source>#<ph id="0" equiv="rank" disp="state.rank"/></source>
+        <target>#<ph id="0" equiv="rank" disp="state.rank"/></target>
       </segment>
     </unit>
     <unit id="train.ranks.title">
       <segment state="translated">
         <source>Your Spot ranks this month</source>
         <target>Le tue posizioni negli Spot questo mese</target>
+      </segment>
+    </unit>
+    <unit id="train.ranks.titleLastMonth">
+      <segment state="translated">
+        <source>Your Spot ranks in <ph id="0" equiv="month" disp="name"/></source>
+        <target>Le tue posizioni negli Spot a <ph id="0" equiv="month" disp="name"/></target>
       </segment>
     </unit>
     <unit id="train.reflection.empty">
@@ -15924,12 +15996,6 @@
         <target>ultima <ph id="0" equiv="date" disp="this.dateTime.format(new Date(spot.lastMs), { day: &quot;numeric&quot;, month: &quot;short&quot; })"/></target>
       </segment>
     </unit>
-    <unit id="trainingStats.legend">
-      <segment state="translated">
-        <source>Local legend</source>
-        <target>Leggenda locale</target>
-      </segment>
-    </unit>
     <unit id="trainingStats.loadError">
       <segment state="translated">
         <source>Your statistics could not be loaded.</source>
@@ -15978,16 +16044,16 @@
         <target>Periodo precedente</target>
       </segment>
     </unit>
-    <unit id="trainingStats.rank">
+    <unit id="spotRank.rankAtSpot">
       <segment state="translated">
-        <source>#<ph id="0" equiv="rank" disp="rank.rank"/> this month</source>
-        <target>#<ph id="0" equiv="rank" disp="rank.rank"/> questo mese</target>
+        <source>#<ph id="0" equiv="rank" disp="state.rank"/> at this Spot</source>
+        <target>#<ph id="0" equiv="rank" disp="state.rank"/> in questo Spot</target>
       </segment>
     </unit>
     <unit id="trainingStats.rankNote">
       <segment state="translated">
-        <source>Ranks compare verified check-in days at each Spot this month. Only you can see your rank.</source>
-        <target>Le posizioni confrontano i giorni di check-in verificati in ogni Spot questo mese. Solo tu puoi vedere la tua posizione.</target>
+        <source>Ranks compare days with a verified check-in at each Spot this month, once at least three people checked in. They update at the end of each day. Only you can see yours.</source>
+        <target>Le posizioni confrontano i giorni con un check-in verificato in ogni Spot questo mese, quando almeno tre persone hanno fatto check-in. Si aggiornano alla fine di ogni giornata. Solo tu puoi vedere le tue.</target>
       </segment>
     </unit>
     <unit id="trainingStats.showAllSpots">
@@ -16826,16 +16892,10 @@
         <target>La tua prima visita qui</target>
       </segment>
     </unit>
-    <unit id="checkInReward.log">
+    <unit id="checkInReward.privateNightly">
       <segment state="translated">
-        <source>Log this session</source>
-        <target>Registra la sessione</target>
-      </segment>
-    </unit>
-    <unit id="checkInReward.private">
-      <segment state="translated">
-        <source>Saved privately to your training log. Verified visits count toward your monthly Spot rank, which only you can see.</source>
-        <target>Salvato privatamente nel tuo diario. Le visite verificate contano per la tua posizione mensile nello Spot, visibile solo a te.</target>
+        <source>Saved privately to your training log. Days with a verified check-in count toward your monthly Spot rank, which updates at the end of each day and only you can see.</source>
+        <target>Salvato privatamente nel tuo diario di allenamento. I giorni con un check-in verificato contano per la tua posizione mensile nello Spot, che si aggiorna alla fine di ogni giornata ed è visibile solo a te.</target>
       </segment>
     </unit>
     <unit id="checkInReward.title">

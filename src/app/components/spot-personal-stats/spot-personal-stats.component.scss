@@ -37,6 +37,7 @@
   place-items: center;
   border-radius: 13px;
   background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .spot-rank__text {
@@ -46,6 +47,7 @@
 
   strong { font: var(--mat-sys-title-medium); }
   span { font: var(--mat-sys-body-small); opacity: 0.85; }
+  .spot-rank__note { margin-block-start: 4px; }
 }
 
 .spot-visits {

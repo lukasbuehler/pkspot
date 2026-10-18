@@ -1,18 +1,21 @@
 @if (view(); as stats) {
   <section class="spot-personal-stats" aria-labelledby="spot-personal-stats-title">
     @if (stats.rank; as rank) {
-      <mat-card appearance="outlined" class="spot-rank" [class.is-legend]="rank.legend">
+      <mat-card appearance="outlined" class="spot-rank" [class.is-legend]="rank.kind === 'ranked' && rank.legend">
         <div class="spot-rank__tile">
-          <app-spot-rank-icon [rank]="rank.rank" />
+          @if (rank.kind === "ranked") {
+            <app-spot-rank-icon [rank]="rank.rank" />
+          } @else if (rank.kind === "too_few_people") {
+            <mat-icon aria-hidden="true">group_add</mat-icon>
+          } @else {
+            <mat-icon aria-hidden="true">schedule</mat-icon>
+          }
         </div>
         <div class="spot-rank__text">
-          @if (rank.legend) {
-            <strong i18n="@@spotPersonalStats.legendTitle">Local legend</strong>
-            <span i18n="@@spotPersonalStats.legendBody">You trained here on more days than anyone else this month.</span>
-          } @else {
-            <strong i18n="@@spotPersonalStats.rankTitle">#{{ rank.rank }} at this Spot</strong>
-            <span i18n="@@spotPersonalStats.rankBody">Ranked by days with a verified check-in this month.</span>
-          }
+          <strong>{{ rank.title }}</strong>
+          <span>{{ rank.detail }}</span>
+          <span>{{ rank.days }}</span>
+          <span class="spot-rank__note" i18n="@@spotRank.note">Ranks update at the end of each day. Only you can see yours.</span>
         </div>
       </mat-card>
     }

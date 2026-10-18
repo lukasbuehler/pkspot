@@ -167,7 +167,8 @@ CPU, timeout, and instance limits.
 | User profile | `users/{uid}` | adult opt-in `public_user_profiles/{uid}`, sitemap/search data | Public projection is field-limited. `getUserProfile` is the viewer-aware read boundary. |
 | Private user state | `users/{uid}/private_data/main` and private subcollections | selected public counters such as `visited_spots_count` | Never copy private arrays or notification preferences into public profiles. |
 | Explicit check-in | server-owned `users/{uid}/session_records/{id}` occurrence plus `check_in_lookup` / per-Spot reference count | private `visited_spots`, daily `spot_activity_public/{spotId}` bucket | Raw device coordinates are transient callable input only. The public document has no user IDs, exact count, timestamp, or live state. Legacy check-ins retain a server marker so their visited state cannot be removed by a new-style deletion. |
-| Private training summaries | `users/{uid}/session_records/{id}` (check-in and manual sessions) | owner-read-only `users/{uid}/training_months/{YYYY-MM}` and `training_spots/{spotId}`; server-only `spot_legend_tallies/{month}_{spotId}_{uid}` | `onSessionRecordWrittenUpdateTrainingSummary` recomputes the affected month in a transaction. Only proximity-verified check-ins (`verified` on the visit, or `check_in_lookup.accepted_for_aggregate` for older visits) produce verified days and tallies; manual sessions and self-reported durations never do. Tallies only answer `getMySpotRanks` for the caller and are pruned after the previous month. |
+| Private training summaries | `users/{uid}/session_records/{id}` (check-in and manual sessions) | owner-read-only `users/{uid}/training_months/{YYYY-MM}` and `training_spots/{spotId}`; server-only `spot_legend_tallies/{month}_{spotId}_{uid}` for open months | `onSessionRecordWrittenUpdateTrainingSummary` recomputes the affected month in a transaction. Only proximity-verified check-ins (`verified` on the visit, or `check_in_lookup.accepted_for_aggregate` for older visits) produce verified days and tallies; manual sessions and self-reported durations never do. Tallies exist only for the current month and, for two grace days, the previous one. Removing your own visits withdraws a published rank immediately. |
+| Private Spot ranks | `spot_legend_tallies` for open months | owner-read-only `users/{uid}/training_ranks/{YYYY-MM}` | `publishSpotRanksNightly` (03:30 Europe/Zurich) ranks each Spot and writes only changed entries. A rank needs two verified days and at least three accounts with a verified day at the Spot that month; otherwise the entry says `too_few_people`. Ranks are Olympic-style with a tie count and never name or count other people. After the grace days the month is published as `final` and its tallies are deleted; the person's own document stays as rank history. |
 | Follow graph | `users/{uid}/following`, `followers`, and `follow_requests` | `users.follower_count`, `following_count`, notification intents | Both edge directions are intentionally stored; actions must keep them consistent. |
 | Organization relationships | Spot `stewardship` / `management` | embedded organization snapshot and `organizations/{id}/verified_spots` / `managed_spots` | Organization name/logo changes fan out to every linked Spot and index entry. |
 | Import provenance | private `imports/{importId}` metadata | sanitized `spots.public_import_provenance` | The Spot projection is the public read path. The callable is a cached compatibility fallback. |
@@ -312,7 +313,7 @@ enabled in a non-production project.
 | Contact message | `contact_messages/{id}` | Discord webhook |
 | Confirm/delete a check-in | `confirmCheckIn`, `deleteCheckIn`, `deleteAllCheckIns` App-Check-enforced callables | private session/visited state and deferred Spot-activity rollup |
 | Log a check-in duration | `setCheckInSessionDuration` App-Check-enforced callable | private session `ended_at`, then the training-summary trigger |
-| Read your own Spot ranks | `getMySpotRanks` App-Check-enforced callable | reads the caller's tally and one count aggregation per Spot; never returns other people |
+| Read your own Spot ranks | owner-only `users/{uid}/training_ranks/{YYYY-MM}` document | one cached document read; published nightly, never on demand |
 
 Direct writes cost one client write per changed document before rules-dependent
 reads and trigger cascades. The native adapter writes mobile-safe plain coordinate
@@ -328,13 +329,13 @@ The current source calls (deployment must be verified separately): `getWeather`,
 registration/ownership/live-update callables, community edit/merge callables,
 Spot creation/edit/duplicate callables, notification migration/actions, media
 report/moderation callables, the private check-in callables `confirmCheckIn`,
-`deleteCheckIn`, `deleteAllCheckIns` and `setCheckInSessionDuration`, the
-private rank callable `getMySpotRanks`, and public/admin safety-case callables.
+`deleteCheckIn`, `deleteAllCheckIns` and `setCheckInSessionDuration`, and
+public/admin safety-case callables.
 `backfillTrainingSummaries` is an administrator maintenance callable.
 The development-only Stripe shop additionally calls `createSupportCheckout` and,
 for a signed-in customer, `listMySupportOrders`. The shop stays disabled for
 production and native clients.
-`recomputeCheckInActivity` and `pruneSpotLegendTallies` are daily schedulers, not client callables.
+`recomputeCheckInActivity` and `publishSpotRanksNightly` are daily schedulers, not client callables.
 Callables not used by normal UI are maintenance or administrator tools; they
 remain listed in the complete inventory below.
 
@@ -608,10 +609,14 @@ communities independently while the chunk is loading.
   one lookup read per older check-in visit without a `verified` flag, then
   `1 W` for the month plus `1 W` per affected Spot tally. Afterwards it reads all
   of the person's month summaries (`M R`) and writes `1 W` per affected Spot in
-  `training_spots`. `getMySpotRanks` reads `1 R` per requested Spot (max 10) plus
-  one count aggregation each. Account deletion removes check-ins through the
-  regular deletion path, then the private training collections, summaries and
-  tallies.
+  `training_spots`. If the month has published ranks it reads that document
+  (`1 R`) and rewrites it only when a rank must be withdrawn.
+- Spot ranks: the nightly job reads every open-month tally once (`T R`), writes
+  `1 W` per tally whose published rank changed plus `1 W` per affected person's
+  `training_ranks` month, and on finalization `1 W` per ranked person and one
+  delete per tally. Clients read their own rank documents (`1 R` per month).
+  Account deletion removes check-ins through the regular deletion path, then
+  the private training collections, summaries, rank history and tallies.
 - Private-data write: computes unique visited IDs from the trigger payload and
   performs `1 W` to `users.visited_spots_count`.
 

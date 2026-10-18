@@ -1,38 +1,54 @@
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from "@angular/material/bottom-sheet";
+import { BehaviorSubject } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
+import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import {
   CheckInRewardSheetComponent,
   type CheckInRewardSheetData,
 } from "./check-in-reward-sheet.component";
 
-function render(data: CheckInRewardSheetData) {
+function render(data: CheckInRewardSheetData, month: unknown = null) {
   const dismiss = vi.fn();
+  const summary = new BehaviorSubject<unknown>(month);
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
       { provide: MAT_BOTTOM_SHEET_DATA, useValue: data },
       { provide: MatBottomSheetRef, useValue: { dismiss } },
+      {
+        provide: TrainingSummaryService,
+        useValue: { watchMyMonth: () => summary, getMyRanks: vi.fn().mockResolvedValue(null) },
+      },
     ],
   });
   const fixture = TestBed.createComponent(CheckInRewardSheetComponent);
   fixture.detectChanges();
-  return { element: fixture.nativeElement as HTMLElement, dismiss };
+  return { fixture, element: fixture.nativeElement as HTMLElement, dismiss, summary };
 }
 
 const response = { checkInId: "c1", sessionRecordId: "s1", duplicate: false };
 
 describe("CheckInRewardSheetComponent", () => {
-  it("celebrates the visit number and links straight to logging this session", () => {
-    const { element, dismiss } = render({
+  it("celebrates the visit and shows rank progress once the server counted it", async () => {
+    const { fixture, element, dismiss, summary } = render({
       spotId: "river",
       spotName: "Riverside",
       response: { ...response, spotVisitCount: 7, verified: true },
-    });
+    }, { updated_at_raw_ms: 0, spots: { river: { verified_days: 1 } } });
     expect(element.textContent).toContain("Checked in at Riverside");
     expect(element.textContent).toContain("Visit 7 here");
-    expect(element.querySelector("a[href*='sessionRecord=s1']")).not.toBeNull();
+    // A summary from before this check-in is not shown as progress.
+    expect(element.textContent).not.toContain("to get ranked");
+    expect(element.querySelector("a[href*='sessionRecord']")).toBeNull();
+
+    summary.next({ updated_at_raw_ms: Date.now(), spots: { river: { verified_days: 2 } } });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(element.textContent).toContain("ranked after tonight's update");
+    });
+    expect(element.textContent).toContain("2 days this month");
     element.querySelector<HTMLButtonElement>("button")!.click();
     expect(dismiss).toHaveBeenCalled();
   });

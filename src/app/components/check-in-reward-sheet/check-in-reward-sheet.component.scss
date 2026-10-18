@@ -1,7 +1,4 @@
 :host {
-  --mat-button-tonal-container-color: var(--mat-sys-primary-container);
-  --mat-button-tonal-label-text-color: var(--mat-sys-on-primary-container);
-
   display: block;
 }
 
@@ -50,6 +47,38 @@
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-medium);
+}
+
+// Rank progress: tonal-card structure with a separate 40px icon tile.
+.reward__rank {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+}
+
+.reward__rank-tile {
+  --spot-rank-icon-size: 26px;
+
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-highest);
+}
+
+.reward__rank-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+
+  strong { font: var(--mat-sys-title-small); }
+  span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); }
 }
 
 .reward__actions {

@@ -235,17 +235,20 @@
             </div>
             @if (topRanks().length > 0) {
               <div class="rhythm-card__ranks">
-                <h3 class="rhythm-card__subtitle" i18n="@@train.ranks.title">Your Spot ranks this month</h3>
+                <h3 class="rhythm-card__subtitle">{{ topRanksTitle() }}</h3>
                 <mat-nav-list class="rank-list">
                   @for (rank of topRanks(); track rank.spotId) {
                     <a mat-list-item [routerLink]="['/map', 'spots', rank.spotId]">
                       <app-spot-rank-icon matListItemIcon [rank]="rank.rank" />
                       <span matListItemTitle>{{ rank.name }}</span>
+                      @if (rank.detail) {
+                        <span matListItemLine class="rank-list__detail">{{ rank.detail }}</span>
+                      }
                       <span matListItemMeta class="rank-list__label" [class.is-legend]="rank.legend">{{ rank.label }}</span>
                     </a>
                   }
                 </mat-nav-list>
-                <p class="rhythm-card__note" i18n="@@train.ranks.private">Only you can see your ranks.</p>
+                <p class="rhythm-card__note" i18n="@@spotRank.note">Ranks update at the end of each day. Only you can see yours.</p>
               </div>
             }
             <a matButton="filled" routerLink="/train/log/new" class="rhythm-card__action">

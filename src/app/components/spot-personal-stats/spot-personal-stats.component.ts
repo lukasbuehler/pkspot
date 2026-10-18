@@ -13,6 +13,13 @@ import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
+import { localDateKey } from "../../../db/utils/training-summary";
+import {
+  spotRankDays,
+  spotRankDetail,
+  spotRankState,
+  spotRankTitle,
+} from "../../features/spot-rank";
 import { formatDuration } from "../../features/training-log-activity";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -21,7 +28,8 @@ import { SpotRankIconComponent } from "../spot-rank-icon/spot-rank-icon.componen
 
 /**
  * The signed-in person's own record at a Spot: visits, logged time, last visit
- * and this month's private rank. Nothing here is visible to anyone else.
+ * and where they stand for this month's private rank. Visits count right away;
+ * ranks are published once a night. Nothing here is visible to anyone else.
  */
 @Component({
   selector: "app-spot-personal-stats",
@@ -50,11 +58,15 @@ export class SpotPersonalStatsComponent {
       return spotId && uid ? { spotId, uid } : undefined;
     },
     loader: async ({ params }) => {
-      const [spot, ranks] = await Promise.all([
+      const month = localDateKey(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone).slice(0, 7);
+      // Rank details refine the card; visits remain useful without them.
+      const [spot, summary, ranks] = await Promise.all([
         this.summaries.getMySpot(params.spotId),
-        this.summaries.getMySpotRanks({ spotIds: [params.spotId] }).catch(() => null),
+        this.summaries.getMyMonth(month).catch(() => null),
+        this.summaries.getMyRanks(month).catch(() => null),
       ]);
-      return { spot, rank: ranks?.ranks.find((rank) => rank.spotId === params.spotId) ?? null };
+      const verifiedDays = summary?.spots[params.spotId]?.verified_days ?? 0;
+      return { spot, rank: spotRankState(ranks, params.spotId, verifiedDays) };
     },
   });
 
@@ -69,7 +81,14 @@ export class SpotPersonalStatsComponent {
       time: spot.minutes > 0 ? formatDuration(spot.minutes) : null,
       lastVisit: relative.format(-Math.max(0, days), "day"),
       since: this.dateTime.format(new Date(spot.first_ms), { month: "short", year: "numeric" }),
-      rank: value?.rank ?? null,
+      rank: value?.rank
+        ? {
+            ...value.rank,
+            title: spotRankTitle(value.rank),
+            detail: spotRankDetail(value.rank),
+            days: spotRankDays(value.rank),
+          }
+        : null,
     };
   });
 }

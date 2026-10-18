@@ -17,10 +17,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import type { LocaleCode } from "../../../db/models/Interfaces";
-import type {
-  MySpotRank,
-  TrainingMonthSchema,
-} from "../../../db/schemas/TrainingSummarySchema";
+import type { TrainingMonthSchema } from "../../../db/schemas/TrainingSummarySchema";
 import {
   localDateKey,
   monthRange,
@@ -28,6 +25,7 @@ import {
   summarizeTrainingPeriod,
   type TrainingPeriodSummary,
 } from "../../../db/utils/training-summary";
+import { spotRankLabel, spotRankState } from "../../features/spot-rank";
 import { formatDuration } from "../../features/training-log-activity";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
@@ -41,7 +39,8 @@ interface StatsSpotView {
   name: string;
   detail: string;
   isNew: boolean;
-  rank: MySpotRank | null;
+  /** Set only for a published rank, which shows its trophy or medal. */
+  rank: number | null;
   rankLabel: string | null;
 }
 
@@ -49,7 +48,8 @@ const COLLAPSED_SPOTS = 5;
 
 /**
  * Private training statistics for the training log: totals, the person's own
- * Spots with this month's private rank, new Spots and weekly rhythm.
+ * Spots with that month's private rank (final ranks for past months), new
+ * Spots and weekly rhythm.
  */
 @Component({
   selector: "app-training-stats",
@@ -91,15 +91,16 @@ export class TrainingStatsComponent {
     params: () => ({ reload: this.reloadKey() }),
     loader: () => this.summaries.listMyMonths(),
   });
+  /** Ranks are monthly, so they load for the month being viewed only. */
   readonly ranks = resource({
-    params: () => ({ reload: this.reloadKey() }),
-    loader: async () => {
+    params: () => this.period() === "month" ? { month: this.anchor(), reload: this.reloadKey() } : undefined,
+    loader: async ({ params }) => {
       try {
-        return (await this.summaries.getMySpotRanks()).ranks;
+        return await this.summaries.getMyRanks(params.month);
       } catch (error) {
         // Ranks are a bonus; statistics remain useful without them.
         console.warn("[Training stats] ranks unavailable", error);
-        return [];
+        return null;
       }
     },
   });
@@ -157,32 +158,32 @@ export class TrainingStatsComponent {
     return $localize`:@@trainingStats.durationCoverage:Logged for ${summary.sessionsWithDuration}:logged: of ${summary.sessions}:sessions: sessions`;
   });
 
-  /** Ranks are monthly, so they appear only on the current month. */
-  private readonly ranksBySpot = computed(() =>
-    this.period() === "month" && this.anchor() === this.currentMonth
-      ? new Map((this.ranks.value() ?? []).map((rank) => [rank.spotId, rank]))
-      : new Map<string, MySpotRank>(),
-  );
   readonly spots = computed<StatsSpotView[]>(() => {
     const spots = this.summary().spots;
-    const ranks = this.ranksBySpot();
-    return spots.map((spot, index) => ({
-      spotId: spot.spotId,
-      position: index + 1,
-      name: spot.name ?? $localize`:@@trainingStats.unnamedSpot:Spot`,
-      detail: [
-        spot.visits === 1
-          ? $localize`:@@trainingStats.oneVisit:1 visit`
-          : $localize`:@@trainingStats.visits:${spot.visits}:count: visits`,
-        spot.minutes > 0 ? formatDuration(spot.minutes) : null,
-        $localize`:@@trainingStats.lastVisit:last ${this.dateTime.format(new Date(spot.lastMs), { day: "numeric", month: "short" })}:date:`,
-      ]
-        .filter((part): part is string => !!part)
-        .join(" · "),
-      isNew: spot.isNew && this.period() !== "all",
-      rank: ranks.get(spot.spotId) ?? null,
-      rankLabel: rankLabel(ranks.get(spot.spotId)),
-    }));
+    const monthView = this.period() === "month";
+    const ranks = monthView ? this.ranks.value() : null;
+    // Live progress ("1 more day") only makes sense for the open month.
+    const live = monthView && this.anchor() === this.currentMonth;
+    return spots.map((spot, index) => {
+      const state = monthView ? spotRankState(ranks, spot.spotId, live ? spot.verifiedDays : 0) : null;
+      return {
+        spotId: spot.spotId,
+        position: index + 1,
+        name: spot.name ?? $localize`:@@trainingStats.unnamedSpot:Spot`,
+        detail: [
+          spot.visits === 1
+            ? $localize`:@@trainingStats.oneVisit:1 visit`
+            : $localize`:@@trainingStats.visits:${spot.visits}:count: visits`,
+          spot.minutes > 0 ? formatDuration(spot.minutes) : null,
+          $localize`:@@trainingStats.lastVisit:last ${this.dateTime.format(new Date(spot.lastMs), { day: "numeric", month: "short" })}:date:`,
+        ]
+          .filter((part): part is string => !!part)
+          .join(" · "),
+        isNew: spot.isNew && this.period() !== "all",
+        rank: state?.kind === "ranked" ? state.rank : null,
+        rankLabel: state ? spotRankLabel(state) : null,
+      };
+    });
   });
   readonly visibleSpots = computed(() =>
     this.showAllSpots() ? this.spots() : this.spots().slice(0, COLLAPSED_SPOTS),
@@ -221,11 +222,4 @@ export class TrainingStatsComponent {
     }
     return new Set([anchor]);
   }
-}
-
-function rankLabel(rank: MySpotRank | undefined): string | null {
-  if (!rank) return null;
-  return rank.legend
-    ? $localize`:@@trainingStats.legend:Local legend`
-    : $localize`:@@trainingStats.rank:#${rank.rank}:rank: this month`;
 }
