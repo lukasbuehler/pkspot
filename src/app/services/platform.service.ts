@@ -1,6 +1,8 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject, Injector } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
 import { Capacitor } from "@capacitor/core";
 import { APP_LINKS } from "../shared/app-links";
+import { AppStoreDialogComponent } from "../components/app-store-dialog/app-store-dialog.component";
 
 /**
  * Service to detect the current platform and provide platform-specific behaviors.
@@ -10,6 +12,7 @@ import { APP_LINKS } from "../shared/app-links";
   providedIn: "root",
 })
 export class PlatformService {
+  private readonly injector = inject(Injector);
   /**
    * Returns true if running on a native iOS or Android platform via Capacitor.
    * Returns false for web browser.
@@ -86,14 +89,27 @@ export class PlatformService {
       return;
     }
 
+    // Android WebViews (including Instagram) also contain "Safari". Only use
+    // OS identifiers; iPadOS can identify as a touch-capable Macintosh.
     const userAgent = navigator.userAgent;
-    const isAppleOS = /iPad|iPhone|iPod|Safari/.test(userAgent);
-    const isAndroidOS = /Android/.test(userAgent);
+    const isAndroidOS = /Android/i.test(userAgent);
+    const isAppleOS = /iPad|iPhone|iPod/i.test(userAgent) ||
+      (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1);
 
-    if (isAppleOS) {
-      window.open(APP_LINKS.appleAppStoreUrl, "_blank");
-    } else if (isAndroidOS) {
-      window.open(APP_LINKS.googlePlayStoreUrl, "_blank");
+    if (isAndroidOS) {
+      window.open(APP_LINKS.googlePlayStoreUrl, "_blank", "noopener,noreferrer");
+    } else if (isAppleOS) {
+      window.open(APP_LINKS.appleAppStoreUrl, "_blank", "noopener,noreferrer");
+    } else {
+      // Resolve the overlay only when needed, keeping platform detection usable
+      // by low-level services without initializing dialog dependencies.
+      const dialog = this.injector.get(MatDialog);
+      if (!dialog.getDialogById("app-store-choice")) {
+        dialog.open(AppStoreDialogComponent, {
+          id: "app-store-choice",
+          width: "420px",
+        });
+      }
     }
   }
 }
