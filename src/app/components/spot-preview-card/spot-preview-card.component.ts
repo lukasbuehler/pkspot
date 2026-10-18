@@ -47,6 +47,8 @@ import {
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { SpotActivitySummaryComponent } from "../spot-activity-summary/spot-activity-summary.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+import { localizedCountryName } from "../../../scripts/CommunityPlaceNames";
+import { localizedPlaceLabel } from "../../../scripts/LocalizedPlaceLabels";
 
 type SpotPreviewCardData = SpotPreviewData & {
   is_iconic?: unknown;
@@ -284,7 +286,9 @@ export class SpotPreviewCardComponent
       return getDisplayCountryName(spot.address()) ?? "";
     }
 
-    return spot.countryName?.trim() ?? countries[this.countryCode() ?? ""]?.name ?? "";
+    const fallback = spot.countryName?.trim() || countries[this.countryCode() ?? ""]?.name || "";
+    const code = this.countryCode();
+    return code ? localizedCountryName(code, this.locale, fallback) : fallback;
   });
 
   countryTooltip = this.countryDisplayName;
@@ -297,7 +301,12 @@ export class SpotPreviewCardComponent
       return getDisplayLocalityName(spot.localizedAddress()) ?? "";
     }
 
-    return this.getPreviewLocalityName(spot.locality, this.countryCode());
+    // Server-copied names localize the town without a lookup per card.
+    return localizedPlaceLabel(
+      this.getPreviewLocalityName(spot.locality, this.countryCode()),
+      spot.localityNames,
+      this.locale,
+    );
   });
 
   displayLocation = computed(

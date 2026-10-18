@@ -12,6 +12,8 @@ export interface SpotPreviewData {
   type?: string; //SpotTypes;
   access?: string; //SpotAccess;
   locality: string;
+  /** Localized names of the town in `locality`, keyed by locale. */
+  localityNames?: Record<string, string>;
   countryCode?: string;
   countryName?: string;
   imageSrc: string;

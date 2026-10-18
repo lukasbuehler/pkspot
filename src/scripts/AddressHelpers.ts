@@ -5,7 +5,11 @@ import { localizedCountryName } from "./CommunityPlaceNames";
 type SpotAddress = SpotSchema["address"];
 
 /** Presentation only: preserve reverse-geocoded source fields and street addresses. */
-export function localizedSpotAddress(address: SpotAddress, place: EntityPlaceNames | undefined, locale: string): SpotAddress {
+export function localizedSpotAddress(
+  address: SpotAddress,
+  place: Pick<EntityPlaceNames, "names"> & { region?: { names: Record<string, string> } } | undefined,
+  locale: string,
+): SpotAddress {
   if (!address) return address;
   const language = locale.split("-")[0];
   const locality = place?.names[locale] || place?.names[language];

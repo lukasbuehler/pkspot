@@ -50,7 +50,7 @@ export function buildVisibleEventMarkers({
       if (!location) return [];
       const routeId = event.slug ?? event.id;
       const status = event.status(now);
-      const description = [event.venueString, event.localityString]
+      const description = [event.venueString, event.localityLabel]
         .filter(Boolean)
         .join(", ");
       return [

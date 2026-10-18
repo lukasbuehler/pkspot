@@ -113,6 +113,7 @@ describe("map event map items", () => {
       id: "event-2",
       venueString: "Main Hall",
       localityString: "Zurich",
+      localityLabel: "Zurich",
     });
     const markers = buildVisibleEventMarkers({
       visibleEvents: [event],

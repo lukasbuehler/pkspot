@@ -1,3 +1,4 @@
+import { LOCALE_ID } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
@@ -142,5 +143,36 @@ describe("SpotPreviewCardComponent", () => {
 
     const badge = fixture.debugElement.query(By.css(".reported-chip"));
     expect(badge.nativeElement.textContent).toContain("Reported");
+  });
+});
+
+describe("SpotPreviewCardComponent in German", () => {
+  it("shows the town and country in the app language from server-copied names", async () => {
+    await TestBed.configureTestingModule({
+      imports: [SpotPreviewCardComponent],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        { provide: LOCALE_ID, useValue: "de" },
+        { provide: MapsApiService, useValue: mapsApiService },
+        { provide: StorageService, useValue: {} },
+        { provide: SpotActivityService, useValue: { displayMin: () => null } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(SpotPreviewCardComponent);
+    fixture.componentRef.setInput("spotData", {
+      id: "liege" as SpotId,
+      name: "Steps",
+      locality: "Liège, BE",
+      localityNames: { de: "Lüttich", fr: "Liège" },
+      countryCode: "BE",
+      countryName: "Belgium",
+      imageSrc: "",
+      isIconic: false,
+    } satisfies SpotPreviewData);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayLocality()).toBe("Lüttich");
+    expect(fixture.componentInstance.countryTooltip()).toBe("Belgien");
   });
 });

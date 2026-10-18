@@ -875,6 +875,7 @@ const _eventCardPreview = (
     logo_background_color: eventData.logo_background_color,
     venue_string: eventData.venue_string,
     locality_string: eventData.locality_string,
+    place_names: eventData.place_names,
     start: eventData.start,
     end: eventData.end,
     url: eventData.url,

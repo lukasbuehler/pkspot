@@ -8,6 +8,7 @@ import { info } from "firebase-functions/logger";
 import type { CommunityPageSchema } from "../../src/db/schemas/CommunityPageSchema";
 import { canEnrichPlace, placeFingerprint } from "./communityPlaceNames";
 import { enqueueCommunityPlace, enqueueCommunityPlaceBatch, processCommunityPlaces } from "./communityPlaceLocalizationStore";
+import { communitySearchNames, samePlaceFields } from "../../src/scripts/LocalizedPlaceLabels";
 
 const username = defineString("GEONAMES_USERNAME", { default: "" });
 
@@ -20,6 +21,24 @@ export const enqueueCommunityPlaceLocalization = onDocumentWritten(
     // Rebuilds also upgrade older town-only enrichment; ordinary queue deduplication
     // prevents count updates from resetting pending or ambiguous jobs.
     await enqueueCommunityPlace(admin.firestore(), event.params.communityKey);
+  },
+);
+
+/**
+ * Keeps `localized_search_names` in step with the page's names and reviewed
+ * overrides, so search finds "Lüttich", "Liège" and "Luik" alike. Writes only
+ * when the list changes; rebuilds merge into the page and keep it.
+ */
+export const syncCommunitySearchNames = onDocumentWritten(
+  { document: "community_pages/{communityKey}", region: "europe-west1" },
+  async (event) => {
+    const after = event.data?.after.data() as CommunityPageSchema | undefined;
+    if (!after || !event.data?.after.ref) return;
+    const names = communitySearchNames(after);
+    if (samePlaceFields(after.localized_search_names ?? [], names)) return;
+    await event.data.after.ref.update({
+      localized_search_names: names.length ? names : admin.firestore.FieldValue.delete(),
+    });
   },
 );
 

@@ -250,6 +250,32 @@ describe("SearchService", () => {
       expect(preview.locality).toBe("Schwabing, Munich, DE");
     });
 
+    it("carries server-copied town names for localized cards", () => {
+      const preview = service.getSpotPreviewFromHit({
+        document: {
+          id: "liege-steps",
+          name: "Steps",
+          address: { locality: "Liège", country: { code: "be" } },
+          place_names: { key: "BE:liege:51:6", locality: { de: "Lüttich", fr: "Liège", bad: 3 } },
+        },
+      });
+
+      expect(preview.locality).toBe("Liège, BE");
+      expect(preview.localityNames).toEqual({ de: "Lüttich", fr: "Liège" });
+    });
+
+    it("keeps an event's original town for editing and its names for display", () => {
+      const preview = service.getEventPreviewFromHit({
+        document: {
+          id: "jam", name: "Jam", locality_string: "Liège", start_seconds: 1, end_seconds: 2,
+          place_names: { key: "BE:liege:51:6", locality: { de: "Lüttich" } },
+        },
+      });
+
+      expect(preview.localityString).toBe("Liège");
+      expect(preview.placeNames?.locality).toEqual({ de: "Lüttich" });
+    });
+
     it("should handle partial address data", () => {
       const hit = {
         document: {

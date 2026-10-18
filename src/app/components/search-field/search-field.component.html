@@ -392,7 +392,7 @@
                 style="flex-shrink: 0; max-width: 100px"
               >
                 <span class="mat-title-small text-truncate">{{
-                  hit.document.address?.locality
+                  hit.document.address?.locality | localizedPlace: hit.document.place_names?.locality
                 }}</span
                 >,
                 <span class="mat-title-small ms-1">

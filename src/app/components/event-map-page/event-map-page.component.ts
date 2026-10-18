@@ -323,7 +323,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   // Derived display values. Defaults keep the template safe before the event loads.
   readonly name = computed(() => this.event()?.name ?? "");
   readonly venueString = computed(() => this.event()?.venueString ?? "");
-  readonly localityString = computed(() => this.event()?.localityString ?? "");
+  readonly localityString = computed(() => this.event()?.localityLabel ?? "");
   readonly bannerImageSrc = computed(
     () => eventImageDisplaySrc(this.event()?.bannerSrc) ?? "",
   );

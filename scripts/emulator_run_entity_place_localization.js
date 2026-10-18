@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { createRequire } = require("node:module");
 const functionsRequire = createRequire(require.resolve("../functions/package.json"));
 const admin = functionsRequire("firebase-admin");
-const { queueEntityPlace, eventPlaceInput } = require("../functions/lib/functions/src/entityPlaceLocalization");
+const { queueEntityPlace, eventPlaceInput, syncEntityPlace, applyPlaceNamesToEntities } = require("../functions/lib/functions/src/entityPlaceLocalization");
 const { processCommunityPlaces } = require("../functions/lib/functions/src/communityPlaceLocalizationStore");
 const { placeFingerprint } = require("../functions/lib/functions/src/communityPlaceNames");
 const { publicPlaceNames, entityPlaceKey } = require("../functions/lib/src/scripts/EntityPlaceNames");
@@ -40,6 +40,58 @@ async function run() {
   }
   const write = await fetch(`${root}/place_names/forged`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: { source: { stringValue: "geonames" } } }) });
   assert.equal(write.status, 403, "Anonymous writes are denied");
-  console.log("Entity localization emulator passed: deduplication, shared cache, restricted Event exclusion, public projection, and Firestore read/write rules.");
+  // Names are copied onto Spots and public Events so previews and search need no lookup per card.
+  await db.recursiveDelete(db.collection("spots"));
+  await db.recursiveDelete(db.collection("events"));
+  const spotData = { address: { locality: "Munich", country: { code: "DE", name: "Germany" }, region: { name: "Bavaria" } }, location_raw: { lat: 48.14, lng: 11.58 } };
+  const spotRef = db.doc("spots/munich-steps");
+  await spotRef.set(spotData);
+  const first = await syncEntityPlace(db, spotRef, "spots", spotData);
+  assert.equal(first.written, true); assert.equal(first.missingNames, false, "cached Munich names are reused without a lookup");
+  let spot = (await spotRef.get()).data();
+  assert.equal(spot.place_key, entityPlaceKey(input));
+  assert.deepEqual(spot.place_names.locality, { it: "Monaco di Baviera" });
+  assert.ok(spot.localized_search_names.includes("Monaco di Baviera"));
+  assert.ok(spot.localized_search_names.includes("Munich"));
+  assert.equal(spot.address.locality, "Munich", "original address fields stay unchanged");
+  assert.equal((await syncEntityPlace(db, spotRef, "spots", spot)).written, false, "unchanged names cause no write");
+
+  // A public Event at the same town and a private one; only the public one is named.
+  const eventBase = { publication_state: "published", country_code: "DE", locality_string: "Munich", location_raw: { lat: 48.14, lng: 11.58 } };
+  const publicEvent = db.doc("events/public-jam");
+  const privateEvent = db.doc("events/private-jam");
+  await publicEvent.set({ ...eventBase, visibility: "public" });
+  await privateEvent.set({ ...eventBase, visibility: "private" });
+  await syncEntityPlace(db, publicEvent, "events", (await publicEvent.get()).data());
+  assert.equal((await syncEntityPlace(db, privateEvent, "events", (await privateEvent.get()).data())).written, false);
+  assert.ok((await publicEvent.get()).data().localized_search_names.includes("Monaco di Baviera"));
+  assert.equal((await privateEvent.get()).data().place_names, undefined, "private Events stay excluded");
+
+  // Updated translations fan out to every entity at the place by key.
+  const updated = { ...(await db.doc(`place_names/${source.communityKey}`).get()).data(), names: { it: "Monaco di Baviera", de: "München" } };
+  await db.doc(`place_names/${source.communityKey}`).set(updated);
+  assert.equal(await applyPlaceNamesToEntities(db, source.communityKey, updated), 2);
+  assert.equal((await spotRef.get()).data().place_names.locality.de, "München");
+  assert.ok((await publicEvent.get()).data().localized_search_names.includes("München"));
+
+  // Moving the Spot to another town removes the stale aliases.
+  const moved = { ...(await spotRef.get()).data(), address: { locality: "Augsburg", country: { code: "DE", name: "Germany" } }, location_raw: { lat: 48.37, lng: 10.9 } };
+  await spotRef.set(moved);
+  const afterMove = await syncEntityPlace(db, spotRef, "spots", moved);
+  assert.equal(afterMove.missingNames, true, "the new town still needs a lookup");
+  spot = (await spotRef.get()).data();
+  assert.notEqual(spot.place_key, source.communityKey);
+  assert.equal(spot.place_names, undefined);
+  assert.ok(!spot.localized_search_names.includes("München"));
+  assert.ok(spot.localized_search_names.includes("Augsburg"));
+
+  // An Event that becomes private loses its derived fields.
+  const nowPrivate = { ...(await publicEvent.get()).data(), visibility: "private" };
+  await publicEvent.set(nowPrivate);
+  await syncEntityPlace(db, publicEvent, "events", nowPrivate);
+  const cleared = (await publicEvent.get()).data();
+  assert.equal(cleared.place_key, undefined); assert.equal(cleared.localized_search_names, undefined);
+
+  console.log("Entity localization emulator passed: deduplication, shared cache, restricted Event exclusion, public projection, and Firestore read/write rules, copied names, fan-out, stale alias removal and private Event exclusion.");
 }
 run().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => db.terminate());

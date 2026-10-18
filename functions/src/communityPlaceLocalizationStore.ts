@@ -1,5 +1,6 @@
 import type { PlaceNameSource } from "../../src/scripts/EntityPlaceNames";
-import { FieldPath, Timestamp, type Firestore } from "firebase-admin/firestore";
+import { FieldPath, FieldValue, Timestamp, type Firestore } from "firebase-admin/firestore";
+import { communitySearchNames, samePlaceFields } from "../../src/scripts/LocalizedPlaceLabels";
 import type { CommunityPageSchema, CommunityPlaceLocalization } from "../../src/db/schemas/CommunityPageSchema";
 import { canEnrichPlace, placeFingerprint, GeoNamesError } from "./communityPlaceNames";
 
@@ -22,13 +23,22 @@ export async function enqueueCommunityPlace(db: Firestore, id: string, force = f
   });
 }
 
-export async function enqueueCommunityPlaceBatch(db: Firestore, after?: string): Promise<{ scanned: number; queued: number; nextCursor: string | null }> {
+export async function enqueueCommunityPlaceBatch(db: Firestore, after?: string): Promise<{ scanned: number; queued: number; searchNamesUpdated: number; nextCursor: string | null }> {
   let query = db.collection(PAGES).orderBy(FieldPath.documentId()).limit(50);
   if (after) query = query.startAfter(after);
   const pages = await query.get();
   let queued = 0;
-  for (const page of pages.docs) if (await enqueueCommunityPlace(db, page.id)) queued++;
-  return { scanned: pages.size, queued, nextCursor: pages.size === 50 ? pages.docs[pages.size - 1].id : null };
+  let searchNamesUpdated = 0;
+  for (const page of pages.docs) {
+    if (await enqueueCommunityPlace(db, page.id)) queued++;
+    // Pages that are not rewritten otherwise still get their search aliases.
+    const names = communitySearchNames(page.data() as CommunityPageSchema);
+    if (!samePlaceFields((page.data() as CommunityPageSchema).localized_search_names ?? [], names)) {
+      await page.ref.update({ localized_search_names: names.length ? names : FieldValue.delete() });
+      searchNamesUpdated++;
+    }
+  }
+  return { scanned: pages.size, queued, searchNamesUpdated, nextCursor: pages.size === 50 ? pages.docs[pages.size - 1].id : null };
 }
 
 /** Sequential batches cap API use at 80 requests/hour, including backfills. */

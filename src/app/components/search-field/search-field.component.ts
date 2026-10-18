@@ -79,6 +79,8 @@ interface SearchSpotHitDocument {
   type?: string;
   access?: string;
   amenities?: AmenitiesMap;
+  /** Server-copied localized town names. */
+  place_names?: { locality?: Record<string, string> } | null;
   address?: {
     locality?: string;
     country?: {
@@ -126,6 +128,7 @@ interface NamedSearchResultLike {
   name?: unknown;
 }
 
+import { LocalizedPlacePipe } from "../../pipes/localized-place.pipe";
 @Component({
   selector: "app-search-field",
   imports: [
@@ -141,6 +144,7 @@ interface NamedSearchResultLike {
     MatSuffix,
     MatProgressSpinnerModule,
     AsyncPipe,
+    LocalizedPlacePipe,
     SpotRatingComponent,
     AutocompleteOverlayRepositionDirective,
   ],

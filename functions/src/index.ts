@@ -321,9 +321,10 @@ export {
   enqueueCommunityPlaceLocalization,
   enrichCommunityPlaceLocalizations,
   backfillCommunityPlaceLocalizations,
+  syncCommunitySearchNames,
 } from "./communityPlaceLocalizationFunctions";
 
-export { queueSpotPlaceNames, queueEventPlaceNames, enrichEntityPlaceNames,
+export { queueSpotPlaceNames, queueEventPlaceNames, enrichEntityPlaceNames, applyEntityPlaceNames,
   publishEntityPlaceNames, backfillEntityPlaceNames } from "./entityPlaceLocalization";
 
 export { plannedSessions, schedulePlannedSessionReminder, refreshPlannedSessionPlans } from "./plannedSessionFunctions";

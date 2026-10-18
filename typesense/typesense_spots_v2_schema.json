@@ -37,6 +37,17 @@
       "optional": true
     },
     {
+      "name": "localized_search_names",
+      "type": "string[]",
+      "optional": true
+    },
+    {
+      "name": "place_names",
+      "type": "object",
+      "index": false,
+      "optional": true
+    },
+    {
       "name": "amenities_true",
       "type": "string[]",
       "facet": true,

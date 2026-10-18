@@ -193,7 +193,11 @@ service cloud.firestore {
         'has_location',
         'has_venue_spot',
         'venue_spot_count',
-        'rsvp_counts'
+        'rsvp_counts',
+        // Localized place names are copied from place_names by Functions.
+        'place_key',
+        'place_names',
+        'localized_search_names'
       ];
     }
 

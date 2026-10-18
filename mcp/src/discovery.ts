@@ -107,7 +107,8 @@ export class Discovery {
       if (point) filters.push(`location:(${point[0]},${point[1]},${options.radius_km} km)`);
       if (options.access) filters.push(`access:=${options.access}`);
       if (options.amenity) filters.push(`amenities_true:=${options.amenity}`);
-      parameters.query_by = "name_search,description_search,address.locality";
+      // Localized town names last, so names and the original town rank first.
+      parameters.query_by = "name_search,description_search,address.locality,localized_search_names";
       parameters.sort_by = options.sort === "nearest" && point ? `location(${point[0]},${point[1]}):asc` : "rating:desc";
       // Bounded overfetch makes recommendations useful without enabling enumeration.
       parameters.per_page = "10";
@@ -117,10 +118,10 @@ export class Discovery {
       const before = options.starts_before ? Date.parse(options.starts_before) : after + 90 * 86400000;
       if (before <= after || before - after > 366 * 86400000) throw new ServiceError("invalid_dates");
       filters.push(`end_seconds:>=${Math.floor(after / 1000)}`, `start_seconds:<=${Math.floor(before / 1000)}`);
-      parameters.query_by = "name,description,locality_string,venue_string";
+      parameters.query_by = "name,description,locality_string,localized_search_names,venue_string";
       parameters.sort_by = "start_seconds:asc";
     } else {
-      parameters.query_by = "displayName,title,allSlugs,search_aliases";
+      parameters.query_by = "displayName,title,allSlugs,search_aliases,localized_search_names";
       parameters.sort_by = "_text_match:desc,counts.totalSpots:desc";
     }
     parameters.filter_by = filters.join(" && ");

@@ -1,6 +1,7 @@
 import { normalizeRecentActivityMin30d } from "../../db/schemas/CheckInActivitySchema";
 import { communityPreviewNames } from "../../scripts/CommunityPlaceNames";
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
+import type { PlaceLabelNames } from "../../scripts/LocalizedPlaceLabels";
 import { TypesenseSearchClient } from "./typesense-search-client";
 import { environment } from "../../environments/environment.default";
 import { MapsApiService } from "./maps-api.service";
@@ -80,7 +81,8 @@ export class SearchService {
   });
 
   spotSearchParameters = {
-    query_by: "name_search,description_search,address.formatted",
+    // Localized town names come last, so a Spot's own name always ranks first.
+    query_by: "name_search,description_search,address.formatted,localized_search_names",
     sort_by: this.SPOT_SORT_BY_RATING,
     per_page: 5,
     page: 1,
@@ -88,8 +90,8 @@ export class SearchService {
 
   communitySearchParameters = {
     query_by:
-      "displayName,allSlugs,search_aliases,geography.localityName,geography.regionName,geography.countryName,title,description",
-    query_by_weights: "6,6,5,4,3,3,2,1",
+      "displayName,allSlugs,search_aliases,localized_search_names,geography.localityName,geography.regionName,geography.countryName,title,description",
+    query_by_weights: "6,6,5,5,4,3,3,2,1",
     filter_by: "published:!=false",
     sort_by: this.COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE,
     per_page: 3,
@@ -97,8 +99,8 @@ export class SearchService {
   };
 
   eventSearchParameters = {
-    query_by: "name,slug,locality_string,venue_string,description",
-    query_by_weights: "6,5,4,3,1",
+    query_by: "name,slug,locality_string,localized_search_names,venue_string,description",
+    query_by_weights: "6,5,4,4,3,1",
     filter_by: "published:!=false",
     sort_by: "start_seconds:desc",
     per_page: 3,
@@ -306,6 +308,7 @@ export class SearchService {
         type: doc.type,
         access: doc.access,
         locality: localityString,
+        localityNames: SearchService._readPlaceNames(doc.place_names)?.locality,
         countryName: getDisplayCountryName(doc.address ?? null),
         imageSrc:
           doc.thumbnail_medium_url ||
@@ -1156,6 +1159,7 @@ export class SearchService {
         typeof doc?.venue_string === "string" ? doc.venue_string : undefined,
       localityString:
         typeof doc?.locality_string === "string" ? doc.locality_string : "",
+      placeNames: SearchService._readPlaceNames(doc?.place_names),
       bannerSrc:
         typeof doc?.banner_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(doc.banner_src)
@@ -1312,6 +1316,7 @@ export class SearchService {
       logo_background_color: preview.logoBackgroundColor,
       venue_string: preview.venueString ?? "",
       locality_string: preview.localityString,
+      place_names: preview.placeNames,
       start: { seconds: startSeconds, nanoseconds: 0 },
       end: { seconds: endSeconds, nanoseconds: 0 },
       time_zone: preview.timeZone,
@@ -1463,8 +1468,8 @@ export class SearchService {
         .search(
           {
             q: query,
-            query_by: "name,slug,locality_string,venue_string,description",
-            query_by_weights: "6,5,4,3,1",
+            query_by: "name,slug,locality_string,localized_search_names,venue_string,description",
+            query_by_weights: "6,5,4,4,3,1",
             filter_by: legacySchema
               ? SearchService._joinFilters([
                   "published:=true",
@@ -2300,6 +2305,20 @@ export class SearchService {
   // nested `geography.x` objects or dotted top-level keys depending on the
   // Firebase Extension version, hence the dual-path lookups elsewhere) ---
 
+  /** Server-copied town names; Typesense returns them as a nested object. */
+  private static _readPlaceNames(value: unknown): PlaceLabelNames | undefined {
+    if (!value || typeof value !== "object") return undefined;
+    const names = value as Partial<PlaceLabelNames>;
+    const strings = (input: unknown) =>
+      input && typeof input === "object"
+        ? Object.fromEntries(Object.entries(input).filter(([, name]) => typeof name === "string" && name))
+        : {};
+    const locality = strings(names.locality) as Record<string, string>;
+    if (typeof names.key !== "string" || !Object.keys(locality).length) return undefined;
+    const region = strings(names.region) as Record<string, string>;
+    return { key: names.key, locality, ...(Object.keys(region).length ? { region } : {}) };
+  }
+
   private static _readGeopoint(value: unknown): [number, number] | undefined {
     if (Array.isArray(value) && value.length >= 2) {
       const lat = Number(value[0]);
@@ -2682,6 +2701,8 @@ export interface EventSearchPreview {
   description?: string;
   venueString?: string;
   localityString?: string;
+  /** Localized town names, for display only. */
+  placeNames?: PlaceLabelNames;
   bannerSrc?: string;
   bannerFit?: "cover" | "contain";
   bannerAccentColor?: string;

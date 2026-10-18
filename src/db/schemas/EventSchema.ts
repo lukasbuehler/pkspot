@@ -1,3 +1,4 @@
+import type { PlaceLabelNames } from "../../scripts/LocalizedPlaceLabels";
 import type { GeoPoint, Timestamp } from "firebase/firestore";
 import type { LocaleMap } from "../models/Interfaces";
 import type { MediaSchema } from "./Media";
@@ -272,6 +273,8 @@ export interface EventCardPreviewSchema {
   logo_background_color?: string;
   venue_string?: string;
   locality_string?: string;
+  /** Localized town names copied from the event, when known. */
+  place_names?: PlaceLabelNames;
   start: Timestamp | { seconds: number; nanoseconds: number };
   end: Timestamp | { seconds: number; nanoseconds: number };
   url?: string;
@@ -614,6 +617,12 @@ export interface EventSchema {
   is_outdoor?: boolean;
   venue_string?: string;
   locality_string?: string;
+  /** Server-owned `place_names` key for this location; changes when the town does. */
+  place_key?: string;
+  /** Server-owned localized town and region names for cards and SSR. */
+  place_names?: PlaceLabelNames;
+  /** Server-owned original and localized place names that search matches. */
+  localized_search_names?: string[];
   /** Preferred event pin location. Bounds are optional; this is the anchor. */
   location?: GeoPoint;
   /** Plain lat/lng mirror for admin UI and non-Firestore consumers. */

@@ -29,6 +29,21 @@ describe("Event", () => {
     expect(Number.isFinite(event.end.getTime())).toBe(true);
   });
 
+  it("shows the town in the app language but keeps the original for editing", () => {
+    const data = {
+      ...baseEvent,
+      locality_string: "Liège",
+      place_names: { key: "BE:liege:51:6", locality: { de: "Lüttich", fr: "Liège" } },
+      start: { seconds: 1781431200, nanoseconds: 0 },
+      end: { seconds: 1781517600, nanoseconds: 0 },
+    } as EventSchema;
+
+    const german = new Event("event-1" as EventId, data, "de");
+    expect(german.localityLabel).toBe("Lüttich");
+    expect(german.localityString).toBe("Liège");
+    expect(new Event("event-1" as EventId, data, "it").localityLabel).toBe("Liège");
+  });
+
   it("parses admin SDK timestamp-like dates", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,

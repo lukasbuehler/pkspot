@@ -34,7 +34,7 @@ const calendarTimestamp = (date: Date): string =>
   date.toISOString().replace(/[-:]/gu, "").replace(/\.\d{3}Z$/u, "Z");
 
 export const buildEventCalendar = (event: PkEvent): string => {
-  const location = [event.venueString, event.localityString]
+  const location = [event.venueString, event.localityLabel]
     .filter(Boolean)
     .join(", ");
   return [

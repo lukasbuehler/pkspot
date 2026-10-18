@@ -205,6 +205,8 @@ export interface CommunityPageSchema {
   merge_into?: CommunityMergeIntoSchema;
   merged_community_keys?: string[];
   search_aliases?: string[];
+  /** Server-owned original, localized and overridden names that search matches. */
+  localized_search_names?: string[];
   redirected_from_slugs?: string[];
   redirect_to_community_key?: string;
   redirect_to_path?: string;

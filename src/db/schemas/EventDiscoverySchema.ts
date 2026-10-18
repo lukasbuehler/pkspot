@@ -24,6 +24,8 @@ export const EVENT_DISCOVERY_FIELDS = [
   "featured_participants",
   "venue_string",
   "locality_string",
+  "place_names",
+  "localized_search_names",
   "location",
   "location_raw",
   "has_location",

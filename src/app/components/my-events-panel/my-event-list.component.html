@@ -25,9 +25,9 @@
             row.event.name
           }}</strong>
           <span class="mat-body-small">{{ row.schedule }}</span>
-          @if (row.event.venueString || row.event.localityString) {
+          @if (row.event.venueString || row.event.localityLabel) {
             <span class="mat-body-small">
-              {{ row.event.venueString || row.event.localityString }}
+              {{ row.event.venueString || row.event.localityLabel }}
             </span>
           }
         </span>

@@ -1,5 +1,6 @@
 import { normalizeRecentActivityMin30d, type RecentActivityMin30d } from "../schemas/CheckInActivitySchema";
 import type { EntityPlaceNames } from "../../scripts/EntityPlaceNames";
+import type { PlaceLabelNames } from "../../scripts/LocalizedPlaceLabels";
 import { LocaleMap, MediaType, LocaleCode } from "./Interfaces";
 import { AmenitiesMap } from "../schemas/Amenities";
 import { makeAmenitiesArray, makeSmartAmenitiesArray } from "./Amenities";
@@ -121,7 +122,16 @@ export class LocalSpot {
 
   address: WritableSignal<SpotAddressSchema | null>;
   readonly placeNames = signal<EntityPlaceNames | undefined>(undefined);
-  readonly localizedAddress = computed(() => localizedSpotAddress(this.address(), this.placeNames(), this.locale));
+  /** Names the server copied onto the Spot; usable before `placeNames` loads. */
+  readonly storedPlaceNames = signal<PlaceLabelNames | undefined>(undefined);
+  readonly localizedAddress = computed(() => {
+    const stored = this.storedPlaceNames();
+    return localizedSpotAddress(
+      this.address(),
+      this.placeNames() ?? (stored ? { names: stored.locality, region: stored.region ? { names: stored.region } : undefined } : undefined),
+      this.locale,
+    );
+  });
   formattedAddress: Signal<string>;
   localityString: Signal<string>;
 
@@ -310,6 +320,7 @@ export class LocalSpot {
     this.management = data.management;
     this.verification = data.verification;
     this.recent_activity_min_30d = normalizeRecentActivityMin30d(data.recent_activity_min_30d);
+    this.storedPlaceNames.set(data.place_names);
     this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
     this.ratingHistogram = signal(
@@ -506,6 +517,7 @@ export class LocalSpot {
     this.management = data.management;
     this.verification = data.verification;
     this.recent_activity_min_30d = normalizeRecentActivityMin30d(data.recent_activity_min_30d);
+    this.storedPlaceNames.set(data.place_names);
     this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
     this.ratingHistogram.set(

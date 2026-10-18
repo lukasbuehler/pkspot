@@ -1,3 +1,4 @@
+import { localizedLocalityLabel } from "../../scripts/LocalizedPlaceLabels";
 import type { EntityPlaceNames } from "../../scripts/EntityPlaceNames";
 import { selectLocalizedContent } from "../../scripts/LocalizedContent";
 import { GeoPoint, Timestamp } from "firebase/firestore";
@@ -138,7 +139,10 @@ export class Event {
 
   readonly venueString: string;
   readonly isOutdoor: boolean;
+  /** The original town text. Forms and lookups use this; display uses `localityLabel`. */
   readonly localityString: string;
+  /** The town in the app language when a translation is known. */
+  readonly localityLabel: string;
   placeNames?: EntityPlaceNames;
   readonly location?: { lat: number; lng: number };
   readonly hasLocation: boolean;
@@ -223,6 +227,7 @@ export class Event {
     this.venueString = data.venue_string ?? "";
     this.isOutdoor = data.is_outdoor !== false;
     this.localityString = data.locality_string ?? "";
+    this.localityLabel = localizedLocalityLabel(this.localityString, data.place_names, locale);
     this.location =
       Event.toLatLng(data.location_raw, data.location) ??
       (data.bounds ? Event.boundsCenter(data.bounds) : undefined);
