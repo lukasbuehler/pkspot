@@ -28,28 +28,7 @@
         <button matButton="outlined" type="button" (click)="load()" i18n="@@notification_center.retry">Retry</button>
       </section>
     }
-    <section class="summary" aria-label="Training summary" i18n-aria-label="@@trainingLog.summary.ariaLabel">
-      <div class="summary__lead">
-        <mat-icon>calendar_month</mat-icon>
-        <div>
-          <span i18n="@@trainingLog.summary.thisMonth">This month</span>
-          <strong>{{ monthSummary().sessionCount }}</strong>
-          <small i18n="@@trainingLog.summary.sessions">sessions</small>
-        </div>
-      </div>
-      <div>
-        <mat-icon>schedule</mat-icon>
-        <div><strong>{{ durationLabel(monthSummary().durationMinutes) }}</strong><span i18n="@@trainingLog.summary.trainingTime">training time</span></div>
-      </div>
-      <div>
-        <mat-icon>location_on</mat-icon>
-        <div><strong>{{ monthSummary().spotCount }}</strong><span i18n="@@trainingLog.summary.spots">Spots visited</span></div>
-      </div>
-      <div>
-        <mat-icon>history_edu</mat-icon>
-        <div><strong>{{ monthSummary().activityDays }}</strong><span i18n="@@trainingLog.summary.days">active days</span></div>
-      </div>
-    </section>
+    <app-training-stats class="stats" [reloadKey]="statsReload()" />
     <details class="activity-details">
       <summary><mat-icon aria-hidden="true">calendar_month</mat-icon><span i18n="@@train.history.title">Training history</span><mat-icon class="disclosure-arrow" aria-hidden="true">expand_more</mat-icon></summary>
     <app-training-activity-contribution-graph

@@ -1197,7 +1197,7 @@
     <unit id="searchField.communitySpotsCount">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ community.totalSpots }}"/> spots</source>
-        <target>spots</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ community.totalSpots }}"/> Spots</target>
       </segment>
     </unit>
     <unit id="searchField.events">
@@ -4722,6 +4722,24 @@
       <segment state="translated">
         <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
         <target> Rechargez la page, vérifiez votre connexion, désactivez les bloqueurs de scripts trop stricts, ou utilisez l’application officielle. </target>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.body">
+      <segment state="translated">
+        <source>Choose the store for your device.</source>
+        <target>Choisis la boutique adaptée à ton appareil.</target>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.pwa">
+      <segment state="translated">
+        <source>PK Spot also works as a web app (PWA). Open pkspot.app in your device&apos;s browser and choose “Add to Home Screen” or “Install app”.</source>
+        <target>PK Spot fonctionne aussi comme application web (PWA). Ouvre pkspot.app dans le navigateur de ton appareil et choisis « Sur l’écran d’accueil » ou « Installer l’application ».</target>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.title">
+      <segment state="translated">
+        <source>Get PK Spot</source>
+        <target>Télécharger PK Spot</target>
       </segment>
     </unit>
     <unit id="auth_action.back_to_signin">
@@ -11637,16 +11655,28 @@
         <target>Éclairage</target>
       </segment>
     </unit>
-    <unit id="logEditor.addSession">
+    <unit id="logEditor.date">
       <segment state="translated">
-        <source>Add a training session</source>
-        <target>Ajouter une séance</target>
+        <source>Date</source>
+        <target>Date</target>
       </segment>
     </unit>
-    <unit id="logEditor.arrived">
+    <unit id="logEditor.durationHint">
       <segment state="translated">
-        <source>Arrived</source>
-        <target>Arrivée</target>
+        <source>Optional. Without a duration, the session still counts as a visit.</source>
+        <target>Facultatif. Sans durée, la session compte quand même comme une visite.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.durationOther">
+      <segment state="translated">
+        <source>Other</source>
+        <target>Autre</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.durationTitle">
+      <segment state="translated">
+        <source>How long did you train?</source>
+        <target>Combien de temps t&apos;es-tu entraîné·e ?</target>
       </segment>
     </unit>
     <unit id="logEditor.editTitle">
@@ -11661,40 +11691,76 @@
         <target>Qu’as-tu pratiqué ?</target>
       </segment>
     </unit>
-    <unit id="logEditor.invalidTimes">
-      <segment state="initial">
-        <source>Leave time must be after arrival time.</source>
-        <target>Leave time must be after arrival time.</target>
+    <unit id="logEditor.futureDate">
+      <segment state="translated">
+        <source>A training session can&apos;t start in the future.</source>
+        <target>Une session d&apos;entraînement ne peut pas commencer dans le futur.</target>
       </segment>
     </unit>
-    <unit id="logEditor.left">
+    <unit id="logEditor.howWasIt">
       <segment state="translated">
-        <source>Left</source>
-        <target>Départ</target>
+        <source>How was your training?</source>
+        <target>Comment s&apos;est passé ton entraînement ?</target>
       </segment>
     </unit>
-    <unit id="logEditor.newTitle">
+    <unit id="logEditor.invalidDate">
       <segment state="translated">
-        <source>New log entry</source>
-        <target>Nouvelle note d’entraînement</target>
+        <source>Choose when you trained.</source>
+        <target>Choisis quand tu t&apos;es entraîné·e.</target>
       </segment>
     </unit>
-    <unit id="logEditor.note">
+    <unit id="logEditor.invalidDuration">
       <segment state="translated">
-        <source>Note</source>
-        <target>Note</target>
+        <source>Enter a duration between 5 minutes and 12 hours.</source>
+        <target>Indique une durée entre 5 minutes et 12 heures.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.linkedCheckIn">
+      <segment state="translated">
+        <source>your check-in</source>
+        <target>ton check-in</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.minutes">
+      <segment state="translated">
+        <source>Minutes</source>
+        <target>Minutes</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.moreDetails">
+      <segment state="translated">
+        <source>More details</source>
+        <target>Plus de détails</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.noteOptional">
+      <segment state="translated">
+        <source>Note (optional)</source>
+        <target>Note (facultatif)</target>
       </segment>
     </unit>
     <unit id="logEditor.notFound">
-      <segment state="initial">
+      <segment state="translated">
         <source>Log entry not found.</source>
-        <target>Log entry not found.</target>
+        <target>Entrée introuvable.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.notThisSession">
+      <segment state="translated">
+        <source>Not this session</source>
+        <target>Pas cette session</target>
       </segment>
     </unit>
     <unit id="logEditor.people">
       <segment state="translated">
         <source>People who were there</source>
         <target>Qui était là ?</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.privateHint">
+      <segment state="translated">
+        <source>Only you can see your training log.</source>
+        <target>Toi seul·e peux voir ton journal d&apos;entraînement.</target>
       </segment>
     </unit>
     <unit id="logEditor.save">
@@ -11704,33 +11770,33 @@
       </segment>
     </unit>
     <unit id="logEditor.saveError">
-      <segment state="initial">
+      <segment state="translated">
         <source>Could not save this log entry.</source>
-        <target>Could not save this log entry.</target>
+        <target>Impossible d&apos;enregistrer cette entrée.</target>
       </segment>
     </unit>
-    <unit id="logEditor.sessionRequired">
+    <unit id="logEditor.spotsOptional">
       <segment state="translated">
-        <source>Choose a training session or add when and where you trained below.</source>
-        <target>Choisis une séance ou indique ci-dessous quand et où tu t’es entraîné.</target>
+        <source>Spots (optional)</source>
+        <target>Spots (facultatif)</target>
       </segment>
     </unit>
-    <unit id="logEditor.sessionsHelp">
+    <unit id="logEditor.startTime">
       <segment state="translated">
-        <source>Choose when and where you trained. These details stay private.</source>
-        <target>Choisis quand et où tu t’es entraîné. Ces informations restent privées.</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.sessionsTitle">
-      <segment state="translated">
-        <source>Training sessions</source>
-        <target>Séances d’entraînement</target>
+        <source>Start time</source>
+        <target>Heure de début</target>
       </segment>
     </unit>
     <unit id="logEditor.trainingDetails">
       <segment state="translated">
         <source>Training details</source>
         <target>Détails de l’entraînement</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.whenWhere">
+      <segment state="translated">
+        <source>When and where</source>
+        <target>Quand et où</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -13491,12 +13557,6 @@
         <target>Prévisualiser les comptes concernés</target>
       </segment>
     </unit>
-    <unit id="294733429660547646">
-      <segment state="initial">
-        <source>Check-in</source>
-        <target>Check-in</target>
-      </segment>
-    </unit>
     <unit id="profile.actions.report">
       <segment state="initial">
         <source>Report</source>
@@ -14758,12 +14818,6 @@
         <target>Modification envoyée pour révision par l’organisation</target>
       </segment>
     </unit>
-    <unit id="2233560223291461480">
-      <segment state="initial">
-        <source>Manual</source>
-        <target>Manual</target>
-      </segment>
-    </unit>
     <unit id="223483240416376467">
       <segment state="initial">
         <source>Media review</source>
@@ -15232,6 +15286,72 @@
         <target>Type de Spot</target>
       </segment>
     </unit>
+    <unit id="spotPersonalStats.allStats">
+      <segment state="translated">
+        <source>Your stats</source>
+        <target>Tes statistiques</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.lastVisit">
+      <segment state="translated">
+        <source>last visit</source>
+        <target>dernière visite</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.legendBody">
+      <segment state="translated">
+        <source>You trained here on more days than anyone else this month.</source>
+        <target>Ce mois-ci, tu t&apos;es entraîné·e ici plus de jours que quiconque.</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.legendTitle">
+      <segment state="translated">
+        <source>Local legend</source>
+        <target>Légende locale</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.onlyYou">
+      <segment state="translated">
+        <source>Only you</source>
+        <target>Toi seul·e</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.rankBody">
+      <segment state="translated">
+        <source>Ranked by days with a verified check-in this month.</source>
+        <target>Classement par jours avec check-in vérifié ce mois-ci.</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.rankTitle">
+      <segment state="translated">
+        <source>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> at this Spot</source>
+        <target>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> sur ce Spot</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.since">
+      <segment state="translated">
+        <source>Training here since <ph id="0" equiv="INTERPOLATION" disp="{{ stats.since }}"/></source>
+        <target>Tu t&apos;entraînes ici depuis <ph id="0" equiv="INTERPOLATION" disp="{{ stats.since }}"/></target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.title">
+      <segment state="translated">
+        <source>Your visits</source>
+        <target>Tes visites</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.trained">
+      <segment state="translated">
+        <source>trained</source>
+        <target>d&apos;entraînement</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.visits">
+      <segment state="translated">
+        <source>visits</source>
+        <target>visites</target>
+      </segment>
+    </unit>
     <unit id="support.meta.description">
       <segment state="initial">
         <source>Get help with PK Spot — answers to common questions about parkour spots, accounts, and the community.</source>
@@ -15304,6 +15424,24 @@
       <segment state="translated">
         <source>Conditions and your rhythm</source>
         <target>Conditions et ton rythme</target>
+      </segment>
+    </unit>
+    <unit id="train.ranks.private">
+      <segment state="translated">
+        <source>Only you can see your ranks.</source>
+        <target>Toi seul·e peux voir tes classements.</target>
+      </segment>
+    </unit>
+    <unit id="train.ranks.rank">
+      <segment state="translated">
+        <source>#<ph id="0" equiv="rank" disp="rank.rank"/></source>
+        <target>#<ph id="0" equiv="rank" disp="rank.rank"/></target>
+      </segment>
+    </unit>
+    <unit id="train.ranks.title">
+      <segment state="translated">
+        <source>Your Spot ranks this month</source>
+        <target>Tes classements de Spots ce mois-ci</target>
       </segment>
     </unit>
     <unit id="train.reflection.empty">
@@ -15762,10 +15900,142 @@
         <target>Session summary</target>
       </segment>
     </unit>
-    <unit id="trainingLog.session.spotCount">
-      <segment state="initial">
-        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
-        <target>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</target>
+    <unit id="trainingStats.allTime">
+      <segment state="translated">
+        <source>All time</source>
+        <target>Depuis le début</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.durationCoverage">
+      <segment state="translated">
+        <source>Logged for <ph id="0" equiv="logged" disp="summary.sessionsWithDuration"/> of <ph id="1" equiv="sessions" disp="summary.sessions"/> sessions</source>
+        <target>Durée notée pour <ph id="0" equiv="logged" disp="summary.sessionsWithDuration"/> sessions sur <ph id="1" equiv="sessions" disp="summary.sessions"/></target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.empty">
+      <segment state="translated">
+        <source>Check in at a Spot or log a session, and your statistics start here.</source>
+        <target>Fais un check-in sur un Spot ou note une session, et tes statistiques commencent ici.</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.lastVisit">
+      <segment state="translated">
+        <source>last <ph id="0" equiv="date" disp="this.dateTime.format(new Date(spot.lastMs), { day: &quot;numeric&quot;, month: &quot;short&quot; })"/></source>
+        <target>dernière <ph id="0" equiv="date" disp="this.dateTime.format(new Date(spot.lastMs), { day: &quot;numeric&quot;, month: &quot;short&quot; })"/></target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.legend">
+      <segment state="translated">
+        <source>Local legend</source>
+        <target>Légende locale</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.loadError">
+      <segment state="translated">
+        <source>Your statistics could not be loaded.</source>
+        <target>Impossible de charger tes statistiques.</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.month">
+      <segment state="translated">
+        <source>Month</source>
+        <target>Mois</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.new">
+      <segment state="translated">
+        <source>New</source>
+        <target>Nouveau</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.newSpots">
+      <segment state="translated">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary().newSpots }}"/> new</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ summary().newSpots }}"/> nouveaux</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.next">
+      <segment state="translated">
+        <source>Next period</source>
+        <target>Période suivante</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.oneVisit">
+      <segment state="translated">
+        <source>1 visit</source>
+        <target>1 visite</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.periodLabel">
+      <segment state="translated">
+        <source>Statistics period</source>
+        <target>Période des statistiques</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.previous">
+      <segment state="translated">
+        <source>Previous period</source>
+        <target>Période précédente</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.rank">
+      <segment state="translated">
+        <source>#<ph id="0" equiv="rank" disp="rank.rank"/> this month</source>
+        <target>#<ph id="0" equiv="rank" disp="rank.rank"/> ce mois-ci</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.rankNote">
+      <segment state="translated">
+        <source>Ranks compare verified check-in days at each Spot this month. Only you can see your rank.</source>
+        <target>Les classements comparent les jours de check-in vérifiés sur chaque Spot ce mois-ci. Toi seul·e peux voir ton classement.</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.showAllSpots">
+      <segment state="translated">
+        <source>Show all <ph id="0" equiv="INTERPOLATION" disp="{{ spots().length }}"/> Spots</source>
+        <target>Afficher les <ph id="0" equiv="INTERPOLATION" disp="{{ spots().length }}"/> Spots</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.title">
+      <segment state="translated">
+        <source>Your stats</source>
+        <target>Tes statistiques</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.unnamedSpot">
+      <segment state="translated">
+        <source>Spot</source>
+        <target>Spot</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.visits">
+      <segment state="translated">
+        <source><ph id="0" equiv="count" disp="spot.visits"/> visits</source>
+        <target><ph id="0" equiv="count" disp="spot.visits"/> visites</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.vsLastYear">
+      <segment state="translated">
+        <source><ph id="0" equiv="delta" disp="signed"/> vs last year</source>
+        <target><ph id="0" equiv="delta" disp="signed"/> par rapport à l&apos;an dernier</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.whenYouTrain">
+      <segment state="translated">
+        <source>When you train</source>
+        <target>Quand tu t&apos;entraînes</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.year">
+      <segment state="translated">
+        <source>Year</source>
+        <target>Année</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.yourSpots">
+      <segment state="translated">
+        <source>Your Spots</source>
+        <target>Tes Spots</target>
       </segment>
     </unit>
     <unit id="trainingLog.signIn">
@@ -15786,12 +16056,6 @@
         <target>A private timeline for the Spots, sessions, and people that made up your training.</target>
       </segment>
     </unit>
-    <unit id="trainingLog.summary.ariaLabel">
-      <segment state="initial">
-        <source>Training summary</source>
-        <target>Training summary</target>
-      </segment>
-    </unit>
     <unit id="trainingLog.summary.days">
       <segment state="initial">
         <source>active days</source>
@@ -15808,12 +16072,6 @@
       <segment state="initial">
         <source>Spots visited</source>
         <target>Spots visited</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.summary.thisMonth">
-      <segment state="initial">
-        <source>This month</source>
-        <target>This month</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.trainingTime">
@@ -16508,6 +16766,12 @@
         <target>Tous les types</target>
       </segment>
     </unit>
+    <unit id="checkin.alreadyCheckedIn">
+      <segment state="translated">
+        <source>You&apos;re already checked in here.</source>
+        <target>Tu as déjà fait un check-in ici.</target>
+      </segment>
+    </unit>
     <unit id="checkin.at_spot_short">
       <segment state="initial">
         <source>At <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ spot.name }}"/></pc> spot?</source>
@@ -16548,6 +16812,54 @@
       <segment state="translated">
         <source>View log entry</source>
         <target>Voir la note</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.done">
+      <segment state="translated">
+        <source>Done</source>
+        <target>Terminé</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.firstVisit">
+      <segment state="translated">
+        <source>Your first visit here</source>
+        <target>Ta première visite ici</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.log">
+      <segment state="translated">
+        <source>Log this session</source>
+        <target>Noter la session</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.private">
+      <segment state="translated">
+        <source>Saved privately to your training log. Verified visits count toward your monthly Spot rank, which only you can see.</source>
+        <target>Enregistré en privé dans ton journal. Les visites vérifiées comptent pour ton classement mensuel sur le Spot, visible par toi seul·e.</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.title">
+      <segment state="translated">
+        <source>Checked in</source>
+        <target>Check-in effectué</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.titleAt">
+      <segment state="translated">
+        <source>Checked in at <ph id="0" equiv="spot" disp="this.data.spotName"/></source>
+        <target>Check-in à <ph id="0" equiv="spot" disp="this.data.spotName"/></target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.unverified">
+      <segment state="translated">
+        <source>Saved privately. It couldn&apos;t be verified at the Spot, so it won&apos;t count toward your Spot rank.</source>
+        <target>Enregistré en privé. Il n&apos;a pas pu être vérifié sur le Spot et ne compte donc pas pour ton classement.</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.visitCount">
+      <segment state="translated">
+        <source>Visit <ph id="0" equiv="count" disp="count"/> here</source>
+        <target>Visite n° <ph id="0" equiv="count" disp="count"/> ici</target>
       </segment>
     </unit>
     <unit id="5296463977031840068">

@@ -1,4 +1,5 @@
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
+import { SpotPersonalStatsComponent } from "../spot-personal-stats/spot-personal-stats.component";
 import { ShareCardService } from "../../services/share-card.service";
 import { spotCopy } from "../../localization/entity-copy";
 import { inject as injectFeatureTelemetry } from "@angular/core";
@@ -285,6 +286,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     ]),
   ],
   imports: [
+    SpotPersonalStatsComponent,
     MatCard,
     MatRipple,
     MatCardHeader,

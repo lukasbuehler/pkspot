@@ -256,3 +256,4 @@ error
 shopping_bag
 remove
 group
+military_tech

@@ -45,6 +45,11 @@ import {
 import { MapFloatingControlsComponent } from "../map/map-floating-controls/map-floating-controls.component";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatBottomSheet } from "@angular/material/bottom-sheet";
+import {
+  CheckInRewardSheetComponent,
+  type CheckInRewardSheetData,
+} from "../check-in-reward-sheet/check-in-reward-sheet.component";
 import { MapsApiService } from "../../services/maps-api.service";
 import {
   filter,
@@ -3667,6 +3672,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  /**
+   * A filter chosen while a community is open applies to the current map area,
+   * so the community panel closes first. Deep links that combine a community
+   * with a filter go through `filterChipChanged` directly and keep both.
+   */
+  onFilterChipSelected(selectedChip: string): void {
+    if (selectedChip) this.closeCommunityPanel();
+    this.filterChipChanged(selectedChip);
+  }
+
+  onEventFilterChipSelected(selectedChip: string): void {
+    if (selectedChip) this.closeCommunityPanel();
+    this.eventFilterChanged(selectedChip);
+  }
+
   filterChipChanged(selectedChip: string) {
     this._analytics.trackEvent("map_spot_filter_changed", {
       filter: selectedChip || null,
@@ -5485,12 +5505,26 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   readonly checkInPending = signal(false);
+  private readonly _bottomSheet = inject(MatBottomSheet);
 
   async spotCheckIn(spotId: SpotId): Promise<void> {
     if (this.checkInPending()) return;
     this.checkInPending.set(true);
     try {
-      await this.checkInService.checkIn(spotId);
+      const spotName = this.proximityCheckInSpot()?.name ?? null;
+      const response = await this.checkInService.checkIn(spotId);
+      if (response?.duplicate) {
+        this._snackbar.open(
+          $localize`:@@checkin.alreadyCheckedIn:You're already checked in here.`,
+          $localize`:@@common.dismiss:Dismiss`,
+          {duration: 4000},
+        );
+      } else if (response) {
+        this._bottomSheet.open<CheckInRewardSheetComponent, CheckInRewardSheetData>(
+          CheckInRewardSheetComponent,
+          {data: {spotId, spotName, response}},
+        );
+      }
     } catch {
       this._snackbar.open(
         $localize`:@@checkin.failed:Could not check in. Please try again.`,

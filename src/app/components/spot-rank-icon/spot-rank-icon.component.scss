@@ -1,0 +1,16 @@
+// Medal colors have no Material 3 role; they are defined once here and can be
+// overridden by a theme through the custom properties.
+:host {
+  display: inline-flex;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+mat-icon {
+  width: var(--spot-rank-icon-size, 20px);
+  height: var(--spot-rank-icon-size, 20px);
+  font-size: var(--spot-rank-icon-size, 20px);
+
+  &.is-gold { color: var(--app-rank-gold, #e9b82c); }
+  &.is-silver { color: var(--app-rank-silver, #b8c0cc); }
+  &.is-bronze { color: var(--app-rank-bronze, #c98a53); }
+}

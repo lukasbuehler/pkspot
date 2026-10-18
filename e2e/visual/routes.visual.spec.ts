@@ -919,9 +919,18 @@ test.describe("Route visual regression @visual", () => {
       if (route.name.startsWith('account')) {
         await expect(page.locator('.language-strip a[href$="/support"]')).toBeVisible();
       }
+      if (route.name === 'training-log') {
+        const stats = page.locator('app-training-stats');
+        await expect(stats.locator('.stats-spot')).toHaveCount(4);
+        // Only the verified check-in Spot carries this month's private rank.
+        await expect(stats.locator('.stats-spot__rank')).toHaveCount(1);
+        await expect(stats.locator('.stats-spot').filter({ hasText: 'Sihlcity steps' }).locator('.stats-spot__rank')).toContainText('#2');
+      }
       if (route.name === 'training-log-check-in-editor') {
-        await expect(page.locator('.selected-context')).toContainText('Sihlcity steps');
-        await expect(page.locator('.session-details mat-expansion-panel-header')).toHaveAttribute('aria-expanded', 'false');
+        // A check-in is linked for the person; nothing asks them to pick records.
+        await expect(page.locator('.linked')).toContainText('Sihlcity steps');
+        await expect(page.locator('mat-checkbox')).toHaveCount(0);
+        await expect(page.locator('.duration mat-button-toggle')).toHaveCount(6);
         await expect(page.locator('textarea')).toBeVisible();
         expect(await page.locator('textarea').inputValue()).toBe('');
       }
@@ -1903,6 +1912,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             __PKSPOT_SCREENSHOT_MY_REPORTS__?: unknown;
             __PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__?: unknown;
             __PKSPOT_SCREENSHOT_TRAINING_SESSIONS__?: unknown;
+            __PKSPOT_SCREENSHOT_SPOT_RANKS__?: unknown;
             __PKSPOT_SCREENSHOT_RECOVERY_PAUSES__?: unknown;
           }
         );
@@ -2047,6 +2057,11 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               time_updated_raw_ms: august(4, 19),
             },
           ];
+          // Private monthly rank for the verified check-in Spot (only ever shown to its owner).
+          screenshotWindow.__PKSPOT_SCREENSHOT_SPOT_RANKS__ = {
+            month: "2026-08",
+            ranks: [{ spotId: "sihlcity-steps", month: "2026-08", verifiedDays: 1, rank: 2, legend: false }],
+          };
           screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__ = [
             {
               id: "visual-training-entry",

@@ -491,6 +491,9 @@
 
         <ng-content select="[spotDetailsAfterMedia]" />
 
+        <!-- The signed-in person's private record and monthly rank at this Spot. -->
+        <app-spot-personal-stats [spotId]="spotActivitySpotId()" />
+
         <!--
         @if (
         !isLocalSpot() &&

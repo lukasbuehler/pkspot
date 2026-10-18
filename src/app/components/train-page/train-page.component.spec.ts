@@ -21,6 +21,7 @@ import { TrainPageComponent } from "./train-page.component";
 import { MyEventsService } from "../../services/my-events.service";
 import { PlannedSessionsService } from "../../services/planned-sessions.service";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
+import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
 
 const eventResult: EventDiscoverySearchResult = {
@@ -257,18 +258,14 @@ describe("TrainPageComponent", () => {
     await vi.waitFor(() => expect(component.loading()).toBe(false));
 
     expect(logs.listMine).toHaveBeenCalledOnce();
+    // Activity comes from the private monthly summaries, independent of notes.
     expect(component.trainingActivityDays()).toEqual([
-      {
-        key: "2026-08-20",
-        entryIds: ["entry-1"],
-        sessionCount: 1,
-        durationMinutes: 0,
-        spotCount: 1,
-      },
+      { key: "2026-08-20", entryIds: [], sessionCount: 1, durationMinutes: 0, spotCount: 0 },
     ]);
-    expect(TestBed.inject(SessionRecordsService).listMine).toHaveBeenCalledWith(null);
+    // Only recent sessions are loaded; statistics no longer read the whole history.
+    expect(TestBed.inject(SessionRecordsService).listMine).toHaveBeenCalledWith(30);
     component.trainingLogs.set([]);
-    expect(component.trainingActivityDays()[0]).toMatchObject({sessionCount: 1, spotCount: 1, durationMinutes: 0, entryIds: []});
+    expect(component.trainingActivityDays()[0]).toMatchObject({sessionCount: 1});
     logs.listMine.mockRejectedValue(new Error("Optional notes unavailable"));
     await component.loadTrainingHistory();
     expect(component.trainingHistoryFailed()).toBe(true);
@@ -435,6 +432,13 @@ function createComponent({
       { provide: CommunityFollowsService, useValue: follows },
       { provide: LogEntriesService, useValue: logs },
       { provide: SessionRecordsService, useValue: sessions },
+      {
+        provide: TrainingSummaryService,
+        useValue: {
+          listMyMonths: vi.fn(async () => TrainingSummaryService.deriveMonths(await sessions.listMine())),
+          getMySpotRanks: vi.fn().mockResolvedValue({ month: "", ranks: [] }),
+        },
+      },
       { provide: RecoveryPausesService, useValue: recoveryPauses },
       { provide: GeolocationService, useValue: geolocation },
       { provide: MapsApiService, useValue: { getLocalityName: vi.fn().mockResolvedValue("Zürich") } },

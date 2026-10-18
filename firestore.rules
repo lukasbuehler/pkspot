@@ -1565,6 +1565,18 @@ service cloud.firestore {
           && isClientManagedSession(resource.data);
       }
 
+      // Private training summaries are derived on the server from the
+      // person's own session records. Only the owner can read them.
+      match /training_months/{monthId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /training_spots/{spotId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       match /log_entries/{logEntryId} {
         // Historical audience fields never grant access. Owners retain their
         // entries without a migration; the current client saves them as private.
@@ -2042,6 +2054,12 @@ service cloud.firestore {
     match /spot_creation_metrics_hourly/{hour} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    // Server-only verified-day tallies used to tell each person their own
+    // private Spot rank. No client may read or write them.
+    match /spot_legend_tallies/{tallyId} {
+      allow read, write: if false;
     }
 
     match /maintenance/{maintenanceId} {

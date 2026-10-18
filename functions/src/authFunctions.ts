@@ -18,6 +18,10 @@ export const cleanupOnUserDelete = functions.auth
 
     const { deletePlannedSessionData } = await import("./plannedSessionFunctions");
     await deletePlannedSessionData(userId);
+    // Private check-ins, sessions, logs and the summaries and Spot-rank tallies
+    // derived from them must not outlive the account.
+    const { deleteTrainingDataForUser } = await import("./trainingSummaryFunctions");
+    await deleteTrainingDataForUser(userId);
     await db.doc(`age_assurance_external_limits/${userId}`).delete();
 
     // Batch delete logic for followers and following

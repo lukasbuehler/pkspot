@@ -1,0 +1,60 @@
+:host {
+  --mat-button-tonal-container-color: var(--mat-sys-primary-container);
+  --mat-button-tonal-label-text-color: var(--mat-sys-on-primary-container);
+
+  display: block;
+}
+
+.reward {
+  display: grid;
+  gap: 14px;
+  padding: 8px 4px calc(8px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+.reward__summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reward__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.reward__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+    overflow-wrap: anywhere;
+  }
+}
+
+.reward__visit {
+  margin: 0;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-title-small);
+}
+
+.reward__note {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.reward__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}

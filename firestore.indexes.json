@@ -1,6 +1,24 @@
 {
   "indexes": [
     {
+      "collectionGroup": "spot_legend_tallies",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "spot_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "month",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "verified_days",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "spot_create_submissions",
       "queryScope": "COLLECTION",
       "fields": [

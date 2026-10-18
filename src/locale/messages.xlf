@@ -21,14 +21,24 @@
         <source>Open this on PK Spot</source>
       </segment>
     </unit>
-    <unit id="logEditor.addSession">
+    <unit id="logEditor.date">
       <segment>
-        <source>Add a training session</source>
+        <source>Date</source>
       </segment>
     </unit>
-    <unit id="logEditor.arrived">
+    <unit id="logEditor.durationHint">
       <segment>
-        <source>Arrived</source>
+        <source>Optional. Without a duration, the session still counts as a visit.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.durationOther">
+      <segment>
+        <source>Other</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.durationTitle">
+      <segment>
+        <source>How long did you train?</source>
       </segment>
     </unit>
     <unit id="logEditor.editTitle">
@@ -41,24 +51,44 @@
         <source>What did you practise?</source>
       </segment>
     </unit>
-    <unit id="logEditor.invalidTimes">
+    <unit id="logEditor.futureDate">
       <segment>
-        <source>Leave time must be after arrival time.</source>
+        <source>A training session can&apos;t start in the future.</source>
       </segment>
     </unit>
-    <unit id="logEditor.left">
+    <unit id="logEditor.howWasIt">
       <segment>
-        <source>Left</source>
+        <source>How was your training?</source>
       </segment>
     </unit>
-    <unit id="logEditor.newTitle">
+    <unit id="logEditor.invalidDate">
       <segment>
-        <source>New log entry</source>
+        <source>Choose when you trained.</source>
       </segment>
     </unit>
-    <unit id="logEditor.note">
+    <unit id="logEditor.invalidDuration">
       <segment>
-        <source>Note</source>
+        <source>Enter a duration between 5 minutes and 12 hours.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.linkedCheckIn">
+      <segment>
+        <source>your check-in</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.minutes">
+      <segment>
+        <source>Minutes</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.moreDetails">
+      <segment>
+        <source>More details</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.noteOptional">
+      <segment>
+        <source>Note (optional)</source>
       </segment>
     </unit>
     <unit id="logEditor.notFound">
@@ -66,9 +96,19 @@
         <source>Log entry not found.</source>
       </segment>
     </unit>
+    <unit id="logEditor.notThisSession">
+      <segment>
+        <source>Not this session</source>
+      </segment>
+    </unit>
     <unit id="logEditor.people">
       <segment>
         <source>People who were there</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.privateHint">
+      <segment>
+        <source>Only you can see your training log.</source>
       </segment>
     </unit>
     <unit id="logEditor.save">
@@ -81,24 +121,24 @@
         <source>Could not save this log entry.</source>
       </segment>
     </unit>
-    <unit id="logEditor.sessionRequired">
+    <unit id="logEditor.spotsOptional">
       <segment>
-        <source>Choose a training session or add when and where you trained below.</source>
+        <source>Spots (optional)</source>
       </segment>
     </unit>
-    <unit id="logEditor.sessionsHelp">
+    <unit id="logEditor.startTime">
       <segment>
-        <source>Choose when and where you trained. These details stay private.</source>
-      </segment>
-    </unit>
-    <unit id="logEditor.sessionsTitle">
-      <segment>
-        <source>Training sessions</source>
+        <source>Start time</source>
       </segment>
     </unit>
     <unit id="logEditor.trainingDetails">
       <segment>
         <source>Training details</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.whenWhere">
+      <segment>
+        <source>When and where</source>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -2074,6 +2114,11 @@
         <source>All Types</source>
       </segment>
     </unit>
+    <unit id="checkin.alreadyCheckedIn">
+      <segment>
+        <source>You&apos;re already checked in here.</source>
+      </segment>
+    </unit>
     <unit id="checkin.at_spot_short">
       <segment>
         <source>At <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ spot.name }}"/></pc> spot?</source>
@@ -2107,6 +2152,46 @@
     <unit id="checkInLogPrompt.view">
       <segment>
         <source>View log entry</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.done">
+      <segment>
+        <source>Done</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.firstVisit">
+      <segment>
+        <source>Your first visit here</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.log">
+      <segment>
+        <source>Log this session</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.private">
+      <segment>
+        <source>Saved privately to your training log. Verified visits count toward your monthly Spot rank, which only you can see.</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.title">
+      <segment>
+        <source>Checked in</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.titleAt">
+      <segment>
+        <source>Checked in at <ph id="0" equiv="spot" disp="this.data.spotName"/></source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.unverified">
+      <segment>
+        <source>Saved privately. It couldn&apos;t be verified at the Spot, so it won&apos;t count toward your Spot rank.</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.visitCount">
+      <segment>
+        <source>Visit <ph id="0" equiv="count" disp="count"/> here</source>
       </segment>
     </unit>
     <unit id="5296463977031840068">
@@ -2700,6 +2785,21 @@
     <unit id="app_check_error.web_hint">
       <segment>
         <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.body">
+      <segment>
+        <source>Choose the store for your device.</source>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.pwa">
+      <segment>
+        <source>PK Spot also works as a web app (PWA). Open pkspot.app in your device&apos;s browser and choose “Add to Home Screen” or “Install app”.</source>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.title">
+      <segment>
+        <source>Get PK Spot</source>
       </segment>
     </unit>
     <unit id="amenity.changing_room">
@@ -8204,11 +8304,6 @@
         <source>Preview affected accounts</source>
       </segment>
     </unit>
-    <unit id="294733429660547646">
-      <segment>
-        <source>Check-in</source>
-      </segment>
-    </unit>
     <unit id="settings.temperature.aria_label">
       <segment>
         <source>Temperature unit</source>
@@ -10055,6 +10150,21 @@
         <source>Conditions and your rhythm</source>
       </segment>
     </unit>
+    <unit id="train.ranks.private">
+      <segment>
+        <source>Only you can see your ranks.</source>
+      </segment>
+    </unit>
+    <unit id="train.ranks.rank">
+      <segment>
+        <source>#<ph id="0" equiv="rank" disp="rank.rank"/></source>
+      </segment>
+    </unit>
+    <unit id="train.ranks.title">
+      <segment>
+        <source>Your Spot ranks this month</source>
+      </segment>
+    </unit>
     <unit id="train.reflection.empty">
       <segment>
         <source>Your training history appears here after your first check-in or log entry.</source>
@@ -10425,9 +10535,119 @@
         <source>Session summary</source>
       </segment>
     </unit>
-    <unit id="trainingLog.session.spotCount">
+    <unit id="trainingStats.allTime">
       <segment>
-        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
+        <source>All time</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.durationCoverage">
+      <segment>
+        <source>Logged for <ph id="0" equiv="logged" disp="summary.sessionsWithDuration"/> of <ph id="1" equiv="sessions" disp="summary.sessions"/> sessions</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.empty">
+      <segment>
+        <source>Check in at a Spot or log a session, and your statistics start here.</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.lastVisit">
+      <segment>
+        <source>last <ph id="0" equiv="date" disp="this.dateTime.format(new Date(spot.lastMs), { day: &quot;numeric&quot;, month: &quot;short&quot; })"/></source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.legend">
+      <segment>
+        <source>Local legend</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.loadError">
+      <segment>
+        <source>Your statistics could not be loaded.</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.month">
+      <segment>
+        <source>Month</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.new">
+      <segment>
+        <source>New</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.newSpots">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary().newSpots }}"/> new</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.next">
+      <segment>
+        <source>Next period</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.oneVisit">
+      <segment>
+        <source>1 visit</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.periodLabel">
+      <segment>
+        <source>Statistics period</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.previous">
+      <segment>
+        <source>Previous period</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.rank">
+      <segment>
+        <source>#<ph id="0" equiv="rank" disp="rank.rank"/> this month</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.rankNote">
+      <segment>
+        <source>Ranks compare verified check-in days at each Spot this month. Only you can see your rank.</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.showAllSpots">
+      <segment>
+        <source>Show all <ph id="0" equiv="INTERPOLATION" disp="{{ spots().length }}"/> Spots</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.title">
+      <segment>
+        <source>Your stats</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.unnamedSpot">
+      <segment>
+        <source>Spot</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.visits">
+      <segment>
+        <source><ph id="0" equiv="count" disp="spot.visits"/> visits</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.vsLastYear">
+      <segment>
+        <source><ph id="0" equiv="delta" disp="signed"/> vs last year</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.whenYouTrain">
+      <segment>
+        <source>When you train</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.year">
+      <segment>
+        <source>Year</source>
+      </segment>
+    </unit>
+    <unit id="trainingStats.yourSpots">
+      <segment>
+        <source>Your Spots</source>
       </segment>
     </unit>
     <unit id="trainingLog.signIn">
@@ -10445,11 +10665,6 @@
         <source>A private timeline for the Spots, sessions, and people that made up your training.</source>
       </segment>
     </unit>
-    <unit id="trainingLog.summary.ariaLabel">
-      <segment>
-        <source>Training summary</source>
-      </segment>
-    </unit>
     <unit id="trainingLog.summary.days">
       <segment>
         <source>active days</source>
@@ -10463,11 +10678,6 @@
     <unit id="trainingLog.summary.spots">
       <segment>
         <source>Spots visited</source>
-      </segment>
-    </unit>
-    <unit id="trainingLog.summary.thisMonth">
-      <segment>
-        <source>This month</source>
       </segment>
     </unit>
     <unit id="trainingLog.summary.trainingTime">
@@ -10693,11 +10903,6 @@
     <unit id="2231151963929640898">
       <segment>
         <source>Edit submitted for organization review</source>
-      </segment>
-    </unit>
-    <unit id="2233560223291461480">
-      <segment>
-        <source>Manual</source>
       </segment>
     </unit>
     <unit id="223483240416376467">
@@ -11648,6 +11853,61 @@
     <unit id="spot_type_label">
       <segment>
         <source>Spot Type</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.allStats">
+      <segment>
+        <source>Your stats</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.lastVisit">
+      <segment>
+        <source>last visit</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.legendBody">
+      <segment>
+        <source>You trained here on more days than anyone else this month.</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.legendTitle">
+      <segment>
+        <source>Local legend</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.onlyYou">
+      <segment>
+        <source>Only you</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.rankBody">
+      <segment>
+        <source>Ranked by days with a verified check-in this month.</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.rankTitle">
+      <segment>
+        <source>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> at this Spot</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.since">
+      <segment>
+        <source>Training here since <ph id="0" equiv="INTERPOLATION" disp="{{ stats.since }}"/></source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.title">
+      <segment>
+        <source>Your visits</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.trained">
+      <segment>
+        <source>trained</source>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.visits">
+      <segment>
+        <source>visits</source>
       </segment>
     </unit>
     <unit id="support.meta.description">

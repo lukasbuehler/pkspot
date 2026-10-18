@@ -25,13 +25,18 @@ import type { PlannedSession } from "../../../db/schemas/PlannedSessionSchema";
 import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
 import {
-  buildSessionActivityDays,
+  activityDaysFromMonths,
   formatDuration,
   localeFirstWeekday,
   monthKey,
-  summarizeTrainingMonth,
   summarizeTrainingStreaks,
 } from "../../features/training-log-activity";
+import type {
+  MySpotRank,
+  TrainingMonthSchema,
+} from "../../../db/schemas/TrainingSummarySchema";
+import { shiftMonth, summarizeTrainingPeriod } from "../../../db/utils/training-summary";
+import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
@@ -73,6 +78,7 @@ import {
   type TrainContextDialogAction,
   type TrainContextDialogData,
 } from "../train-context-dialog/train-context-dialog.component";
+import { SpotRankIconComponent } from "../spot-rank-icon/spot-rank-icon.component";
 import { TrainingActivityContributionGraphComponent } from "../training-activity-contribution-graph/training-activity-contribution-graph.component";
 import {
   WeatherForecastDialogComponent,
@@ -103,6 +109,8 @@ const MAX_MOMENTS = 2;
 const MAX_COMING_UP = 5;
 /** The rail shows the current week; the full history lives in "Looking back". */
 const RHYTHM_WEEKS = 1;
+const RECENT_SESSIONS = 30;
+const MAX_TOP_RANKS = 3;
 const CLOCK_INTERVAL_MS = 60_000;
 
 export interface TrainingMomentView {
@@ -127,6 +135,14 @@ export interface ComingUpItem {
   relationship: string | null;
 }
 
+export interface TopRankView {
+  spotId: string;
+  rank: number;
+  name: string;
+  label: string;
+  legend: boolean;
+}
+
 export interface RecentEntryView {
   id: string;
   weekday: string;
@@ -149,6 +165,7 @@ export interface RecentEntryView {
     RouterLink,
     SpotPreviewCardComponent,
     TrainingActivityContributionGraphComponent,
+    SpotRankIconComponent,
   ],
   templateUrl: "./train-page.component.html",
   styleUrl: "./train-page.component.scss",
@@ -168,6 +185,7 @@ export class TrainPageComponent {
   private readonly sessionsService = inject(SessionRecordsService);
   private readonly logsService = inject(LogEntriesService);
   private readonly recoveryPausesService = inject(RecoveryPausesService);
+  private readonly trainingSummaries = inject(TrainingSummaryService);
   private readonly plannedSessionsService = inject(PlannedSessionsService);
   private readonly myEvents = inject(MyEventsService);
   private readonly dateTime = inject(DateTimeFormatService);
@@ -208,7 +226,11 @@ export class TrainPageComponent {
   readonly spotFilterSource = signal<SpotFilterSource>(null);
   readonly weather = signal<WeatherResponse | null>(null);
 
+  /** Recent sessions only: the active-session card and the log prompt need no more. */
   readonly trainingSessions = signal<SessionRecordDocument[]>([]);
+  /** Private monthly summaries; the source for rhythm, streaks and month stats. */
+  readonly trainingMonths = signal<TrainingMonthSchema[]>([]);
+  readonly spotRanks = signal<MySpotRank[]>([]);
   readonly trainingLogs = signal<LogEntryDocument[]>([]);
   readonly recoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly trainingHistoryFailed = signal(false);
@@ -298,6 +320,18 @@ export class TrainPageComponent {
       sessionIdleWindowMs: SessionRecordsService.CHECK_IN_IDLE_WINDOW_MS,
     }).slice(0, MAX_MOMENTS),
   );
+  /**
+   * The log prompt asks about a finished check-in. While a check-in session is
+   * still running, the green "Training now" card already offers notes.
+   */
+  readonly promptSessions = computed(() => {
+    const active = new Set(
+      this.moments()
+        .filter((moment) => moment.kind === "active-session")
+        .map((moment) => moment.session.id),
+    );
+    return this.trainingSessions().filter((session) => !active.has(session.id));
+  });
   readonly momentViews = computed(() =>
     this.moments().map((moment) => this.toMomentView(moment)),
   );
@@ -330,24 +364,20 @@ export class TrainPageComponent {
   // Rhythm and reflection --------------------------------------------------------
 
   readonly trainingActivityDays = computed(() =>
-    buildSessionActivityDays(this.trainingSessions(), this.trainingLogs()),
+    activityDaysFromMonths(this.trainingMonths()),
   );
-  readonly trainingMonthSummary = computed(() =>
-    summarizeTrainingMonth(this.trainingActivityDays(), monthKey(this.now())),
+  private readonly currentMonthKey = computed(() => monthKey(this.now()));
+  readonly monthStats = computed(() =>
+    summarizeTrainingPeriod(this.trainingMonths(), new Set([this.currentMonthKey()])),
   );
-  readonly previousMonthSummary = computed(() => {
-    const date = new Date(this.now());
-    date.setDate(1);
-    date.setMonth(date.getMonth() - 1);
-    return summarizeTrainingMonth(
-      this.trainingActivityDays(),
-      monthKey(date.getTime()),
-    );
-  });
+  private readonly previousMonthStats = computed(() =>
+    summarizeTrainingPeriod(
+      this.trainingMonths(),
+      new Set([shiftMonth(this.currentMonthKey(), -1)]),
+    ),
+  );
   readonly monthSessionDelta = computed(
-    () =>
-      this.trainingMonthSummary().sessionCount -
-      this.previousMonthSummary().sessionCount,
+    () => this.monthStats().sessions - this.previousMonthStats().sessions,
   );
   readonly monthDeltaLabel = computed(() => {
     const delta = this.monthSessionDelta();
@@ -380,6 +410,22 @@ export class TrainPageComponent {
   readonly hasTrainingHistory = computed(
     () => this.trainingActivityDays().length > 0,
   );
+  /** Your best private ranks this month, with names from your own summary. */
+  readonly topRanks = computed<TopRankView[]>(() => {
+    const month = this.trainingMonths().find((item) => item.month === this.currentMonthKey());
+    return this.spotRanks()
+      .filter((rank) => rank.month === this.currentMonthKey())
+      .slice(0, MAX_TOP_RANKS)
+      .map((rank) => ({
+        spotId: rank.spotId,
+        rank: rank.rank,
+        name: month?.spots[rank.spotId]?.name ?? $localize`:@@trainingStats.unnamedSpot:Spot`,
+        label: rank.legend
+          ? $localize`:@@trainingStats.legend:Local legend`
+          : $localize`:@@train.ranks.rank:#${rank.rank}:rank:`,
+        legend: rank.legend,
+      }));
+  });
   readonly recentEntries = computed<RecentEntryView[]>(() =>
     [...this.trainingLogs()]
       .sort((left, right) => right.activity_at_raw_ms - left.activity_at_raw_ms)
@@ -501,26 +547,34 @@ export class TrainPageComponent {
     const uid = this.auth.user.uid;
     this.trainingLogs.set([]);
     this.trainingSessions.set([]);
+    this.trainingMonths.set([]);
+    this.spotRanks.set([]);
     this.recoveryPauses.set([]);
     this.trainingHistoryFailed.set(false);
     this.trainingSessionsLoaded.set(false);
     if (!uid) return;
     try {
-      const [logs, sessions, pauses] = await Promise.allSettled([
+      const [logs, sessions, months, pauses, ranks] = await Promise.allSettled([
         this.logsService.listMine(),
-        this.sessionsService.listMine(null),
+        this.sessionsService.listMine(RECENT_SESSIONS),
+        this.trainingSummaries.listMyMonths(),
         this.recoveryPausesService.listMine(),
+        this.trainingSummaries.getMySpotRanks(),
       ]);
       if (generation !== this.historyGeneration || uid !== this.auth.user.uid) return;
       if (logs.status === "fulfilled") this.trainingLogs.set(logs.value);
-      if (sessions.status === "fulfilled") {
+      if (sessions.status === "fulfilled" && months.status === "fulfilled") {
         this.trainingSessions.set(sessions.value);
+        this.trainingMonths.set(months.value);
         this.trainingSessionsLoaded.set(true);
       }
-      // Recovery pauses only refine streaks; their absence is not an error.
+      // Recovery pauses and ranks only refine the page; their absence is not an error.
       if (pauses.status === "fulfilled") this.recoveryPauses.set(pauses.value);
+      if (ranks.status === "fulfilled") this.spotRanks.set(ranks.value.ranks);
       this.trainingHistoryFailed.set(
-        logs.status === "rejected" || sessions.status === "rejected",
+        logs.status === "rejected" ||
+          sessions.status === "rejected" ||
+          months.status === "rejected",
       );
     } catch (error) {
       if (generation !== this.historyGeneration || uid !== this.auth.user.uid) return;

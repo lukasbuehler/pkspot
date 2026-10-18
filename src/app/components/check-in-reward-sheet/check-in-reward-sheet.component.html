@@ -1,0 +1,23 @@
+<section class="reward" aria-live="polite">
+  <div class="reward__summary">
+    <div class="reward__icon" aria-hidden="true"><mat-icon>check_circle</mat-icon></div>
+    <div class="reward__text">
+      <h2>{{ title }}</h2>
+      @if (visitLabel(); as visit) {
+        <p class="reward__visit">{{ visit }}</p>
+      }
+    </div>
+  </div>
+
+  @if (unverified) {
+    <p class="reward__note" i18n="@@checkInReward.unverified">Saved privately. It couldn't be verified at the Spot, so it won't count toward your Spot rank.</p>
+  } @else {
+    <p class="reward__note" i18n="@@checkInReward.private">Saved privately to your training log. Verified visits count toward your monthly Spot rank, which only you can see.</p>
+  }
+
+  <div class="reward__actions">
+    <a matButton="tonal" routerLink="/train/log/new" [queryParams]="logQuery" (click)="close()" i18n="@@checkInReward.log">Log this session</a>
+    <a matButton routerLink="/train/log" (click)="close()" i18n="@@spotPersonalStats.allStats">Your stats</a>
+    <button matButton type="button" (click)="close()" i18n="@@checkInReward.done">Done</button>
+  </div>
+</section>

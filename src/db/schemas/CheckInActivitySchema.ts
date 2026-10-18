@@ -10,6 +10,10 @@ export interface ConfirmCheckInResponse {
   checkInId: string;
   sessionRecordId: string;
   duplicate: boolean;
+  /** Your visits at this Spot including this one. Absent for duplicates and older servers. */
+  spotVisitCount?: number;
+  /** Whether the check-in passed proximity and integrity checks. Absent on older servers. */
+  verified?: boolean;
 }
 
 export interface DeleteCheckInRequest {

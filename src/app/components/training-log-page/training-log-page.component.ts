@@ -31,13 +31,12 @@ import {
   buildTrainingTimeline,
   dateKeyToMs,
   formatDuration,
-  monthKey,
-  summarizeTrainingMonth,
   type TrainingContributionSelection,
 } from "../../features/training-log-activity";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
 import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
 import { SessionRecordsService } from "../../services/firebase/firestore/session-records.service";
+import { TrainingStatsComponent } from "../training-stats/training-stats.component";
 import { TrainingActivityContributionGraphComponent } from "../training-activity-contribution-graph/training-activity-contribution-graph.component";
 import {
   RecoveryPauseDialogComponent,
@@ -82,6 +81,7 @@ interface TrainingTimelineGroup {
     FabMenuComponent,
     MatProgressSpinnerModule,
     TrainingActivityContributionGraphComponent,
+    TrainingStatsComponent,
   ],
   templateUrl: "./training-log-page.component.html",
   styleUrl: "./training-log-page.component.scss",
@@ -126,9 +126,8 @@ export class TrainingLogPageComponent {
     this.logs().flatMap(log => log.session_record_ids.map(id => [id, log.id] as const)),
   ));
   readonly activityDays = computed(() => buildSessionActivityDays(this.sessions(), this.logs()));
-  readonly monthSummary = computed(() =>
-    summarizeTrainingMonth(this.activityDays(), monthKey(Date.now())),
-  );
+  /** Bumped on every load so the statistics reload with the history. */
+  readonly statsReload = signal(0);
   readonly timeline = computed(() => {
     const sourceBySessionId = new Map(
       this.sessions().map((session) => [session.id, session.source]),
@@ -272,6 +271,7 @@ export class TrainingLogPageComponent {
 
   async load(): Promise<void> {
     const generation = ++this.loadGeneration;
+    this.statsReload.update((value) => value + 1);
     const uid = this.auth.user.uid;
     this.loadFailed.set(false);
     this.sessionsLoaded.set(false);

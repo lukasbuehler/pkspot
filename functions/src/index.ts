@@ -241,7 +241,14 @@ export {
   deleteAllCheckIns,
   deleteCheckIn,
   recomputeCheckInActivity,
+  setCheckInSessionDuration,
 } from "./checkInFunctions";
+export {
+  backfillTrainingSummaries,
+  getMySpotRanks,
+  onSessionRecordWrittenUpdateTrainingSummary,
+  pruneSpotLegendTallies,
+} from "./trainingSummaryFunctions";
 export {
   beginAgeAssuranceV3,
   cleanupAgeAssuranceChallenges,

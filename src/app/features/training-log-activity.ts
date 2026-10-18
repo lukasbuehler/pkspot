@@ -1,6 +1,7 @@
 import type { LogEntryDocument } from "../../db/schemas/LogEntrySchema";
 import type { RecoveryPauseDocument } from "../../db/schemas/RecoveryPauseSchema";
 import type { SessionRecordDocument } from "../../db/schemas/SessionRecordSchema";
+import type { TrainingMonthSchema } from "../../db/schemas/TrainingSummarySchema";
 
 export interface TrainingActivityDay {
   key: string;
@@ -84,6 +85,26 @@ export function buildSessionActivityDays(
     days.set(key, day);
   }
   return [...days.values()].sort((left, right) => right.key.localeCompare(left.key));
+}
+
+/**
+ * Activity days from the private monthly summaries. Summaries carry no log
+ * entry links or per-day Spot counts, which the rhythm graph does not need.
+ */
+export function activityDaysFromMonths(
+  months: readonly TrainingMonthSchema[],
+): TrainingActivityDay[] {
+  return months
+    .flatMap((month) =>
+      Object.entries(month.days).map(([key, day]) => ({
+        key,
+        entryIds: [],
+        sessionCount: day.sessions,
+        durationMinutes: day.minutes,
+        spotCount: 0,
+      })),
+    )
+    .sort((left, right) => right.key.localeCompare(left.key));
 }
 
 export function buildTrainingActivityDays(

@@ -14,6 +14,8 @@ export interface SessionSpotVisitSchema {
   arrived_at_raw_ms: number;
   left_at?: Timestamp;
   left_at_raw_ms?: number;
+  /** Server-written: whether this check-in passed proximity and integrity checks. */
+  verified?: boolean;
 }
 
 export interface SessionRecordSchema {

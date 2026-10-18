@@ -1,0 +1,52 @@
+@if (view(); as stats) {
+  <section class="spot-personal-stats" aria-labelledby="spot-personal-stats-title">
+    @if (stats.rank; as rank) {
+      <mat-card appearance="outlined" class="spot-rank" [class.is-legend]="rank.legend">
+        <div class="spot-rank__tile">
+          <app-spot-rank-icon [rank]="rank.rank" />
+        </div>
+        <div class="spot-rank__text">
+          @if (rank.legend) {
+            <strong i18n="@@spotPersonalStats.legendTitle">Local legend</strong>
+            <span i18n="@@spotPersonalStats.legendBody">You trained here on more days than anyone else this month.</span>
+          } @else {
+            <strong i18n="@@spotPersonalStats.rankTitle">#{{ rank.rank }} at this Spot</strong>
+            <span i18n="@@spotPersonalStats.rankBody">Ranked by days with a verified check-in this month.</span>
+          }
+        </div>
+      </mat-card>
+    }
+
+    <mat-card appearance="outlined" class="spot-visits">
+      <div class="spot-visits__header">
+        <h3 id="spot-personal-stats-title" i18n="@@spotPersonalStats.title">Your visits</h3>
+        <span class="spot-visits__private">
+          <mat-icon aria-hidden="true">lock</mat-icon>
+          <span i18n="@@spotPersonalStats.onlyYou">Only you</span>
+        </span>
+      </div>
+
+      <dl class="spot-visits__numbers">
+        <div>
+          <dt i18n="@@spotPersonalStats.visits">visits</dt>
+          <dd>{{ stats.visits }}</dd>
+        </div>
+        @if (stats.time) {
+          <div>
+            <dt i18n="@@spotPersonalStats.trained">trained</dt>
+            <dd>{{ stats.time }}</dd>
+          </div>
+        }
+        <div>
+          <dt i18n="@@spotPersonalStats.lastVisit">last visit</dt>
+          <dd>{{ stats.lastVisit }}</dd>
+        </div>
+      </dl>
+
+      <p class="spot-visits__since">
+        <span i18n="@@spotPersonalStats.since">Training here since {{ stats.since }}</span>
+        <a matButton routerLink="/train/log" i18n="@@spotPersonalStats.allStats">Your stats</a>
+      </p>
+    </mat-card>
+  </section>
+}

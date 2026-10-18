@@ -320,6 +320,38 @@ h2 {
   }
 }
 
+.rhythm-card__ranks {
+  display: grid;
+  gap: 4px;
+}
+
+.rhythm-card__subtitle {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+}
+
+.rank-list {
+  margin-inline: -16px;
+  padding-block: 0;
+
+  --spot-rank-icon-size: 24px;
+}
+
+.rank-list__label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+
+  &.is-legend {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.rhythm-card__note {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
 .rhythm-card__action {
   justify-self: stretch;
 }

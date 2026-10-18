@@ -1,4 +1,5 @@
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
+import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { StoreReviewService } from "../../reviews/store-review.service";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
@@ -225,6 +226,13 @@ function createComponent(
       { provide: LogEntriesService, useValue: { listMine: vi.fn().mockResolvedValue([trainingEntry]) } },
       { provide: RecoveryPausesService, useValue: { listMine: listPauses } },
       { provide: SessionRecordsService, useValue: { listMine: vi.fn().mockResolvedValue([]) } },
+      {
+        provide: TrainingSummaryService,
+        useValue: {
+          listMyMonths: vi.fn().mockResolvedValue([]),
+          getMySpotRanks: vi.fn().mockResolvedValue({ month: "", ranks: [] }),
+        },
+      },
       { provide: MatDialog, useValue: { open: vi.fn() } },
     ],
   });

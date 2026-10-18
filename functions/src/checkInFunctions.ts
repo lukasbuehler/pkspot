@@ -12,6 +12,10 @@ import type {
   SpotActivityPublicSchema,
 } from "../../src/db/schemas/CheckInActivitySchema";
 import {checkInActivityBucket, normalizeRecentActivityMin30d} from "../../src/db/schemas/CheckInActivitySchema";
+import type {
+  SetCheckInSessionDurationRequest,
+  SetCheckInSessionDurationResponse,
+} from "../../src/db/schemas/TrainingSummarySchema";
 
 const db = admin.firestore();
 const CALLABLE_OPTIONS = {
@@ -29,6 +33,9 @@ const ACTIVITY_WINDOW_MS = 30 * DAY_MS;
 const MAX_PER_HOUR = 12;
 const MAX_TRAVEL_SPEED_KMH = 250;
 const SPOT_ID_PATTERN = /^(?!\.{1,2}$)[^/]{1,150}$/u;
+/** Self-reported training time for a check-in session. */
+const MIN_SESSION_MINUTES = 5;
+const MAX_SESSION_MINUTES = 12 * 60;
 
 type RecordValue = Record<string, unknown>;
 type Coordinate = {lat: number; lng: number};
@@ -178,6 +185,7 @@ const appendVisit = (
   spotName: string | undefined,
   now: Timestamp,
   nowMs: number,
+  verified: boolean,
 ): RecordValue[] => {
   const next = visits.map((visit) => ({...visit}));
   const previous = next.at(-1);
@@ -191,6 +199,8 @@ const appendVisit = (
     ...(spotName ? {spot_name: spotName} : {}),
     arrived_at: now,
     arrived_at_raw_ms: nowMs,
+    // Private training summaries count only verified visits toward Spot ranks.
+    verified,
   });
   return next;
 };
@@ -210,7 +220,7 @@ const enqueueRollup = (
   }, {merge: true});
 };
 
-const deleteCheckInForUser = async (uid: string, checkInId: string): Promise<boolean> => {
+export const deleteCheckInForUser = async (uid: string, checkInId: string): Promise<boolean> => {
   const lookupRef = db.doc(`users/${uid}/check_in_lookup/${checkInId}`);
   return db.runTransaction(async (transaction) => {
     const lookupSnapshot = await transaction.get(lookupRef);
@@ -371,7 +381,10 @@ export const confirmCheckIn = onCall(
       const currentSession = sessionsSnapshot.docs.find((snapshot) => {
         const data = snapshot.data();
         const lastActivity = numberValue(data["last_activity_raw_ms"]);
+        // A session the person already finished by logging its duration is
+        // closed; a later check-in starts a new session.
         return data["source"] === "check_in" && lastActivity !== undefined &&
+          data["ended_at_raw_ms"] === undefined &&
           nowMs - lastActivity < SESSION_IDLE_MS;
       });
       const sessionRef = currentSession?.ref ?? sessionCollection.doc();
@@ -383,6 +396,7 @@ export const confirmCheckIn = onCall(
         spotNameFrom(spot),
         now,
         nowMs,
+        eligibility === "accepted",
       );
       if (currentSession) {
         transaction.update(sessionRef, {
@@ -459,7 +473,13 @@ export const confirmCheckIn = onCall(
         });
       }
       enqueueRollup(transaction, input.spotId, now);
-      return {checkInId, sessionRecordId: sessionRef.id, duplicate: false};
+      return {
+        checkInId,
+        sessionRecordId: sessionRef.id,
+        duplicate: false,
+        spotVisitCount: previousCount + 1,
+        verified: eligibility === "accepted",
+      };
     });
   },
 );
@@ -491,6 +511,67 @@ export const deleteAllCheckIns = onCall(
       }
     }
     return {deleted};
+  },
+);
+
+const parseDurationInput = (value: unknown): SetCheckInSessionDurationRequest => {
+  if (!isRecord(value)) throw new HttpsError("invalid-argument", "A session and duration are required.");
+  const sessionRecordId = stringValue(value["sessionRecordId"]);
+  const durationMinutes = numberValue(value["durationMinutes"]);
+  if (!sessionRecordId || !SPOT_ID_PATTERN.test(sessionRecordId)) {
+    throw new HttpsError("invalid-argument", "A valid session is required.");
+  }
+  if (
+    durationMinutes === undefined || !Number.isInteger(durationMinutes) ||
+    durationMinutes < MIN_SESSION_MINUTES || durationMinutes > MAX_SESSION_MINUTES
+  ) {
+    throw new HttpsError("invalid-argument", "Duration must be between 5 minutes and 12 hours.");
+  }
+  return {sessionRecordId, durationMinutes};
+};
+
+/**
+ * Lets the owner say how long a check-in session lasted. Duration is
+ * self-reported: it feeds private training time only and never affects
+ * verification, the public Spot signal or Spot ranks.
+ */
+export const setCheckInSessionDuration = onCall(
+  CALLABLE_OPTIONS,
+  async (request): Promise<SetCheckInSessionDurationResponse> => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to update your training.");
+    const input = parseDurationInput(request.data);
+    const sessionRef = db.doc(`users/${uid}/session_records/${input.sessionRecordId}`);
+    return db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(sessionRef);
+      const session = snapshot.data();
+      if (!snapshot.exists || !session || session["source"] !== "check_in") {
+        throw new HttpsError("not-found", "This check-in session no longer exists.");
+      }
+      const startedAt = numberValue(session["started_at_raw_ms"]);
+      if (startedAt === undefined) throw new HttpsError("failed-precondition", "This session has no start time.");
+      const latestArrival = Math.max(
+        startedAt,
+        ...visitRecordsFrom(session["spot_visits"])
+          .map((visit) => numberValue(visit["arrived_at_raw_ms"]))
+          .filter((value): value is number => value !== undefined),
+      );
+      const endedAtRawMs = startedAt + input.durationMinutes * 60_000;
+      if (endedAtRawMs < latestArrival) {
+        throw new HttpsError(
+          "failed-precondition",
+          "The duration must cover every check-in in this session.",
+        );
+      }
+      const now = Timestamp.now();
+      transaction.update(sessionRef, {
+        ended_at: Timestamp.fromMillis(endedAtRawMs),
+        ended_at_raw_ms: endedAtRawMs,
+        time_updated: now,
+        time_updated_raw_ms: now.toMillis(),
+      });
+      return {endedAtRawMs};
+    });
   },
 );
 

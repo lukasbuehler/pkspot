@@ -6,6 +6,7 @@ import {
   signal,
   PLATFORM_ID,
 } from "@angular/core";
+import type { ConfirmCheckInResponse } from "../../db/schemas/CheckInActivitySchema";
 import { isPlatformBrowser } from "@angular/common";
 import { GeolocationService } from "./geolocation.service";
 import { SearchService } from "./search.service";
@@ -407,18 +408,19 @@ export class CheckInService {
     return R * c;
   }
 
-  public async checkIn(spotId: SpotId): Promise<void> {
-    if (!this.isEnabled) return;
+  public async checkIn(spotId: SpotId): Promise<ConfirmCheckInResponse | null> {
+    if (!this.isEnabled) return null;
     const location = this._getGeolocationService().currentLocation();
     if (!this._locationAccess.enabled() || !location) {
       throw new Error("Current location is unavailable. Enable location and try again.");
     }
-    await this._injector.get(SessionRecordsService).confirmCheckIn({
+    const response = await this._injector.get(SessionRecordsService).confirmCheckIn({
       spotId,
       location: location.location,
       accuracyMeters: location.accuracy,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     });
     this.dismissSpot(spotId);
+    return response;
   }
 }

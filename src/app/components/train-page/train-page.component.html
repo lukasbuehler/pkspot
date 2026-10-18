@@ -77,7 +77,7 @@
       }
 
       @if (signedIn() && trainingSessionsLoaded()) {
-        <app-check-in-log-prompt [sessions]="trainingSessions()" [logs]="trainingLogs()" />
+        <app-check-in-log-prompt [sessions]="promptSessions()" [logs]="trainingLogs()" />
       }
 
       <section class="train-section train-spots" aria-labelledby="train-spots-title">
@@ -233,6 +233,21 @@
                 <span i18n="@@train.rhythm.thisWeek">sessions this week</span>
               </div>
             </div>
+            @if (topRanks().length > 0) {
+              <div class="rhythm-card__ranks">
+                <h3 class="rhythm-card__subtitle" i18n="@@train.ranks.title">Your Spot ranks this month</h3>
+                <mat-nav-list class="rank-list">
+                  @for (rank of topRanks(); track rank.spotId) {
+                    <a mat-list-item [routerLink]="['/map', 'spots', rank.spotId]">
+                      <app-spot-rank-icon matListItemIcon [rank]="rank.rank" />
+                      <span matListItemTitle>{{ rank.name }}</span>
+                      <span matListItemMeta class="rank-list__label" [class.is-legend]="rank.legend">{{ rank.label }}</span>
+                    </a>
+                  }
+                </mat-nav-list>
+                <p class="rhythm-card__note" i18n="@@train.ranks.private">Only you can see your ranks.</p>
+              </div>
+            }
             <a matButton="filled" routerLink="/train/log/new" class="rhythm-card__action">
               <mat-icon>add</mat-icon>
               <span i18n="@@train.rhythm.logSession">Log a session</span>
@@ -281,22 +296,22 @@
             <mat-card appearance="outlined" class="month-card">
               <h3 class="month-card__title">{{ monthName() }}</h3>
               <div class="month-card__headline">
-                <strong>{{ trainingMonthSummary().sessionCount }}</strong>
+                <strong>{{ monthStats().sessions }}</strong>
                 <span i18n="@@trainingLog.summary.sessions">sessions</span>
               </div>
               <p class="month-card__delta mat-label-medium" [class.is-up]="monthSessionDelta() > 0">{{ monthDeltaLabel() }}</p>
               <dl class="month-card__metrics">
                 <div>
                   <dt i18n="@@trainingLog.summary.trainingTime">training time</dt>
-                  <dd>{{ trainingDurationLabel(trainingMonthSummary().durationMinutes) }}</dd>
+                  <dd>{{ trainingDurationLabel(monthStats().minutes) }}</dd>
                 </div>
                 <div>
                   <dt i18n="@@trainingLog.summary.spots">Spots visited</dt>
-                  <dd>{{ trainingMonthSummary().spotCount }}</dd>
+                  <dd>{{ monthStats().spots.length }}</dd>
                 </div>
                 <div>
                   <dt i18n="@@trainingLog.summary.days">active days</dt>
-                  <dd>{{ trainingMonthSummary().activityDays }}</dd>
+                  <dd>{{ monthStats().activeDays }}</dd>
                 </div>
                 <div>
                   <dt i18n="@@train.reflection.longestStreak">longest daily streak</dt>

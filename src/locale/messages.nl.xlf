@@ -1299,7 +1299,7 @@
     <unit id="searchField.communitySpotsCount">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ community.totalSpots }}"/> spots</source>
-        <target>spots</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ community.totalSpots }}"/> Spots</target>
       </segment>
     </unit>
     <unit id="searchField.events">
@@ -4896,6 +4896,24 @@
       <segment state="translated">
         <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
         <target> Laad de pagina opnieuw, controleer je verbinding, schakel agressieve scriptblokkering uit of gebruik de officiële app. </target>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.body">
+      <segment state="translated">
+        <source>Choose the store for your device.</source>
+        <target>Kies de winkel voor je apparaat.</target>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.pwa">
+      <segment state="translated">
+        <source>PK Spot also works as a web app (PWA). Open pkspot.app in your device&apos;s browser and choose “Add to Home Screen” or “Install app”.</source>
+        <target>PK Spot werkt ook als webapp (PWA). Open pkspot.app in de browser van je apparaat en kies ‘Zet op beginscherm’ of ‘App installeren’.</target>
+      </segment>
+    </unit>
+    <unit id="app_store_choice.title">
+      <segment state="translated">
+        <source>Get PK Spot</source>
+        <target>PK Spot downloaden</target>
       </segment>
     </unit>
     <unit id="auth_action.back_to_signin">
@@ -11811,16 +11829,28 @@
         <target>Verlichting</target>
       </segment>
     </unit>
-    <unit id="logEditor.addSession">
+    <unit id="logEditor.date">
       <segment state="translated">
-        <source>Add a training session</source>
-        <target>Trainingssessie toevoegen</target>
+        <source>Date</source>
+        <target>Datum</target>
       </segment>
     </unit>
-    <unit id="logEditor.arrived">
+    <unit id="logEditor.durationHint">
       <segment state="translated">
-        <source>Arrived</source>
-        <target>Aangekomen</target>
+        <source>Optional. Without a duration, the session still counts as a visit.</source>
+        <target>Optioneel. Zonder duur telt de sessie nog steeds als bezoek.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.durationOther">
+      <segment state="translated">
+        <source>Other</source>
+        <target>Anders</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.durationTitle">
+      <segment state="translated">
+        <source>How long did you train?</source>
+        <target>Hoe lang heb je getraind?</target>
       </segment>
     </unit>
     <unit id="logEditor.editTitle">
@@ -11835,40 +11865,76 @@
         <target>Wat heb je geoefend?</target>
       </segment>
     </unit>
-    <unit id="logEditor.invalidTimes">
-      <segment state="initial">
-        <source>Leave time must be after arrival time.</source>
-        <target>Leave time must be after arrival time.</target>
+    <unit id="logEditor.futureDate">
+      <segment state="translated">
+        <source>A training session can&apos;t start in the future.</source>
+        <target>Een trainingssessie kan niet in de toekomst beginnen.</target>
       </segment>
     </unit>
-    <unit id="logEditor.left">
+    <unit id="logEditor.howWasIt">
       <segment state="translated">
-        <source>Left</source>
-        <target>Vertrokken</target>
+        <source>How was your training?</source>
+        <target>Hoe was je training?</target>
       </segment>
     </unit>
-    <unit id="logEditor.newTitle">
+    <unit id="logEditor.invalidDate">
       <segment state="translated">
-        <source>New log entry</source>
-        <target>Nieuwe logboeknotitie</target>
+        <source>Choose when you trained.</source>
+        <target>Kies wanneer je hebt getraind.</target>
       </segment>
     </unit>
-    <unit id="logEditor.note">
+    <unit id="logEditor.invalidDuration">
       <segment state="translated">
-        <source>Note</source>
-        <target>Notitie</target>
+        <source>Enter a duration between 5 minutes and 12 hours.</source>
+        <target>Voer een duur in tussen 5 minuten en 12 uur.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.linkedCheckIn">
+      <segment state="translated">
+        <source>your check-in</source>
+        <target>je check-in</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.minutes">
+      <segment state="translated">
+        <source>Minutes</source>
+        <target>Minuten</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.moreDetails">
+      <segment state="translated">
+        <source>More details</source>
+        <target>Meer details</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.noteOptional">
+      <segment state="translated">
+        <source>Note (optional)</source>
+        <target>Notitie (optioneel)</target>
       </segment>
     </unit>
     <unit id="logEditor.notFound">
-      <segment state="initial">
+      <segment state="translated">
         <source>Log entry not found.</source>
-        <target>Log entry not found.</target>
+        <target>Logboekitem niet gevonden.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.notThisSession">
+      <segment state="translated">
+        <source>Not this session</source>
+        <target>Niet deze sessie</target>
       </segment>
     </unit>
     <unit id="logEditor.people">
       <segment state="translated">
         <source>People who were there</source>
         <target>Wie waren erbij?</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.privateHint">
+      <segment state="translated">
+        <source>Only you can see your training log.</source>
+        <target>Alleen jij kunt je trainingslogboek zien.</target>
       </segment>
     </unit>
     <unit id="logEditor.save">
@@ -11878,33 +11944,33 @@
       </segment>
     </unit>
     <unit id="logEditor.saveError">
-      <segment state="initial">
+      <segment state="translated">
         <source>Could not save this log entry.</source>
-        <target>Could not save this log entry.</target>
+        <target>Dit logboekitem kon niet worden opgeslagen.</target>
       </segment>
     </unit>
-    <unit id="logEditor.sessionRequired">
+    <unit id="logEditor.spotsOptional">
       <segment state="translated">
-        <source>Choose a training session or add when and where you trained below.</source>
-        <target>Kies een trainingssessie of vul hieronder in wanneer en waar je hebt getraind.</target>
+        <source>Spots (optional)</source>
+        <target>Spots (optioneel)</target>
       </segment>
     </unit>
-    <unit id="logEditor.sessionsHelp">
+    <unit id="logEditor.startTime">
       <segment state="translated">
-        <source>Choose when and where you trained. These details stay private.</source>
-        <target>Kies wanneer en waar je hebt getraind. Deze gegevens blijven privé.</target>
-      </segment>
-    </unit>
-    <unit id="logEditor.sessionsTitle">
-      <segment state="translated">
-        <source>Training sessions</source>
-        <target>Trainingssessies</target>
+        <source>Start time</source>
+        <target>Starttijd</target>
       </segment>
     </unit>
     <unit id="logEditor.trainingDetails">
       <segment state="translated">
         <source>Training details</source>
         <target>Trainingsdetails</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.whenWhere">
+      <segment state="translated">
+        <source>When and where</source>
+        <target>Wanneer en waar</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -13713,12 +13779,6 @@
         <target>Getroffen accounts bekijken</target>
       </segment>
     </unit>
-    <unit id="294733429660547646">
-      <segment state="initial">
-        <source>Check-in</source>
-        <target>Check-in</target>
-      </segment>
-    </unit>
     <unit id="profile.actions.report">
       <segment state="initial">
         <source>Report</source>
@@ -15010,12 +15070,6 @@
         <target>Wijziging ingediend voor organisatiereview</target>
       </segment>
     </unit>
-    <unit id="2233560223291461480">
-      <segment state="initial">
-        <source>Manual</source>
-        <target>Manual</target>
-      </segment>
-    </unit>
     <unit id="223483240416376467">
       <segment state="initial">
         <source>Media review</source>
@@ -15484,6 +15538,72 @@
         <target>Type Spot</target>
       </segment>
     </unit>
+    <unit id="spotPersonalStats.allStats">
+      <segment state="translated">
+        <source>Your stats</source>
+        <target>Je statistieken</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.lastVisit">
+      <segment state="translated">
+        <source>last visit</source>
+        <target>laatste bezoek</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.legendBody">
+      <segment state="translated">
+        <source>You trained here on more days than anyone else this month.</source>
+        <target>Je hebt hier deze maand op meer dagen getraind dan wie dan ook.</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.legendTitle">
+      <segment state="translated">
+        <source>Local legend</source>
+        <target>Local legend</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.onlyYou">
+      <segment state="translated">
+        <source>Only you</source>
+        <target>Alleen jij</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.rankBody">
+      <segment state="translated">
+        <source>Ranked by days with a verified check-in this month.</source>
+        <target>Gerangschikt op dagen met een geverifieerde check-in deze maand.</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.rankTitle">
+      <segment state="translated">
+        <source>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> at this Spot</source>
+        <target>#<ph id="0" equiv="INTERPOLATION" disp="{{ rank.rank }}"/> bij deze Spot</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.since">
+      <segment state="translated">
+        <source>Training here since <ph id="0" equiv="INTERPOLATION" disp="{{ stats.since }}"/></source>
+        <target>Je traint hier sinds <ph id="0" equiv="INTERPOLATION" disp="{{ stats.since }}"/></target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.title">
+      <segment state="translated">
+        <source>Your visits</source>
+        <target>Je bezoeken</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.trained">
+      <segment state="translated">
+        <source>trained</source>
+        <target>getraind</target>
+      </segment>
+    </unit>
+    <unit id="spotPersonalStats.visits">
+      <segment state="translated">
+        <source>visits</source>
+        <target>bezoeken</target>
+      </segment>
+    </unit>
     <unit id="support.meta.description">
       <segment state="initial">
         <source>Get help with PK Spot — answers to common questions about parkour spots, accounts, and the community.</source>
@@ -15556,6 +15676,24 @@
       <segment state="translated">
         <source>Conditions and your rhythm</source>
         <target>Omstandigheden en je ritme</target>
+      </segment>
+    </unit>
+    <unit id="train.ranks.private">
+      <segment state="translated">
+        <source>Only you can see your ranks.</source>
+        <target>Alleen jij kunt je ranglijstposities zien.</target>
+      </segment>
+    </unit>
+    <unit id="train.ranks.rank">
+      <segment state="translated">
+        <source>#<ph id="0" equiv="rank" disp="rank.rank"/></source>
+        <target>#<ph id="0" equiv="rank" disp="rank.rank"/></target>
+      </segment>
+    </unit>
+    <unit id="train.ranks.title">
+      <segment state="translated">
+        <source>Your Spot ranks this month</source>
+        <target>Je Spot-posities deze maand</target>
       </segment>
     </unit>
     <unit id="train.reflection.empty">
@@ -16014,10 +16152,142 @@
         <target>Session summary</target>
       </segment>
     </unit>
-    <unit id="trainingLog.session.spotCount">
-      <segment state="initial">
-        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
-        <target>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</target>
+    <unit id="trainingStats.allTime">
+      <segment state="translated">
+        <source>All time</source>
+        <target>Altijd</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.durationCoverage">
+      <segment state="translated">
+        <source>Logged for <ph id="0" equiv="logged" disp="summary.sessionsWithDuration"/> of <ph id="1" equiv="sessions" disp="summary.sessions"/> sessions</source>
+        <target>Vastgelegd voor <ph id="0" equiv="logged" disp="summary.sessionsWithDuration"/> van <ph id="1" equiv="sessions" disp="summary.sessions"/> sessies</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.empty">
+      <segment state="translated">
+        <source>Check in at a Spot or log a session, and your statistics start here.</source>
+        <target>Check in bij een Spot of leg een sessie vast, dan beginnen je statistieken hier.</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.lastVisit">
+      <segment state="translated">
+        <source>last <ph id="0" equiv="date" disp="this.dateTime.format(new Date(spot.lastMs), { day: &quot;numeric&quot;, month: &quot;short&quot; })"/></source>
+        <target>laatst <ph id="0" equiv="date" disp="this.dateTime.format(new Date(spot.lastMs), { day: &quot;numeric&quot;, month: &quot;short&quot; })"/></target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.legend">
+      <segment state="translated">
+        <source>Local legend</source>
+        <target>Local legend</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.loadError">
+      <segment state="translated">
+        <source>Your statistics could not be loaded.</source>
+        <target>Je statistieken konden niet worden geladen.</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.month">
+      <segment state="translated">
+        <source>Month</source>
+        <target>Maand</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.new">
+      <segment state="translated">
+        <source>New</source>
+        <target>Nieuw</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.newSpots">
+      <segment state="translated">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary().newSpots }}"/> new</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ summary().newSpots }}"/> nieuw</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.next">
+      <segment state="translated">
+        <source>Next period</source>
+        <target>Volgende periode</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.oneVisit">
+      <segment state="translated">
+        <source>1 visit</source>
+        <target>1 bezoek</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.periodLabel">
+      <segment state="translated">
+        <source>Statistics period</source>
+        <target>Statistiekperiode</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.previous">
+      <segment state="translated">
+        <source>Previous period</source>
+        <target>Vorige periode</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.rank">
+      <segment state="translated">
+        <source>#<ph id="0" equiv="rank" disp="rank.rank"/> this month</source>
+        <target>#<ph id="0" equiv="rank" disp="rank.rank"/> deze maand</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.rankNote">
+      <segment state="translated">
+        <source>Ranks compare verified check-in days at each Spot this month. Only you can see your rank.</source>
+        <target>Posities vergelijken geverifieerde check-indagen per Spot deze maand. Alleen jij kunt je positie zien.</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.showAllSpots">
+      <segment state="translated">
+        <source>Show all <ph id="0" equiv="INTERPOLATION" disp="{{ spots().length }}"/> Spots</source>
+        <target>Alle <ph id="0" equiv="INTERPOLATION" disp="{{ spots().length }}"/> Spots tonen</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.title">
+      <segment state="translated">
+        <source>Your stats</source>
+        <target>Je statistieken</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.unnamedSpot">
+      <segment state="translated">
+        <source>Spot</source>
+        <target>Spot</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.visits">
+      <segment state="translated">
+        <source><ph id="0" equiv="count" disp="spot.visits"/> visits</source>
+        <target><ph id="0" equiv="count" disp="spot.visits"/> bezoeken</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.vsLastYear">
+      <segment state="translated">
+        <source><ph id="0" equiv="delta" disp="signed"/> vs last year</source>
+        <target><ph id="0" equiv="delta" disp="signed"/> t.o.v. vorig jaar</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.whenYouTrain">
+      <segment state="translated">
+        <source>When you train</source>
+        <target>Wanneer je traint</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.year">
+      <segment state="translated">
+        <source>Year</source>
+        <target>Jaar</target>
+      </segment>
+    </unit>
+    <unit id="trainingStats.yourSpots">
+      <segment state="translated">
+        <source>Your Spots</source>
+        <target>Je Spots</target>
       </segment>
     </unit>
     <unit id="trainingLog.signIn">
@@ -16038,12 +16308,6 @@
         <target>A private timeline for the Spots, sessions, and people that made up your training.</target>
       </segment>
     </unit>
-    <unit id="trainingLog.summary.ariaLabel">
-      <segment state="initial">
-        <source>Training summary</source>
-        <target>Training summary</target>
-      </segment>
-    </unit>
     <unit id="trainingLog.summary.days">
       <segment state="initial">
         <source>active days</source>
@@ -16060,12 +16324,6 @@
       <segment state="initial">
         <source>Spots visited</source>
         <target>Spots visited</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.summary.thisMonth">
-      <segment state="initial">
-        <source>This month</source>
-        <target>This month</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.trainingTime">
@@ -16790,6 +17048,12 @@
         <target>Alle types</target>
       </segment>
     </unit>
+    <unit id="checkin.alreadyCheckedIn">
+      <segment state="translated">
+        <source>You&apos;re already checked in here.</source>
+        <target>Je bent hier al ingecheckt.</target>
+      </segment>
+    </unit>
     <unit id="checkin.at_spot_short">
       <segment state="initial">
         <source>At <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ spot.name }}"/></pc> spot?</source>
@@ -16830,6 +17094,54 @@
       <segment state="translated">
         <source>View log entry</source>
         <target>Bekijk logboeknotitie</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.done">
+      <segment state="translated">
+        <source>Done</source>
+        <target>Klaar</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.firstVisit">
+      <segment state="translated">
+        <source>Your first visit here</source>
+        <target>Je eerste bezoek hier</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.log">
+      <segment state="translated">
+        <source>Log this session</source>
+        <target>Sessie vastleggen</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.private">
+      <segment state="translated">
+        <source>Saved privately to your training log. Verified visits count toward your monthly Spot rank, which only you can see.</source>
+        <target>Privé opgeslagen in je logboek. Geverifieerde bezoeken tellen mee voor je maandelijkse Spot-positie, die alleen jij kunt zien.</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.title">
+      <segment state="translated">
+        <source>Checked in</source>
+        <target>Ingecheckt</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.titleAt">
+      <segment state="translated">
+        <source>Checked in at <ph id="0" equiv="spot" disp="this.data.spotName"/></source>
+        <target>Ingecheckt bij <ph id="0" equiv="spot" disp="this.data.spotName"/></target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.unverified">
+      <segment state="translated">
+        <source>Saved privately. It couldn&apos;t be verified at the Spot, so it won&apos;t count toward your Spot rank.</source>
+        <target>Privé opgeslagen. Het kon niet bij de Spot worden geverifieerd en telt daarom niet mee voor je positie.</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.visitCount">
+      <segment state="translated">
+        <source>Visit <ph id="0" equiv="count" disp="count"/> here</source>
+        <target>Bezoek <ph id="0" equiv="count" disp="count"/> hier</target>
       </segment>
     </unit>
     <unit id="5296463977031840068">

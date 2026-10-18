@@ -11,6 +11,7 @@ import { LogEntriesService } from '../../services/firebase/firestore/log-entries
 import { SessionRecordsService } from '../../services/firebase/firestore/session-records.service';
 import type { SessionRecordDocument } from '../../../db/schemas/SessionRecordSchema';
 import type { LogEntryDocument } from '../../../db/schemas/LogEntrySchema';
+import { TrainingSummaryService } from '../../services/firebase/firestore/training-summary.service';
 const time = Timestamp.fromMillis(1000);
 const record: SessionRecordDocument = {
   id: 'mine', owner_id: 'owner', source: 'check_in', time_zone: 'UTC',
@@ -20,6 +21,7 @@ const record: SessionRecordDocument = {
 };
 function setup(query: Record<string, string>, records: SessionRecordDocument[], lookup: SessionRecordDocument | null = null, entry?: LogEntryDocument) {
   const getMine = vi.fn().mockResolvedValue(lookup), createManual = vi.fn(), create = vi.fn(), update = vi.fn();
+  const setCheckInSessionDuration = vi.fn().mockResolvedValue({ endedAtRawMs: 0 });
   TestBed.configureTestingModule({ providers: [
     { provide: SpotSelectionDataService, useValue: { resolveVisitNames: vi.fn().mockResolvedValue(new Map([["spot", "Riverside"]])) } },
     { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(entry ? {entryId: entry.id} : {}), queryParamMap: convertToParamMap(query) } } },
@@ -29,8 +31,9 @@ function setup(query: Record<string, string>, records: SessionRecordDocument[], 
     { provide: SessionRecordsService, useValue: { listMine: vi.fn().mockResolvedValue(records), getMine, createManual } },
     { provide: LogEntriesService, useValue: { create, update, getMine: vi.fn().mockResolvedValue(entry) } },
     { provide: PlannedSessionsService, useValue: { get: vi.fn().mockResolvedValue({ session: { spotId: 'spot', startsAt: 900, endsAt: 2000 } }) } },
+    { provide: TrainingSummaryService, useValue: { setCheckInSessionDuration } },
   ] });
-  return { component: TestBed.runInInjectionContext(() => new LogEntryEditorComponent()), getMine, createManual, create, update };
+  return { component: TestBed.runInInjectionContext(() => new LogEntryEditorComponent()), getMine, createManual, create, update, setCheckInSessionDuration };
 }
 describe('private activity handoff', () => {
   it('saves a note against the selected check-in without creating another session', async () => {
@@ -57,6 +60,49 @@ describe('private activity handoff', () => {
     expect(component.selectedIds()).toEqual(['mine']);
     expect(component.showNewSession()).toBe(false);
     expect(createManual).not.toHaveBeenCalled(); expect(create).not.toHaveBeenCalled();
+  });
+  it('links a check-in from the chosen day without asking the person to pick it', async () => {
+    const today = Date.now();
+    const todays = { ...record, id: 'today', started_at_raw_ms: today, spot_visits: [{ ...record.spot_visits[0], check_in_id: 'check-1', arrived_at_raw_ms: today }] };
+    const { component, createManual, create, setCheckInSessionDuration, getMine } = setup({}, [todays, record], todays);
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    expect(component.selectedIds()).toEqual(['today']);
+    expect(component.showNewSession()).toBe(false);
+    component.setDuration(90);
+    await component.save();
+    expect(setCheckInSessionDuration).toHaveBeenCalledWith({ sessionRecordId: 'today', durationMinutes: 90 });
+    expect(getMine).toHaveBeenCalledWith('today');
+    expect(createManual).not.toHaveBeenCalled();
+    expect(create).toHaveBeenCalledWith({ note: '', sessions: [todays] });
+  });
+  it('creates a manual session from date, time and duration when no check-in is linked', async () => {
+    const today = Date.now();
+    const todays = { ...record, id: 'today', started_at_raw_ms: today, spot_visits: [{ ...record.spot_visits[0], check_in_id: 'check-1', arrived_at_raw_ms: today }] };
+    const manual = { ...record, id: 'manual', source: 'manual' as const };
+    const { component, createManual, create, getMine } = setup({}, [todays], manual);
+    createManual.mockResolvedValue('manual');
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    component.unlink('today');
+    expect(component.showNewSession()).toBe(true);
+    expect(component.spotIds()).toEqual(['spot']);
+    component.detailsForm.patchValue({ date: '2026-10-10', time: '18:00' });
+    component.setDuration(60);
+    await component.save();
+    const input = createManual.mock.calls[0][0];
+    expect(input.startedAt).toEqual(new Date('2026-10-10T18:00'));
+    expect(input.endedAt).toEqual(new Date(new Date('2026-10-10T18:00').getTime() + 60 * 60_000));
+    expect(input.spotIds).toEqual(['spot']);
+    expect(getMine).toHaveBeenCalledWith('manual');
+    expect(create).toHaveBeenCalledWith({ note: '', sessions: [manual] });
+  });
+  it('rejects an invalid custom duration', async () => {
+    const { component, create } = setup({ sessionRecord: 'mine' }, [record]);
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    component.setDuration('other');
+    component.detailsForm.controls.customMinutes.setValue(2);
+    await component.save();
+    expect(component.error()).toContain('between 5 minutes and 12 hours');
+    expect(create).not.toHaveBeenCalled();
   });
   it('loads an older history record through the owner-only service', async () => {
     const { component, getMine } = setup({ sessionRecord: 'mine' }, [], record);

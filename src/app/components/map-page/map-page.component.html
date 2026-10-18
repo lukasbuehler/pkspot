@@ -272,7 +272,7 @@
         [showSavedChip]="isSignedIn()"
         [showVisitedChip]="isSignedIn()"
         [customFilterActive]="!!customFilterParams()"
-        (filterChange)="filterChipChanged($event)"
+        (filterChange)="onFilterChipSelected($event)"
         (clearClick)="clearActiveFilter()"
         (filtersClick)="openCustomFilterDialog()"
       ></app-filter-chips-bar>
@@ -284,7 +284,7 @@
         [presetFilters]="eventFilterOptions"
         [showFiltersChip]="false"
         [ariaLabel]="eventFiltersLabel"
-        (filterChange)="eventFilterChanged($event)"
+        (filterChange)="onEventFilterChipSelected($event)"
         (clearClick)="eventFilterChanged('')"
       ></app-filter-chips-bar>
     }

@@ -13,6 +13,7 @@ import {
   SessionRecordSchema,
   SessionSpotVisitSchema,
 } from "../../../../db/schemas/SessionRecordSchema";
+import { isLocalScreenshotRun } from "../../../shared/local-screenshot-run";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
@@ -43,6 +44,7 @@ export interface CheckInHistoryItem {
 
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_TRAINING_SESSIONS__?: SessionRecordDocument[];
+  __PKSPOT_SCREENSHOT_CHECK_IN_RESPONSE__?: ConfirmCheckInResponse;
 }
 
 @Injectable({ providedIn: "root" })
@@ -167,6 +169,9 @@ export class SessionRecordsService {
   confirmCheckIn(
     input: ConfirmCheckInRequest,
   ): Promise<ConfirmCheckInResponse> {
+    const fixture = (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_CHECK_IN_RESPONSE__;
+    // Local screenshot runs cannot pass App Check; never used outside localhost.
+    if (fixture && isLocalScreenshotRun()) return Promise.resolve(fixture);
     return this.telemetry.run("check_in_and_session", "confirmCheckIn", async () => {
       this.requireUserId();
       return this.functions.callAuthenticatedAppChecked<

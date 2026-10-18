@@ -9,18 +9,22 @@ import type {
 } from "./weather.models";
 import { getWeatherTile } from "./weather-map-tile";
 import { environment } from "../../environments/environment.default";
+import { isLocalScreenshotRun } from "../shared/local-screenshot-run";
+
+type ScreenshotWeatherGlobal = typeof globalThis & {
+  __PKSPOT_SCREENSHOT_WEATHER__?: WeatherResponse;
+};
 
 /**
- * Visual tests run without the weather function. A fixture is honoured only in
- * the non-production CI build, so it can never replace real forecasts.
+ * Visual tests and local store screenshots run without the weather function.
+ * A fixture is honoured only in the non-production CI build or in a local
+ * screenshot run, so it can never replace real forecasts.
  */
 function readScreenshotWeatherFixture(): WeatherResponse | undefined {
-  if (environment.name !== "CI" || environment.production) return undefined;
-  return (
-    globalThis as typeof globalThis & {
-      __PKSPOT_SCREENSHOT_WEATHER__?: WeatherResponse;
-    }
-  ).__PKSPOT_SCREENSHOT_WEATHER__;
+  const ciBuild = environment.name === "CI" && !environment.production;
+  return ciBuild || isLocalScreenshotRun()
+    ? (globalThis as ScreenshotWeatherGlobal).__PKSPOT_SCREENSHOT_WEATHER__
+    : undefined;
 }
 
 @Injectable({
