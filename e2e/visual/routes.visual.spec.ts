@@ -917,7 +917,8 @@ test.describe("Route visual regression @visual", () => {
         await expect(header).toHaveAttribute('aria-expanded', 'false');
       }
       if (route.name.startsWith('account')) {
-        await expect(page.locator('.language-strip a[href$="/support"]')).toBeVisible();
+        // Strip links are router buttons so taps never fall back to a document load.
+        await expect(page.locator('.language-strip [routerlink="/support"]')).toBeVisible();
       }
       if (route.name === 'training-log') {
         const stats = page.locator('app-training-stats');
@@ -990,7 +991,7 @@ test.describe("Route visual regression @visual", () => {
   }
 
   test("keeps page and navigation FABs inside simulated safe edges", async ({ page }) => {
-    await prepareRoute(page, { name: "events-fab-safe-edges", path: "/events", signedIn: true, admin: true, eventIndexFixture: true, viewport: { width: 960, height: 480 } });
+    await prepareRoute(page, { name: "events-fab-safe-edges", path: "/events", signedIn: true, admin: true, eventIndexFixture: true, fixedTime: "2026-07-20T12:00:00.000Z", viewport: { width: 960, height: 480 } });
     await page.evaluate(() => {
       for (const [edge, value] of Object.entries({ top: 28, left: 48, right: 72, bottom: 34 })) {
         document.documentElement.style.setProperty(`--safe-area-inset-${edge}`, `${value}px`);
