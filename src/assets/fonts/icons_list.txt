@@ -257,3 +257,4 @@ shopping_bag
 remove
 group
 military_tech
+insights

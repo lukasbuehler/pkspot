@@ -1,1 +1,1 @@
-export const CURRENT_TERMS_VERSION = "6";
+export const CURRENT_TERMS_VERSION = "7";

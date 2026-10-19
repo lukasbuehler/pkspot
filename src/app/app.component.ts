@@ -69,6 +69,8 @@ import { Mat3NavButtonComponent } from "./components/mat3-nav-button/mat3-nav-bu
 import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
 import { NavRailContainerComponent } from "./components/nav-rail-container/nav-rail-container.component";
 import { WelcomeDialogComponent } from "./components/welcome-dialog/welcome-dialog.component";
+import { WhatsNewDialogComponent } from "./components/whats-new-dialog/whats-new-dialog.component";
+import { WHATS_NEW_STORAGE_KEY, welcomeScreenFor } from "./services/whats-new";
 import { MatDialog } from "@angular/material/dialog";
 import { isKnownUiLocalePrefix } from "./config/ui-locales";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -809,11 +811,16 @@ export class AppComponent implements OnInit, AfterViewInit {
       const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
       const acceptedVersion = localStorage.getItem("acceptedVersion");
       this.policyAccepted = acceptedVersion === currentTermsVersion;
+      const screen = welcomeScreenFor(
+        acceptedVersion,
+        currentTermsVersion,
+        localStorage.getItem(WHATS_NEW_STORAGE_KEY),
+      );
 
       if (this.policyAccepted) {
         this._consentService.grantConsent();
-        return;
       }
+      if (!screen) return;
 
       const path = window.location.pathname;
       const isEmbedded =
@@ -827,26 +834,46 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.dialog.openDialogs
           .filter(
             (dialogRef) =>
-              dialogRef.componentInstance instanceof WelcomeDialogComponent,
+              dialogRef.componentInstance instanceof WelcomeDialogComponent ||
+              dialogRef.componentInstance instanceof WhatsNewDialogComponent,
           )
           .forEach((dialogRef) => dialogRef.close(false));
         return;
       }
 
-      if (!isEmbedded && !isBot() && this.dialog.openDialogs.length === 0) {
-        const dialogRef = this.dialog.open(WelcomeDialogComponent, {
-          data: { version: currentTermsVersion },
+      if (isEmbedded || isBot() || this.dialog.openDialogs.length > 0) return;
+
+      if (screen === "whats-new" || screen === "whats-new-consent") {
+        const dialogRef = this.dialog.open(WhatsNewDialogComponent, {
+          data: { consentVersion: screen === "whats-new-consent" ? currentTermsVersion : null },
           hasBackdrop: true,
           disableClose: true,
-          enterAnimationDuration: "0ms",
+          autoFocus: "dialog",
+          width: "560px",
+          maxWidth: "calc(100vw - 2rem)",
+          maxHeight: "calc(100dvh - 2rem)",
         });
-
-        dialogRef.afterClosed().subscribe((agreed: boolean) => {
-          if (agreed) {
+        dialogRef.afterClosed().subscribe((closed: boolean) => {
+          if (closed && screen === "whats-new-consent") {
+            this.policyAccepted = true;
             this._consentService.grantConsent();
           }
         });
+        return;
       }
+
+      const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+        data: { version: currentTermsVersion },
+        hasBackdrop: true,
+        disableClose: true,
+        enterAnimationDuration: "0ms",
+      });
+
+      dialogRef.afterClosed().subscribe((agreed: boolean) => {
+        if (agreed) {
+          this._consentService.grantConsent();
+        }
+      });
     } catch (e) {
       console.error("Error in welcome dialog check", e);
     }

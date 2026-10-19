@@ -7323,6 +7323,96 @@
         <target>Willkommen bei PK Spot! 👋</target>
       </segment>
     </unit>
+    <unit id="whatsNew.checkIn.body">
+      <segment state="translated">
+        <source>Your training time is logged automatically.</source>
+        <target>Deine Trainingszeit wird automatisch erfasst.</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.checkIn.title">
+      <segment state="translated">
+        <source>Check in and check out</source>
+        <target>Ein- und auschecken</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.continue">
+      <segment state="translated">
+        <source>Let&apos;s go</source>
+        <target>Los geht's</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.feedback">
+      <segment state="translated">
+        <source>Send feedback</source>
+        <target>Feedback senden</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.language.body">
+      <segment state="translated">
+        <source>Town names and search now work in every app language.</source>
+        <target>Ortsnamen und Suche funktionieren jetzt in jeder App-Sprache.</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.language.title">
+      <segment state="translated">
+        <source>Your language</source>
+        <target>Deine Sprache</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.legend.body">
+      <segment state="translated">
+        <source>A private monthly rank at your favourite Spots.</source>
+        <target>Ein privater Monatsrang an deinen Lieblings-Spots.</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.legend.title">
+      <segment state="translated">
+        <source>Become the local legend</source>
+        <target>Werde zur Local Legend</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.privacy">
+      <segment state="translated">
+        <source> We updated our Privacy Policy for check-ins and training statistics. Your location stays off until you turn it on, and your history and ranks are visible only to you. </source>
+        <target>Wir haben unsere Datenschutzerklärung für Check-ins und Trainingsstatistiken aktualisiert. Dein Standort bleibt aus, bis du ihn einschaltest, und dein Verlauf und deine Ränge sind nur für dich sichtbar.</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.review">
+      <segment state="translated">
+        <source>Enjoying PK Spot? A review helps a lot, and feedback is always welcome.</source>
+        <target>Gefällt dir PK Spot? Eine Bewertung hilft sehr, und Feedback ist immer willkommen.</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.stats.body">
+      <segment state="translated">
+        <source>See where and how much you trained, privately.</source>
+        <target>Sieh privat, wo und wie viel du trainiert hast.</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.stats.title">
+      <segment state="translated">
+        <source>Your training stats</source>
+        <target>Deine Trainingsstatistik</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.title">
+      <segment state="translated">
+        <source>Welcome back! PK Spot 1.2 is here</source>
+        <target>Willkommen zurück! PK Spot 1.2 ist da</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.train.body">
+      <segment state="translated">
+        <source>Your next session, nearby Spots, the hourly forecast and Events in one place.</source>
+        <target>Deine nächste Session, Spots in der Nähe, die stündliche Vorhersage und Events an einem Ort.</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.train.title">
+      <segment state="translated">
+        <source>Train tab</source>
+        <target>Trainieren-Tab</target>
+      </segment>
+    </unit>
     <unit id="agreeAndContinueLabel">
       <segment state="initial">
         <source> Agree and Continue </source>
@@ -7789,6 +7879,12 @@
       <segment state="initial">
         <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
         <target> Mit „Zustimmen und Weiter“ akzeptierst du unsere <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> und bestätigst unsere <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. Du bestätigst, dass du mindestens 13 Jahre alt bist und nach deinem lokalen Recht zustimmen darfst, oder dass ein Elternteil oder Erziehungsberechtigter für dich zustimmt. </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCheckInBody">
+      <segment state="translated">
+        <source> Location stays off until you turn it on. Check-ins are private: only you see your training history and Spot ranks. Spots only show a rough range of how many people trained there recently. </source>
+        <target>Dein Standort bleibt aus, bis du ihn einschaltest. Check-ins sind privat: Nur du siehst deinen Trainingsverlauf und deine Spot-Ränge. Spots zeigen nur ungefähr, wie viele Leute dort kürzlich trainiert haben.</target>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityBody">

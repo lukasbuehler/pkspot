@@ -1,0 +1,175 @@
+:host {
+  display: block;
+}
+
+// Hero: Train tab icons float up one after another, then the local-legend
+// trophy settles in the middle with a single shine. About two seconds; the
+// icons keep a slow drift. Everything is static with reduced motion.
+.whats-new__hero {
+  position: relative;
+  height: 136px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: radial-gradient(
+    circle at 50% 62%,
+    var(--mat-sys-primary-container),
+    var(--mat-sys-surface-container-high) 72%
+  );
+}
+
+.whats-new__float {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+  color: var(--mat-sys-on-primary-container);
+  opacity: 0;
+  animation:
+    whats-new-float-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay) forwards,
+    whats-new-drift 6s ease-in-out calc(var(--delay) + 700ms) infinite;
+
+  &--1 { --x: 9%; --y: 56%; --delay: 0ms; }
+  &--2 { --x: 22%; --y: 18%; --delay: 120ms; }
+  &--3 { --x: 33%; --y: 62%; --delay: 240ms; }
+  &--4 { --x: 63%; --y: 60%; --delay: 360ms; }
+  &--5 { --x: 74%; --y: 16%; --delay: 480ms; }
+  &--6 { --x: 86%; --y: 54%; --delay: 600ms; }
+}
+
+.whats-new__trophy {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-highest);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+  animation: whats-new-trophy-in 600ms cubic-bezier(0.3, 1.4, 0.5, 1) 900ms forwards;
+
+  mat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    color: var(--app-rank-gold, #e9b82c);
+  }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 45%) 50%, transparent 65%);
+    transform: translateX(-120%);
+    animation: whats-new-shine 900ms ease-out 1500ms forwards;
+    content: "";
+  }
+}
+
+@keyframes whats-new-float-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.6); }
+  to { opacity: 0.85; transform: none; }
+}
+
+@keyframes whats-new-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes whats-new-trophy-in {
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes whats-new-shine {
+  to { transform: translateX(120%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whats-new__float,
+  .whats-new__trophy,
+  .whats-new__trophy::after {
+    animation: none;
+  }
+
+  .whats-new__float { opacity: 0.85; }
+  .whats-new__trophy { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+.whats-new__content {
+  display: grid;
+  gap: 16px;
+}
+
+@media (max-height: 760px) {
+  .whats-new__hero { height: 104px; }
+}
+
+.whats-new__list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+
+  // Separate 40px tonal icon tiles, as on the other information cards.
+  mat-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 22px;
+    color: var(--mat-sys-on-surface-variant);
+    background: var(--mat-sys-surface-container-highest);
+
+    &.is-gold { color: var(--app-rank-gold, #e9b82c); }
+  }
+
+  strong {
+    display: block;
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-title-small);
+  }
+
+  span > span {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-medium);
+  }
+}
+
+.whats-new__privacy {
+  display: grid;
+  gap: 8px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--mat-sys-outline-variant);
+
+  p { margin: 0; }
+}
+
+.whats-new__legal,
+.whats-new__review {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.whats-new__review {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.whats-new__review-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}

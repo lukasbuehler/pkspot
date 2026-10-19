@@ -5,7 +5,7 @@
   "captureRoot": "output/store-screenshots/captures",
   "outputMode": "composed",
   "localStorage": {
-    "acceptedVersion": "6",
+    "acceptedVersion": "7",
     "lastLocationAndZoom": {
       "location": {
         "lat": 47.3769,

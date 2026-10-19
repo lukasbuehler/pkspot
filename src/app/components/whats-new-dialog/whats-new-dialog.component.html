@@ -1,0 +1,90 @@
+<h2 mat-dialog-title i18n="@@whatsNew.title">Welcome back! PK Spot 1.2 is here</h2>
+
+<mat-dialog-content class="whats-new__content">
+  <div class="whats-new__hero" aria-hidden="true">
+    <mat-icon class="whats-new__float whats-new__float--1">sports_gymnastics</mat-icon>
+    <mat-icon class="whats-new__float whats-new__float--2">event</mat-icon>
+    <mat-icon class="whats-new__float whats-new__float--3">rainy</mat-icon>
+    <mat-icon class="whats-new__float whats-new__float--4">check_circle</mat-icon>
+    <mat-icon class="whats-new__float whats-new__float--5">location_on</mat-icon>
+    <mat-icon class="whats-new__float whats-new__float--6">insights</mat-icon>
+    <span class="whats-new__trophy"><mat-icon>trophy</mat-icon></span>
+  </div>
+
+  <ul class="whats-new__list">
+    <li>
+      <mat-icon aria-hidden="true">sports_gymnastics</mat-icon>
+      <span>
+        <strong i18n="@@whatsNew.train.title">Train tab</strong>
+        <span i18n="@@whatsNew.train.body">Your next session, nearby Spots, the hourly forecast and Events in one place.</span>
+      </span>
+    </li>
+    <li>
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      <span>
+        <strong i18n="@@whatsNew.checkIn.title">Check in and check out</strong>
+        <span i18n="@@whatsNew.checkIn.body">Your training time is logged automatically.</span>
+      </span>
+    </li>
+    <li>
+      <mat-icon aria-hidden="true">insights</mat-icon>
+      <span>
+        <strong i18n="@@whatsNew.stats.title">Your training stats</strong>
+        <span i18n="@@whatsNew.stats.body">See where and how much you trained, privately.</span>
+      </span>
+    </li>
+    <li>
+      <mat-icon aria-hidden="true" class="is-gold">trophy</mat-icon>
+      <span>
+        <strong i18n="@@whatsNew.legend.title">Become the local legend</strong>
+        <span i18n="@@whatsNew.legend.body">A private monthly rank at your favourite Spots.</span>
+      </span>
+    </li>
+    <li>
+      <mat-icon aria-hidden="true">translate</mat-icon>
+      <span>
+        <strong i18n="@@whatsNew.language.title">Your language</strong>
+        <span i18n="@@whatsNew.language.body">Town names and search now work in every app language.</span>
+      </span>
+    </li>
+  </ul>
+
+  @if (needsConsent) {
+    <section class="whats-new__privacy">
+      <p class="mat-body-medium" i18n="@@whatsNew.privacy">
+        We updated our Privacy Policy for check-ins and training statistics. Your location stays off until you turn it on, and your history and ranks are visible only to you.
+      </p>
+      <p class="mat-body-small whats-new__legal" i18n="@@welcomeDialogButtonInfo">
+        By choosing "Agree and Continue", you accept our
+        <a routerLink="/terms-of-service">Terms of Service</a> and acknowledge our
+        <a routerLink="/privacy-policy">Privacy Policy</a>. You confirm you are at
+        least 13 and old enough to consent under your local law, or that a parent or
+        guardian agrees for you.
+      </p>
+    </section>
+  }
+
+  @if (review; as review) {
+    <p class="mat-body-small whats-new__review">
+      <span i18n="@@whatsNew.review">Enjoying PK Spot? A review helps a lot, and feedback is always welcome.</span>
+      <span class="whats-new__review-links">
+        <a [href]="review.url" target="_blank" rel="noopener noreferrer" (click)="trackReview()">
+          @if (review.store === "apple") {
+            <span i18n="@@settings.review.apple">Review on the App Store</span>
+          } @else {
+            <span i18n="@@settings.review.google">Review on Google Play</span>
+          }
+        </a>
+        <a routerLink="/contact" (click)="sendFeedback()" i18n="@@whatsNew.feedback">Send feedback</a>
+      </span>
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (needsConsent) {
+    <button matButton="filled" type="button" (click)="continue()" i18n="@@agreeAndContinueLabel">Agree and Continue</button>
+  } @else {
+    <button matButton="filled" type="button" (click)="continue()" i18n="@@whatsNew.continue">Let's go</button>
+  }
+</mat-dialog-actions>

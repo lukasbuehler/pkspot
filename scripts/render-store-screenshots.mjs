@@ -858,7 +858,7 @@ async function applyCaptureStyles(page, device, capture) {
 
 function getLocalStorageSeed(capture) {
   return {
-    acceptedVersion: "6",
+    acceptedVersion: "7",
     ...(config.localStorage ?? {}),
     ...(capture.localStorage ?? {}),
   };

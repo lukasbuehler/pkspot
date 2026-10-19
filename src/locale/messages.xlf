@@ -13490,6 +13490,81 @@
         <source>Welcome to PK Spot! 👋</source>
       </segment>
     </unit>
+    <unit id="whatsNew.checkIn.body">
+      <segment>
+        <source>Your training time is logged automatically.</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.checkIn.title">
+      <segment>
+        <source>Check in and check out</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.continue">
+      <segment>
+        <source>Let&apos;s go</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.feedback">
+      <segment>
+        <source>Send feedback</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.language.body">
+      <segment>
+        <source>Town names and search now work in every app language.</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.language.title">
+      <segment>
+        <source>Your language</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.legend.body">
+      <segment>
+        <source>A private monthly rank at your favourite Spots.</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.legend.title">
+      <segment>
+        <source>Become the local legend</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.privacy">
+      <segment>
+        <source> We updated our Privacy Policy for check-ins and training statistics. Your location stays off until you turn it on, and your history and ranks are visible only to you. </source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.review">
+      <segment>
+        <source>Enjoying PK Spot? A review helps a lot, and feedback is always welcome.</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.stats.body">
+      <segment>
+        <source>See where and how much you trained, privately.</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.stats.title">
+      <segment>
+        <source>Your training stats</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.title">
+      <segment>
+        <source>Welcome back! PK Spot 1.2 is here</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.train.body">
+      <segment>
+        <source>Your next session, nearby Spots, the hourly forecast and Events in one place.</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.train.title">
+      <segment>
+        <source>Train tab</source>
+      </segment>
+    </unit>
     <unit id="welcomeDialogText">
       <segment>
         <source> PK Spot helps you find parkour spots, discover communities and events, check in, and share useful local knowledge. </source>
@@ -13503,6 +13578,11 @@
     <unit id="welcomeDialogSafetyBody">
       <segment>
         <source> Parkour is risky. You are responsible for your safety. Spot data may be wrong, unsafe, or not legally accessible. </source>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCheckInBody">
+      <segment>
+        <source> Location stays off until you turn it on. Check-ins are private: only you see your training history and Spot ranks. Spots only show a rough range of how many people trained there recently. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityBody">
