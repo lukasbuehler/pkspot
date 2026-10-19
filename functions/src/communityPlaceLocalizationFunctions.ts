@@ -16,29 +16,22 @@ export const enqueueCommunityPlaceLocalization = onDocumentWritten(
   { document: "community_pages/{communityKey}", region: "europe-west1" },
   async (event) => {
     const after = event.data?.after.data() as CommunityPageSchema | undefined;
+    // Keep `localized_search_names` in step with the page's names and reviewed
+    // overrides, so search finds "Lüttich", "Liège" and "Luik" alike. Writes
+    // only when the list changes; rebuilds merge into the page and keep it.
+    if (after && event.data?.after.ref) {
+      const names = communitySearchNames(after);
+      if (!samePlaceFields(after.localized_search_names ?? [], names)) {
+        await event.data.after.ref.update({
+          localized_search_names: names.length ? names : admin.firestore.FieldValue.delete(),
+        });
+      }
+    }
     if (!canEnrichPlace(after)) return;
     if (after.place_localization?.version === 2 && after.place_localization.fingerprint === placeFingerprint(after)) return;
     // Rebuilds also upgrade older town-only enrichment; ordinary queue deduplication
     // prevents count updates from resetting pending or ambiguous jobs.
     await enqueueCommunityPlace(admin.firestore(), event.params.communityKey);
-  },
-);
-
-/**
- * Keeps `localized_search_names` in step with the page's names and reviewed
- * overrides, so search finds "Lüttich", "Liège" and "Luik" alike. Writes only
- * when the list changes; rebuilds merge into the page and keep it.
- */
-export const syncCommunitySearchNames = onDocumentWritten(
-  { document: "community_pages/{communityKey}", region: "europe-west1" },
-  async (event) => {
-    const after = event.data?.after.data() as CommunityPageSchema | undefined;
-    if (!after || !event.data?.after.ref) return;
-    const names = communitySearchNames(after);
-    if (samePlaceFields(after.localized_search_names ?? [], names)) return;
-    await event.data.after.ref.update({
-      localized_search_names: names.length ? names : admin.firestore.FieldValue.delete(),
-    });
   },
 );
 

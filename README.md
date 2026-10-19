@@ -23,8 +23,22 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ### Version 1.2 - "Training Update"
 
-- New Training page - with activity graphs, session details, and recovery pauses
-- New Check-ins and Spot activity statistics
+- New Train tab: find your next session with nearby Spots, the forecast with
+  hourly rain amounts, and upcoming Events from nearby and your communities
+- Check in at Spots and check out when you are done; your training time is
+  logged without typing a duration
+- Private training log with session details, recovery pauses, your rhythm and
+  streaks
+- Private training statistics: visits, training time and your most visited
+  Spots by month and year
+- Private monthly Spot ranks: become the local legend of your Spot. Ranks
+  update once a day, appear once three people checked in, and only you can
+  see yours
+- Spots show a coarse "trained here recently" range, never who or when
+- Town and country names in your language on Spot and Event cards, and search
+  finds places by any of their names (for example Lüttich, Liège or Luik)
+- Map: larger search results, only the country community you are looking at,
+  and filters that apply to the area you are viewing
 - Improved Events, community voting, Spot editing, following, and reports
 - Android performance and startup fixes
 - Bug fixes, privacy improvements, and legacy Event discovery cleanup

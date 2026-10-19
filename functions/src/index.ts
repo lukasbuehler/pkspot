@@ -321,7 +321,6 @@ export {
   enqueueCommunityPlaceLocalization,
   enrichCommunityPlaceLocalizations,
   backfillCommunityPlaceLocalizations,
-  syncCommunitySearchNames,
 } from "./communityPlaceLocalizationFunctions";
 
 export { queueSpotPlaceNames, queueEventPlaceNames, enrichEntityPlaceNames, applyEntityPlaceNames,

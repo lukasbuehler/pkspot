@@ -127,26 +127,12 @@
     </mat-menu>
 
     <!-- terms  -->
-    <span
-      class="mat-body-small d-flex align-items-center flex-row mb-0 pb-1"
-      style="
-        justify-content: space-evenly;
-        width: 100%;
-        font-size: 10px;
-        color: lightgray;
-      "
-    >
+    <!-- Wraps instead of overflowing when translated labels are longer. -->
+    <span class="rail-legal">
       <a routerLink="/terms-of-service" i18n="@@terms.short">Terms</a>
       <a routerLink="/privacy-policy" i18n="@@policy.short">Policy</a>
-    </span>
-    <a
-      routerLink="/impressum"
-      class="mat-body-small mb-0 pb-1"
-      style="font-size: 10px; color: lightgray"
-      >Impressum</a
-    >
-    <span class="mat-body-small mb-0" style="font-size: 10px; color: lightgray"
-      >©2026 PK Spot
+      <a routerLink="/impressum">Impressum</a>
+      <span>©2026 PK Spot</span>
     </span>
     </div>
   </app-nav-rail>
