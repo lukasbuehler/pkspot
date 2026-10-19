@@ -536,17 +536,6 @@ service cloud.firestore {
         );
     }
 
-    function eventOwnerMayBeAssignedByViewer(owner) {
-      return (
-          owner.type == 'user'
-          && owner.user_id == request.auth.uid
-        )
-        || (
-          owner.type == 'organization'
-          && isOrganizationManager(owner.organization_id)
-        );
-    }
-
     function eventPolicyOrganizationsManagedByViewer(eventData) {
       return (
           !('discoverability' in eventData)
