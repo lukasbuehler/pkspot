@@ -36,5 +36,8 @@ describe("reverse-geocoded Spot addresses", () => {
     expect(hasAbbreviatedAddressName({ ...base, locality: "Wil", region: { code: "SG", name: "SG" } })).toBe(false);
     expect(shouldRefreshAddress({ ...base, locality: "DO" })).toBe(true);
     expect(shouldRefreshAddress({ ...base, locality: "Dortmund" })).toBe(false);
+    // A normal Spot without local-language fields is no longer refreshed.
+    expect(shouldRefreshAddress({ formatted: "x", country: { code: "FR", name: "France" }, locality: "Vagney" })).toBe(false);
+    expect(shouldRefreshAddress(undefined)).toBe(true);
   });
 });
