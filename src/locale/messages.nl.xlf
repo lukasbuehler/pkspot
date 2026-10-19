@@ -7521,18 +7521,6 @@
         <target>Feedback sturen</target>
       </segment>
     </unit>
-    <unit id="whatsNew.language.body">
-      <segment state="translated">
-        <source>Town names and search now work in every app language.</source>
-        <target>Plaatsnamen en zoeken werken nu in elke app-taal.</target>
-      </segment>
-    </unit>
-    <unit id="whatsNew.language.title">
-      <segment state="translated">
-        <source>Your language</source>
-        <target>Jouw taal</target>
-      </segment>
-    </unit>
     <unit id="whatsNew.legend.body">
       <segment state="translated">
         <source>Opt in to a private monthly rank at your favourite Spots.</source>

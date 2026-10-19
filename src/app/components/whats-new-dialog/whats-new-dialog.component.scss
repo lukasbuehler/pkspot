@@ -30,6 +30,8 @@
     whats-new-float-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay) forwards,
     whats-new-drift 6s ease-in-out calc(var(--delay) + 700ms) infinite;
 
+  &.is-live { color: var(--mat-sys-secondary); }
+
   &--1 { --x: 9%; --y: 56%; --delay: 0ms; }
   &--2 { --x: 22%; --y: 18%; --delay: 120ms; }
   &--3 { --x: 33%; --y: 62%; --delay: 240ms; }
@@ -134,6 +136,12 @@
     background: var(--mat-sys-surface-container-highest);
 
     &.is-gold { color: var(--app-rank-gold, #e9b82c); }
+
+    // Green marks live presence, which is what a check-in is.
+    &.is-live {
+      color: var(--mat-sys-on-secondary-container);
+      background: var(--mat-sys-secondary-container);
+    }
   }
 
   strong {

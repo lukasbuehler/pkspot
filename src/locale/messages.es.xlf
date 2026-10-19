@@ -7347,18 +7347,6 @@
         <target>Enviar comentarios</target>
       </segment>
     </unit>
-    <unit id="whatsNew.language.body">
-      <segment state="translated">
-        <source>Town names and search now work in every app language.</source>
-        <target>Los nombres de lugares y la búsqueda ahora funcionan en todos los idiomas de la app.</target>
-      </segment>
-    </unit>
-    <unit id="whatsNew.language.title">
-      <segment state="translated">
-        <source>Your language</source>
-        <target>Tu idioma</target>
-      </segment>
-    </unit>
     <unit id="whatsNew.legend.body">
       <segment state="translated">
         <source>Opt in to a private monthly rank at your favourite Spots.</source>
