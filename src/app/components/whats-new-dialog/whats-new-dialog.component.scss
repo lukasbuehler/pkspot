@@ -137,6 +137,11 @@
 
     &.is-gold { color: var(--app-rank-gold, #e9b82c); }
 
+    &.is-primary {
+      color: var(--mat-sys-on-primary-container);
+      background: var(--mat-sys-primary-container);
+    }
+
     // Green marks live presence, which is what a check-in is.
     &.is-live {
       color: var(--mat-sys-on-secondary-container);

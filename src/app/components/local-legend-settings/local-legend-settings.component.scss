@@ -2,11 +2,11 @@
   display: block;
 }
 
-// Matches the outlined cards around it on the account settings page.
+// Matches the outlined boxes around it in the general settings.
 .legend-settings {
   display: grid;
   gap: 8px;
-  padding: clamp(1rem, 3vw, 1.5rem);
+  padding: 1rem;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 18px;
 }

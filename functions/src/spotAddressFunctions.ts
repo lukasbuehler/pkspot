@@ -63,18 +63,16 @@ const getAddressComponentName = (
 
 /**
  * Addresses written before names used the long form may hold an abbreviation
- * as the town or region name. Those are re-geocoded by the address refresh.
+ * as the town ("DO" for Dortmund). Those are re-geocoded by the address
+ * refresh. Region names that equal their code ("NRW") are left alone: they
+ * affect thousands of Spots, and each refreshed address rebuilds its
+ * communities, so they are corrected on the Spot's next address change.
  */
 export const hasAbbreviatedAddressName = (
   address: AddressType | SpotSchema["address"] | null | undefined
 ): boolean => {
-  if (!address) return false;
-  const locality = address.locality?.trim();
-  const region = address.region;
-  return Boolean(
-    (locality && /^\p{Lu}{1,4}$/u.test(locality)) ||
-      (region?.code && region.name?.trim() === region.code.trim())
-  );
+  const locality = address?.locality?.trim();
+  return Boolean(locality && /^\p{Lu}{1,4}$/u.test(locality));
 };
 
 const getAddressComponentByType = (
