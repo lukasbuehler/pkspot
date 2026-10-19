@@ -50,10 +50,31 @@ type GeocodeApiResponse = {
   results?: AddressAPIResultType[];
 };
 
+/**
+ * The display name of an address component. Google's short name is often an
+ * abbreviation ("DO" for Dortmund, "NRW", "HKI" for Helsinki), so names use the
+ * long form; short names are only used as codes (country, region code).
+ */
 const getAddressComponentName = (
   component: AddressAPIResultType["address_components"][number]
 ): string | undefined => {
-  return component.short_name?.trim() || component.long_name?.trim() || undefined;
+  return component.long_name?.trim() || component.short_name?.trim() || undefined;
+};
+
+/**
+ * Addresses written before names used the long form may hold an abbreviation
+ * as the town or region name. Those are re-geocoded by the address refresh.
+ */
+export const hasAbbreviatedAddressName = (
+  address: AddressType | SpotSchema["address"] | null | undefined
+): boolean => {
+  if (!address) return false;
+  const locality = address.locality?.trim();
+  const region = address.region;
+  return Boolean(
+    (locality && /^\p{Lu}{1,4}$/u.test(locality)) ||
+      (region?.code && region.name?.trim() === region.code.trim())
+  );
 };
 
 const getAddressComponentByType = (
@@ -115,14 +136,14 @@ const hasLocalizedAddressData = (
   );
 };
 
-const shouldRefreshAddress = (
+export const shouldRefreshAddress = (
   address: AddressType | SpotSchema["address"] | null | undefined
 ): boolean => {
   if (!hasAddressData(address)) {
     return true;
   }
 
-  return !hasLocalizedAddressData(address);
+  return !hasLocalizedAddressData(address) || hasAbbreviatedAddressName(address);
 };
 
 const removeUndefinedValues = <T>(value: T): T => {
@@ -298,7 +319,7 @@ const fetchReverseGeocodeResponse = async (
   return data;
 };
 
-const extractAddressFromGeocodeResponse = (
+export const extractAddressFromGeocodeResponse = (
   data: GeocodeApiResponse
 ): AddressType => {
   const address: AddressType = {};
