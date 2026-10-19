@@ -25,6 +25,9 @@ import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { SpotRankIconComponent } from "../spot-rank-icon/spot-rank-icon.component";
+import { MatDialog } from "@angular/material/dialog";
+import { LocalLegendService } from "../../services/local-legend.service";
+import { LocalLegendJoinDialogComponent } from "../local-legend-join-dialog/local-legend-join-dialog.component";
 
 /**
  * The signed-in person's own record at a Spot: visits, logged time, last visit
@@ -45,6 +48,12 @@ export class SpotPersonalStatsComponent {
   private readonly locale = inject(LOCALE_ID);
 
   readonly spotId = input<string | null>(null);
+  private readonly localLegend = inject(LocalLegendService);
+  private readonly dialog = inject(MatDialog);
+
+  openJoin(): void {
+    LocalLegendJoinDialogComponent.open(this.dialog);
+  }
 
   private readonly uid = toSignal(
     this.auth.authState$.pipe(map((user) => user?.uid ?? null)),
@@ -66,7 +75,7 @@ export class SpotPersonalStatsComponent {
         this.summaries.getMyRanks(month).catch(() => null),
       ]);
       const verifiedDays = summary?.spots[params.spotId]?.verified_days ?? 0;
-      return { spot, rank: spotRankState(ranks, params.spotId, verifiedDays) };
+      return { spot, verifiedDays, rank: spotRankState(ranks, params.spotId, verifiedDays) };
     },
   });
 
@@ -81,7 +90,10 @@ export class SpotPersonalStatsComponent {
       time: spot.minutes > 0 ? formatDuration(spot.minutes) : null,
       lastVisit: relative.format(-Math.max(0, days), "day"),
       since: this.dateTime.format(new Date(spot.first_ms), { month: "short", year: "numeric" }),
-      rank: value?.rank
+      // Ranks only for Local Legend participants; an invitation for people
+      // who have not chosen yet and trained here; nothing after "off".
+      invite: this.localLegend.state() === "undecided" && (value?.verifiedDays ?? 0) > 0,
+      rank: value?.rank && this.localLegend.enabled()
         ? {
             ...value.rank,
             title: spotRankTitle(value.rank),

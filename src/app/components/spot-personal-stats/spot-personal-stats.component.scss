@@ -40,6 +40,16 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.spot-rank__gold {
+  color: var(--app-rank-gold, #e9b82c);
+}
+
+// Text button aligned with the copy above it.
+.spot-rank__action {
+  justify-self: start;
+  margin-inline-start: -12px;
+}
+
 .spot-rank__text {
   display: grid;
   gap: 2px;

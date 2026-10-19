@@ -1,5 +1,6 @@
 import { enrichSharedPlace } from "./sharedPlaceEnrichment";
 import * as admin from "firebase-admin";
+import {FieldValue} from "firebase-admin/firestore";
 import { defineString } from "firebase-functions/params";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
@@ -23,7 +24,7 @@ export const enqueueCommunityPlaceLocalization = onDocumentWritten(
       const names = communitySearchNames(after);
       if (!samePlaceFields(after.localized_search_names ?? [], names)) {
         await event.data.after.ref.update({
-          localized_search_names: names.length ? names : admin.firestore.FieldValue.delete(),
+          localized_search_names: names.length ? names : FieldValue.delete(),
         });
       }
     }

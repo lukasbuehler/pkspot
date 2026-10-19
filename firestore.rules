@@ -1575,6 +1575,13 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // Local Legend participation (opt-in). Written only by Functions, which
+      // also add or remove the person's comparison tallies.
+      match /training_settings/{settingId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       match /log_entries/{logEntryId} {
         // Historical audience fields never grant access. Owners retain their
         // entries without a migration; the current client saves them as private.

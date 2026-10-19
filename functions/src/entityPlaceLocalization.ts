@@ -1,6 +1,6 @@
 import { enrichSharedPlace } from "./sharedPlaceEnrichment";
 import * as admin from "firebase-admin";
-import { FieldPath } from "firebase-admin/firestore";
+import { FieldPath, FieldValue } from "firebase-admin/firestore";
 import { defineString } from "firebase-functions/params";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
@@ -90,7 +90,7 @@ export async function syncEntityPlace(
     : key ? (await db.doc(`place_names/${key}`).get()).data() as EntityPlaceNames | undefined : undefined;
   const desired = entityPlaceFields(collection, data, names);
   const current = data as PlacedEntity;
-  const remove = admin.firestore.FieldValue.delete();
+  const remove = FieldValue.delete();
   const update: Record<string, unknown> = {};
   for (const field of ["place_key", "place_names", "localized_search_names"] as const) {
     const value = desired?.[field];

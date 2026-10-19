@@ -4,12 +4,15 @@ import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from "@angular/material/bott
 import { BehaviorSubject } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
+import { signal } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import { LocalLegendService, type LocalLegendState } from "../../services/local-legend.service";
 import {
   CheckInRewardSheetComponent,
   type CheckInRewardSheetData,
 } from "./check-in-reward-sheet.component";
 
-function render(data: CheckInRewardSheetData, month: unknown = null) {
+function render(data: CheckInRewardSheetData, month: unknown = null, legend: LocalLegendState = "on") {
   const dismiss = vi.fn();
   const summary = new BehaviorSubject<unknown>(month);
   TestBed.configureTestingModule({
@@ -21,6 +24,8 @@ function render(data: CheckInRewardSheetData, month: unknown = null) {
         provide: TrainingSummaryService,
         useValue: { watchMyMonth: () => summary, getMyRanks: vi.fn().mockResolvedValue(null) },
       },
+      { provide: LocalLegendService, useValue: { state: signal(legend), enabled: signal(legend === "on") } },
+      { provide: MatDialog, useValue: { open: vi.fn() } },
     ],
   });
   const fixture = TestBed.createComponent(CheckInRewardSheetComponent);
@@ -61,5 +66,17 @@ describe("CheckInRewardSheetComponent", () => {
     });
     expect(element.textContent).toContain("Your first visit here");
     expect(element.textContent).toContain("won't count toward your Spot rank");
+  });
+
+  it("shows verified days and an invitation to people outside Local Legend", async () => {
+    const { fixture, element } = render({
+      spotId: "river", spotName: "Riverside", response: { ...response, spotVisitCount: 3, verified: true },
+    }, { updated_at_raw_ms: Date.now(), spots: { river: { verified_days: 2 } } }, "undecided");
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(element.textContent).toContain("2 days this month");
+    });
+    expect(element.textContent).not.toContain("ranked after tonight's update");
+    expect(element.textContent).toContain("Learn more");
   });
 });

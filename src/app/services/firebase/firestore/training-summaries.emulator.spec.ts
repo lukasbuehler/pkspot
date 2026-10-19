@@ -2,7 +2,7 @@ import { deleteApp, initializeApp, type FirebaseApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInAnonymously } from "firebase/auth";
 import { CustomProvider, initializeAppCheck } from "firebase/app-check";
 import { connectFunctionsEmulator, getFunctions, httpsCallable } from "firebase/functions";
-import { connectFirestoreEmulator, doc, getDoc, getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import * as admin from "firebase-admin";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 import type {
@@ -16,7 +16,7 @@ import type {
   TrainingMonthSchema,
   TrainingRanksSchema,
 } from "../../../../db/schemas/TrainingSummarySchema";
-import { legendTallyId, localDateKey } from "../../../../db/utils/training-summary";
+import { legendTallyId, localDateKey, shiftMonth } from "../../../../db/utils/training-summary";
 
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
 const authHost = process.env["FIREBASE_AUTH_EMULATOR_HOST"];
@@ -91,6 +91,8 @@ async function signedInClient() {
       functions,
       "setCheckInSessionDuration",
     ),
+    setLegend: httpsCallable<{ enabled: boolean }, { enabled: boolean }>(functions, "setLocalLegendParticipation"),
+    deleteRank: httpsCallable<{ month: string; spotId: string }, { deleted: boolean }>(functions, "deleteMySpotRank"),
   };
 }
 
@@ -184,7 +186,7 @@ runWithEmulator("private training summaries and Spot ranks", () => {
     ).toBe(false);
   }, 120_000);
 
-  it("keeps published ranks private and withdraws them when the owner removes visits", async () => {
+  it("compares only Local Legend participants and keeps ranks private", async () => {
     const regular = await signedInClient();
     const spotId = `rank-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     await seedSpot(spotId);
@@ -209,8 +211,17 @@ runWithEmulator("private training summaries and Spot ranks", () => {
       async () => (await monthDoc(regular.uid).get()).data() as TrainingMonthSchema | undefined,
       (value) => value?.spots[spotId]?.verified_days === 2,
     );
-    const tally = await db().doc(`spot_legend_tallies/${legendTallyId(currentMonth(), spotId, regular.uid)}`).get();
-    expect(tally.data()).toMatchObject({ verified_days: 2, spot_id: spotId });
+    // Local Legend is off by default: nobody is compared before joining.
+    const tallyRef = db().doc(`spot_legend_tallies/${legendTallyId(currentMonth(), spotId, regular.uid)}`);
+    expect((await tallyRef.get()).exists).toBe(false);
+    await expect(setDoc(doc(regular.firestore, `users/${regular.uid}/training_settings/local_legend`), { enabled: true }))
+      .rejects.toMatchObject({ code: "permission-denied" });
+
+    // Joining adds this month's tally from the existing summary right away.
+    await regular.setLegend({ enabled: true });
+    expect((await tallyRef.get()).data()).toMatchObject({ verified_days: 2, spot_id: spotId });
+    const settings = await getDoc(doc(regular.firestore, `users/${regular.uid}/training_settings/local_legend`));
+    expect(settings.data()).toMatchObject({ enabled: true });
 
     // Ranks are never written by the session trigger; the nightly job publishes them.
     const ranksPath = `users/${regular.uid}/training_ranks/${currentMonth()}`;
@@ -228,6 +239,25 @@ runWithEmulator("private training summaries and Spot ranks", () => {
     expect(own.data()?.["spots"][spotId]).toMatchObject({ rank: 1 });
     const stranger = await signedInClient();
     await expect(getDoc(doc(stranger.firestore, ranksPath))).rejects.toMatchObject({ code: "permission-denied" });
+
+    // Leaving removes the person from comparisons but keeps their own history.
+    await regular.setLegend({ enabled: false });
+    expect((await tallyRef.get()).exists).toBe(false);
+    expect((await db().doc(ranksPath).get()).exists).toBe(true);
+
+    // Past ranks can be removed one by one; the open month cannot.
+    await expect(regular.deleteRank({ month: currentMonth(), spotId }))
+      .rejects.toMatchObject({ code: "functions/failed-precondition" });
+    const pastMonth = shiftMonth(currentMonth(), -3);
+    const pastPath = `users/${regular.uid}/training_ranks/${pastMonth}`;
+    await db().doc(pastPath).set({
+      ...published, month: pastMonth, final: true,
+      spots: { [spotId]: published.spots[spotId], other: { status: "ranked", verified_days: 3, rank: 3, tied_with: 0, legend: false } },
+    });
+    expect((await regular.deleteRank({ month: pastMonth, spotId: "other" })).data).toEqual({ deleted: true });
+    expect(Object.keys((await db().doc(pastPath).get()).data()!["spots"])).toEqual([spotId]);
+    await regular.deleteRank({ month: pastMonth, spotId });
+    expect((await db().doc(pastPath).get()).exists).toBe(false);
 
     // Dropping below two verified days withdraws the rank right away.
     await db().doc(`users/${regular.uid}/session_records/seeded-1`).delete();

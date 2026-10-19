@@ -5,6 +5,8 @@ import type { TrainingMonthSchema } from "../../../db/schemas/TrainingSummarySch
 import { localDateKey, shiftMonth } from "../../../db/utils/training-summary";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { TrainingStatsComponent } from "./training-stats.component";
+import { signal } from "@angular/core";
+import { LocalLegendService } from "../../services/local-legend.service";
 
 const current = localDateKey(Date.now(), Intl.DateTimeFormat().resolvedOptions().timeZone).slice(0, 7);
 const previous = shiftMonth(current, -1);
@@ -43,6 +45,7 @@ async function render(): Promise<ComponentFixture<TrainingStatsComponent>> {
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
+      { provide: LocalLegendService, useValue: { state: signal("on"), enabled: signal(true) } },
       {
         provide: TrainingSummaryService,
         useValue: {

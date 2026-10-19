@@ -7361,8 +7361,8 @@
     </unit>
     <unit id="whatsNew.legend.body">
       <segment state="translated">
-        <source>A private monthly rank at your favourite Spots.</source>
-        <target>Una posición mensual privada en tus Spots favoritos.</target>
+        <source>Opt in to a private monthly rank at your favourite Spots.</source>
+        <target>Únete a una posición mensual privada en tus Spots favoritos.</target>
       </segment>
     </unit>
     <unit id="whatsNew.legend.title">
@@ -17006,10 +17006,10 @@
         <target>Tu primera visita aquí</target>
       </segment>
     </unit>
-    <unit id="checkInReward.privateNightly">
+    <unit id="checkInReward.privateLegend">
       <segment state="translated">
-        <source>Saved privately to your training log. Days with a verified check-in count toward your monthly Spot rank, which updates at the end of each day and only you can see.</source>
-        <target>Guardado de forma privada en tu registro de entrenamiento. Los días con un check-in verificado cuentan para tu posición mensual en el Spot, que se actualiza al final de cada día y solo tú puedes ver.</target>
+        <source>Saved privately to your training log. With Local Legend on, days with a verified check-in count toward a monthly Spot rank that updates at the end of each day and only you can see.</source>
+        <target>Guardado de forma privada en tu registro de entrenamiento. Con Local Legend, los días con un check-in verificado cuentan para una posición mensual en el Spot, que se actualiza al final de cada día y solo tú puedes ver.</target>
       </segment>
     </unit>
     <unit id="checkInReward.title">
@@ -19808,6 +19808,138 @@
       <segment state="initial">
         <source>Use device location?</source>
         <target>¿Usar la ubicación del dispositivo?</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.help">
+      <segment state="translated">
+        <source>Removing a rank deletes it from your history for good.</source>
+        <target>Una posición eliminada se borra definitivamente de tu historial.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.remove">
+      <segment state="translated">
+        <source>Remove</source>
+        <target>Eliminar</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.removed">
+      <segment state="translated">
+        <source>Rank removed</source>
+        <target>Posición eliminada</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.removeFailed">
+      <segment state="translated">
+        <source>Couldn&apos;t remove this rank. Please try again.</source>
+        <target>No se pudo eliminar la posición. Inténtalo de nuevo.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.removeLabel">
+      <segment state="translated">
+        <source>Remove this rank</source>
+        <target>Eliminar esta posición</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.title">
+      <segment state="translated">
+        <source>Your past ranks</source>
+        <target>Tus posiciones anteriores</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.action">
+      <segment state="translated">
+        <source>Learn more</source>
+        <target>Más información</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.body">
+      <segment state="translated">
+        <source>See your private monthly rank at this Spot.</source>
+        <target>Mira tu posición mensual privada en este Spot.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.title">
+      <segment state="translated">
+        <source>Become the local legend</source>
+        <target>Conviértete en la leyenda local</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.trainBody">
+      <segment state="translated">
+        <source>Opt in to a private monthly rank at the Spots where you check in.</source>
+        <target>Únete y mira tu posición mensual privada en los Spots donde haces check-in.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.compare">
+      <segment state="translated">
+        <source>Rankings compare participating accounts and appear only when at least three qualify.</source>
+        <target>Las clasificaciones comparan cuentas participantes y solo aparecen cuando participan al menos tres.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.days">
+      <segment state="translated">
+        <source>Ranks count days, not hours. Training longer or twice a day doesn&apos;t move you up.</source>
+        <target>Las posiciones cuentan días, no horas. Entrenar más tiempo o dos veces al día no te hace subir.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.enable">
+      <segment state="translated">
+        <source>Enable Local Legend</source>
+        <target>Activar Local Legend</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.lead">
+      <segment state="translated">
+        <source> See your private monthly rank based on your verified training days at each Spot. </source>
+        <target>Mira tu posición mensual privada, basada en tus días de entrenamiento verificados en cada Spot.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.notNow">
+      <segment state="translated">
+        <source>Not now</source>
+        <target>Ahora no</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.optional">
+      <segment state="translated">
+        <source> Participation is optional. You can turn it off in Settings and keep using private check-ins. </source>
+        <target>Participar es opcional. Puedes desactivarlo en Ajustes y seguir usando los check-ins privados.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.private">
+      <segment state="translated">
+        <source>Other users cannot view your identity or rank through Local Legend.</source>
+        <target>Los demás no pueden ver tu identidad ni tu posición a través de Local Legend.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.title">
+      <segment state="translated">
+        <source>Join Local Legend</source>
+        <target>Únete a Local Legend</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.saveFailed">
+      <segment state="translated">
+        <source>Couldn&apos;t save your choice. Please try again.</source>
+        <target>No se pudo guardar tu elección. Inténtalo de nuevo.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.description">
+      <segment state="translated">
+        <source> A private monthly rank at the Spots where you check in, based on days with a verified check-in. Only participating accounts are compared, and nobody else sees your rank. </source>
+        <target>Una posición mensual privada en los Spots donde haces check-in, basada en los días con un check-in verificado. Solo se comparan cuentas participantes y nadie más ve tu posición.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.offHelp">
+      <segment state="translated">
+        <source> You are not compared with anyone. Your past ranks are kept privately and come back if you turn Local Legend on again. </source>
+        <target>No se te compara con nadie. Tus posiciones anteriores se guardan de forma privada y vuelven si activas Local Legend de nuevo.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.title">
+      <segment state="translated">
+        <source>Local Legend</source>
+        <target>Local Legend</target>
       </segment>
     </unit>
     <unit id="locationAccess.explanation">

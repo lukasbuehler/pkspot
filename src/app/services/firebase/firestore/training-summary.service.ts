@@ -2,7 +2,11 @@ import { Injectable, inject } from "@angular/core";
 import { type Observable, of } from "rxjs";
 import type { SessionRecordDocument } from "../../../../db/schemas/SessionRecordSchema";
 import type {
+  DeleteMySpotRankRequest,
+  LocalLegendSettingsSchema,
   SetCheckInSessionDurationRequest,
+  SetLocalLegendParticipationRequest,
+  SetLocalLegendParticipationResponse,
   SetCheckInSessionDurationResponse,
   TrainingMonthSchema,
   TrainingRanksSchema,
@@ -22,6 +26,8 @@ import { SessionRecordsService } from "./session-records.service";
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_TRAINING_SESSIONS__?: SessionRecordDocument[];
   __PKSPOT_SCREENSHOT_SPOT_RANKS__?: TrainingRanksSchema;
+  /** On, off, or null for "not chosen yet". */
+  __PKSPOT_SCREENSHOT_LOCAL_LEGEND__?: boolean | null;
 }
 
 /**
@@ -91,6 +97,48 @@ export class TrainingSummaryService {
     if (this.fixtureSessions()) return null;
     return this.firestore.getDocument<TrainingRanksSchema>(
       `users/${this.requireUserId()}/training_ranks/${month}`,
+    );
+  }
+
+  /** Every month with published ranks, newest first. */
+  async listMyRanks(): Promise<TrainingRanksSchema[]> {
+    const fixture = (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_SPOT_RANKS__;
+    if (fixture) return [fixture];
+    if (this.fixtureSessions()) return [];
+    const ranks = await this.firestore.getCollection<TrainingRanksSchema>(
+      `users/${this.requireUserId()}/training_ranks`,
+    );
+    return [...ranks].sort((left, right) => right.month.localeCompare(left.month));
+  }
+
+  /** The person's Local Legend choice, or null before they chose. */
+  async getLocalLegend(): Promise<LocalLegendSettingsSchema | null> {
+    const fixture = (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_LOCAL_LEGEND__;
+    if (fixture !== undefined) return fixture === null ? null : { enabled: fixture, decided_at_raw_ms: 0 };
+    if ((globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_SPOT_RANKS__) return { enabled: true, decided_at_raw_ms: 0 };
+    if (this.fixtureSessions()) return null;
+    return this.firestore.getDocument<LocalLegendSettingsSchema>(
+      `users/${this.requireUserId()}/training_settings/local_legend`,
+    );
+  }
+
+  setLocalLegend(enabled: boolean): Promise<SetLocalLegendParticipationResponse> {
+    return this.telemetry.run("training_summary", "setLocalLegendParticipation", () =>
+      this.functions.callAuthenticatedAppChecked<
+        SetLocalLegendParticipationRequest,
+        SetLocalLegendParticipationResponse
+      >("setLocalLegendParticipation", { enabled }),
+      true,
+    );
+  }
+
+  deleteMyRank(request: DeleteMySpotRankRequest): Promise<{ deleted: boolean }> {
+    return this.telemetry.run("training_summary", "deleteMySpotRank", () =>
+      this.functions.callAuthenticatedAppChecked<DeleteMySpotRankRequest, { deleted: boolean }>(
+        "deleteMySpotRank",
+        request,
+      ),
+      true,
     );
   }
 

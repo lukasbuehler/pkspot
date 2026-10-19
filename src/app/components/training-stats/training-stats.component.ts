@@ -29,6 +29,7 @@ import { spotRankLabel, spotRankState } from "../../features/spot-rank";
 import { formatDuration } from "../../features/training-log-activity";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
+import { LocalLegendService } from "../../services/local-legend.service";
 import { SpotRankIconComponent } from "../spot-rank-icon/spot-rank-icon.component";
 
 export type TrainingStatsPeriod = "month" | "year" | "all";
@@ -69,6 +70,7 @@ const COLLAPSED_SPOTS = 5;
 })
 export class TrainingStatsComponent {
   private readonly summaries = inject(TrainingSummaryService);
+  readonly localLegend = inject(LocalLegendService);
   private readonly dateTime = inject(DateTimeFormatService);
   private readonly locale = inject(LOCALE_ID) as LocaleCode;
 
@@ -160,7 +162,8 @@ export class TrainingStatsComponent {
 
   readonly spots = computed<StatsSpotView[]>(() => {
     const spots = this.summary().spots;
-    const monthView = this.period() === "month";
+    // Ranks only for Local Legend participants; past ranks stay hidden while off.
+    const monthView = this.period() === "month" && this.localLegend.enabled();
     const ranks = monthView ? this.ranks.value() : null;
     // Live progress ("1 more day") only makes sense for the open month.
     const live = monthView && this.anchor() === this.currentMonth;

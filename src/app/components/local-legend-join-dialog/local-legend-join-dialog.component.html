@@ -1,0 +1,43 @@
+<mat-dialog-content class="join">
+  <div class="join__hero" aria-hidden="true">
+    <mat-icon class="join__medal join__medal--bronze">military_tech</mat-icon>
+    <span class="join__trophy"><mat-icon>trophy</mat-icon></span>
+    <mat-icon class="join__medal join__medal--silver">military_tech</mat-icon>
+  </div>
+
+  <h2 class="join__title mat-headline-small" i18n="@@localLegend.join.title">Join Local Legend</h2>
+  <p class="join__lead" i18n="@@localLegend.join.lead">
+    See your private monthly rank based on your verified training days at each Spot.
+  </p>
+
+  <ul class="join__points">
+    <li>
+      <mat-icon aria-hidden="true">groups</mat-icon>
+      <span i18n="@@localLegend.join.compare">Rankings compare participating accounts and appear only when at least three qualify.</span>
+    </li>
+    <li>
+      <mat-icon aria-hidden="true">lock</mat-icon>
+      <span i18n="@@localLegend.join.private">Other users cannot view your identity or rank through Local Legend.</span>
+    </li>
+    <li>
+      <mat-icon aria-hidden="true">calendar_month</mat-icon>
+      <span i18n="@@localLegend.join.days">Ranks count days, not hours. Training longer or twice a day doesn't move you up.</span>
+    </li>
+  </ul>
+
+  <p class="join__optional mat-body-small" i18n="@@localLegend.join.optional">
+    Participation is optional. You can turn it off in Settings and keep using private check-ins.
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" [disabled]="choosing() !== null" (click)="choose(false)" i18n="@@localLegend.join.notNow">Not now</button>
+  <button matButton="filled" type="button" [disabled]="choosing() !== null" (click)="choose(true)">
+    @if (choosing() === true) {
+      <mat-spinner diameter="18" />
+    } @else {
+      <mat-icon>trophy</mat-icon>
+    }
+    <span i18n="@@localLegend.join.enable">Enable Local Legend</span>
+  </button>
+</mat-dialog-actions>

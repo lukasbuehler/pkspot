@@ -355,6 +355,10 @@ h2 {
   white-space: normal;
 }
 
+.rhythm-card__gold {
+  color: var(--app-rank-gold, #e9b82c);
+}
+
 .rank-list__label {
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-large);

@@ -38,6 +38,7 @@ const ACCEPTABLE_SAME = [
   /^Community$/i,
   /^Communities$/i,
   /^PK Spot$/i,
+  /^Local Legend$/i,
   /^Google$/i,
   /^Google Play$/i,
   /^App Store$/i,

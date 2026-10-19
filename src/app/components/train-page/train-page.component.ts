@@ -16,6 +16,8 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog } from "@angular/material/dialog";
+import { LocalLegendService } from "../../services/local-legend.service";
+import { LocalLegendJoinDialogComponent } from "../local-legend-join-dialog/local-legend-join-dialog.component";
 import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
@@ -194,6 +196,17 @@ export class TrainPageComponent {
   private readonly mapsApi = inject(MapsApiService);
   private readonly locationAccess = inject(LocationAccessService);
   private readonly dialog = inject(MatDialog);
+  readonly localLegend = inject(LocalLegendService);
+  /** Invite people who have not chosen yet, once they have verified training this month. */
+  readonly showLocalLegendInvite = computed(() => {
+    if (this.localLegend.state() !== "undecided") return false;
+    const month = this.trainingMonths().find((item) => item.month === this.currentMonthKey());
+    return Object.values(month?.spots ?? {}).some((spot) => spot.verified_days > 0);
+  });
+
+  openLocalLegend(): void {
+    LocalLegendJoinDialogComponent.open(this.dialog);
+  }
   private readonly router = inject(Router);
   private readonly snackbar = inject(MatSnackBar);
   private readonly search = inject(SearchService);
@@ -455,7 +468,8 @@ export class TrainPageComponent {
   /** Your best private ranks, with names from your own summary. */
   readonly topRanks = computed<TopRankView[]>(() => {
     const ranks = this.rankMonth();
-    if (!ranks) return [];
+    // Ranks are shown only to Local Legend participants.
+    if (!ranks || !this.localLegend.enabled()) return [];
     const summary = this.trainingMonths().find((item) => item.month === ranks.month);
     return Object.entries(ranks.spots)
       .flatMap(([spotId, spot]) => {

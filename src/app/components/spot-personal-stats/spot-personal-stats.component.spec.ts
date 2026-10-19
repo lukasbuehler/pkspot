@@ -5,8 +5,11 @@ import { describe, expect, it, vi } from "vitest";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { SpotPersonalStatsComponent } from "./spot-personal-stats.component";
+import { signal } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import { LocalLegendService, type LocalLegendState } from "../../services/local-legend.service";
 
-function render(uid: string | null, spot: unknown, rank: unknown = null, verifiedDays = 0) {
+function render(uid: string | null, spot: unknown, rank: unknown = null, verifiedDays = 0, legend: LocalLegendState = "on") {
   const summaries = {
     getMySpot: vi.fn().mockResolvedValue(spot),
     getMyMonth: vi.fn().mockResolvedValue({ spots: { river: { verified_days: verifiedDays } } }),
@@ -17,6 +20,8 @@ function render(uid: string | null, spot: unknown, rank: unknown = null, verifie
       provideRouter([]),
       { provide: AuthenticationService, useValue: { authState$: new BehaviorSubject(uid ? { uid } : null), user: { uid } } },
       { provide: TrainingSummaryService, useValue: summaries },
+      { provide: LocalLegendService, useValue: { state: signal(legend), enabled: signal(legend === "on") } },
+      { provide: MatDialog, useValue: { open: vi.fn() } },
     ],
   });
   const fixture = TestBed.createComponent(SpotPersonalStatsComponent);
@@ -70,6 +75,24 @@ describe("SpotPersonalStatsComponent", () => {
       pending.fixture.detectChanges();
       expect(pending.fixture.nativeElement.textContent).toContain("ranked after tonight's update");
     });
+  });
+
+  it("invites people who have not chosen and shows no rank to people who turned it off", async () => {
+    const undecided = render("me", spot, { status: "ranked", verified_days: 4, rank: 2, tied_with: 0, legend: false }, 4, "undecided");
+    await vi.waitFor(() => {
+      undecided.fixture.detectChanges();
+      expect(undecided.fixture.nativeElement.textContent).toContain("Become the local legend");
+    });
+    expect(undecided.fixture.nativeElement.textContent).not.toContain("#2 at this Spot");
+
+    TestBed.resetTestingModule();
+    const off = render("me", spot, { status: "ranked", verified_days: 4, rank: 2, tied_with: 0, legend: false }, 4, "off");
+    await vi.waitFor(() => {
+      off.fixture.detectChanges();
+      expect(off.fixture.nativeElement.querySelector(".spot-visits")).not.toBeNull();
+    });
+    expect(off.fixture.nativeElement.textContent).not.toContain("#2 at this Spot");
+    expect(off.fixture.nativeElement.textContent).not.toContain("Become the local legend");
   });
 
   it("stays hidden when signed out or without visits", async () => {

@@ -13,6 +13,9 @@ import { localDateKey } from "../../../db/utils/training-summary";
 import { spotRankDays, spotRankState, spotRankTitle } from "../../features/spot-rank";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { SpotRankIconComponent } from "../spot-rank-icon/spot-rank-icon.component";
+import { MatDialog } from "@angular/material/dialog";
+import { LocalLegendService } from "../../services/local-legend.service";
+import { LocalLegendJoinDialogComponent } from "../local-legend-join-dialog/local-legend-join-dialog.component";
 
 export interface CheckInRewardSheetData {
   spotId: string;
@@ -39,6 +42,8 @@ export class CheckInRewardSheetComponent {
   readonly data = inject<CheckInRewardSheetData>(MAT_BOTTOM_SHEET_DATA);
   private readonly sheet = inject(MatBottomSheetRef<CheckInRewardSheetComponent>);
   private readonly summaries = inject(TrainingSummaryService);
+  private readonly localLegend = inject(LocalLegendService);
+  private readonly dialog = inject(MatDialog);
 
   private readonly openedAt = Date.now();
   private readonly month = localDateKey(
@@ -66,25 +71,33 @@ export class CheckInRewardSheetComponent {
   });
   readonly unverified = this.data.response.verified === false;
 
-  /** Shown once the server has counted this check-in in the month summary. */
+  /**
+   * Shown once the server has counted this check-in in the month summary.
+   * Local Legend participants see their rank progress; everyone else sees
+   * their verified days, with an invitation if they have not chosen yet.
+   */
   readonly rank = computed(() => {
     const summary = this.summary();
     if (this.unverified || !summary || summary.updated_at_raw_ms < this.openedAt - FRESH_SUMMARY_MS) {
       return null;
     }
-    const state = spotRankState(
-      this.ranks(),
-      this.data.spotId,
-      summary.spots[this.data.spotId]?.verified_days ?? 0,
-    );
-    return state
-      ? {
-          rank: state.kind === "ranked" ? state.rank : null,
-          title: spotRankTitle(state),
-          days: spotRankDays(state),
-        }
-      : null;
+    const verifiedDays = summary.spots[this.data.spotId]?.verified_days ?? 0;
+    const state = spotRankState(this.localLegend.enabled() ? this.ranks() : null, this.data.spotId, verifiedDays);
+    if (!state) return null;
+    if (!this.localLegend.enabled()) {
+      return { rank: null, title: spotRankDays(state), days: null, invite: this.localLegend.state() === "undecided" };
+    }
+    return {
+      rank: state.kind === "ranked" ? state.rank : null,
+      title: spotRankTitle(state),
+      days: spotRankDays(state),
+      invite: false,
+    };
   });
+
+  openLocalLegend(): void {
+    LocalLegendJoinDialogComponent.open(this.dialog);
+  }
 
   close(): void {
     this.sheet.dismiss();

@@ -247,6 +247,16 @@
                 <span i18n="@@train.rhythm.thisWeek">sessions this week</span>
               </div>
             </div>
+            @if (showLocalLegendInvite()) {
+              <div class="rhythm-card__ranks">
+                <h3 class="rhythm-card__subtitle" i18n="@@localLegend.invite.title">Become the local legend</h3>
+                <p class="rhythm-card__note" i18n="@@localLegend.invite.trainBody">Opt in to a private monthly rank at the Spots where you check in.</p>
+                <button matButton type="button" (click)="openLocalLegend()">
+                  <mat-icon class="rhythm-card__gold">trophy</mat-icon>
+                  <span i18n="@@localLegend.invite.action">Learn more</span>
+                </button>
+              </div>
+            }
             @if (topRanks().length > 0) {
               <div class="rhythm-card__ranks">
                 <h3 class="rhythm-card__subtitle">{{ topRanksTitle() }}</h3>

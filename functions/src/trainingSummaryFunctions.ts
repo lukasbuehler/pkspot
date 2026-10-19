@@ -1,10 +1,14 @@
 import * as admin from "firebase-admin";
+import {FieldValue} from "firebase-admin/firestore";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {onDocumentWritten} from "firebase-functions/v2/firestore";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import type {
   BackfillTrainingSummariesRequest,
   BackfillTrainingSummariesResponse,
+  DeleteMySpotRankRequest,
+  LocalLegendSettingsSchema,
+  SetLocalLegendParticipationResponse,
   SpotLegendTallySchema,
   TrainingMonthSchema,
   TrainingRanksSchema,
@@ -31,6 +35,10 @@ import {deleteCheckInForUser} from "./checkInFunctions";
  *   are owner-readable, server-written views of the person's own history.
  * - `spot_legend_tallies` is server-only working data: verified-day counts per
  *   person, Spot and open month.
+ * - Local Legend is opt-in (`users/{uid}/training_settings/local_legend`).
+ *   Only participants get tallies, so people who have not joined are never
+ *   compared. Leaving deletes the person's tallies; their past ranks stay in
+ *   their own history, hidden by the app until they join again.
  * - `users/{uid}/training_ranks/{YYYY-MM}` holds the person's own ranks. A
  *   nightly job publishes them so a rank change cannot reveal when someone
  *   else trained, and only when at least three people checked in at the Spot.
@@ -53,6 +61,7 @@ const MONTH_MARGIN_MS = 15 * HOUR_MS;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/u;
 const SPOT_ID_PATTERN = /^(?!\.{1,2}$)[^/]{1,150}$/u;
 const TALLY_COLLECTION = "spot_legend_tallies";
+const settingsPath = (uid: string) => `users/${uid}/training_settings/local_legend`;
 /** Months, the grace period and the nightly run follow this zone. */
 const RANK_TIME_ZONE = "Europe/Zurich";
 
@@ -142,9 +151,10 @@ export async function rebuildTrainingMonths(
     const ranksRef = db().doc(`users/${uid}/training_ranks/${month}`);
     const {start, end} = monthWindow(month);
     const spots = await db().runTransaction(async (transaction) => {
-      const [previousSnapshot, ranksSnapshot, sessionsSnapshot] = await Promise.all([
+      const [previousSnapshot, ranksSnapshot, settingsSnapshot, sessionsSnapshot] = await Promise.all([
         transaction.get(monthRef),
         transaction.get(ranksRef),
+        transaction.get(db().doc(settingsPath(uid))),
         options.purge
           ? Promise.resolve(null)
           : transaction.get(
@@ -168,9 +178,13 @@ export async function rebuildTrainingMonths(
       if (summary) transaction.set(monthRef, summary);
       else if (previousSnapshot.exists) transaction.delete(monthRef);
 
-      // Closed months keep their final ranks; only open months have tallies.
+      // Closed months keep their final ranks; only open months have tallies,
+      // and only for people who joined Local Legend.
       if (openMonths.has(month)) {
-        const tallies = new Map(legendTalliesForMonth(uid, summary).map((tally) => [tally.spot_id, tally]));
+        const participating = (settingsSnapshot.data() as LocalLegendSettingsSchema | undefined)?.enabled === true;
+        const tallies = new Map(participating
+          ? legendTalliesForMonth(uid, summary).map((tally) => [tally.spot_id, tally])
+          : []);
         for (const spotId of affected) {
           const tallyRef = db().doc(`${TALLY_COLLECTION}/${legendTallyId(month, spotId, uid)}`);
           const tally = tallies.get(spotId);
@@ -292,7 +306,7 @@ export async function publishSpotRanks(nowMs = Date.now()): Promise<{
         if (!entry && !tally.published) return;
         const spots = updates.get(tally.uid) ?? {};
         // Merge writes would keep a previous entry's rank fields, so clear them.
-        const remove = admin.firestore.FieldValue.delete();
+        const remove = FieldValue.delete();
         spots[spotId] = entry ? {rank: remove, tied_with: remove, legend: remove, ...entry} : remove;
         updates.set(tally.uid, spots);
       });
@@ -337,11 +351,77 @@ export const publishSpotRanksNightly = onSchedule(
   },
 );
 
+/**
+ * Joins or leaves Local Legend. Joining adds the person's open-month tallies
+ * from their existing summaries, so they appear at the next nightly update;
+ * leaving deletes their tallies, so they drop out of everyone's comparison.
+ * Published past ranks are kept either way.
+ */
+export const setLocalLegendParticipation = onCall(
+  CALLABLE_OPTIONS,
+  async (request): Promise<SetLocalLegendParticipationResponse> => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to choose Local Legend.");
+    const enabled = isRecord(request.data) ? request.data["enabled"] : undefined;
+    if (typeof enabled !== "boolean") throw new HttpsError("invalid-argument", "Choose on or off.");
+    const settings: LocalLegendSettingsSchema = {enabled, decided_at_raw_ms: Date.now()};
+    await db().doc(settingsPath(uid)).set(settings);
+
+    if (!enabled) {
+      await deleteInBatches(db().collection(TALLY_COLLECTION).where("uid", "==", uid));
+      return {enabled};
+    }
+    const batch = db().batch();
+    for (const month of openRankMonths(localDateKey(Date.now(), RANK_TIME_ZONE))) {
+      const summary = (await db().doc(`users/${uid}/training_months/${month}`).get()).data() as
+        TrainingMonthSchema | undefined;
+      for (const tally of legendTalliesForMonth(uid, summary ?? null)) {
+        batch.set(db().doc(`${TALLY_COLLECTION}/${legendTallyId(month, tally.spot_id, uid)}`), tally);
+      }
+    }
+    await batch.commit();
+    return {enabled};
+  },
+);
+
+/**
+ * Removes one finished month's rank at one Spot from the person's own
+ * history. Open months still change nightly, so they cannot be edited.
+ */
+export const deleteMySpotRank = onCall(
+  CALLABLE_OPTIONS,
+  async (request): Promise<{deleted: boolean}> => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to manage your ranks.");
+    const input = (isRecord(request.data) ? request.data : {}) as Partial<DeleteMySpotRankRequest>;
+    if (typeof input.month !== "string" || !MONTH_PATTERN.test(input.month) ||
+      typeof input.spotId !== "string" || !SPOT_ID_PATTERN.test(input.spotId)) {
+      throw new HttpsError("invalid-argument", "A valid month and Spot are required.");
+    }
+    if (openRankMonths(localDateKey(Date.now(), RANK_TIME_ZONE)).includes(input.month)) {
+      throw new HttpsError("failed-precondition", "This month's ranks are still changing.");
+    }
+    const month = input.month;
+    const spotId = input.spotId;
+    const ref = db().doc(`users/${uid}/training_ranks/${month}`);
+    return db().runTransaction(async (transaction) => {
+      const ranks = (await transaction.get(ref)).data() as TrainingRanksSchema | undefined;
+      if (!ranks?.spots?.[spotId]) return {deleted: false};
+      const spots = {...ranks.spots};
+      delete spots[spotId];
+      if (Object.keys(spots).length === 0) transaction.delete(ref);
+      else transaction.set(ref, {...ranks, spots});
+      return {deleted: true};
+    });
+  },
+);
+
 /** Removes every private summary and rank tally for a deleted account. */
 export async function deleteTrainingSummariesForUser(uid: string): Promise<void> {
   await db().recursiveDelete(db().collection(`users/${uid}/training_months`));
   await db().recursiveDelete(db().collection(`users/${uid}/training_spots`));
   await db().recursiveDelete(db().collection(`users/${uid}/training_ranks`));
+  await db().recursiveDelete(db().collection(`users/${uid}/training_settings`));
   await deleteInBatches(db().collection(TALLY_COLLECTION).where("uid", "==", uid));
 }
 

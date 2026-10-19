@@ -15,20 +15,25 @@
         @if (rank.rank) {
           <app-spot-rank-icon [rank]="rank.rank" />
         } @else {
-          <mat-icon>schedule</mat-icon>
+          <mat-icon>{{ rank.days ? "schedule" : "check_circle" }}</mat-icon>
         }
       </div>
       <div class="reward__rank-text">
         <strong>{{ rank.title }}</strong>
-        <span>{{ rank.days }}</span>
+        @if (rank.days) {
+          <span>{{ rank.days }}</span>
+        }
       </div>
+      @if (rank.invite) {
+        <button matButton type="button" (click)="openLocalLegend()" i18n="@@localLegend.invite.action">Learn more</button>
+      }
     </div>
   }
 
   @if (unverified) {
     <p class="reward__note" i18n="@@checkInReward.unverified">Saved privately. It couldn't be verified at the Spot, so it won't count toward your Spot rank.</p>
   } @else {
-    <p class="reward__note" i18n="@@checkInReward.privateNightly">Saved privately to your training log. Days with a verified check-in count toward your monthly Spot rank, which updates at the end of each day and only you can see.</p>
+    <p class="reward__note" i18n="@@checkInReward.privateLegend">Saved privately to your training log. With Local Legend on, days with a verified check-in count toward a monthly Spot rank that updates at the end of each day and only you can see.</p>
   }
 
   <div class="reward__actions">

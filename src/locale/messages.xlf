@@ -2164,9 +2164,9 @@
         <source>Your first visit here</source>
       </segment>
     </unit>
-    <unit id="checkInReward.privateNightly">
+    <unit id="checkInReward.privateLegend">
       <segment>
-        <source>Saved privately to your training log. Days with a verified check-in count toward your monthly Spot rank, which updates at the end of each day and only you can see.</source>
+        <source>Saved privately to your training log. With Local Legend on, days with a verified check-in count toward a monthly Spot rank that updates at the end of each day and only you can see.</source>
       </segment>
     </unit>
     <unit id="checkInReward.title">
@@ -13522,7 +13522,7 @@
     </unit>
     <unit id="whatsNew.legend.body">
       <segment>
-        <source>A private monthly rank at your favourite Spots.</source>
+        <source>Opt in to a private monthly rank at your favourite Spots.</source>
       </segment>
     </unit>
     <unit id="whatsNew.legend.title">
@@ -16585,6 +16585,116 @@
     <unit id="locationAccess.title">
       <segment>
         <source>Use device location?</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.help">
+      <segment>
+        <source>Removing a rank deletes it from your history for good.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.remove">
+      <segment>
+        <source>Remove</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.removed">
+      <segment>
+        <source>Rank removed</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.removeFailed">
+      <segment>
+        <source>Couldn&apos;t remove this rank. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.removeLabel">
+      <segment>
+        <source>Remove this rank</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.history.title">
+      <segment>
+        <source>Your past ranks</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.action">
+      <segment>
+        <source>Learn more</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.body">
+      <segment>
+        <source>See your private monthly rank at this Spot.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.title">
+      <segment>
+        <source>Become the local legend</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.invite.trainBody">
+      <segment>
+        <source>Opt in to a private monthly rank at the Spots where you check in.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.compare">
+      <segment>
+        <source>Rankings compare participating accounts and appear only when at least three qualify.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.days">
+      <segment>
+        <source>Ranks count days, not hours. Training longer or twice a day doesn&apos;t move you up.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.enable">
+      <segment>
+        <source>Enable Local Legend</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.lead">
+      <segment>
+        <source> See your private monthly rank based on your verified training days at each Spot. </source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.notNow">
+      <segment>
+        <source>Not now</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.optional">
+      <segment>
+        <source> Participation is optional. You can turn it off in Settings and keep using private check-ins. </source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.private">
+      <segment>
+        <source>Other users cannot view your identity or rank through Local Legend.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.title">
+      <segment>
+        <source>Join Local Legend</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.saveFailed">
+      <segment>
+        <source>Couldn&apos;t save your choice. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.description">
+      <segment>
+        <source> A private monthly rank at the Spots where you check in, based on days with a verified check-in. Only participating accounts are compared, and nobody else sees your rank. </source>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.offHelp">
+      <segment>
+        <source> You are not compared with anyone. Your past ranks are kept privately and come back if you turn Local Legend on again. </source>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.title">
+      <segment>
+        <source>Local Legend</source>
       </segment>
     </unit>
     <unit id="locationAccess.explanation">

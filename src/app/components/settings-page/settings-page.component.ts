@@ -67,11 +67,13 @@ import { NotificationSettingsComponent } from "../notification-settings/notifica
 import { LocationAccessService } from "../../services/location-access.service";
 import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 
+import { LocalLegendSettingsComponent } from "../local-legend-settings/local-legend-settings.component";
 @Component({
   selector: "app-settings-page",
   templateUrl: "./settings-page.component.html",
   styleUrls: ["./settings-page.component.scss"],
   imports: [
+    LocalLegendSettingsComponent,
     MatButtonModule,
     MatIcon,
     MatBadge,

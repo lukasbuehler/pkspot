@@ -56,9 +56,10 @@ export interface TrainingSpotSchema {
 
 /**
  * `spot_legend_tallies/{month}_{spotId}_{uid}`: server-only working data for
- * the nightly rank job. No client can read it. Tallies exist only for months
- * that are still open and are deleted once the month's final ranks are
- * published into each person's own `training_ranks` document.
+ * the nightly rank job. No client can read it. Tallies exist only for Local
+ * Legend participants and only for months that are still open; they are
+ * deleted once the month's final ranks are published into each person's own
+ * `training_ranks` document, or when the person leaves Local Legend.
  */
 export interface SpotLegendTallySchema {
   uid: string;
@@ -95,7 +96,7 @@ export interface TrainingRankSpotSchema {
 
 /**
  * `users/{uid}/training_ranks/{YYYY-MM}`: the person's own monthly Spot ranks,
- * published by the server once a night. Ranks are delayed on purpose so a
+ * published by the server once a night while they take part in Local Legend. Ranks are delayed on purpose so a
  * change cannot reveal when someone else trained. The document stays as the
  * person's rank history after the month is final; nobody else can read it.
  */
@@ -107,6 +108,32 @@ export interface TrainingRanksSchema {
   /** True once the month is over and its ranks no longer change. */
   final: boolean;
   computed_at_raw_ms: number;
+}
+
+/**
+ * `users/{uid}/training_settings/local_legend`: whether the person takes part
+ * in Local Legend. Off by default. Server-written through
+ * `setLocalLegendParticipation`, because joining and leaving also create or
+ * remove the person's comparison tallies. Only participants are compared.
+ */
+export interface LocalLegendSettingsSchema {
+  enabled: boolean;
+  /** When the person last chose; the join invitation is not repeated after a choice. */
+  decided_at_raw_ms: number;
+}
+
+export interface SetLocalLegendParticipationRequest {
+  enabled: boolean;
+}
+
+export interface SetLocalLegendParticipationResponse {
+  enabled: boolean;
+}
+
+/** Removes one past month's rank at one Spot from the person's own history. */
+export interface DeleteMySpotRankRequest {
+  month: string;
+  spotId: string;
 }
 
 /** Bounds for a self-reported or checked-out session duration. */

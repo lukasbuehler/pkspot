@@ -245,8 +245,10 @@ export {
 } from "./checkInFunctions";
 export {
   backfillTrainingSummaries,
+  deleteMySpotRank,
   onSessionRecordWrittenUpdateTrainingSummary,
   publishSpotRanksNightly,
+  setLocalLegendParticipation,
 } from "./trainingSummaryFunctions";
 export {
   beginAgeAssuranceV3,

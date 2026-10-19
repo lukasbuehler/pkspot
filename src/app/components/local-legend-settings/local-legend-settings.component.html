@@ -1,0 +1,46 @@
+<section class="legend-settings" aria-labelledby="legend-settings-title">
+  <div class="legend-settings__header">
+    <div>
+      <h3 id="legend-settings-title" class="mat-h3 m-0" i18n="@@localLegend.settings.title">Local Legend</h3>
+      <p class="mat-body-small m-0 legend-settings__help" i18n="@@localLegend.settings.description">
+        A private monthly rank at the Spots where you check in, based on days with a verified check-in. Only participating accounts are compared, and nobody else sees your rank.
+      </p>
+    </div>
+    <mat-slide-toggle
+      [checked]="localLegend.enabled()"
+      [disabled]="localLegend.saving() || localLegend.state() === 'unavailable'"
+      (change)="toggle($event.checked)"
+      aria-labelledby="legend-settings-title"
+    />
+  </div>
+
+  @if (localLegend.state() === "off") {
+    <p class="mat-body-small legend-settings__help" i18n="@@localLegend.settings.offHelp">
+      You are not compared with anyone. Your past ranks are kept privately and come back if you turn Local Legend on again.
+    </p>
+  }
+
+  @if (localLegend.enabled() && entries().length > 0) {
+    <h4 class="mat-title-small legend-settings__subtitle" i18n="@@localLegend.history.title">Your past ranks</h4>
+    <mat-list class="legend-settings__list">
+      @for (entry of entries(); track entry.key) {
+        <mat-list-item>
+          <app-spot-rank-icon matListItemIcon [rank]="entry.rank" />
+          <span matListItemTitle>{{ entry.spotName }} · {{ entry.label }}</span>
+          <span matListItemLine>{{ entry.monthLabel }}</span>
+          <span matListItemMeta class="legend-settings__actions">
+            @if (confirming() === entry.key) {
+              <button matButton type="button" (click)="confirming.set(null)" i18n="@@common.cancel">Cancel</button>
+              <button matButton="tonal" type="button" class="legend-settings__remove" [disabled]="removing() === entry.key" (click)="remove(entry)" i18n="@@localLegend.history.remove">Remove</button>
+            } @else {
+              <button mat-icon-button type="button" (click)="confirming.set(entry.key)" aria-label="Remove this rank" i18n-aria-label="@@localLegend.history.removeLabel">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          </span>
+        </mat-list-item>
+      }
+    </mat-list>
+    <p class="mat-body-small legend-settings__help" i18n="@@localLegend.history.help">Removing a rank deletes it from your history for good.</p>
+  }
+</section>
