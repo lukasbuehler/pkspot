@@ -278,13 +278,21 @@ export {
   getOsmAmenityTile,
 } from "./osmAmenityFunctions";
 export { resolveMapShortLink } from "./mapLinkFunctions";
-export {
-  createSupportCheckout,
-  listMySupportOrders,
-  listSupportOrders,
-  markSupportOrderFulfilled,
-  stripeSupportWebhook,
-} from "./supportShopFunctions";
+// The development-only Stripe shop declares Stripe secrets, and the Firebase
+// CLI asks for every secret declared by loaded code, even in a filtered deploy.
+// Load the shop only where its Functions config sets SUPPORT_SHOP_ENABLED=true,
+// so projects without a store never need (or get prompted for) Stripe keys.
+if (process.env["SUPPORT_SHOP_ENABLED"] === "true") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const shop = require("./supportShopFunctions") as typeof import("./supportShopFunctions");
+  Object.assign(exports, {
+    createSupportCheckout: shop.createSupportCheckout,
+    listMySupportOrders: shop.listMySupportOrders,
+    listSupportOrders: shop.listSupportOrders,
+    markSupportOrderFulfilled: shop.markSupportOrderFulfilled,
+    stripeSupportWebhook: shop.stripeSupportWebhook,
+  });
+}
 export {
   mintCloudflareSsrAppCheckToken,
 } from "./cloudflareSsrAppCheckFunctions";
