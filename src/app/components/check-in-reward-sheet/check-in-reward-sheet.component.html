@@ -1,8 +1,14 @@
-<section class="reward" aria-live="polite">
+<section class="reward" aria-live="polite" [attr.aria-busy]="status() === 'pending'">
   <div class="reward__summary">
-    <div class="reward__icon" aria-hidden="true"><mat-icon>check_circle</mat-icon></div>
+    <div class="reward__icon" [class.is-failed]="status() === 'failed'" aria-hidden="true">
+      @switch (status()) {
+        @case ("pending") { <mat-icon>beenhere</mat-icon> }
+        @case ("failed") { <mat-icon>error</mat-icon> }
+        @default { <mat-icon>check_circle</mat-icon> }
+      }
+    </div>
     <div class="reward__text">
-      <h2>{{ title }}</h2>
+      <h2>{{ title() }}</h2>
       @if (visitLabel(); as visit) {
         <p class="reward__visit">{{ visit }}</p>
       }
@@ -30,14 +36,28 @@
     </div>
   }
 
-  @if (unverified) {
-    <p class="reward__note" i18n="@@checkInReward.unverified">Saved privately. It couldn't be verified at the Spot, so it won't count toward your Spot rank.</p>
-  } @else {
-    <p class="reward__note" i18n="@@checkInReward.privateLegend">Saved privately to your training log. With Local Legend on, days with a verified check-in count toward a monthly Spot rank that updates at the end of each day and only you can see.</p>
-  }
+  @switch (status()) {
+    @case ("pending") {
+      <mat-progress-bar mode="indeterminate" class="reward__progress"></mat-progress-bar>
+    }
+    @case ("failed") {
+      <p class="reward__note" i18n="@@checkInReward.failedBody">Check your connection and that location is on, then try again.</p>
+      <div class="reward__actions">
+        <button matButton type="button" (click)="close()" i18n="@@common.close">Close</button>
+        <button matButton="filled" type="button" (click)="retry()" i18n="@@checkInReward.retry">Try again</button>
+      </div>
+    }
+    @default {
+      @if (unverified()) {
+        <p class="reward__note" i18n="@@checkInReward.unverified">Saved privately. It couldn't be verified at the Spot, so it won't count toward your Spot rank.</p>
+      } @else if (!duplicate()) {
+        <p class="reward__note" i18n="@@checkInReward.privateLegend">Saved privately to your training log. With Local Legend on, days with a verified check-in count toward a monthly Spot rank that updates at the end of each day and only you can see.</p>
+      }
 
-  <div class="reward__actions">
-    <button matButton="filled" type="button" (click)="close()" i18n="@@checkInReward.done">Done</button>
-    <a matButton routerLink="/train/log" (click)="close()" i18n="@@spotPersonalStats.allStats">Your stats</a>
-  </div>
+      <div class="reward__actions">
+        <button matButton="filled" type="button" (click)="close()" i18n="@@checkInReward.done">Done</button>
+        <a matButton routerLink="/train/log" (click)="close()" i18n="@@spotPersonalStats.allStats">Your stats</a>
+      </div>
+    }
+  }
 </section>

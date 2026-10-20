@@ -16988,16 +16988,46 @@
         <target>Terminé</target>
       </segment>
     </unit>
+    <unit id="checkInReward.failed">
+      <segment state="translated">
+        <source>Couldn&apos;t check in</source>
+        <target>Check-in impossible</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.failedBody">
+      <segment state="translated">
+        <source>Check your connection and that location is on, then try again.</source>
+        <target>Vérifie ta connexion et que la localisation est activée, puis réessaie.</target>
+      </segment>
+    </unit>
     <unit id="checkInReward.firstVisit">
       <segment state="translated">
         <source>Your first visit here</source>
         <target>Ta première visite ici</target>
       </segment>
     </unit>
+    <unit id="checkInReward.pending">
+      <segment state="translated">
+        <source>Checking in…</source>
+        <target>Check-in en cours…</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.pendingAt">
+      <segment state="translated">
+        <source>Checking in at <ph id="0" equiv="spot" disp="name"/>…</source>
+        <target>Check-in à <ph id="0" equiv="spot" disp="name"/>…</target>
+      </segment>
+    </unit>
     <unit id="checkInReward.privateLegend">
       <segment state="translated">
         <source>Saved privately to your training log. With Local Legend on, days with a verified check-in count toward a monthly Spot rank that updates at the end of each day and only you can see.</source>
         <target>Enregistré en privé dans ton journal d&apos;entraînement. Avec Local Legend, les jours avec un check-in vérifié comptent pour un classement mensuel sur le Spot, mis à jour à la fin de chaque journée et visible par toi seul·e.</target>
+      </segment>
+    </unit>
+    <unit id="checkInReward.retry">
+      <segment state="translated">
+        <source>Try again</source>
+        <target>Réessayer</target>
       </segment>
     </unit>
     <unit id="checkInReward.title">
@@ -17007,8 +17037,8 @@
       </segment>
     </unit>
     <unit id="checkInReward.titleAt">
-      <segment state="translated">
-        <source>Checked in at <ph id="0" equiv="spot" disp="this.data.spotName"/></source>
+      <segment state="initial">
+        <source>Checked in at <ph id="0" equiv="spot" disp="name"/></source>
         <target>Check-in à <ph id="0" equiv="spot" disp="this.data.spotName"/></target>
       </segment>
     </unit>

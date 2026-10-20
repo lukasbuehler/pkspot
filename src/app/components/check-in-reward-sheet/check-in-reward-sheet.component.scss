@@ -23,6 +23,15 @@
   border-radius: 13px;
   color: var(--mat-sys-on-primary-container);
   background: var(--mat-sys-primary-container);
+
+  &.is-failed {
+    color: var(--mat-sys-on-error-container);
+    background: var(--mat-sys-error-container);
+  }
+}
+
+.reward__progress {
+  border-radius: 4px;
 }
 
 .reward__text {

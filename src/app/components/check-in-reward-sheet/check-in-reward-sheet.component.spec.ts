@@ -7,12 +7,21 @@ import { TrainingSummaryService } from "../../services/firebase/firestore/traini
 import { signal } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { LocalLegendService, type LocalLegendState } from "../../services/local-legend.service";
+import type { ConfirmCheckInResponse } from "../../../db/schemas/CheckInActivitySchema";
 import {
   CheckInRewardSheetComponent,
+  type CheckInAttempt,
   type CheckInRewardSheetData,
 } from "./check-in-reward-sheet.component";
 
-function render(data: CheckInRewardSheetData, month: unknown = null, legend: LocalLegendState = "on") {
+type RenderData = Omit<CheckInRewardSheetData, "attempt"> & { response?: ConfirmCheckInResponse; attempt?: CheckInRewardSheetData["attempt"] };
+
+function render(input: RenderData, month: unknown = null, legend: LocalLegendState = "on") {
+  const { response: confirmed, ...rest } = input;
+  const data: CheckInRewardSheetData = {
+    ...rest,
+    attempt: input.attempt ?? signal<CheckInAttempt>({ status: "done", response: confirmed!, confirmedAt: Date.now() }),
+  };
   const dismiss = vi.fn();
   const summary = new BehaviorSubject<unknown>(month);
   TestBed.configureTestingModule({
@@ -78,5 +87,25 @@ describe("CheckInRewardSheetComponent", () => {
     });
     expect(element.textContent).not.toContain("ranked after tonight's update");
     expect(element.textContent).toContain("Learn more");
+  });
+
+  it("opens before confirmation, then shows a failure with a retry", () => {
+    const attempt = signal<CheckInAttempt>({ status: "pending" });
+    const retry = vi.fn();
+    const { fixture, element } = render({ spotId: "river", spotName: "Riverside", attempt, retry });
+    expect(element.textContent).toContain("Checking in at Riverside");
+    expect(element.textContent).not.toContain("Checked in");
+    expect(element.querySelector("mat-progress-bar")).not.toBeNull();
+
+    attempt.set({ status: "failed" });
+    fixture.detectChanges();
+    expect(element.textContent).toContain("Couldn't check in");
+    [...element.querySelectorAll("button")].find((button) => button.textContent?.includes("Try again"))!.click();
+    expect(retry).toHaveBeenCalled();
+
+    attempt.set({ status: "done", response: { ...response, duplicate: true }, confirmedAt: Date.now() });
+    fixture.detectChanges();
+    expect(element.textContent).toContain("You're already checked in here.");
+    expect(element.textContent).not.toContain("Saved privately");
   });
 });

@@ -2159,14 +2159,39 @@
         <source>Done</source>
       </segment>
     </unit>
+    <unit id="checkInReward.failed">
+      <segment>
+        <source>Couldn&apos;t check in</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.failedBody">
+      <segment>
+        <source>Check your connection and that location is on, then try again.</source>
+      </segment>
+    </unit>
     <unit id="checkInReward.firstVisit">
       <segment>
         <source>Your first visit here</source>
       </segment>
     </unit>
+    <unit id="checkInReward.pending">
+      <segment>
+        <source>Checking in…</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.pendingAt">
+      <segment>
+        <source>Checking in at <ph id="0" equiv="spot" disp="name"/>…</source>
+      </segment>
+    </unit>
     <unit id="checkInReward.privateLegend">
       <segment>
         <source>Saved privately to your training log. With Local Legend on, days with a verified check-in count toward a monthly Spot rank that updates at the end of each day and only you can see.</source>
+      </segment>
+    </unit>
+    <unit id="checkInReward.retry">
+      <segment>
+        <source>Try again</source>
       </segment>
     </unit>
     <unit id="checkInReward.title">
@@ -2176,7 +2201,7 @@
     </unit>
     <unit id="checkInReward.titleAt">
       <segment>
-        <source>Checked in at <ph id="0" equiv="spot" disp="this.data.spotName"/></source>
+        <source>Checked in at <ph id="0" equiv="spot" disp="name"/></source>
       </segment>
     </unit>
     <unit id="checkInReward.unverified">
