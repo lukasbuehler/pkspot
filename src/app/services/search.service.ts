@@ -1766,6 +1766,8 @@ export class SearchService {
       communityLimit?: number;
       includeCountryCommunities?: boolean;
       viewportZoom?: number;
+      /** The map centre; adds the nearest Spot's country to the result. */
+      nearestSpotTo?: google.maps.LatLngLiteral;
     } = {},
   ): Promise<MapViewportSearchResult> {
     const nowSeconds = Math.floor(Date.now() / 1000);
@@ -1893,6 +1895,23 @@ export class SearchService {
           ]
         : []),
     ];
+    const centre = options.nearestSpotTo;
+    // One Spot, two fields: the nearest Spot tells which country the map centre
+    // is in, even where the view itself has no Spots or communities.
+    const nearestSpotSearches = centre
+      ? [
+          {
+            collection: this.TYPESENSE_COLLECTION_SPOTS,
+            q: "*",
+            filter_by: `location:(${centre.lat.toFixed(5)}, ${centre.lng.toFixed(5)}, 500 km)`,
+            sort_by: `location(${centre.lat.toFixed(5)}, ${centre.lng.toFixed(5)}):asc`,
+            per_page: 1,
+            page: 1,
+            include_fields: "location,address.country.code",
+            highlight_fields: "none",
+          },
+        ]
+      : [];
 
     const response = await this.client.multiSearch.perform(
       {
@@ -1936,6 +1955,7 @@ export class SearchService {
             highlight_fields: "none",
           },
           ...communitySearches,
+          ...nearestSpotSearches,
         ],
       } as any,
       {},
@@ -1947,7 +1967,10 @@ export class SearchService {
     const eventsResult = results[1] ?? {};
     const promoEventsResult = results[2] ?? {};
     const communitiesResult = results[3] ?? {};
-    const countryCommunitiesResult = results[4] ?? {};
+    const countryCommunitiesResult = options.includeCountryCommunities ? results[4] ?? {} : {};
+    const nearestSpot = centre
+      ? SearchService._readCountryEvidence(results[3 + communitySearches.length])
+      : undefined;
     const eventCandidates = ((eventsResult.hits ?? []) as any[])
       .map((hit) => this.getEventFromHit(hit))
       .filter((event): event is PkEvent => !!event);
@@ -1979,7 +2002,19 @@ export class SearchService {
       events,
       promoEvents,
       communities,
+      ...(nearestSpot ? { nearestSpot } : {}),
     };
+  }
+
+  private static _readCountryEvidence(result: unknown): MapViewportSearchResult["nearestSpot"] {
+    const document = (result as { hits?: { document?: unknown }[] } | undefined)?.hits?.[0]?.document as
+      | { location?: unknown; address?: { country?: { code?: unknown } } }
+      | undefined;
+    const countryCode = document?.address?.country?.code;
+    const location = Array.isArray(document?.location) ? document.location : undefined;
+    if (typeof countryCode !== "string" || !countryCode || !location) return undefined;
+    const [lat, lng] = location;
+    return typeof lat === "number" && typeof lng === "number" ? { countryCode, lat, lng } : undefined;
   }
 
   private static _readFound(result: unknown): number {
@@ -2692,6 +2727,8 @@ export interface MapViewportSearchResult {
   events: PkEvent[];
   promoEvents: PkEvent[];
   communities: CommunitySearchPreview[];
+  /** The Spot nearest to the requested map centre, for country selection. */
+  nearestSpot?: { countryCode: string; lat: number; lng: number };
 }
 
 export interface EventSearchPreview {

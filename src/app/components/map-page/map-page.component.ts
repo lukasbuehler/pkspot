@@ -1,4 +1,4 @@
-import { relevantMapCommunities } from "./visible-communities";
+import { mapCentre, relevantMapCommunities, type CountryEvidence } from "./visible-communities";
 import {NativeMapShareService} from "../../services/native-map-share.service";
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
@@ -632,6 +632,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
   private _mapCommunityCandidates: CommunitySearchPreview[] = [];
+  /** The Spot nearest to the map centre from the last viewport search. */
+  private _nearestSpotEvidence: CountryEvidence | undefined;
   private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
@@ -2094,10 +2096,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             // Communities does not make country rows pop in after the fact.
             includeCountryCommunities: true,
             viewportZoom: viewport.zoom,
+            nearestSpotTo: mapCentre(viewport),
           })
           .then((result) => {
             if (requestVersion !== this._mapObjectSearchVersion) return;
             this._mapCommunityCandidates = result.communities;
+            this._nearestSpotEvidence = result.nearestSpot;
             const visibleCommunities = this._mergeVisibleCommunities(
               result.communities,
               viewport,
@@ -2593,6 +2597,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         (west <= east ? lng >= west && lng <= east : lng >= west || lng <= east);
       return inView && countryCode ? [{ countryCode, lat, lng }] : [];
     });
+    const nearest = this._nearestSpotEvidence;
+    if (nearest) {
+      spotEvidence.push(nearest);
+      // The viewport search only returns countries whose Spot spread overlaps
+      // the view, which can miss the country around the centre (Ghent, far
+      // from most Belgian Spots), so take it from the loaded list.
+      const code = nearest.countryCode.toUpperCase();
+      const country = this._promotableCommunities().find((community) =>
+        community.scope === "country" && community.countryCode?.toUpperCase() === code);
+      const key = country && (country.communityKey || country.id || country.slug);
+      if (key && !visibleByKey.has(key)) visibleByKey.set(key, country);
+    }
     return relevantMapCommunities([...visibleByKey.values()], viewport, spotEvidence);
   }
 

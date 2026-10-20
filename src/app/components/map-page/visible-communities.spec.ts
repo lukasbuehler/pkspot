@@ -32,6 +32,14 @@ describe("relevantMapCommunities", () => {
     ];
     expect(relevantMapCommunities([fr, ru, ch, gb, zurich], europe, spots)).toEqual([zurich, gb]);
   });
+  it("prefers the nearest Spot over nearer foreign communities (Ghent)", () => {
+    const be = community("BE", "country", 50.5, 4.8);
+    const lille = community("FR", "locality", 50.63, 3.06);
+    const ghent = { zoom: 13, bbox: { north: 51.08, south: 51.03, east: 3.77, west: 3.67 } };
+    const nearestSpot = [{ countryCode: "BE", lat: 51.05, lng: 3.73 }];
+    expect(relevantMapCommunities([lille, fr, be], ghent, nearestSpot)).toEqual([lille, be]);
+    expect(relevantMapCommunities([lille, fr, be], { ...ghent, zoom: 8 }, nearestSpot)).toEqual([lille, be]);
+  });
   it("never suggests Russia over the UK without any evidence", () => {
     expect(relevantMapCommunities([ru, fr, gb], europe)).toEqual([gb]);
   });

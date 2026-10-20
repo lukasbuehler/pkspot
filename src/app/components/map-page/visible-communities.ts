@@ -1,7 +1,7 @@
 import type { CommunitySearchPreview } from "../../services/search.service";
 import type { VisibleViewport } from "../maps/map-base";
 
-/** A visible Spot reduced to what country selection needs. */
+/** A Spot reduced to what country selection needs. */
 export interface CountryEvidence {
   countryCode: string;
   lat: number;
@@ -18,10 +18,21 @@ const BORDER_ZOOM = 10;
  * Country discovery bounds come from the spread of a country's Spots, not from
  * its borders (Russia's radius reaches the UK), so they never decide membership.
  * Instead the country of the Spot or local community nearest to the map centre
- * wins. Only a close border view keeps every country with visible Spots. Without
+ * wins; callers pass the Spot nearest to the centre (from search) along with the
+ * visible ones, so a town without its own community still finds its country.
+ * Only a close border view keeps every country with evidence inside it. Without
  * any evidence, the country whose centre is nearest is a distance fallback, not a
  * claim about borders; no reverse geocoding is needed.
  */
+/** The visual centre of a Mercator map: the midpoint in projected space, since
+ * averaging latitudes drifts south by degrees when zoomed out. */
+export function mapCentre({ bbox: { north, south, east, west } }: VisibleViewport): { lat: number; lng: number } {
+  const mercator = (latitude: number) => Math.log(Math.tan(Math.PI / 4 + latitude * Math.PI / 360));
+  const lat = (2 * Math.atan(Math.exp((mercator(north) + mercator(south)) / 2)) - Math.PI / 2) * 180 / Math.PI;
+  const lng = ((west + ((east - west + 360) % 360) / 2 + 540) % 360) - 180;
+  return { lat, lng };
+}
+
 export function relevantMapCommunities(
   communities: CommunitySearchPreview[],
   viewport: VisibleViewport,
@@ -32,11 +43,9 @@ export function relevantMapCommunities(
   if (!countries.length) return local;
 
   const { north, south, east, west } = viewport.bbox;
-  // The visual centre of a Mercator map is the midpoint in projected space;
-  // averaging latitudes drifts south by degrees when zoomed out.
-  const mercator = (latitude: number) => Math.log(Math.tan(Math.PI / 4 + latitude * Math.PI / 360));
-  const lat = (2 * Math.atan(Math.exp((mercator(north) + mercator(south)) / 2)) - Math.PI / 2) * 180 / Math.PI;
-  const lng = west + ((east - west + 360) % 360) / 2;
+  const { lat, lng } = mapCentre(viewport);
+  const inView = (item: CountryEvidence) => item.lat >= south && item.lat <= north &&
+    (west <= east ? item.lng >= west && item.lng <= east : item.lng >= west || item.lng <= east);
   const distance = (latitude: number, longitude: number) => {
     const deltaLng = ((longitude - lng + 540) % 360) - 180;
     return (latitude - lat) ** 2 + (deltaLng * Math.cos(lat * Math.PI / 180)) ** 2;
@@ -56,7 +65,10 @@ export function relevantMapCommunities(
 
   if (nearestEvidence) {
     if (viewport.zoom >= BORDER_ZOOM) {
-      const codes = new Set(evidence.map((item) => item.countryCode.toUpperCase()));
+      // Nearby local communities may reach into view from across a border
+      // (Lille seen from Ghent), so only evidence inside the view counts here.
+      const codes = new Set([nearestEvidence, ...evidence.filter(inView)]
+        .map((item) => item.countryCode.toUpperCase()));
       return [...local, ...countries.filter((community) =>
         codes.has(community.countryCode?.toUpperCase() ?? ""))];
     }
