@@ -2126,7 +2126,7 @@
     </unit>
     <unit id="checkin.check_in">
       <segment>
-        <source> Check In </source>
+        <source>Check In</source>
       </segment>
     </unit>
     <unit id="checkin.failed">

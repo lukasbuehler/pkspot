@@ -58,19 +58,23 @@
   }
 
   @if (review; as review) {
-    <p class="mat-body-small whats-new__review">
-      <span i18n="@@whatsNew.review">Enjoying PK Spot? A review helps a lot, and feedback is always welcome.</span>
-      <span class="whats-new__review-links">
-        <a [href]="review.url" target="_blank" rel="noopener noreferrer" (click)="trackReview()">
+    <section class="whats-new__review">
+      <p class="mat-body-medium" i18n="@@whatsNew.review">Enjoying PK Spot? A review helps a lot, and feedback is always welcome.</p>
+      <div class="whats-new__review-actions">
+        <a matButton="tonal" [href]="review.url" target="_blank" rel="noopener noreferrer" (click)="trackReview()">
+          <mat-icon>star</mat-icon>
           @if (review.store === "apple") {
             <span i18n="@@settings.review.apple">Review on the App Store</span>
           } @else {
             <span i18n="@@settings.review.google">Review on Google Play</span>
           }
         </a>
-        <a routerLink="/contact" (click)="sendFeedback()" i18n="@@whatsNew.feedback">Send feedback</a>
-      </span>
-    </p>
+        <a matButton routerLink="/contact" (click)="sendFeedback()">
+          <mat-icon>rate_review</mat-icon>
+          <span i18n="@@whatsNew.feedback">Send feedback</span>
+        </a>
+      </div>
+    </section>
   }
 </mat-dialog-content>
 

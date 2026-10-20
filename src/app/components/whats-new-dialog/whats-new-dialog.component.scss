@@ -170,19 +170,24 @@
   p { margin: 0; }
 }
 
-.whats-new__legal,
-.whats-new__review {
+.whats-new__legal {
   color: var(--mat-sys-on-surface-variant);
 }
 
 .whats-new__review {
   display: grid;
-  gap: 4px;
-  margin: 0;
+  gap: 8px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--mat-sys-outline-variant);
+
+  p {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
 }
 
-.whats-new__review-links {
+.whats-new__review-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
+  gap: 8px;
 }

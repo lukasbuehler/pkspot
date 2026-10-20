@@ -90,6 +90,8 @@ import {
 } from "@capacitor/core";
 import { BackHandlingService } from "./services/back-handling.service";
 import { CheckInService } from "./services/check-in.service";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { CheckInFlowService } from "./services/check-in-flow.service";
 import { SpotId } from "../db/schemas/SpotSchema";
 import { MetaTagService } from "./services/meta-tag.service";
 import { KeyboardService } from "./services/keyboard.service";
@@ -165,6 +167,7 @@ type NavigationPerfDetails = Record<string, unknown>;
   styleUrls: ["./app.component.scss"],
   imports: [
     FabMenuComponent,
+    MatProgressSpinnerModule,
     NavRailContainerComponent,
     NavRailComponent,
     RouterLink,
@@ -1500,8 +1503,11 @@ html.pkspot-roboto-loaded body {
   // Engagement tracking state (initialized in ngOnInit)
   private _engagement: any = null;
 
-  spotCheckIn(spotId: SpotId) {
-    this.checkInService.checkIn(spotId);
+  private readonly _checkInFlow = inject(CheckInFlowService);
+  readonly checkInPending = this._checkInFlow.pending;
+
+  spotCheckIn(spotId: SpotId, spotName: string | null): void {
+    void this._checkInFlow.checkIn(spotId, spotName);
   }
 
   hasUserProfilePicture = computed(() => {

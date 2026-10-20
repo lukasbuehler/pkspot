@@ -17230,8 +17230,8 @@
     </unit>
     <unit id="checkin.check_in">
       <segment state="initial">
-        <source> Check In </source>
-        <target> Inchecken </target>
+        <source>Check In</source>
+        <target>Inchecken</target>
       </segment>
     </unit>
     <unit id="checkin.failed">

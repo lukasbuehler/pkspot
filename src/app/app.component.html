@@ -281,7 +281,7 @@
     >
       <div
         class="check-in-chip mat-elevation-z4 d-flex align-items-center gap-3 p-2 rounded-pill overflow-hidden"
-        (click)="spotCheckIn(spot.id)"
+        (click)="spotCheckIn(spot.id, spot.name)"
       >
         @if(spot.imageSrc) {
         <div
@@ -306,10 +306,14 @@
             matButton="filled"
             color="accent"
             style="height: 32px; line-height: 32px"
-            i18n="@@checkin.check_in"
-            (click)="spotCheckIn(spot.id)"
+            [disabled]="checkInPending()"
+            [attr.aria-busy]="checkInPending()"
+            (click)="$event.stopPropagation(); spotCheckIn(spot.id, spot.name)"
           >
-            Check In
+            @if (checkInPending()) {
+              <mat-spinner diameter="18" class="check-in-spinner"></mat-spinner>
+            }
+            <span i18n="@@checkin.check_in">Check In</span>
           </button>
           <button
             mat-icon-button

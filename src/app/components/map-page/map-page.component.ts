@@ -1,3 +1,4 @@
+import { CheckInFlowService } from "../../services/check-in-flow.service";
 import { mapCentre, relevantMapCommunities, type CountryEvidence } from "./visible-communities";
 import {NativeMapShareService} from "../../services/native-map-share.service";
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
@@ -45,11 +46,6 @@ import {
 import { MapFloatingControlsComponent } from "../map/map-floating-controls/map-floating-controls.component";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatBottomSheet } from "@angular/material/bottom-sheet";
-import {
-  CheckInRewardSheetComponent,
-  type CheckInRewardSheetData,
-} from "../check-in-reward-sheet/check-in-reward-sheet.component";
 import { MapsApiService } from "../../services/maps-api.service";
 import {
   filter,
@@ -5528,36 +5524,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return /^\/map\/(?:spots|events|communities)\/[^/]+/u.test(currentPath);
   }
 
-  readonly checkInPending = signal(false);
-  private readonly _bottomSheet = inject(MatBottomSheet);
+  private readonly _checkInFlow = inject(CheckInFlowService);
+  readonly checkInPending = this._checkInFlow.pending;
 
-  async spotCheckIn(spotId: SpotId): Promise<void> {
-    if (this.checkInPending()) return;
-    this.checkInPending.set(true);
-    try {
-      const spotName = this.proximityCheckInSpot()?.name ?? null;
-      const response = await this.checkInService.checkIn(spotId);
-      if (response?.duplicate) {
-        this._snackbar.open(
-          $localize`:@@checkin.alreadyCheckedIn:You're already checked in here.`,
-          $localize`:@@common.dismiss:Dismiss`,
-          {duration: 4000},
-        );
-      } else if (response) {
-        this._bottomSheet.open<CheckInRewardSheetComponent, CheckInRewardSheetData>(
-          CheckInRewardSheetComponent,
-          {data: {spotId, spotName, response}},
-        );
-      }
-    } catch {
-      this._snackbar.open(
-        $localize`:@@checkin.failed:Could not check in. Please try again.`,
-        $localize`:@@common.dismiss:Dismiss`,
-        {duration: 6000},
-      );
-    } finally {
-      this.checkInPending.set(false);
-    }
+  spotCheckIn(spotId: SpotId): Promise<void> {
+    return this._checkInFlow.checkIn(spotId, this.proximityCheckInSpot()?.name ?? null);
   }
 
   dismissCheckInSpot(spotId: SpotId) {

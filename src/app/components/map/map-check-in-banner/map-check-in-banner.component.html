@@ -28,6 +28,9 @@
         class="flex-grow-1"
         (click)="checkIn.emit(currentSpot.id); $event.stopPropagation()"
       >
+        @if (pending()) {
+          <mat-spinner diameter="18" class="check-in-spinner"></mat-spinner>
+        }
         <span i18n="@@checkin.check_in">Check In</span>
       </button>
       <button
