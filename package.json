@@ -134,7 +134,7 @@
     "@analogjs/vite-plugin-angular": "^2.8.0",
     "@analogjs/vitest-angular": "^2.8.0",
     "@angular/build": "22.2.1",
-    "@angular/cli": "22.2.1",
+    "@angular/cli": "22.2.3",
     "@angular/compiler-cli": "22.2.1",
     "@angular/language-service": "22.2.1",
     "@apphosting/adapter-angular": "^17.2.17",
