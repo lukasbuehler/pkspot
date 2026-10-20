@@ -94,7 +94,8 @@ export function localizedSearchNames(input: {
  * match its country, so "Schweiz" finds Switzerland rather than every town.
  */
 export function communitySearchNames(page: CommunityPageSchema): string[] {
-  const localization = currentPlaceLocalization(page);
+  // Pages being created or merged may not have their geography yet.
+  const localization = page.geography ? currentPlaceLocalization(page) : undefined;
   const names = localization
     ? { key: page.communityKey, locality: localization.names, ...(localization.region ? { region: localization.region.names } : {}) }
     : undefined;

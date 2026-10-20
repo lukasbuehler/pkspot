@@ -61,6 +61,9 @@ describe("localized place labels", () => {
     expect(communitySearchNames(town)).toEqual(["Liège", "Lüttich (Stadt)", "Lüttich", "Wallonia"]);
     const country = { communityKey: "country:be", scope: "country", displayName: "Belgium", geography } as unknown as CommunityPageSchema;
     expect(communitySearchNames(country)).toEqual(expect.arrayContaining(["Belgium", "Belgien", "België"]));
+    // A page created or merged before its geography exists still gets its name.
+    expect(communitySearchNames({ communityKey: "locality:x", scope: "locality", displayName: "Dortmund" } as unknown as CommunityPageSchema))
+      .toEqual(["Dortmund"]);
     // A stale localization from an earlier geography is ignored.
     expect(communitySearchNames({ ...town, communityKey: "locality:be:other" })).not.toContain("Lüttich");
   });

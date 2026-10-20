@@ -21,11 +21,16 @@ export const enqueueCommunityPlaceLocalization = onDocumentWritten(
     // overrides, so search finds "Lüttich", "Liège" and "Luik" alike. Writes
     // only when the list changes; rebuilds merge into the page and keep it.
     if (after && event.data?.after.ref) {
-      const names = communitySearchNames(after);
-      if (!samePlaceFields(after.localized_search_names ?? [], names)) {
-        await event.data.after.ref.update({
-          localized_search_names: names.length ? names : FieldValue.delete(),
-        });
+      try {
+        const names = communitySearchNames(after);
+        if (!samePlaceFields(after.localized_search_names ?? [], names)) {
+          await event.data.after.ref.update({
+            localized_search_names: names.length ? names : FieldValue.delete(),
+          });
+        }
+      } catch (error) {
+        // Search names are an extra; never let them block place enrichment.
+        console.warn("Community search names not updated", event.params.communityKey, error);
       }
     }
     if (!canEnrichPlace(after)) return;

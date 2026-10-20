@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import {FieldValue} from "firebase-admin/firestore";
+import {FieldPath, FieldValue} from "firebase-admin/firestore";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {onDocumentWritten} from "firebase-functions/v2/firestore";
 import {onSchedule} from "firebase-functions/v2/scheduler";
@@ -472,7 +472,7 @@ export const backfillTrainingSummaries = onCall(
     const input = (isRecord(request.data) ? request.data : {}) as BackfillTrainingSummariesRequest;
     const dryRun = input.dry_run !== false;
     const limit = Math.min(100, Math.max(1, Math.floor(numberValue(input.limit) ?? 25)));
-    let query = db().collection("users").orderBy(admin.firestore.FieldPath.documentId()).limit(limit);
+    let query = db().collection("users").orderBy(FieldPath.documentId()).limit(limit);
     if (input.cursor) query = query.startAfter(input.cursor);
     const users = await query.get();
 

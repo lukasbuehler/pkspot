@@ -1,4 +1,4 @@
-import { FieldValue, GeoPoint } from "firebase-admin/firestore";
+import { FieldValue, GeoPoint, FieldPath } from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
@@ -492,7 +492,7 @@ export const updateAllSpotAddresses = onDocumentCreated(
     while (true) {
       let query = admin.firestore().collection("spots")
         .select("address", "location")
-        .orderBy(admin.firestore.FieldPath.documentId())
+        .orderBy(FieldPath.documentId())
         .limit(PAGE_SIZE);
       if (cursor) query = query.startAfter(cursor);
       const page = await query.get();
