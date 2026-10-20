@@ -1,5 +1,8 @@
 :host {
-  display: block;
+  // Material lays the dialog out as a flex column through this host; a block
+  // here stops the content from shrinking and pushes the actions out of view
+  // on short screens (landscape phones).
+  display: contents;
 }
 
 // Hero: Train tab icons float up one after another, then the local-legend
@@ -108,6 +111,11 @@
 
 @media (max-height: 760px) {
   .whats-new__hero { height: 104px; }
+}
+
+// Landscape phones: the list and the agreement matter more than the hero.
+@media (max-height: 480px) {
+  .whats-new__hero { display: none; }
 }
 
 .whats-new__list {

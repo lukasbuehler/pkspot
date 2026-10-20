@@ -13,6 +13,7 @@ import { StorageService } from "../storage.service";
 import { StorageImage } from "../../../../db/models/Media";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { SpotSlugSchema } from "../../../../db/schemas/SpotSlugSchema";
+import { isLocalScreenshotRun } from "../../../shared/local-screenshot-run";
 import {
   FirestoreAdapterService,
   QueryFilter,
@@ -251,6 +252,16 @@ export class SpotsService extends ConsentAwareService {
   ): Spot {
     if (!parseFirestoreGeoPoint(spotData.location, spotData.location_raw)) {
       throw new SpotLoadError(spotId, "missing_location");
+    }
+
+    const excludeLinkedPlace = (globalThis as typeof globalThis & {
+      __PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__?: boolean;
+    }).__PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__;
+    if (isLocalScreenshotRun() && excludeLinkedPlace === true) {
+      // Model an unlinked Spot for local captures, without mutating the source document.
+      const externalReferences = { ...spotData.external_references };
+      delete externalReferences.google_maps_place_id;
+      spotData = { ...spotData, external_references: externalReferences };
     }
 
     return new Spot(spotId, spotData, locale);

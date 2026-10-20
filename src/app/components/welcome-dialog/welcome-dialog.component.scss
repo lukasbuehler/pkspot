@@ -1,6 +1,7 @@
 :host {
-  display: block;
-  max-width: min(680px, calc(100vw - 2rem));
+  // Material lays the dialog out as a flex column through this host; a block
+  // here pushes the agreement button out of view on landscape phones.
+  display: contents;
 }
 
 .welcome-dialog__content {
