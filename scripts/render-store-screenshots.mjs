@@ -207,6 +207,10 @@ async function captureAppRoutes(browserInstance) {
           }
           await page.locator('mat-snack-bar-container').waitFor({ state: 'hidden', timeout: 15_000 });
           await page.evaluate(() => document.fonts.ready);
+          if ((capture.excludeLinkedGooglePlaces ?? config.excludeLinkedGooglePlaces) &&
+              await page.locator('app-spot-details app-google-place-preview').count()) {
+            throw new Error('Linked Google Place preview is still present. Rebuild the screenshot bundle with --build.');
+          }
           await page.screenshot({
             path: capturePath,
             fullPage: false,

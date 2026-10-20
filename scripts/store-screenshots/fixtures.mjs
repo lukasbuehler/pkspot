@@ -3,6 +3,8 @@
 export async function installSceneFixtures(page, capture, copy, config) {
   const uid = config.mockAuthUser.uid;
   const globals = {
+    __PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__:
+      capture.excludeLinkedGooglePlaces ?? config.excludeLinkedGooglePlaces ?? false,
     __PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__: true,
     __PKSPOT_SCREENSHOT_NOTIFICATIONS__: [],
     __PKSPOT_SCREENSHOT_ATTENDED_EVENTS__: [],

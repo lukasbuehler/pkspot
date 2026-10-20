@@ -46,3 +46,14 @@ test('ordinary scenes do not seed training history', async () => {
   assert.equal(globals.__PKSPOT_SCREENSHOT_TRAINING_SESSIONS__, undefined);
   assert.equal(globals.__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__, true);
 });
+
+test('linked-place exclusion follows config and supports a per-capture override', async () => {
+  let globals;
+  const page = { addInitScript: async (_callback, seeds) => { globals = seeds; } };
+  await installSceneFixtures(page, {}, {}, config);
+  assert.equal(globals.__PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__, true);
+  await installSceneFixtures(page, { excludeLinkedGooglePlaces: false }, {}, config);
+  assert.equal(globals.__PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__, false);
+  await installSceneFixtures(page, {}, {}, { ...config, excludeLinkedGooglePlaces: undefined });
+  assert.equal(globals.__PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__, false);
+});

@@ -4,6 +4,7 @@
   "deviceScreenshotRoot": "fastlane/generated/device-screenshots/ios",
   "captureRoot": "output/store-screenshots/captures",
   "outputMode": "composed",
+  "excludeLinkedGooglePlaces": true,
   "localStorage": {
     "acceptedVersion": "7",
     "lastLocationAndZoom": {
