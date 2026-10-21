@@ -26,6 +26,7 @@ import {
   type ImageCropPolicy,
 } from "../crop-image/image-crop-policy";
 import type { ImageCropDialogData } from "../crop-image/image-crop-dialog.component";
+import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
 export type MediaUploadState =
   | "staged"
@@ -64,6 +65,7 @@ export interface MediaUploadEvent {
   styleUrls: ["./media-upload.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AppHrefPipe,
     MatButton,
     MatIconButton,
     MatIcon,

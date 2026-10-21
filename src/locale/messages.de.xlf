@@ -2030,7 +2030,7 @@
     <unit id="media.processing.status">
       <segment state="initial">
         <source>Processing</source>
-        <target>Processing</target>
+        <target>Wird verarbeitet</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -2039,7 +2039,7 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment state="initial">
-        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
+        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [attr.href]=&quot;&apos;/terms-of-service&apos; | appHref&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
         <target> Durch das Hochladen stimmst du unseren <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> zu. Du bestätigst, dass du diesen Inhalt besitzt oder das Recht hast, ihn zu teilen. Du gewährst PK Spot die Lizenz, die es zum Betrieb des Dienstes benötigt, und erklärst dich damit einverstanden, deinen Beitrag der Gemeinschaft unter einer Creative-Commons-Lizenz zur Verfügung zu stellen. </target>
       </segment>
     </unit>
@@ -3689,7 +3689,7 @@
     <unit id="8411563267246095898">
       <segment state="initial">
         <source> Some uploads could not be processed. </source>
-        <target> Some uploads could not be processed. </target>
+        <target> Einige Uploads konnten nicht verarbeitet werden. </target>
       </segment>
     </unit>
     <unit id="8412870208077922475">
@@ -11378,7 +11378,7 @@
     <unit id="2890396288953949539">
       <segment state="initial">
         <source>Edit your report</source>
-        <target>Edit your report</target>
+        <target>Meldung bearbeiten</target>
       </segment>
     </unit>
     <unit id="7821457763115783830">
@@ -13910,7 +13910,7 @@
       </notes>
       <segment state="initial">
         <source> Access and Type </source>
-        <target> Access and Type </target>
+        <target> Zugang und Typ </target>
       </segment>
     </unit>
     <unit id="spot.edit.aria_label">
@@ -14132,7 +14132,7 @@
       </notes>
       <segment state="initial">
         <source>Iconic Spot</source>
-        <target>Iconic Spot</target>
+        <target>Ikonischer Spot</target>
       </segment>
     </unit>
     <unit id="spot.edit.url.header">
@@ -16853,7 +16853,7 @@
     <unit id="3755504016557306395">
       <segment state="initial">
         <source>Your report is open</source>
-        <target>Your report is open</target>
+        <target>Deine Meldung ist offen</target>
       </segment>
     </unit>
     <unit id="open-embedded-in-pkspot-button-aria-label">
@@ -17465,7 +17465,7 @@
     <unit id="2715740819906435675">
       <segment state="initial">
         <source> Media is processing and will appear here when it is ready. </source>
-        <target> Media is processing and will appear here when it is ready. </target>
+        <target> Medien werden verarbeitet und erscheinen hier, sobald sie bereit sind. </target>
       </segment>
     </unit>
     <unit id="5753174679285423997">

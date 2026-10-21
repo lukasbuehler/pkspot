@@ -881,7 +881,7 @@
     <unit id="6886003891093930326">
       <segment state="initial">
         <source> Only you and moderators can see it. You can edit or withdraw it. </source>
-        <target> Only you and moderators can see it. You can edit or withdraw it. </target>
+        <target> Solo tu e i moderatori potete vederla. Puoi modificarla o ritirarla. </target>
       </segment>
     </unit>
     <unit id="1403609706001572962">
@@ -2030,7 +2030,7 @@
     <unit id="media.processing.status">
       <segment state="initial">
         <source>Processing</source>
-        <target>Processing</target>
+        <target>In elaborazione</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -2039,7 +2039,7 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment state="initial">
-        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
+        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [attr.href]=&quot;&apos;/terms-of-service&apos; | appHref&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
         <target> Caricando, accetti i nostri <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. Confermi di possedere questo contenuto o di avere il diritto di condividerlo. Concedi a PK Spot la licenza di cui ha bisogno per gestire il servizio e accetti di mettere il tuo contributo a disposizione della comunità secondo una licenza Creative Commons. </target>
       </segment>
     </unit>
@@ -3689,7 +3689,7 @@
     <unit id="8411563267246095898">
       <segment state="initial">
         <source> Some uploads could not be processed. </source>
-        <target> Some uploads could not be processed. </target>
+        <target> Alcuni caricamenti non sono stati elaborati. </target>
       </segment>
     </unit>
     <unit id="8412870208077922475">
@@ -10991,7 +10991,7 @@
       </notes>
       <segment state="initial">
         <source>Iconic Spot</source>
-        <target>Spot Iconico</target>
+        <target>Spot iconico</target>
       </segment>
     </unit>
     <unit id="filter_any">
@@ -11378,7 +11378,7 @@
     <unit id="2890396288953949539">
       <segment state="initial">
         <source>Edit your report</source>
-        <target>Edit your report</target>
+        <target>Modifica la tua segnalazione</target>
       </segment>
     </unit>
     <unit id="7821457763115783830">
@@ -13920,7 +13920,7 @@
       </notes>
       <segment state="initial">
         <source> Access and Type </source>
-        <target> Access and Type </target>
+        <target> Accesso e tipo </target>
       </segment>
     </unit>
     <unit id="spot.edit.aria_label">
@@ -14142,7 +14142,7 @@
       </notes>
       <segment state="initial">
         <source>Iconic Spot</source>
-        <target>Iconic Spot</target>
+        <target>Spot iconico</target>
       </segment>
     </unit>
     <unit id="spot.edit.url.header">
@@ -15969,7 +15969,7 @@
     <unit id="trainingSessionDetail.eyebrow">
       <segment state="initial">
         <source>Training session</source>
-        <target>Training session</target>
+        <target>Sessione di allenamento</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.invalid">
@@ -16863,7 +16863,7 @@
     <unit id="3755504016557306395">
       <segment state="initial">
         <source>Your report is open</source>
-        <target>Your report is open</target>
+        <target>La tua segnalazione è aperta</target>
       </segment>
     </unit>
     <unit id="open-embedded-in-pkspot-button-aria-label">
@@ -17475,7 +17475,7 @@
     <unit id="2715740819906435675">
       <segment state="initial">
         <source> Media is processing and will appear here when it is ready. </source>
-        <target> Media is processing and will appear here when it is ready. </target>
+        <target> I media sono in elaborazione e appariranno qui non appena saranno pronti. </target>
       </segment>
     </unit>
     <unit id="5753174679285423997">
