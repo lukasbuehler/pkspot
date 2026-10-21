@@ -77,6 +77,15 @@ html.map-glass-blur-enabled {
 }
 
 html.native-platform,
+// In the apps, cards and images are app UI, not web links: the system
+// long-press menu (Open, Share, Save to Photos) would leave the app flow.
+html.native-platform {
+  a,
+  img {
+    -webkit-touch-callout: none;
+  }
+}
+
 html.native-platform body {
   --bottom-nav-safe-area: var(
     --safe-area-inset-bottom,

@@ -11,6 +11,9 @@ const config: CapacitorConfig = {
   webDir: "dist/pkspot/browser",
   ios: {
     loggingBehavior: "debug", // Logs JS console to Xcode console
+    // Long-pressing a Spot card must not open a WebKit link preview whose
+    // "Open" action loads the link inside the app's web view.
+    allowsLinkPreview: false,
   },
   experimental: {
     ios: {
