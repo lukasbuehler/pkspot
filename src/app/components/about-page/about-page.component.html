@@ -124,7 +124,7 @@
           mat-stroked-button
           [href]="appLinks.appleAppStoreUrl"
           target="_blank"
-          (click)="trackOutboundLinkClick('app_store', appLinks.appleAppStoreUrl, 'App Store')"
+          (click)="trackAppStoreClick('apple')"
           i18n
         >
           <img
@@ -139,7 +139,7 @@
           mat-stroked-button
           [href]="appLinks.googlePlayStoreUrl"
           target="_blank"
-          (click)="trackOutboundLinkClick('app_store', appLinks.googlePlayStoreUrl, 'Google Play')"
+          (click)="trackAppStoreClick('google')"
           i18n
         >
           <img

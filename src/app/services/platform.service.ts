@@ -3,6 +3,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { Capacitor } from "@capacitor/core";
 import { APP_LINKS } from "../shared/app-links";
 import { AppStoreDialogComponent } from "../components/app-store-dialog/app-store-dialog.component";
+import { AnalyticsService } from "./analytics.service";
 
 /**
  * Service to detect the current platform and provide platform-specific behaviors.
@@ -77,7 +78,7 @@ export class PlatformService {
    * Opens the PK Spot app page in the appropriate mobile app store (Apple App Store or Google Play)
    * based on the user's operating system.
    */
-  openPKSpotinAppStore(): void {
+  openPKSpotinAppStore(surface: string): void {
     if (this.isNative()) {
       console.debug(
         "This is already native - no need to open the App Store. (this button should not appear here and be clickable)",
@@ -96,18 +97,24 @@ export class PlatformService {
     const isAppleOS = /iPad|iPhone|iPod/i.test(userAgent) ||
       (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1);
 
+    // Resolved lazily: analytics depends on services that this low-level one must not.
+    const analytics = this.injector.get(AnalyticsService);
     if (isAndroidOS) {
+      analytics.trackAppStoreClick(surface, "google");
       window.open(APP_LINKS.googlePlayStoreUrl, "_blank", "noopener,noreferrer");
     } else if (isAppleOS) {
+      analytics.trackAppStoreClick(surface, "apple");
       window.open(APP_LINKS.appleAppStoreUrl, "_blank", "noopener,noreferrer");
     } else {
       // Resolve the overlay only when needed, keeping platform detection usable
       // by low-level services without initializing dialog dependencies.
       const dialog = this.injector.get(MatDialog);
       if (!dialog.getDialogById("app-store-choice")) {
+        analytics.trackAppStoreClick(surface, "choice");
         dialog.open(AppStoreDialogComponent, {
           id: "app-store-choice",
           width: "420px",
+          data: { surface },
         });
       }
     }

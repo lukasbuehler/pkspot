@@ -76,6 +76,8 @@ export function stripUtmParametersFromUrl(url: string): string {
   return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
 }
 
+export type AppStoreTarget = "apple" | "google" | "choice";
+
 @Injectable({
   providedIn: "root",
 })
@@ -404,6 +406,23 @@ export class AnalyticsService {
       cta_label: ctaLabel ?? null,
       destination_domain: this.getDestinationDomain(url),
       url: this.safeAnalyticsUrl(url),
+    });
+  }
+
+  /**
+   * One event for every link to an app store page, so the website-to-store
+   * funnel is a single PostHog insight. `store` is "choice" when the visitor's
+   * device was unknown and the store picker opened instead.
+   */
+  trackAppStoreClick(
+    surface: string,
+    store: AppStoreTarget,
+    ctaId?: string,
+  ): void {
+    this.trackEvent("app_store_cta_clicked", {
+      surface,
+      store,
+      cta_id: ctaId ?? null,
     });
   }
 

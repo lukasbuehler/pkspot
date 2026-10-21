@@ -2,8 +2,8 @@
 <mat-dialog-content>
   <p i18n="@@app_store_choice.body">Choose the store for your device.</p>
   <div class="store-links">
-    <a matButton="outlined" [href]="appLinks.appleAppStoreUrl" target="_blank" rel="noopener noreferrer">Apple App Store</a>
-    <a matButton="outlined" [href]="appLinks.googlePlayStoreUrl" target="_blank" rel="noopener noreferrer">Google Play Store</a>
+    <a matButton="outlined" [href]="appLinks.appleAppStoreUrl" target="_blank" rel="noopener noreferrer" (click)="trackStoreClick('apple')">Apple App Store</a>
+    <a matButton="outlined" [href]="appLinks.googlePlayStoreUrl" target="_blank" rel="noopener noreferrer" (click)="trackStoreClick('google')">Google Play Store</a>
   </div>
   <p class="pwa-note" i18n="@@app_store_choice.pwa">PK Spot also works as a web app (PWA). Open pkspot.app in your device's browser and choose “Add to Home Screen” or “Install app”.</p>
 </mat-dialog-content>

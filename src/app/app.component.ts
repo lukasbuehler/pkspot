@@ -211,6 +211,9 @@ type NavigationPerfDetails = Record<string, unknown>;
   ],
 })
 export class AppComponent implements OnInit, AfterViewInit {
+  /** App paths (without locale) that carry the site identity structured data. */
+  private static readonly SITE_IDENTITY_PATHS = new Set(["/", "/map", "/about"]);
+
   readonly dialog = inject(MatDialog);
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
@@ -507,27 +510,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
     }
 
-    // structured data
-    const json: WebSite = {
-      "@type": "WebSite",
-      name: StructuredDataService.BRAND_NAME,
-      alternateName: [
-        "pkspot.app",
-        "PK Spot App",
-        "Parkour Spot",
-        "Parkour Spot App",
-      ],
-      url: StructuredDataService.BRAND_URL,
-    };
-    this._structuredDataService.addStructuredData("website", json);
-    this._structuredDataService.addStructuredData(
-      "organization",
-      this._structuredDataService.generateOrganizationData(),
-    );
-    this._structuredDataService.addStructuredData(
-      "software-application",
-      this._structuredDataService.generateSoftwareApplicationData(),
-    );
 
     // Track when consent is granted so we can correlate accepters vs non-accepters
     this._consentService.consentGranted$.subscribe((granted) => {
@@ -681,6 +663,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         const nav = event as NavigationEnd;
+        this.syncSiteStructuredData(nav.urlAfterRedirects);
         this.checkWelcomeDialogForCurrentRoute();
 
         const send = () => {
@@ -805,6 +788,40 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.checkWelcomeDialogForCurrentRoute();
   }
 
+
+  /**
+   * Site identity markup (WebSite, Organization, SoftwareApplication) belongs
+   * on the home, map and About pages. Google reads it from the home page, and
+   * on every Spot page it only tied the app icon to random Spots in Images.
+   */
+  private syncSiteStructuredData(url: string): void {
+    const path = url.split(/[?#]/u)[0].replace(/\/$/u, "") || "/";
+    const ids = ["website", "organization", "software-application"];
+    if (!AppComponent.SITE_IDENTITY_PATHS.has(path)) {
+      for (const id of ids) this._structuredDataService.removeStructuredData(id);
+      return;
+    }
+    const website: WebSite = {
+      "@type": "WebSite",
+      name: StructuredDataService.BRAND_NAME,
+      alternateName: [
+        "pkspot.app",
+        "PK Spot App",
+        "Parkour Spot",
+        "Parkour Spot App",
+      ],
+      url: StructuredDataService.BRAND_URL,
+    };
+    this._structuredDataService.addStructuredData("website", website);
+    this._structuredDataService.addStructuredData(
+      "organization",
+      this._structuredDataService.generateOrganizationData(),
+    );
+    this._structuredDataService.addStructuredData(
+      "software-application",
+      this._structuredDataService.generateSoftwareApplicationData(),
+    );
+  }
   private checkWelcomeDialogForCurrentRoute(): void {
     if (typeof window === "undefined") {
       return;
@@ -1521,7 +1538,7 @@ html.pkspot-roboto-loaded body {
   });
 
   openPKSpotinAppStore() {
-    this._platformService.openPKSpotinAppStore();
+    this._platformService.openPKSpotinAppStore("navbar");
   }
 
   navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
