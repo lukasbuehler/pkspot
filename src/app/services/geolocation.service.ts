@@ -3,6 +3,41 @@ import { Capacitor } from "@capacitor/core";
 import { Geolocation, Position } from "@capacitor/geolocation";
 import { PlatformService } from "./platform.service";
 
+/**
+ * Native plugin error codes that mean location is unavailable to the app
+ * (permission denied, restricted, or location services off). Any other code,
+ * such as a timeout or a position that could not be read, is transient.
+ */
+const BLOCKING_NATIVE_ERROR_CODES = new Set([
+  "OS-PLUG-GLOC-0003",
+  "OS-PLUG-GLOC-0007",
+  "OS-PLUG-GLOC-0008",
+  "OS-PLUG-GLOC-0009",
+]);
+/** iOS drops every watch after this error, so the watch must be restarted. */
+const NATIVE_TIMEOUT_CODE = "OS-PLUG-GLOC-0010";
+
+/** Above this speed (m/s, a brisk walk) the native watch asks for faster updates. */
+export const FAST_MOVEMENT_SPEED_MPS = 1.8;
+/** How long the device must stay slow before the watch returns to its normal rate. */
+const SLOW_DOWN_AFTER_MS = 20_000;
+
+/** Android update rates; iOS and browsers choose their own rate. */
+export function nativeWatchOptions(fast: boolean) {
+  return {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 1000,
+    interval: fast ? 1000 : 3000,
+    minimumUpdateInterval: fast ? 500 : 2000,
+  };
+}
+
+export function isBlockingNativeLocationError(err: unknown): boolean {
+  const code = (err as { code?: unknown } | null)?.code;
+  return typeof code === "string" && BLOCKING_NATIVE_ERROR_CODES.has(code);
+}
+
 export interface GeoLocationState {
   location: google.maps.LatLngLiteral;
   accuracy: number;
@@ -15,6 +50,10 @@ export class GeolocationService {
   private _platformService = inject(PlatformService);
   private watchId: string | null = null;
   private browserWatchId: number | null = null;
+  private fastUpdates = false;
+  private lastFastMovementAt = 0;
+  private lastNativePosition: Position | null = null;
+  private restartingNativeWatch = false;
   public currentLocation: WritableSignal<GeoLocationState | null> =
     signal(null);
   public error: WritableSignal<any | null> = signal(null);
@@ -73,7 +112,7 @@ export class GeolocationService {
   }
 
   async startWatching(): Promise<void> {
-    if (this.watchId || this.browserWatchId !== null) return;
+    if (this.watchId || this.restartingNativeWatch || this.browserWatchId !== null) return;
 
     this.loading.set(true);
     this.error.set(null);
@@ -124,35 +163,7 @@ export class GeolocationService {
           }
         );
       } else {
-        this.watchId = await Geolocation.watchPosition(
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 1000,
-          },
-          (position: Position | null, err?: any) => {
-            if (err) {
-              console.error("Geolocation watch error", err);
-              this.error.set(err);
-              this.currentLocation.set(null);
-              this.loading.set(false);
-              this.watchId = null; // Clear watch ID to allow retry
-              return;
-            }
-
-            if (position) {
-              this.currentLocation.set({
-                location: {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude,
-                },
-                accuracy: position.coords.accuracy,
-              });
-              this.error.set(null);
-              this.loading.set(false);
-            }
-          }
-        );
+        await this.startNativeWatch();
       }
     } catch (e) {
       console.error("Error starting watch", e);
@@ -162,16 +173,94 @@ export class GeolocationService {
   }
 
   async stopWatching(): Promise<void> {
-    if (this.watchId) {
-      await Geolocation.clearWatch({ id: this.watchId });
-      this.watchId = null;
-    }
+    await this.clearNativeWatch();
+    this.fastUpdates = false;
+    this.lastNativePosition = null;
     if (this.browserWatchId !== null) {
       navigator.geolocation.clearWatch(this.browserWatchId);
       this.browserWatchId = null;
     }
     this.currentLocation.set(null);
     this.loading.set(false);
+  }
+
+  private async startNativeWatch(): Promise<void> {
+    this.watchId = await Geolocation.watchPosition(
+      nativeWatchOptions(this.fastUpdates),
+      (position: Position | null, err?: unknown) => {
+        if (err) {
+          this.handleNativeWatchError(err);
+          return;
+        }
+        if (!position) return;
+        this.currentLocation.set({
+          location: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          },
+          accuracy: position.coords.accuracy,
+        });
+        this.error.set(null);
+        this.loading.set(false);
+        this.adaptUpdateRate(position);
+      },
+    );
+  }
+
+  private async clearNativeWatch(): Promise<void> {
+    const id = this.watchId;
+    this.watchId = null;
+    if (id) await Geolocation.clearWatch({ id }).catch(() => undefined);
+  }
+
+  /**
+   * The iOS plugin sends errors from any location request (including a
+   * one-off `getCurrentPosition`) to every watch, so only blocking errors may
+   * end the watch and report location as disabled.
+   */
+  private handleNativeWatchError(err: unknown): void {
+    if (isBlockingNativeLocationError(err)) {
+      console.error("Geolocation watch error", err);
+      this.error.set(err);
+      this.currentLocation.set(null);
+      this.loading.set(false);
+      void this.clearNativeWatch();
+      return;
+    }
+    console.warn("Geolocation transient error", err);
+    if ((err as { code?: unknown }).code === NATIVE_TIMEOUT_CODE) {
+      void this.restartNativeWatch();
+    }
+  }
+
+  private async restartNativeWatch(): Promise<void> {
+    if (this.restartingNativeWatch || !this.watchId) return;
+    this.restartingNativeWatch = true;
+    try {
+      await this.clearNativeWatch();
+      await this.startNativeWatch();
+    } catch (e) {
+      console.warn("Could not restart the location watch", e);
+    } finally {
+      this.restartingNativeWatch = false;
+    }
+  }
+
+  /** Switches the native watch to fast updates while moving and back after a slow spell. */
+  private adaptUpdateRate(position: Position): void {
+    const speed = movementSpeed(position, this.lastNativePosition);
+    this.lastNativePosition = position;
+    const now = position.timestamp;
+    if (speed !== null && speed >= FAST_MOVEMENT_SPEED_MPS) {
+      this.lastFastMovementAt = now;
+      if (this.fastUpdates) return;
+      this.fastUpdates = true;
+    } else if (!this.fastUpdates || now - this.lastFastMovementAt < SLOW_DOWN_AFTER_MS) {
+      return;
+    } else {
+      this.fastUpdates = false;
+    }
+    void this.restartNativeWatch();
   }
 
   async getCurrentPosition(): Promise<GeoLocationState | null> {
@@ -228,4 +317,19 @@ export class GeolocationService {
       return null;
     }
   }
+}
+
+/** Reported speed in m/s, or the speed between the last two fixes when the device reports none. */
+export function movementSpeed(position: Position, previous: Position | null): number | null {
+  const reported = position.coords.speed;
+  if (typeof reported === "number" && reported >= 0) return reported;
+  if (!previous) return null;
+  const seconds = (position.timestamp - previous.timestamp) / 1000;
+  if (seconds <= 0) return null;
+  const toRad = Math.PI / 180;
+  const dLat = (position.coords.latitude - previous.coords.latitude) * toRad;
+  const dLng = (position.coords.longitude - previous.coords.longitude) * toRad;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(previous.coords.latitude * toRad) *
+    Math.cos(position.coords.latitude * toRad) * Math.sin(dLng / 2) ** 2;
+  return (2 * 6_371_000 * Math.asin(Math.sqrt(a))) / seconds;
 }
