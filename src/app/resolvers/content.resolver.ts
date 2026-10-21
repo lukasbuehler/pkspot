@@ -1,4 +1,5 @@
-import { RESPONSE_INIT } from "@angular/core";
+import { PLATFORM_ID, RESPONSE_INIT } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { handleSpotResolutionError } from "./spot-resolution-error";
 import { inject } from "@angular/core";
 import { ResolveFn, ActivatedRouteSnapshot } from "@angular/router";
@@ -53,6 +54,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
   const metaTagService = inject(MetaTagService);
   const locale = inject(LOCALE_ID);
   const response = inject(RESPONSE_INIT, { optional: true });
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   // Determine content type from route path
   const contentType = determineContentType(route);
@@ -70,6 +72,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
         metaTagService,
         locale,
         response,
+        isBrowser,
       });
 
     case "event":
@@ -161,7 +164,12 @@ async function resolveSpotContent(
     console.warn(
       "Content resolver: User consent required for Firestore access"
     );
-    services.metaTagService.setDefaultMapMetaTags("/map");
+    // Crawlers render without consent. Keep the server-rendered Spot head
+    // instead of replacing its canonical with the map's; the map page sets
+    // Spot metadata itself once it loads the Spot.
+    if (!services.isBrowser) {
+      services.metaTagService.setDefaultMapMetaTags("/map");
+    }
     return result;
   }
 
@@ -207,8 +215,13 @@ async function resolveSpotContent(
     return result;
   } catch (error) {
     handleSpotResolutionError(error, services.response);
-    services.metaTagService.setDefaultMapMetaTags("/map");
-    services.metaTagService.setRobotsContent("noindex,nofollow");
+    // Only the server decides that a Spot is missing. A failed browser load
+    // (for example a crawler renderer dropping the Firestore connection) must
+    // not turn a valid server-rendered page into a noindexed map page.
+    if (!services.isBrowser) {
+      services.metaTagService.setDefaultMapMetaTags("/map");
+      services.metaTagService.setRobotsContent("noindex,nofollow");
+    }
     return result;
   }
 }

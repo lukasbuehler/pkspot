@@ -214,6 +214,52 @@ describe("contentResolver", () => {
     }
   });
 
+  describe("in the browser after server rendering", () => {
+    const serverCanonical = "https://pkspot.app/de/map/spots/rwi";
+    const serverRobots = "index,follow";
+
+    beforeEach(() => {
+      TestBed.overrideProvider(PLATFORM_ID, { useValue: "browser" });
+      const canonical = testDocument.createElement("link");
+      canonical.rel = "canonical";
+      canonical.href = serverCanonical;
+      testDocument.head.appendChild(canonical);
+      const robots = testDocument.createElement("meta");
+      robots.setAttribute("name", "robots");
+      robots.setAttribute("content", serverRobots);
+      testDocument.head.appendChild(robots);
+    });
+
+    it("keeps the Spot canonical when crawlers render without consent", async () => {
+      consentService.hasConsent.mockReturnValue(false);
+      const warnLog = vi.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        await TestBed.runInInjectionContext(() =>
+          contentResolver(createRouteSnapshot("rwi") as ActivatedRouteSnapshot),
+        );
+        expect(getLinkHref(testDocument, 'link[rel="canonical"]')).toBe(serverCanonical);
+        expect(spotsService.getSpotById).not.toHaveBeenCalled();
+      } finally {
+        warnLog.mockRestore();
+      }
+    });
+
+    it("does not noindex a server-rendered Spot when the browser load fails", async () => {
+      slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot-rwi");
+      spotsService.getSpotById.mockRejectedValue(new Error("Firestore unavailable"));
+      const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+      try {
+        await TestBed.runInInjectionContext(() =>
+          contentResolver(createRouteSnapshot("rwi") as ActivatedRouteSnapshot),
+        );
+        expect(getLinkHref(testDocument, 'link[rel="canonical"]')).toBe(serverCanonical);
+        expect(getMetaContent(testDocument, 'meta[name="robots"]')).toBe(serverRobots);
+      } finally {
+        errorLog.mockRestore();
+      }
+    });
+  });
+
   it("should render spot-specific SSR social tags for the imax route", async () => {
     const imaxSpot = buildImaxSpot();
     const route = createRouteSnapshot("imax");

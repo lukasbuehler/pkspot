@@ -1748,6 +1748,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resetPanelContentToTop();
   }
 
+  /** Whether the current URL names a Spot, community, or event panel. */
+  private _locationTargetsMapEntity(): boolean {
+    const path = (this._location.path() || "").split("?")[0].split("#")[0];
+    return (
+      !!parseMapSpotRouteState(path).spotIdOrSlug ||
+      /^\/map\/(?:communities|events)\/[^/]+/u.test(path)
+    );
+  }
+
   goBackToPreviousPanel(): void {
     this._location.back();
   }
@@ -2408,7 +2417,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.metaTagService.setCommunityLandingMetaTags(
           community.title, community.description, community.imageUrl, community.canonicalPath,
         );
-      } else if (!this.isServer) {
+      } else if (!this.isServer && !this._locationTargetsMapEntity()) {
+        // While a Spot, community, or event URL is still loading, keep its
+        // server-rendered metadata so crawlers never see the map canonical.
         this.metaTagService.setDefaultMapMetaTags("/map");
       }
     });
