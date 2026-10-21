@@ -976,7 +976,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       pendingEventRef: this.pendingEventPreview()?.idOrSlug ?? null,
       mode: this.mapObjectMode(),
       now,
+      communityKeys: this._openCommunityKeys(),
     });
+  });
+
+  private readonly _openCommunityKeys = computed<string[] | null>(() => {
+    const selected = this.selectedCommunityLanding();
+    if (selected) {
+      return [selected.communityKey, ...(selected.merged_community_keys ?? [])];
+    }
+    const pending = this.pendingCommunityLanding();
+    return pending ? [pending.communityKey] : null;
   });
 
   private _communityPinIcon(community: CommunitySearchPreview): string {

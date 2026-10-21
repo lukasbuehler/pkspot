@@ -22,6 +22,12 @@ export interface VisibleEventMarkerParams {
   pendingEventRef: string | null;
   mode: MapObjectMode;
   now: Date;
+  /**
+   * Keys of the open community (including communities merged into it). When
+   * set, only events listed under one of them get pins, matching the events
+   * the community panel shows.
+   */
+  communityKeys?: readonly string[] | null;
 }
 
 export function buildVisibleEventMarkers({
@@ -30,8 +36,10 @@ export function buildVisibleEventMarkers({
   pendingEventRef,
   mode,
   now,
+  communityKeys,
 }: VisibleEventMarkerParams): EventMapMarker[] {
   const selectedEventId = selectedEvent?.id ?? null;
+  const community = communityKeys?.length ? new Set(communityKeys) : null;
 
   const eventMarkers = visibleEvents
     .filter((event) => {
@@ -43,6 +51,9 @@ export function buildVisibleEventMarkers({
         return false;
       }
       if (event.isPast(now)) return false;
+      if (community && !event.communityKeys.some((key) => community.has(key))) {
+        return false;
+      }
       return Boolean(event.location);
     })
     .flatMap((event): EventMapMarker[] => {
