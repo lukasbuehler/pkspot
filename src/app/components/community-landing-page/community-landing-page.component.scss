@@ -453,16 +453,11 @@
 }
 
 .collapsible {
-  opacity: var(--open-progress, 1);
-  max-height: calc(var(--open-progress, 1) * 200px);
+  opacity: var(--sheet-open-progress, var(--open-progress, 1));
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 200px);
   overflow: hidden;
-  transition:
-    opacity 0.2s ease-out,
-    max-height 0.2s ease-out;
 
   &[data-collapsed="true"] {
-    opacity: 0;
-    max-height: 0;
     pointer-events: none;
   }
 }

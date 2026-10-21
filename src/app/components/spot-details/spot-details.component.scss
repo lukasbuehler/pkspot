@@ -308,20 +308,15 @@ div.google-img-container {
 .collapsible-header-info {
   // Use CSS custom property for smooth continuous animation
   // --open-progress: 0 = hidden, 1 = fully visible
-  opacity: var(--open-progress, 1);
-  max-height: calc(var(--open-progress, 1) * 100px);
+  opacity: var(--sheet-open-progress, var(--open-progress, 1));
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 100px);
   overflow: hidden;
-  transition:
-    opacity 0.2s linear,
-    max-height 0.2s linear;
 
   // When fully collapsed, prevent interaction
   pointer-events: auto;
 
   // Hide completely when progress is very low to avoid tiny sliver
   &[data-collapsed="true"] {
-    opacity: 0;
-    max-height: 0;
     pointer-events: none;
   }
 }
@@ -391,9 +386,6 @@ div.google-img-container {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .collapsible-header-info { transition: none; }
-}
 
 // Keep the preview title compact until the full Spot metadata is available.
 .spot-title-text.spot-loading-name {

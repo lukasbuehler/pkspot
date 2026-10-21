@@ -196,19 +196,21 @@ describe("MapPageComponent search template", () => {
     const objectPanelStyles = readFileSync(objectPanelStylesPath, "utf8");
 
     expect(objectPanelStyles).toContain(
-      "padding-bottom: calc(var(--open-progress, 1) * 8px)",
+      "padding-bottom: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 8px)",
     );
     expect(objectPanelStyles).toMatch(
       /:host-context\(app-bottom-sheet\)\s+\.area-header\s*\{\s*padding-top:\s*0;/u,
     );
-    expect(objectPanelStyles).toMatch(
-      /\[data-collapsed="true"\]\s*\{\s*padding-bottom:\s*0;/u,
+    // Geometry follows the sheet's per-frame progress, never a late
+    // change-detection flag, so fast flicks animate on slow web views too.
+    expect(objectPanelStyles).not.toMatch(
+      /\[data-collapsed="true"\]\s*\{[^}]*(max-height|opacity|padding)/u,
     );
     expect(objectPanelStyles).toContain(
-      "max-height: calc(var(--open-progress, 1) * 48px)",
+      "max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 48px)",
     );
     expect(objectPanelStyles).toContain(
-      "opacity: var(--open-progress, 1)",
+      "opacity: var(--sheet-open-progress, var(--open-progress, 1))",
     );
     expect(objectPanelStyles).not.toContain(".area-weather--hidden");
   });

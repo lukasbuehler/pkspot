@@ -971,6 +971,13 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         ? 1 - Math.min(Math.max(clampedTop / alwaysVisibleHeight, 0), 1)
         : 0;
 
+    // Panels follow this every frame without waiting for change detection,
+    // which lags behind fast flicks on slower web views (notably iOS).
+    (this.hostEl.nativeElement as HTMLElement).style.setProperty(
+      "--sheet-open-progress",
+      String(progress),
+    );
+
     const isTerminalProgress = progress <= 0.001 || progress >= 0.999;
 
     if (
