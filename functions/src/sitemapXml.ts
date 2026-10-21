@@ -10,17 +10,15 @@ const SUPPORTED_LOCALES = ["en", "de", "fr", "it", "es", "nl"];
 const DEFAULT_LOCALE = "en";
 
 // Static pages from app.routes.ts (excluding redirects, auth-required,
-// duplicate, and embedded pages).
+// duplicate, and embedded pages). Account and auth forms are utility pages
+// with no search value; `/account` also canonicalizes to sign-in when signed
+// out, so listing them only sends crawlers to non-canonical or thin URLs.
 const STATIC_PAGES = [
   { path: "/map", priority: "1.0", changefreq: "daily" },
   { path: "/events", priority: "0.8", changefreq: "weekly" },
   { path: "/events/swissjam25", priority: "0.7", changefreq: "weekly" },
   { path: "/about", priority: "0.7", changefreq: "monthly" },
   { path: "/support", priority: "0.5", changefreq: "monthly" },
-  { path: "/account", priority: "0.5", changefreq: "monthly" },
-  { path: "/sign-in", priority: "0.5", changefreq: "monthly" },
-  { path: "/sign-up", priority: "0.5", changefreq: "monthly" },
-  { path: "/forgot-password", priority: "0.3", changefreq: "monthly" },
   { path: "/terms-of-service", priority: "0.3", changefreq: "yearly" },
   { path: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
   { path: "/impressum", priority: "0.3", changefreq: "yearly" },

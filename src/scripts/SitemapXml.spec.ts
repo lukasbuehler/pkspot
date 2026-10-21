@@ -12,6 +12,13 @@ import {
 } from "../../functions/src/sitemapXml";
 
 describe("sitemapXml", () => {
+  it("keeps account and auth utility pages out of the static entries", () => {
+    const paths = STATIC_PAGES.map((page) => page.path);
+    for (const path of ["/account", "/sign-in", "/sign-up", "/forgot-password"]) {
+      expect(paths).not.toContain(path);
+    }
+  });
+
   it("prefers spot slugs and falls back to the document id", () => {
     expect(
       buildSpotSitemapEntry(
