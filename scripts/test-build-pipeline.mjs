@@ -257,11 +257,15 @@ function assertCrawlerSurface(html, routeLabel, expected = {}) {
     /<link rel="canonical" href="https:\/\/pkspot\.app\/en\/[^"]+"/,
     `${routeLabel} should include a canonical link`
   );
-  assert.match(
-    html,
-    /<script type="application\/ld\+json"[^>]*>/,
-    `${routeLabel} should include structured data`
-  );
+  // Profiles only add Person markup when the profile is fully public, and site
+  // identity markup lives on home and About, so a profile may have none.
+  if (expected.structuredData !== false) {
+    assert.match(
+      html,
+      /<script type="application\/ld\+json"[^>]*>/,
+      `${routeLabel} should include structured data`
+    );
+  }
 
   if (expected.title) {
     assert.match(
@@ -628,7 +632,12 @@ async function main() {
       "Static about SSR route should render"
     );
     assertStaticSsrCacheHeaders(staticAboutResponse, "Static about SSR route");
-    await staticAboutResponse.text();
+    // Site identity markup lives on About (and home), not on every page.
+    assert.match(
+      await staticAboutResponse.text(),
+      /"@type":"Organization"/,
+      "About should carry the Organization structured data"
+    );
 
     const socialPreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/spots/josefhalle`,
@@ -658,6 +667,12 @@ async function main() {
       /Sportzentrum Josef/i,
       /Josefstrasse|Zürich|Zurich/i,
     ]);
+    // Otherwise Google Images attaches the app icon to random Spot pages.
+    assert.doesNotMatch(
+      socialPreviewHtml,
+      /"@type":"(?:Organization|SoftwareApplication)"/,
+      "Spot pages should not repeat the site identity structured data"
+    );
     assert.match(
       socialPreviewHtml,
       /<meta property="og:title"[^>]+content="Sportzentrum Josef: Parkour Spot in Z[üu]rich \| PK Spot"/,
@@ -907,6 +922,7 @@ async function main() {
     assertDynamicSsrCacheHeaders(profilePreviewResponse, "Profile SSR route");
     const profilePreviewHtml = await profilePreviewResponse.text();
     assertCrawlerSurface(profilePreviewHtml, "Profile SSR route", {
+      structuredData: false,
       heading: /Lukas|profile|PK Spot user/i,
       title: /\| PK Spot/,
       ogUrl:

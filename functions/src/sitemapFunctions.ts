@@ -11,6 +11,7 @@ import {
 } from "./indexNow";
 import {
   STATIC_PAGES,
+  staticPageImages,
   SUPPORTED_LOCALES,
   buildCommunitySitemapEntry,
   buildEventSitemapEntry,
@@ -108,7 +109,13 @@ async function _generateAndUploadSitemap(): Promise<{
 
     for (const page of STATIC_PAGES) {
       await writer.append(
-        generateUrlWithHreflang(page.path, now, page.changefreq, page.priority)
+        generateUrlWithHreflang(
+          page.path,
+          now,
+          page.changefreq,
+          page.priority,
+          staticPageImages(page.path)
+        )
       );
       indexNowUrls.push(...buildLocalizedIndexNowUrls(page.path));
     }

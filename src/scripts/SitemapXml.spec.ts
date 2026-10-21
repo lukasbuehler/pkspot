@@ -12,6 +12,16 @@ import {
 } from "../../functions/src/sitemapXml";
 
 describe("sitemapXml", () => {
+  it("lists brand images only under the About page", () => {
+    const { xml } = buildSitemapXml({ includeStaticPages: true });
+    const entries = xml.split("<url>").slice(1);
+    const about = entries.find((entry) => entry.includes("<loc>https://pkspot.app/en/about</loc>"));
+    expect(about).toContain("<image:loc>https://pkspot.app/assets/logos/pkspot/pkspot_logo_stacked_dark.png</image:loc>");
+    expect(about).toContain("<image:loc>https://pkspot.app/assets/banner_1200x630.png</image:loc>");
+    const others = entries.filter((entry) => !entry.includes("/about</loc>"));
+    expect(others.some((entry) => entry.includes("/assets/"))).toBe(false);
+  });
+
   it("keeps account and auth utility pages out of the static entries", () => {
     const paths = STATIC_PAGES.map((page) => page.path);
     for (const path of ["/account", "/sign-in", "/sign-up", "/forgot-password"]) {

@@ -25,6 +25,23 @@ const STATIC_PAGES = [
   { path: "/embed", priority: "0.4", changefreq: "monthly" },
 ] as const;
 
+/**
+ * Brand images appear on every page (header logo, default share image, app
+ * icon), so Google picks a random Spot or legal page as their landing page.
+ * Listing them under About tells it which page they belong to.
+ */
+const STATIC_PAGE_IMAGES: Readonly<Record<string, readonly string[]>> = {
+  "/about": [
+    `${BASE_URL}/assets/banner_1200x630.png`,
+    `${BASE_URL}/assets/logos/pkspot/pkspot_logo_stacked_dark.png`,
+    `${BASE_URL}/assets/icons/icon-512.webp`,
+  ],
+};
+
+function staticPageImages(path: string): readonly string[] {
+  return STATIC_PAGE_IMAGES[path] ?? [];
+}
+
 export interface UserSitemapData {
   display_name?: string;
   public_search?: boolean;
@@ -264,7 +281,13 @@ function getEventPath(id: string, data: EventSitemapData): string {
 
 function buildStaticPageEntries(now: string): string {
   return STATIC_PAGES.map((page) =>
-    generateUrlWithHreflang(page.path, now, page.changefreq, page.priority)
+    generateUrlWithHreflang(
+      page.path,
+      now,
+      page.changefreq,
+      page.priority,
+      staticPageImages(page.path)
+    )
   ).join("");
 }
 
@@ -542,6 +565,7 @@ export {
   BASE_URL,
   DEFAULT_LOCALE,
   STATIC_PAGES,
+  staticPageImages,
   SUPPORTED_LOCALES,
   buildSitemapHeader,
   buildEventEntries,
