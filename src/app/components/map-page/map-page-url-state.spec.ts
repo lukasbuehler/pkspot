@@ -403,6 +403,6 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(objectPanel).toContain('routerLink="/about"');
     expect(objectPanel).not.toContain("seo-community-list");
     expect(communityList).toContain("<a");
-    expect(communityList).toContain('[attr.href]="community.canonicalPath"');
+    expect(communityList).toContain('[attr.href]="community.canonicalPath | appHref"');
   });
 });

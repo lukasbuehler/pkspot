@@ -69,6 +69,7 @@ import {
   CommunityLocalityMergeConfirmDialogComponent,
   CommunityLocalityMergeConfirmData,
 } from "../community-locality-merge-confirm-dialog/community-locality-merge-confirm-dialog.component";
+import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -99,6 +100,7 @@ interface CommunityInfoCardView {
 @Component({
   selector: "app-community-landing-page",
   imports: [
+    AppHrefPipe,
     SystemDatePipe,
     NgOptimizedImage,
     MatCardModule,

@@ -110,7 +110,7 @@
                     <a
                       class="text-decoration-none"
                       style="color: var(--mat-sys-primary)"
-                      [href]="country.path"
+                      [href]="country.path | appHref"
                       (click)="onCommunityPathClick($event, country.path)"
                     >
                       {{ country.name }}
@@ -532,7 +532,7 @@
               @if (panelMode()) {
                 <a
                   class="community-link-card"
-                  [href]="child.canonicalPath"
+                  [href]="child.canonicalPath | appHref"
                   (click)="onCommunityPathClick($event, child.canonicalPath)"
                 >
                   <span class="community-link-name">

@@ -213,8 +213,29 @@ function assertPageIdentity(html, routeLabel, expectedHeading) {
   assert.match(text, expectedHeading, `${routeLabel} H1 should identify the page`);
 }
 
+/**
+ * Root-absolute anchors ignore `<base href>`, so an app link such as
+ * `/map/spots/x` without a locale makes every crawler hop through a redirect.
+ */
+function assertInternalLinksLocalized(html, routeLabel) {
+  const unlocalized = [...html.matchAll(/<a\b[^>]*\shref="(\/[^"]*)"/gi)]
+    .map((match) => match[1])
+    .filter(
+      (href) =>
+        !href.startsWith("//") &&
+        !/^\/(?:en|de|fr|it|es|nl)(?:[/?#]|$)/u.test(href) &&
+        !/^\/(?:assets|favicon)/u.test(href),
+    );
+  assert.deepEqual(
+    unlocalized,
+    [],
+    `${routeLabel} internal links should include the locale prefix`,
+  );
+}
+
 function assertCrawlerSurface(html, routeLabel, expected = {}) {
   assertPageIdentity(html, routeLabel, expected.heading);
+  assertInternalLinksLocalized(html, routeLabel);
   assert.match(html, /<!doctype html>/i, `${routeLabel} should return HTML`);
   assert.match(
     html,

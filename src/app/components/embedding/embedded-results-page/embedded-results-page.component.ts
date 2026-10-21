@@ -14,12 +14,13 @@ import { LocaleCode } from '../../../../db/models/Interfaces';
 import { Spot, LocalSpot } from '../../../../db/models/Spot';
 import { SpotPreviewData } from '../../../../db/schemas/SpotPreviewData';
 import { Event as PkEvent } from '../../../../db/models/Event';
+import { AppHrefPipe } from "../../../pipes/app-href.pipe";
 
 type EmbeddedItem = { kind: 'spot'; value: Spot } | { kind: 'event'; value: PkEvent } | { kind: 'community'; value: CommunityLandingPageData };
 
 @Component({
   selector: 'app-embedded-results-page',
-  imports: [MatButtonModule, SpotListComponent, SpotMapComponent, EventCardComponent, EntityPreviewCardComponent],
+  imports: [AppHrefPipe, MatButtonModule, SpotListComponent, SpotMapComponent, EventCardComponent, EntityPreviewCardComponent],
   templateUrl: './embedded-results-page.component.html',
   styleUrl: './embedded-results-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

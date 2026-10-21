@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, input, output } from "@angular/core
 import { MatIconModule } from "@angular/material/icon";
 import { countries } from "../../../../scripts/Countries";
 import { CommunitySearchPreview } from "../../../services/search.service";
+import { AppHrefPipe } from "../../../pipes/app-href.pipe";
 
 @Component({
   selector: "app-map-community-list",
-  imports: [MatIconModule],
+  imports: [AppHrefPipe, MatIconModule],
   templateUrl: "./map-community-list.component.html",
   styleUrl: "./map-community-list.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

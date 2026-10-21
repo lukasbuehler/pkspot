@@ -2,7 +2,7 @@
   <div class="map-community-list">
     @for (community of communities(); track community.communityKey) {
       <a
-        [attr.href]="community.canonicalPath"
+        [attr.href]="community.canonicalPath | appHref"
         class="community-row app-card"
         (click)="onSelect($event, community)"
       >

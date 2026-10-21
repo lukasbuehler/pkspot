@@ -1,6 +1,6 @@
 @if (selectMode()) {
   <a
-    [attr.href]="href()"
+    [attr.href]="href() | appHref"
     class="event-card-action"
     (click)="onSelectClick($event)"
   >

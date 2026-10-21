@@ -25,7 +25,7 @@
       }
     </div>
     @for (community of communityCards(); track community.communityKey) {
-      <a [href]="community.canonicalPath" target="_blank" rel="noopener noreferrer" class="community-link">
+      <a [href]="community.canonicalPath | appHref" target="_blank" rel="noopener noreferrer" class="community-link">
         <app-entity-preview-card [title]="community.displayName" [subtitle]="community.description"
           [imageSrc]="community.imageUrl" [imageAlt]="community.displayName" icon="groups" [clickable]="true" />
       </a>

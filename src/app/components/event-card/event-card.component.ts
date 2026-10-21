@@ -25,10 +25,12 @@ import {
 } from "../event-display/event-display.helpers";
 import { AnalyticsService } from "../../services/analytics.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
 @Component({
   selector: "app-event-card",
   imports: [
+    AppHrefPipe,
     NgOptimizedImage,
     NgTemplateOutlet,
     MatCardModule,
