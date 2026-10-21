@@ -33,7 +33,7 @@
     <unit id="3786612121005562547">
       <segment state="initial">
         <source>Verification could not be started. You can try another method or try again later.</source>
-        <target>Verification could not be started. You can try another method or try again later.</target>
+        <target>No se pudo iniciar la verificación. Puedes probar otro método o intentarlo más tarde.</target>
       </segment>
     </unit>
     <unit id="3789771835244333891">
@@ -109,7 +109,7 @@
     <unit id="8116175184239166510">
       <segment state="initial">
         <source>Decline</source>
-        <target>Decline</target>
+        <target>Rechazar</target>
       </segment>
     </unit>
     <unit id="8124605615260157091">
@@ -155,7 +155,7 @@
     <unit id="1782760576339691907">
       <segment state="initial">
         <source>Go to Settings &gt; Account and you&apos;ll find the option to update your email address. You&apos;ll need to verify the new email before the change takes effect.</source>
-        <target>Go to Settings &gt; Account and you&apos;ll find the option to update your email address. You&apos;ll need to verify the new email before the change takes effect.</target>
+        <target>Ve a Ajustes &gt; Cuenta y encontrarás la opción para actualizar tu correo electrónico. Tendrás que verificar el nuevo correo antes de que el cambio tenga efecto.</target>
       </segment>
     </unit>
     <unit id="1792190533431059127">
@@ -295,7 +295,7 @@
     <unit id="6350615969580028001">
       <segment state="initial">
         <source>Shop actions</source>
-        <target>Shop actions</target>
+        <target>Acciones de la tienda</target>
       </segment>
     </unit>
     <unit id="6350961303290386382">
@@ -343,13 +343,13 @@
     <unit id="6383039941486033298">
       <segment state="initial">
         <source>PK Spot stickers for the real world, with Swiss shipping included.</source>
-        <target>PK Spot stickers for the real world, with Swiss shipping included.</target>
+        <target>Pegatinas de PK Spot para el mundo real, con envío en Suiza incluido.</target>
       </segment>
     </unit>
     <unit id="6392361494636232622">
       <segment state="initial">
         <source>PK Spot service</source>
-        <target>PK Spot service</target>
+        <target>Servicio de PK Spot</target>
       </segment>
     </unit>
     <unit id="6396144908605095471">
@@ -449,7 +449,7 @@
     <unit id="4939271577655832680">
       <segment state="initial">
         <source>There was an error approving the follow request.</source>
-        <target>There was an error approving the follow request.</target>
+        <target>Se produjo un error al aprobar la solicitud de seguimiento.</target>
       </segment>
     </unit>
     <unit id="4939428286618017421">
@@ -503,7 +503,7 @@
     <unit id="8940432368628537952">
       <segment state="initial">
         <source>Go to Settings &gt; Account &gt; Delete Account. You&apos;ll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.</source>
-        <target>Go to Settings &gt; Account &gt; Delete Account. You&apos;ll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.</target>
+        <target>Ve a Ajustes &gt; Cuenta &gt; Eliminar cuenta. Se te pedirá que confirmes esta acción. Ten en cuenta que esto eliminará permanentemente todos tus datos y no se puede deshacer.</target>
       </segment>
     </unit>
     <unit id="8942517704279686805">
@@ -581,13 +581,13 @@
     <unit id="4481769637105317205">
       <segment state="initial">
         <source>waiting on votes</source>
-        <target>waiting on votes</target>
+        <target>esperando votos</target>
       </segment>
     </unit>
     <unit id="4493161543971750886">
       <segment state="initial">
         <source>Privacy or data use</source>
-        <target>Privacy or data use</target>
+        <target>Privacidad o uso de datos</target>
       </segment>
     </unit>
     <unit id="8461609631969932886">
@@ -755,7 +755,7 @@
     <unit id="6824976364666397501">
       <segment state="initial">
         <source>Report a safety concern</source>
-        <target>Report a safety concern</target>
+        <target>Reportar un problema de seguridad</target>
       </segment>
     </unit>
     <unit id="5506176846620350292">
@@ -887,7 +887,7 @@
     <unit id="1403609706001572962">
       <segment state="initial">
         <source>I can&apos;t verify my email, what do I do?</source>
-        <target>I can&apos;t verify my email, what do I do?</target>
+        <target>No puedo verificar mi correo, ¿qué hago?</target>
       </segment>
     </unit>
     <unit id="1426358485872019526">
@@ -939,7 +939,7 @@
     <unit id="1472354653162750894">
       <segment state="initial">
         <source>Open event website</source>
-        <target>Open event website</target>
+        <target>Abrir sitio web del evento</target>
       </segment>
     </unit>
     <unit id="1485459466100400260">
@@ -957,19 +957,19 @@
     <unit id="1489333176937623478">
       <segment state="initial">
         <source>PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!</source>
-        <target>PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!</target>
+        <target>PK Spot depende de las contribuciones de la comunidad. Si aún no hay Spots en tu zona, ¡sé el primero en añadir uno!</target>
       </segment>
     </unit>
     <unit id="1494956089085338936">
       <segment state="initial">
         <source>Describe what happened and what outcome you need.</source>
-        <target>Describe what happened and what outcome you need.</target>
+        <target>Describe qué ocurrió y qué resultado necesitas.</target>
       </segment>
     </unit>
     <unit id="6308412905104409373">
       <segment state="initial">
         <source>View item</source>
-        <target>View item</target>
+        <target>Ver artículo</target>
       </segment>
     </unit>
     <unit id="6309828574111583895">
@@ -1023,7 +1023,7 @@
     <unit id="1360510412098130395">
       <segment state="initial">
         <source>You have not submitted any reports</source>
-        <target>You have not submitted any reports</target>
+        <target>No has enviado ningún reporte</target>
       </segment>
     </unit>
     <unit id="1370851403138688256">
@@ -1035,7 +1035,7 @@
     <unit id="1371449879775297874">
       <segment state="initial">
         <source>Shop items</source>
-        <target>Shop items</target>
+        <target>Artículos de la tienda</target>
       </segment>
     </unit>
     <unit id="1381308436651796702">
@@ -1047,7 +1047,7 @@
     <unit id="1388712764439031120">
       <segment state="initial">
         <source>Open link</source>
-        <target>Open link</target>
+        <target>Abrir enlace</target>
       </segment>
     </unit>
     <unit id="1389550100207768929">
@@ -1059,7 +1059,7 @@
     <unit id="1393288181273188560">
       <segment state="initial">
         <source>Org approval</source>
-        <target>Org approval</target>
+        <target>Aprobación de organización</target>
       </segment>
     </unit>
     <unit id="1396251268725844084">
@@ -1083,19 +1083,19 @@
     <unit id="2580257792587718487">
       <segment state="initial">
         <source>Verified 18+ status required</source>
-        <target>Verified 18+ status required</target>
+        <target>Se requiere un estado 18+ verificado</target>
       </segment>
     </unit>
     <unit id="2592135485980390676">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Registro de entrenamiento</target>
       </segment>
     </unit>
     <unit id="2599075381042572471">
       <segment state="initial">
         <source>No organization approvals waiting.</source>
-        <target>No organization approvals waiting.</target>
+        <target>No hay aprobaciones de organizaciones pendientes.</target>
       </segment>
     </unit>
     <unit id="5863879151969666492">
@@ -1215,7 +1215,7 @@
     <unit id="session_planner.form.add_co_host">
       <segment state="initial">
         <source> Add co-host </source>
-        <target> Add co-host </target>
+        <target> Añadir coanfitrión </target>
       </segment>
     </unit>
     <unit id="session_planner.form.capacity">
@@ -1227,13 +1227,13 @@
     <unit id="session_planner.form.co_hosts">
       <segment state="initial">
         <source> Co-hosts and editors </source>
-        <target> Co-hosts and editors </target>
+        <target> Coanfitriones y editores </target>
       </segment>
     </unit>
     <unit id="session_planner.form.co_hosts_hint">
       <segment state="initial">
         <source> Co-hosts can edit details and publish updates, but cannot transfer, manage access, or delete the session. </source>
-        <target> Co-hosts can edit details and publish updates, but cannot transfer, manage access, or delete the session. </target>
+        <target> Los coanfitriones pueden editar los detalles y publicar novedades, pero no pueden transferir la sesión, gestionar el acceso ni eliminarla. </target>
       </segment>
     </unit>
     <unit id="session_planner.form.essentials">
@@ -1293,7 +1293,7 @@
     <unit id="session_planner.form.remove_co_host">
       <segment state="initial">
         <source>Remove co-host</source>
-        <target>Remove co-host</target>
+        <target>Quitar coanfitrión</target>
       </segment>
     </unit>
     <unit id="session_planner.form.rsvp">
@@ -1401,55 +1401,55 @@
     <unit id="settings.app_check.detail.default">
       <segment state="initial">
         <source>App Check status is shown here for release testing.</source>
-        <target>App Check status is shown here for release testing.</target>
+        <target>El estado de App Check se muestra aquí para las pruebas de lanzamiento.</target>
       </segment>
     </unit>
     <unit id="settings.app_check.detail.failed">
       <segment state="initial">
         <source>App Check is not enforced yet, so the app can continue loading while this is tested.</source>
-        <target>App Check is not enforced yet, so the app can continue loading while this is tested.</target>
+        <target>App Check aún no se aplica, así que la app puede seguir cargando mientras se prueba.</target>
       </segment>
     </unit>
     <unit id="settings.app_check.detail.ready">
       <segment state="initial">
         <source>This app installation can request App Check tokens.</source>
-        <target>This app installation can request App Check tokens.</target>
+        <target>Esta instalación de la app puede solicitar tokens de App Check.</target>
       </segment>
     </unit>
     <unit id="settings.app_check.label">
       <segment state="initial">
         <source>App verification</source>
-        <target>App verification</target>
+        <target>Verificación de la app</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.failed">
       <segment state="initial">
         <source>Failed</source>
-        <target>Failed</target>
+        <target>Fallido</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.idle">
       <segment state="initial">
         <source>Not checked</source>
-        <target>Not checked</target>
+        <target>No comprobado</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.initializing">
       <segment state="initial">
         <source>Checking</source>
-        <target>Checking</target>
+        <target>Comprobando</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.ready">
       <segment state="initial">
         <source>Verified</source>
-        <target>Verified</target>
+        <target>Verificado</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.skipped">
       <segment state="initial">
         <source>Skipped</source>
-        <target>Skipped</target>
+        <target>Omitido</target>
       </segment>
     </unit>
     <unit id="profile.menu.ariaLabel">
@@ -1473,7 +1473,7 @@
     <unit id="profile.menu.notifications_unread">
       <segment state="initial">
         <source>Notifications</source>
-        <target>Notifications</target>
+        <target>Notificaciones</target>
       </segment>
     </unit>
     <unit id="profile.menu.settings">
@@ -2064,7 +2064,7 @@
     <unit id="moderation.reports.close_tooltip">
       <segment state="initial">
         <source>Close this report as no further investigation. The report is recorded in provenance and removed from the queue.</source>
-        <target>Cerrar this report as no further investigation. The report is recorded in provenance and removed from the queue.</target>
+        <target>Cierra este reporte sin más investigación. El reporte queda registrado en el historial y se elimina de la cola.</target>
       </segment>
     </unit>
     <unit id="moderation.reports.delete_media_tooltip">
@@ -2220,7 +2220,7 @@
     <unit id="3514079164376470263">
       <segment state="initial">
         <source>Dangerous activity</source>
-        <target>Dangerous activity</target>
+        <target>Actividad peligrosa</target>
       </segment>
     </unit>
     <unit id="3517550046701184661">
@@ -2256,7 +2256,7 @@
     <unit id="3572620215430537942">
       <segment state="initial">
         <source>How do I add a new spot?</source>
-        <target>How do I add a new spot?</target>
+        <target>¿Cómo añado un Spot nuevo?</target>
       </segment>
     </unit>
     <unit id="3572703815662689324">
@@ -2378,7 +2378,7 @@
     <unit id="signup.email_invalid">
       <segment state="initial">
         <source>Enter a valid email address.</source>
-        <target>Enter a valid email address.</target>
+        <target>Introduce un correo electrónico válido.</target>
       </segment>
     </unit>
     <unit id="signup.meta.description">
@@ -2396,13 +2396,13 @@
     <unit id="signup.password_mismatch">
       <segment state="initial">
         <source>The passwords must match.</source>
-        <target>The passwords must match.</target>
+        <target>Las contraseñas deben coincidir.</target>
       </segment>
     </unit>
     <unit id="signup.password_short">
       <segment state="initial">
         <source>Use at least 6 characters.</source>
-        <target>Use at least 6 characters.</target>
+        <target>Usa al menos 6 caracteres.</target>
       </segment>
     </unit>
     <unit id="account.about.button">
@@ -2426,61 +2426,61 @@
     <unit id="account.app_check.detail.failed">
       <segment state="initial">
         <source>Firebase App Check failed in this browser. Sign-in may still work while enforcement is off.</source>
-        <target>Firebase App Check failed in this browser. Sign-in may still work while enforcement is off.</target>
+        <target>Firebase App Check falló en este navegador. El inicio de sesión puede seguir funcionando mientras no se aplique.</target>
       </segment>
     </unit>
     <unit id="account.app_check.detail.initializing">
       <segment state="initial">
         <source>Checking Firebase App Check for this browser.</source>
-        <target>Checking Firebase App Check for this browser.</target>
+        <target>Comprobando Firebase App Check para este navegador.</target>
       </segment>
     </unit>
     <unit id="account.app_check.detail.ready">
       <segment state="initial">
         <source>This browser can request Firebase App Check tokens.</source>
-        <target>This browser can request Firebase App Check tokens.</target>
+        <target>Este navegador puede solicitar tokens de Firebase App Check.</target>
       </segment>
     </unit>
     <unit id="account.app_check.detail.skipped">
       <segment state="initial">
         <source>Firebase App Check was not run in this context.</source>
-        <target>Firebase App Check was not run in this context.</target>
+        <target>Firebase App Check no se ejecutó en este contexto.</target>
       </segment>
     </unit>
     <unit id="account.app_check.label">
       <segment state="initial">
         <source>App verification</source>
-        <target>App verification</target>
+        <target>Verificación de la app</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.failed">
       <segment state="initial">
         <source>Failed</source>
-        <target>Failed</target>
+        <target>Fallido</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.idle">
       <segment state="initial">
         <source>Not checked</source>
-        <target>Not checked</target>
+        <target>No comprobado</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.initializing">
       <segment state="initial">
         <source>Checking</source>
-        <target>Checking</target>
+        <target>Comprobando</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.ready">
       <segment state="initial">
         <source>Verified</source>
-        <target>Verified</target>
+        <target>Verificado</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.skipped">
       <segment state="initial">
         <source>Skipped</source>
-        <target>Skipped</target>
+        <target>Omitido</target>
       </segment>
     </unit>
     <unit id="account.auth.kicker">
@@ -2552,7 +2552,7 @@
     <unit id="5701618810648052610">
       <segment state="initial">
         <source>Title</source>
-        <target>Title</target>
+        <target>Título</target>
       </segment>
     </unit>
     <unit id="5717355661357017349">
@@ -2594,7 +2594,7 @@
     <unit id="4281314225728884844">
       <segment state="initial">
         <source>Could not load ownership claims.</source>
-        <target>Could not load ownership claims.</target>
+        <target>No se pudieron cargar las reclamaciones de propiedad.</target>
       </segment>
     </unit>
     <unit id="4292524783489016046">
@@ -2642,7 +2642,7 @@
     <unit id="7728834599660689787">
       <segment state="initial">
         <source>Failed to queue community merge</source>
-        <target>Failed to queue community merge</target>
+        <target>No se pudo poner en cola la fusión de comunidades</target>
       </segment>
     </unit>
     <unit id="7730768294447572928">
@@ -2684,7 +2684,7 @@
     <unit id="7740572490638436380">
       <segment state="initial">
         <source>What happened, and what would you like us to do?</source>
-        <target>What happened, and what would you like us to do?</target>
+        <target>¿Qué ha pasado y qué te gustaría que hiciéramos?</target>
       </segment>
     </unit>
     <unit id="7742018872696898961">
@@ -2696,7 +2696,7 @@
     <unit id="7742164960555824051">
       <segment state="initial">
         <source>PK Spot things, for the community.</source>
-        <target>PK Spot things, for the community.</target>
+        <target>Cosas de PK Spot, para la comunidad.</target>
       </segment>
     </unit>
     <unit id="7747602784925344705">
@@ -2720,7 +2720,7 @@
     <unit id="7314366616785648252">
       <segment state="initial">
         <source>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</source>
-        <target>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</target>
+        <target>Pide a Apple que comparta un rango de edad 18+ en una instalación compatible de iPhone o iPad.</target>
       </segment>
     </unit>
     <unit id="7317396157754495933">
@@ -2750,7 +2750,7 @@
     <unit id="6962699013778688473">
       <segment state="initial">
         <source>Continue</source>
-        <target>Continue</target>
+        <target>Continuar</target>
       </segment>
     </unit>
     <unit id="6964548934732214977">
@@ -2792,7 +2792,7 @@
     <unit id="69928384265189430">
       <segment state="initial">
         <source>Loading your reports…</source>
-        <target>Loading your reports…</target>
+        <target>Cargando tus reportes…</target>
       </segment>
     </unit>
     <unit id="6997602168024654529">
@@ -2804,7 +2804,7 @@
     <unit id="3002792374831127014">
       <segment state="initial">
         <source>Event title</source>
-        <target>Event title</target>
+        <target>Título del evento</target>
       </segment>
     </unit>
     <unit id="3013055597615607317">
@@ -2840,13 +2840,13 @@
     <unit id="309182425721385503">
       <segment state="initial">
         <source>Use OneID’s privacy-preserving 18+ check when it is available for your account.</source>
-        <target>Use OneID’s privacy-preserving 18+ check when it is available for your account.</target>
+        <target>Usa la comprobación 18+ de OneID, que protege tu privacidad, cuando esté disponible para tu cuenta.</target>
       </segment>
     </unit>
     <unit id="6849734841047073254">
       <segment state="initial">
         <source>App &amp; Technical</source>
-        <target>App &amp; Technical</target>
+        <target>App y aspectos técnicos</target>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -2894,7 +2894,7 @@
     <unit id="4522831263356539404">
       <segment state="initial">
         <source>Add at least one community card before submitting</source>
-        <target>Add at least one community card before submitting</target>
+        <target>Añade al menos una tarjeta de comunidad antes de enviar</target>
       </segment>
     </unit>
     <unit id="4523261781339006646">
@@ -2936,7 +2936,7 @@
     <unit id="5265692635538057834">
       <segment state="initial">
         <source>Starts</source>
-        <target>Starts</target>
+        <target>Inicio</target>
       </segment>
     </unit>
     <unit id="5274576717459953946">
@@ -3014,7 +3014,7 @@
     <unit id="208754813279042651">
       <segment state="initial">
         <source> Public map activity from this profile. </source>
-        <target> Public map activity from this profile. </target>
+        <target> Actividad pública en el mapa de este perfil. </target>
       </segment>
     </unit>
     <unit id="1034149520601449069">
@@ -3026,7 +3026,7 @@
     <unit id="1035459065824093652">
       <segment state="initial">
         <source>Open edit</source>
-        <target>Open edit</target>
+        <target>Abrir edición</target>
       </segment>
     </unit>
     <unit id="1053544786475957394">
@@ -3074,7 +3074,7 @@
     <unit id="1263548881803803113">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</source>
-        <target><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</target>
+        <target><ph id="0" equiv="PH" disp="summary.yes_count"/> sí · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</target>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -3158,7 +3158,7 @@
     <unit id="6480397588679623769">
       <segment state="initial">
         <source>Provide at least 10 characters and no more than 4000.</source>
-        <target>Provide at least 10 characters and no more than 4000.</target>
+        <target>Escribe al menos 10 caracteres y no más de 4000.</target>
       </segment>
     </unit>
     <unit id="6482719729528694797">
@@ -3170,7 +3170,7 @@
     <unit id="6483130493535015475">
       <segment state="initial">
         <source>Apple age range</source>
-        <target>Apple age range</target>
+        <target>Rango de edad de Apple</target>
       </segment>
     </unit>
     <unit id="6484510802892706344">
@@ -3188,7 +3188,7 @@
     <unit id="6496554534263466402">
       <segment state="initial">
         <source>Follow request declined</source>
-        <target>Follow request declined</target>
+        <target>Solicitud de seguimiento rechazada</target>
       </segment>
     </unit>
     <unit id="1921077401852097555">
@@ -3200,7 +3200,7 @@
     <unit id="1922856447604899399">
       <segment state="initial">
         <source>What do you need to do?</source>
-        <target>What do you need to do?</target>
+        <target>¿Qué necesitas hacer?</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -3254,7 +3254,7 @@
     <unit id="1999955189900316314">
       <segment state="initial">
         <source>Could not submit this case. Please try again.</source>
-        <target>Could not submit this case. Please try again.</target>
+        <target>No se pudo enviar este caso. Inténtalo de nuevo.</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -3284,7 +3284,7 @@
     <unit id="362734614337874993">
       <segment state="initial">
         <source>Claim submission failed.</source>
-        <target>Claim submission failed.</target>
+        <target>No se pudo enviar la reclamación.</target>
       </segment>
     </unit>
     <unit id="3628374603023447227">
@@ -3308,7 +3308,7 @@
     <unit id="3646247581011421406">
       <segment state="initial">
         <source>How do I change my profile picture?</source>
-        <target>How do I change my profile picture?</target>
+        <target>¿Cómo cambio mi foto de perfil?</target>
       </segment>
     </unit>
     <unit id="3665571050825458932">
@@ -3332,7 +3332,7 @@
     <unit id="3687813860684285439">
       <segment state="initial">
         <source>Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.</source>
-        <target>Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.</target>
+        <target>Abre los detalles del Spot y toca el icono de edición. Puedes sugerir cambios que revisará la comunidad. Para problemas graves, usa el botón de reportar.</target>
       </segment>
     </unit>
     <unit id="3689301942396726798">
@@ -3482,7 +3482,7 @@
     <unit id="8004315903155516282">
       <segment state="initial">
         <source>Suggest an Event</source>
-        <target>Suggest an Event</target>
+        <target>Sugerir un evento</target>
       </segment>
     </unit>
     <unit id="8011758699583016596">
@@ -3494,7 +3494,7 @@
     <unit id="5385906161252826395">
       <segment state="initial">
         <source>Manage paid sticker orders</source>
-        <target>Manage paid sticker orders</target>
+        <target>Gestionar pedidos de pegatinas pagados</target>
       </segment>
     </unit>
     <unit id="5387369293317164071">
@@ -3560,7 +3560,7 @@
     <unit id="1528946323951752035">
       <segment state="initial">
         <source> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </source>
-        <target> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </target>
+        <target> Es opcional. Las funciones normales de PK Spot y los check-ins privados siguen disponibles sin ella. La verificación solo desbloquea funciones para adultos, como hacer público tu perfil y compartir tu ubicación actual cuando esa función esté disponible. </target>
       </segment>
     </unit>
     <unit id="1534029177398918729">
@@ -3617,7 +3617,7 @@
     <unit id="6959547043904768184">
       <segment state="initial">
         <source> Enable vector maps </source>
-        <target> Enable vector maps </target>
+        <target> Activar mapas vectoriales </target>
       </segment>
     </unit>
     <unit id="6001163963116907226">
@@ -3629,13 +3629,13 @@
     <unit id="6008995610936337562">
       <segment state="initial">
         <source>What is this about?</source>
-        <target>What is this about?</target>
+        <target>¿De qué se trata?</target>
       </segment>
     </unit>
     <unit id="601278657052307519">
       <segment state="initial">
         <source>Spam or a malicious link</source>
-        <target>Spam or a malicious link</target>
+        <target>Spam o un enlace malicioso</target>
       </segment>
     </unit>
     <unit id="6020607686749008401">
@@ -3659,7 +3659,7 @@
     <unit id="603746038161851978">
       <segment state="initial">
         <source>Explore the map</source>
-        <target>Explore the map</target>
+        <target>Explorar el mapa</target>
       </segment>
     </unit>
     <unit id="6044276004948174494">
@@ -3683,7 +3683,7 @@
     <unit id="6090595749329244912">
       <segment state="initial">
         <source>Community card approved</source>
-        <target>Community card approved</target>
+        <target>Tarjeta de comunidad aprobada</target>
       </segment>
     </unit>
     <unit id="8411563267246095898">
@@ -3701,7 +3701,7 @@
     <unit id="8417842421847722492">
       <segment state="initial">
         <source>My orders</source>
-        <target>My orders</target>
+        <target>Mis pedidos</target>
       </segment>
     </unit>
     <unit id="8425534745547037864">
@@ -3719,7 +3719,7 @@
     <unit id="8436223332064456837">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
-        <target>&lt;ph id=&quot;0&quot; equiv=&quot;PH&quot; disp=&quot;challengeNombre&quot;/&gt; - &lt;ph id=&quot;1&quot; equiv=&quot;PH_1&quot; disp=&quot;spotNombre&quot;/&gt;</target>
+        <target><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></target>
       </segment>
     </unit>
     <unit id="8439955599488894226">
@@ -3767,7 +3767,7 @@
     <unit id="3261642323287960585">
       <segment state="initial">
         <source>Sexual content</source>
-        <target>Sexual content</target>
+        <target>Contenido sexual</target>
       </segment>
     </unit>
     <unit id="3268843240047650795">
@@ -3803,7 +3803,7 @@
     <unit id="4172689758346256013">
       <segment state="initial">
         <source>There was an error declining the follow request.</source>
-        <target>There was an error declining the follow request.</target>
+        <target>Se produjo un error al rechazar la solicitud de seguimiento.</target>
       </segment>
     </unit>
     <unit id="4178793080892122578">
@@ -3875,7 +3875,7 @@
     <unit id="1147358182484006761">
       <segment state="initial">
         <source>Shop</source>
-        <target>Shop</target>
+        <target>Tienda</target>
       </segment>
     </unit>
     <unit id="1165007284037457711">
@@ -4007,7 +4007,7 @@
     <unit id="8640413159088021987">
       <segment state="initial">
         <source>Profile access saved</source>
-        <target>Profile access saved</target>
+        <target>Acceso al perfil guardado</target>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -4019,7 +4019,7 @@
     <unit id="8658317676793040364">
       <segment state="initial">
         <source>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</source>
-        <target>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</target>
+        <target>PK Spot está disponible en iOS y Android. También puedes instalarla como Progressive Web App (PWA) abriendo el menú de tu navegador y seleccionando «Añadir a pantalla de inicio» o «Instalar».</target>
       </segment>
     </unit>
     <unit id="8665225557897160418">
@@ -4133,7 +4133,7 @@
     <unit id="4406719211202279831">
       <segment state="initial">
         <source>My reports</source>
-        <target>My reports</target>
+        <target>Mis reportes</target>
       </segment>
     </unit>
     <unit id="4411678463999056889">
@@ -4145,7 +4145,7 @@
     <unit id="4412828079367710507">
       <segment state="initial">
         <source>Spot edit votes</source>
-        <target>Spot edit votes</target>
+        <target>Votaciones de ediciones de Spots</target>
       </segment>
     </unit>
     <unit id="4416413576346763682">
@@ -4169,7 +4169,7 @@
     <unit id="2314075913167237221">
       <segment state="initial">
         <source>City</source>
-        <target>City</target>
+        <target>Ciudad</target>
       </segment>
     </unit>
     <unit id="2325032840535506648">
@@ -5559,7 +5559,7 @@
     <unit id="notification_center.community_event.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> is coming to <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;community_name&quot;]"/></source>
-        <target>Nuevo evento en <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/></target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> llega a <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;community_name&quot;]"/></target>
       </segment>
     </unit>
     <unit id="notification_center.community_info.approved_body">
@@ -5571,7 +5571,7 @@
     <unit id="notification_center.community_info.approved_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> info is now live</source>
-        <target>Información de la comunidad aprobada</target>
+        <target>La información de <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> ya está publicada</target>
       </segment>
     </unit>
     <unit id="notification_center.community_info.rejected_body">
@@ -5595,13 +5595,13 @@
     <unit id="notification_center.community_spot_digest.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> new Spots worth a look</source>
-        <target>Spots que vale la pena visitar</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> Spots nuevos que vale la pena visitar</target>
       </segment>
     </unit>
     <unit id="notification_center.community_spot_digest.top_body">
       <segment state="initial">
         <source>Starting with <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;top_spot_name&quot;]"/> and more fresh recommendations.</source>
-        <target>Starting with <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;top_spot_name&quot;]"/> and more fresh recommendations.</target>
+        <target>Empezando por <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;top_spot_name&quot;]"/> y más recomendaciones nuevas.</target>
       </segment>
     </unit>
     <unit id="notification_center.dismiss">
@@ -5631,7 +5631,7 @@
     <unit id="notification_center.event_ownership.title">
       <segment state="initial">
         <source>Event management update</source>
-        <target>Event management update</target>
+        <target>Actualización de la gestión del evento</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.body">
@@ -5643,7 +5643,7 @@
     <unit id="notification_center.event_reminder.day_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is tomorrow</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is tomorrow</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> es mañana</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.interested_body">
@@ -5655,73 +5655,73 @@
     <unit id="notification_center.event_reminder.thirty_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 30 minutes</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 30 minutes</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> empieza en 30 minutos</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.two_hour_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 2 hours</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 2 hours</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> empieza en 2 horas</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.venue_body">
       <segment state="initial">
         <source>See you at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</source>
-        <target>See you at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
+        <target>Nos vemos en <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.cancelled_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> was cancelled</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> was cancelled</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> se ha cancelado</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.location_body">
       <segment state="initial">
         <source>Check the updated location.</source>
-        <target>Check the updated location.</target>
+        <target>Consulta la ubicación actualizada.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.location_title">
       <segment state="initial">
         <source>New location for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></source>
-        <target>New location for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
+        <target>Nueva ubicación para <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.location_venue">
       <segment state="initial">
         <source>The event is now at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</source>
-        <target>The event is now at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
+        <target>El evento ahora es en <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.open_body">
       <segment state="initial">
         <source>Open the event for the latest details.</source>
-        <target>Open the event for the latest details.</target>
+        <target>Abre el evento para ver los últimos detalles.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.restored_body">
       <segment state="initial">
         <source>The event is active again.</source>
-        <target>The event is active again.</target>
+        <target>El evento vuelve a estar activo.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.restored_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is back on</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is back on</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> vuelve a celebrarse</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.time_body">
       <segment state="initial">
         <source>Check the updated date and time.</source>
-        <target>Check the updated date and time.</target>
+        <target>Consulta la fecha y la hora actualizadas.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.time_title">
       <segment state="initial">
         <source>New time for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></source>
-        <target>New time for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
+        <target>Nuevo horario para <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
       </segment>
     </unit>
     <unit id="notification_center.follow_accepted.body">
@@ -5733,7 +5733,7 @@
     <unit id="notification_center.follow_accepted.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> accepted your follow request</source>
-        <target>Solicitud para seguir aceptada</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> aceptó tu solicitud de seguimiento</target>
       </segment>
     </unit>
     <unit id="notification_center.follow_request.body">
@@ -5745,7 +5745,7 @@
     <unit id="notification_center.follow_request.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you</source>
-        <target>Solicitud de seguimiento</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> quiere seguirte</target>
       </segment>
     </unit>
     <unit id="notification_center.heading">
@@ -5805,7 +5805,7 @@
     <unit id="notification_center.mutual_follower.title">
       <segment state="initial">
         <source>You and <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> follow each other</source>
-        <target>Nuevo seguimiento mutuo</target>
+        <target>Seguimiento mutuo con <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/></target>
       </segment>
     </unit>
     <unit id="notification_center.new_follower.body">
@@ -5817,7 +5817,7 @@
     <unit id="notification_center.new_follower.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> is following you</source>
-        <target>Nuevo seguidor</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> te sigue</target>
       </segment>
     </unit>
     <unit id="notification_center.ok">
@@ -5829,31 +5829,31 @@
     <unit id="notification_center.resolved.accepted">
       <segment state="initial">
         <source>Accepted</source>
-        <target>Accepted</target>
+        <target>Aceptada</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.declined">
       <segment state="initial">
         <source>Declined</source>
-        <target>Declined</target>
+        <target>Rechazada</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.following">
       <segment state="initial">
         <source>Following</source>
-        <target>Following</target>
+        <target>Siguiendo</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.going">
       <segment state="initial">
         <source>Going</source>
-        <target>Going</target>
+        <target>Voy</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.saved">
       <segment state="initial">
         <source>Saved</source>
-        <target>Saved</target>
+        <target>Guardado</target>
       </segment>
     </unit>
     <unit id="notification_center.retry">
@@ -5871,7 +5871,7 @@
     <unit id="notification_center.show_history">
       <segment state="initial">
         <source>Show earlier updates</source>
-        <target>Show earlier updates</target>
+        <target>Mostrar novedades anteriores</target>
       </segment>
     </unit>
     <unit id="notification_center.spot_edit.approved_body">
@@ -5889,7 +5889,7 @@
     <unit id="notification_center.spot_edit.organization_body">
       <segment state="initial">
         <source>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. It was approved by <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;organization_name&quot;]"/>.</source>
-        <target>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. It was approved by <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;organization_name&quot;]"/>.</target>
+        <target>Gracias por mejorar <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;organization_name&quot;]"/> ha aprobado el cambio.</target>
       </segment>
     </unit>
     <unit id="notification_center.spot_edit.rejected_body">
@@ -5907,7 +5907,7 @@
     <unit id="notification_center.spot_edit.vote_body">
       <segment state="initial">
         <source>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. The community approved it with <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;yes_count&quot;]"/> yes and <ph id="2" equiv="INTERPOLATION_2" disp="payload[&quot;no_count&quot;]"/> no votes.</source>
-        <target>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. The community approved it with <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;yes_count&quot;]"/> yes and <ph id="2" equiv="INTERPOLATION_2" disp="payload[&quot;no_count&quot;]"/> no votes.</target>
+        <target>Gracias por mejorar <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. La comunidad lo aprobó con <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;yes_count&quot;]"/> votos a favor y <ph id="2" equiv="INTERPOLATION_2" disp="payload[&quot;no_count&quot;]"/> en contra.</target>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.action_body">
@@ -5919,7 +5919,7 @@
     <unit id="notification_center.spot_report.action_title">
       <segment state="initial">
         <source>Thanks for reporting <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/></source>
-        <target>Medidas tomadas tras tu denuncia de Spot</target>
+        <target>Gracias por reportar <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/></target>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.reviewed_body">
@@ -5937,37 +5937,37 @@
     <unit id="notification_center.success.accepted">
       <segment state="initial">
         <source>Follow request accepted</source>
-        <target>Follow request accepted</target>
+        <target>Solicitud de seguimiento aceptada</target>
       </segment>
     </unit>
     <unit id="notification_center.success.declined">
       <segment state="initial">
         <source>Follow request declined</source>
-        <target>Follow request declined</target>
+        <target>Solicitud de seguimiento rechazada</target>
       </segment>
     </unit>
     <unit id="notification_center.success.following">
       <segment state="initial">
         <source>You are now following them</source>
-        <target>You are now following them</target>
+        <target>Ahora sigues a esta persona</target>
       </segment>
     </unit>
     <unit id="notification_center.success.going">
       <segment state="initial">
         <source>Marked as going</source>
-        <target>Marked as going</target>
+        <target>Marcado como «Voy»</target>
       </segment>
     </unit>
     <unit id="notification_center.success.saved">
       <segment state="initial">
         <source>Event saved</source>
-        <target>Event saved</target>
+        <target>Evento guardado</target>
       </segment>
     </unit>
     <unit id="notification_center.success.undone">
       <segment state="initial">
         <source>Action undone</source>
-        <target>Action undone</target>
+        <target>Acción deshecha</target>
       </segment>
     </unit>
     <unit id="notification_center.unread_count">
@@ -5985,19 +5985,19 @@
     <unit id="notification_center.view">
       <segment state="initial">
         <source> View </source>
-        <target> View </target>
+        <target> Ver </target>
       </segment>
     </unit>
     <unit id="notification_center.waitlist.body">
       <segment state="initial">
         <source>A place opened up and your registration is confirmed.</source>
-        <target>A place opened up and your registration is confirmed.</target>
+        <target>Se ha liberado una plaza y tu inscripción está confirmada.</target>
       </segment>
     </unit>
     <unit id="notification_center.waitlist.title">
       <segment state="initial">
         <source>You&apos;re in for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/>!</source>
-        <target>You&apos;re in for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/>!</target>
+        <target>¡Ya tienes plaza en <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/>!</target>
       </segment>
     </unit>
     <unit id="notification_center.weather.title">
@@ -6255,55 +6255,55 @@
     <unit id="report_outcome.action_body">
       <segment state="initial">
         <source> We reviewed the report and took appropriate action. </source>
-        <target> We reviewed the report and took appropriate action. </target>
+        <target> Revisamos el reporte y tomamos las medidas adecuadas. </target>
       </segment>
     </unit>
     <unit id="report_outcome.action_title">
       <segment state="initial">
         <source>Thanks for your report</source>
-        <target>Thanks for your report</target>
+        <target>Gracias por tu reporte</target>
       </segment>
     </unit>
     <unit id="report_outcome.back">
       <segment state="initial">
         <source>Notifications</source>
-        <target>Notifications</target>
+        <target>Notificaciones</target>
       </segment>
     </unit>
     <unit id="report_outcome.closed_body">
       <segment state="initial">
         <source> We reviewed the available information and no action was needed. </source>
-        <target> We reviewed the available information and no action was needed. </target>
+        <target> Revisamos la información disponible y no fue necesario tomar medidas. </target>
       </segment>
     </unit>
     <unit id="report_outcome.eyebrow">
       <segment state="initial">
         <source>REPORT UPDATE</source>
-        <target>REPORT UPDATE</target>
+        <target>ACTUALIZACIÓN DEL REPORTE</target>
       </segment>
     </unit>
     <unit id="report_outcome.load_error">
       <segment state="initial">
         <source>Report update unavailable</source>
-        <target>Report update unavailable</target>
+        <target>Actualización del reporte no disponible</target>
       </segment>
     </unit>
     <unit id="report_outcome.not_found">
       <segment state="initial">
         <source>Report update not found</source>
-        <target>Report update not found</target>
+        <target>No se encontró la actualización del reporte</target>
       </segment>
     </unit>
     <unit id="report_outcome.privacy">
       <segment state="initial">
         <source> To protect everyone involved, internal moderation notes and evidence are not shown here. </source>
-        <target> To protect everyone involved, internal moderation notes and evidence are not shown here. </target>
+        <target> Para proteger a todas las personas implicadas, aquí no se muestran las notas internas de moderación ni las pruebas. </target>
       </segment>
     </unit>
     <unit id="report_outcome.reviewed_title">
       <segment state="initial">
         <source>Your report was reviewed</source>
-        <target>Your report was reviewed</target>
+        <target>Tu reporte ha sido revisado</target>
       </segment>
     </unit>
     <unit id="review_spot_button_label">
@@ -6331,7 +6331,7 @@
     <unit id="9017499308763862338">
       <segment state="initial">
         <source>Choose a one-time amount to help keep PK Spot moving.</source>
-        <target>Choose a one-time amount to help keep PK Spot moving.</target>
+        <target>Elige un importe único para ayudar a que PK Spot siga adelante.</target>
       </segment>
     </unit>
     <unit id="9019759608416406738">
@@ -6343,7 +6343,7 @@
     <unit id="9023791413043930148">
       <segment state="initial">
         <source>No community card suggestions.</source>
-        <target>No community card suggestions.</target>
+        <target>No hay sugerencias de tarjetas de comunidad.</target>
       </segment>
     </unit>
     <unit id="9035893448017132543">
@@ -6367,7 +6367,7 @@
     <unit id="9056381689300790104">
       <segment state="initial">
         <source>Choose an organization, explain the claim, and add evidence.</source>
-        <target>Choose an organization, explain the claim, and add evidence.</target>
+        <target>Elige una organización, explica la reclamación y añade pruebas.</target>
       </segment>
     </unit>
     <unit id="9058496705928443158">
@@ -6379,7 +6379,7 @@
     <unit id="9067558040232302554">
       <segment state="initial">
         <source>How do I change my email address?</source>
-        <target>How do I change my email address?</target>
+        <target>¿Cómo cambio mi dirección de correo?</target>
       </segment>
     </unit>
     <unit id="9068926282349592226">
@@ -6427,7 +6427,7 @@
     <unit id="profile.trainingLog">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Registro de entrenamiento</target>
       </segment>
     </unit>
     <unit id="train.now.addNotes">
@@ -6535,13 +6535,13 @@
     <unit id="9134186591632250216">
       <segment state="initial">
         <source>Copyright infringement</source>
-        <target>Copyright infringement</target>
+        <target>Infracción de derechos de autor</target>
       </segment>
     </unit>
     <unit id="9140895998943713645">
       <segment state="initial">
         <source>Age-assurance decision</source>
-        <target>Age-assurance decision</target>
+        <target>Decisión de verificación de edad</target>
       </segment>
     </unit>
     <unit id="9147694429145547851">
@@ -6580,7 +6580,7 @@
     <unit id="9167637664887633063">
       <segment state="initial">
         <source>Sign in to see your reports</source>
-        <target>Sign in to see your reports</target>
+        <target>Inicia sesión para ver tus reportes</target>
       </segment>
     </unit>
     <unit id="9170384147435945980">
@@ -6700,7 +6700,7 @@
     <unit id="934990675622429392">
       <segment state="initial">
         <source>Safety process or legal duty</source>
-        <target>Safety process or legal duty</target>
+        <target>Proceso de seguridad u obligación legal</target>
       </segment>
     </unit>
     <unit id="940154517504196358">
@@ -6718,7 +6718,7 @@
     <unit id="943622778225300320">
       <segment state="initial">
         <source>(recommended)</source>
-        <target>(recommended)</target>
+        <target>(recomendado)</target>
       </segment>
     </unit>
     <unit id="947995176992343811">
@@ -6730,13 +6730,13 @@
     <unit id="95213720452925222">
       <segment state="initial">
         <source>Not specified</source>
-        <target>Not specified</target>
+        <target>No especificado</target>
       </segment>
     </unit>
     <unit id="962179517602562850">
       <segment state="initial">
         <source>Privacy or doxxing</source>
-        <target>Privacy or doxxing</target>
+        <target>Privacidad o doxing</target>
       </segment>
     </unit>
     <unit id="967806009511704497">
@@ -6748,7 +6748,7 @@
     <unit id="979884833201290493">
       <segment state="initial">
         <source>Open — edit or withdraw</source>
-        <target>Open — edit or withdraw</target>
+        <target>Abierto: edítalo o retíralo</target>
       </segment>
     </unit>
     <unit id="987307797836003655">
@@ -6766,7 +6766,7 @@
     <unit id="6431080344212430103">
       <segment state="initial">
         <source>Bad quality</source>
-        <target>Bad quality</target>
+        <target>Mala calidad</target>
       </segment>
     </unit>
     <unit id="6431756795596367554">
@@ -7134,7 +7134,7 @@
     <unit id="settings.notifications.reminder_day">
       <segment state="initial">
         <source>1 day</source>
-        <target>1 day</target>
+        <target>1 día</target>
       </segment>
     </unit>
     <unit id="settings.notifications.reminder_thirty_minutes">
@@ -7146,7 +7146,7 @@
     <unit id="settings.notifications.reminder_times_aria">
       <segment state="initial">
         <source>Default event reminder times</source>
-        <target>Default event reminder times</target>
+        <target>Horarios predeterminados de recordatorio de eventos</target>
       </segment>
     </unit>
     <unit id="settings.notifications.reminder_times_label">
@@ -7158,7 +7158,7 @@
     <unit id="settings.notifications.reminder_two_hours">
       <segment state="initial">
         <source>2 hours</source>
-        <target>2 hours</target>
+        <target>2 horas</target>
       </segment>
     </unit>
     <unit id="settings.notifications.reports_description">
@@ -7266,7 +7266,7 @@
     <unit id="6136284828823087442">
       <segment state="initial">
         <source>Your reports could not be loaded</source>
-        <target>Your reports could not be loaded</target>
+        <target>No se pudieron cargar tus reportes</target>
       </segment>
     </unit>
     <unit id="6138468027048267884">
@@ -7284,7 +7284,7 @@
     <unit id="6147096546149362686">
       <segment state="initial">
         <source>Using the Map</source>
-        <target>Using the Map</target>
+        <target>Usar el mapa</target>
       </segment>
     </unit>
     <unit id="6150046349171143373">
@@ -7914,7 +7914,7 @@
     <unit id="7602303323284138919">
       <segment state="initial">
         <source>My cart</source>
-        <target>My cart</target>
+        <target>Mi carrito</target>
       </segment>
     </unit>
     <unit id="7648040324495665523">
@@ -8203,19 +8203,19 @@
     <unit id="event.timing.date_only_label">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="range"/> · Time to be announced</source>
-        <target><ph id="0" equiv="PH" disp="range"/> · Time to be announced</target>
+        <target><ph id="0" equiv="PH" disp="range"/> · Hora por confirmar</target>
       </segment>
     </unit>
     <unit id="event.timing.open_end_label">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="start"/> · Open end</source>
-        <target><ph id="0" equiv="PH" disp="start"/> · Open end</target>
+        <target><ph id="0" equiv="PH" disp="start"/> · Sin hora de fin</target>
       </segment>
     </unit>
     <unit id="event.venue_tba">
       <segment state="initial">
         <source>Venue to be announced</source>
-        <target>Venue to be announced</target>
+        <target>Lugar por confirmar</target>
       </segment>
     </unit>
     <unit id="event_access.add">
@@ -8437,7 +8437,7 @@
     <unit id="event_category.social">
       <segment state="initial">
         <source>Social</source>
-        <target>Social</target>
+        <target>Encuentro</target>
       </segment>
     </unit>
     <unit id="event_category.travel">
@@ -8449,247 +8449,247 @@
     <unit id="event_category.workshop">
       <segment state="initial">
         <source>Workshop</source>
-        <target>Workshop</target>
+        <target>Taller</target>
       </segment>
     </unit>
     <unit id="event_claims.admin_only">
       <segment state="initial">
         <source> Administrator access is required. </source>
-        <target> Administrator access is required. </target>
+        <target> Se requiere acceso de administrador. </target>
       </segment>
     </unit>
     <unit id="event_claims.approve">
       <segment state="initial">
         <source> Approve </source>
-        <target> Approve </target>
+        <target> Aprobar </target>
       </segment>
     </unit>
     <unit id="event_claims.claim_explanation">
       <segment state="initial">
         <source> Claim explanation </source>
-        <target> Claim explanation </target>
+        <target> Explicación de la reclamación </target>
       </segment>
     </unit>
     <unit id="event_claims.contest">
       <segment state="initial">
         <source> Contest claim </source>
-        <target> Contest claim </target>
+        <target> Impugnar la reclamación </target>
       </segment>
     </unit>
     <unit id="event_claims.current_organizer">
       <segment state="initial">
         <source>Current organizer</source>
-        <target>Current organizer</target>
+        <target>Organizador actual</target>
       </segment>
     </unit>
     <unit id="event_claims.current_owner">
       <segment state="initial">
         <source>Current owner</source>
-        <target>Current owner</target>
+        <target>Propietario actual</target>
       </segment>
     </unit>
     <unit id="event_claims.empty">
       <segment state="initial">
         <source> There are no pending ownership claims. </source>
-        <target> There are no pending ownership claims. </target>
+        <target> No hay reclamaciones de propiedad pendientes. </target>
       </segment>
     </unit>
     <unit id="event_claims.evidence">
       <segment state="initial">
         <source> Public evidence URLs (one per line) </source>
-        <target> Public evidence URLs (one per line) </target>
+        <target> URL de pruebas públicas (una por línea) </target>
       </segment>
     </unit>
     <unit id="event_claims.explanation">
       <segment state="initial">
         <source>Explanation</source>
-        <target>Explanation</target>
+        <target>Explicación</target>
       </segment>
     </unit>
     <unit id="event_claims.former_owner">
       <segment state="initial">
         <source>Former owner</source>
-        <target>Former owner</target>
+        <target>Propietario anterior</target>
       </segment>
     </unit>
     <unit id="event_claims.former_owner_suggestion">
       <segment state="initial">
         <source> Suggested former-owner access </source>
-        <target> Suggested former-owner access </target>
+        <target> Acceso sugerido para el propietario anterior </target>
       </segment>
     </unit>
     <unit id="event_claims.inbox_heading">
       <segment state="initial">
         <source> Event ownership claims </source>
-        <target> Event ownership claims </target>
+        <target> Reclamaciones de propiedad de eventos </target>
       </segment>
     </unit>
     <unit id="event_claims.inbox_intro">
       <segment state="initial">
         <source> Review evidence and decide ownership, public organizer linkage, and former-owner access separately. </source>
-        <target> Review evidence and decide ownership, public organizer linkage, and former-owner access separately. </target>
+        <target> Revisa las pruebas y decide por separado la propiedad, la vinculación pública del organizador y el acceso del propietario anterior. </target>
       </segment>
     </unit>
     <unit id="event_claims.link_organizer">
       <segment state="initial">
         <source> Link organization publicly </source>
-        <target> Link organization publicly </target>
+        <target> Vincular la organización públicamente </target>
       </segment>
     </unit>
     <unit id="event_claims.loading_organizations">
       <segment state="initial">
         <source>Loading your organizations…</source>
-        <target>Loading your organizations…</target>
+        <target>Cargando tus organizaciones…</target>
       </segment>
     </unit>
     <unit id="event_claims.no_manager_orgs">
       <segment state="initial">
         <source> You must manage an active PK Spot organization to submit a claim. </source>
-        <target> You must manage an active PK Spot organization to submit a claim. </target>
+        <target> Debes gestionar una organización activa de PK Spot para enviar una reclamación. </target>
       </segment>
     </unit>
     <unit id="event_claims.organization">
       <segment state="initial">
         <source>Organization</source>
-        <target>Organization</target>
+        <target>Organización</target>
       </segment>
     </unit>
     <unit id="event_claims.owner_message">
       <segment state="initial">
         <source> Optional response </source>
-        <target> Optional response </target>
+        <target> Respuesta opcional </target>
       </segment>
     </unit>
     <unit id="event_claims.owner_response">
       <segment state="initial">
         <source> Current owner response </source>
-        <target> Current owner response </target>
+        <target> Respuesta del propietario actual </target>
       </segment>
     </unit>
     <unit id="event_claims.owner_response_help">
       <segment state="initial">
         <source> Supporting or contesting helps administrators decide. They may decide immediately when the public evidence is already sufficient. </source>
-        <target> Supporting or contesting helps administrators decide. They may decide immediately when the public evidence is already sufficient. </target>
+        <target> Apoyar o impugnar ayuda a los administradores a decidir. Pueden decidir de inmediato si las pruebas públicas ya son suficientes. </target>
       </segment>
     </unit>
     <unit id="event_claims.reason">
       <segment state="initial">
         <source>Decision reason</source>
-        <target>Decision reason</target>
+        <target>Motivo de la decisión</target>
       </segment>
     </unit>
     <unit id="event_claims.reject">
       <segment state="initial">
         <source> Reject </source>
-        <target> Reject </target>
+        <target> Rechazar </target>
       </segment>
     </unit>
     <unit id="event_claims.reload">
       <segment state="initial">
         <source>Reload</source>
-        <target>Reload</target>
+        <target>Recargar</target>
       </segment>
     </unit>
     <unit id="event_claims.remove_access">
       <segment state="initial">
         <source> Remove access </source>
-        <target> Remove access </target>
+        <target> Quitar acceso </target>
       </segment>
     </unit>
     <unit id="event_claims.request">
       <segment state="initial">
         <source>Request organization ownership</source>
-        <target>Request organization ownership</target>
+        <target>Solicitar la propiedad para una organización</target>
       </segment>
     </unit>
     <unit id="event_claims.response_contest_label">
       <segment state="initial">
         <source>Contested</source>
-        <target>Contested</target>
+        <target>Impugnada</target>
       </segment>
     </unit>
     <unit id="event_claims.response_contested">
       <segment state="initial">
         <source>Your objection was recorded.</source>
-        <target>Your objection was recorded.</target>
+        <target>Se ha registrado tu objeción.</target>
       </segment>
     </unit>
     <unit id="event_claims.response_failed">
       <segment state="initial">
         <source>Could not save your response.</source>
-        <target>Could not save your response.</target>
+        <target>No se pudo guardar tu respuesta.</target>
       </segment>
     </unit>
     <unit id="event_claims.response_heading">
       <segment state="initial">
         <source> Organization ownership claim </source>
-        <target> Organization ownership claim </target>
+        <target> Reclamación de propiedad de una organización </target>
       </segment>
     </unit>
     <unit id="event_claims.response_support_label">
       <segment state="initial">
         <source>Supported</source>
-        <target>Supported</target>
+        <target>Apoyada</target>
       </segment>
     </unit>
     <unit id="event_claims.response_supported">
       <segment state="initial">
         <source>Your support was recorded.</source>
-        <target>Your support was recorded.</target>
+        <target>Se ha registrado tu apoyo.</target>
       </segment>
     </unit>
     <unit id="event_claims.response_unavailable_body">
       <segment state="initial">
         <source> Only the claimant, the current owner, and PK Spot administrators can view this claim. </source>
-        <target> Only the claimant, the current owner, and PK Spot administrators can view this claim. </target>
+        <target> Solo quien reclama, el propietario actual y los administradores de PK Spot pueden ver esta reclamación. </target>
       </segment>
     </unit>
     <unit id="event_claims.response_unavailable_heading">
       <segment state="initial">
         <source> Ownership claim unavailable </source>
-        <target> Ownership claim unavailable </target>
+        <target> Reclamación de propiedad no disponible </target>
       </segment>
     </unit>
     <unit id="event_claims.retain_editor">
       <segment state="initial">
         <source> Retain as editor </source>
-        <target> Retain as editor </target>
+        <target> Mantener como editor </target>
       </segment>
     </unit>
     <unit id="event_claims.status_approved">
       <segment state="initial">
         <source>Claim approved</source>
-        <target>Claim approved</target>
+        <target>Reclamación aprobada</target>
       </segment>
     </unit>
     <unit id="event_claims.status_rejected">
       <segment state="initial">
         <source>Claim rejected</source>
-        <target>Claim rejected</target>
+        <target>Reclamación rechazada</target>
       </segment>
     </unit>
     <unit id="event_claims.submit">
       <segment state="initial">
         <source> Submit claim </source>
-        <target> Submit claim </target>
+        <target> Enviar reclamación </target>
       </segment>
     </unit>
     <unit id="event_claims.submit_heading">
       <segment state="initial">
         <source> Request organization ownership </source>
-        <target> Request organization ownership </target>
+        <target> Solicitar la propiedad para una organización </target>
       </segment>
     </unit>
     <unit id="event_claims.support">
       <segment state="initial">
         <source> Support claim </source>
-        <target> Support claim </target>
+        <target> Apoyar la reclamación </target>
       </segment>
     </unit>
     <unit id="event_claims.transfer">
       <segment state="initial">
         <source> Transfer event ownership </source>
-        <target> Transfer event ownership </target>
+        <target> Transferir la propiedad del evento </target>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -8749,7 +8749,7 @@
     <unit id="event_create.snackbar.times_required">
       <segment state="initial">
         <source>Enter an exact start and end time before creating the event.</source>
-        <target>Enter an exact start and end time before creating the event.</target>
+        <target>Introduce una hora exacta de inicio y de fin antes de crear el evento.</target>
       </segment>
     </unit>
     <unit id="event_description.show_less">
@@ -8791,25 +8791,25 @@
     <unit id="event_edit.active_until_date">
       <segment state="initial">
         <source> Active until date </source>
-        <target> Active until date </target>
+        <target> Activo hasta (fecha) </target>
       </segment>
     </unit>
     <unit id="event_edit.active_until_help">
       <segment state="initial">
         <source> Open-ended events show no public end time. The operational cutoff controls live and map visibility only; four hours after the start is suggested. </source>
-        <target> Open-ended events show no public end time. The operational cutoff controls live and map visibility only; four hours after the start is suggested. </target>
+        <target> Los eventos sin hora de fin no muestran una hora de fin pública. El límite operativo solo controla la visibilidad en directo y en el mapa; se sugieren cuatro horas después del inicio. </target>
       </segment>
     </unit>
     <unit id="event_edit.active_until_required">
       <segment state="initial">
         <source> Choose a cutoff after the start. </source>
-        <target> Choose a cutoff after the start. </target>
+        <target> Elige un límite posterior al inicio. </target>
       </segment>
     </unit>
     <unit id="event_edit.active_until_time">
       <segment state="initial">
         <source> Active until time </source>
-        <target> Active until time </target>
+        <target> Activo hasta (hora) </target>
       </segment>
     </unit>
     <unit id="event_edit.additional_spot_count">
@@ -8857,13 +8857,13 @@
     <unit id="event_edit.attendance_instructions">
       <segment state="initial">
         <source> Entry or on-site instructions </source>
-        <target> Entry or on-site instructions </target>
+        <target> Instrucciones de acceso o en el lugar </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_instructions_hint">
       <segment state="initial">
         <source> Optional check-in, wristband, ticket-desk, or on-site guidance. </source>
-        <target> Optional check-in, wristband, ticket-desk, or on-site guidance. </target>
+        <target> Indicaciones opcionales sobre check-in, pulseras, taquilla o en el lugar. </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_organization">
@@ -8995,7 +8995,7 @@
     <unit id="event_edit.custom_marker_description">
       <segment state="initial">
         <source> Description </source>
-        <target> Description </target>
+        <target> Descripción </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_google_place_id">
@@ -9013,7 +9013,7 @@
     <unit id="event_edit.custom_marker_image_url">
       <segment state="initial">
         <source> Image URL </source>
-        <target> Image URL </target>
+        <target> URL de la imagen </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_lat">
@@ -9031,7 +9031,7 @@
     <unit id="event_edit.custom_marker_locality">
       <segment state="initial">
         <source> Locality </source>
-        <target> Locality </target>
+        <target> Localidad </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_name">
@@ -9055,7 +9055,7 @@
     <unit id="event_edit.custom_marker_url">
       <segment state="initial">
         <source> External URL </source>
-        <target> External URL </target>
+        <target> URL externa </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_markers_empty">
@@ -9121,7 +9121,7 @@
     <unit id="event_edit.end_time_required">
       <segment state="initial">
         <source> Enter an end time after the start. </source>
-        <target> Enter an end time after the start. </target>
+        <target> Introduce una hora de fin posterior al inicio. </target>
       </segment>
     </unit>
     <unit id="event_edit.event_categories">
@@ -9193,85 +9193,85 @@
     <unit id="event_edit.external_source_id">
       <segment state="initial">
         <source> External source id </source>
-        <target> External source id </target>
+        <target> ID de la fuente externa </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider">
       <segment state="initial">
         <source> External source provider </source>
-        <target> External source provider </target>
+        <target> Proveedor de la fuente externa </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider.none">
       <segment state="initial">
         <source> None </source>
-        <target> None </target>
+        <target> Ninguno </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider.other">
       <segment state="initial">
         <source> Other </source>
-        <target> Other </target>
+        <target> Otro </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider_hint">
       <segment state="initial">
         <source> Drives provider-specific map preview labels when no primary event link is set. </source>
-        <target> Drives provider-specific map preview labels when no primary event link is set. </target>
+        <target> Determina las etiquetas de vista previa del mapa específicas del proveedor cuando no hay un enlace principal del evento. </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_url">
       <segment state="initial">
         <source> External source URL </source>
-        <target> External source URL </target>
+        <target> URL de la fuente externa </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_url_invalid">
       <segment state="initial">
         <source> Use a public http or https link. </source>
-        <target> Use a public http or https link. </target>
+        <target> Usa un enlace público http o https. </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_add">
       <segment state="initial">
         <source>Add featured</source>
-        <target>Add featured</target>
+        <target>Añadir destacado</target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_description">
       <segment state="initial">
         <source> Short note </source>
-        <target> Short note </target>
+        <target> Nota breve </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_image">
       <segment state="initial">
         <source> Image URL </source>
-        <target> Image URL </target>
+        <target> URL de la imagen </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_name">
       <segment state="initial">
         <source> Name </source>
-        <target> Name </target>
+        <target> Nombre </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_remove">
       <segment state="initial">
         <source>Remove featured person, group or act</source>
-        <target>Remove featured person, group or act</target>
+        <target>Quitar persona, grupo o espectáculo destacado</target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_role">
       <segment state="initial">
         <source> Role </source>
-        <target> Role </target>
+        <target> Rol </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_type">
       <segment state="initial">
         <source> Type </source>
-        <target> Type </target>
+        <target> Tipo </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_url">
@@ -9283,7 +9283,7 @@
     <unit id="event_edit.featured_participants_heading">
       <segment state="initial">
         <source> Featured people, groups &amp; acts </source>
-        <target> Featured people, groups &amp; acts </target>
+        <target> Personas, grupos y espectáculos destacados </target>
       </segment>
     </unit>
     <unit id="event_edit.focus_zoom">
@@ -9319,7 +9319,7 @@
     <unit id="event_edit.is_promoted">
       <segment state="initial">
         <source> Promote in the map island </source>
-        <target> Promocionar in the map island </target>
+        <target> Promocionar en la isla del mapa </target>
       </segment>
     </unit>
     <unit id="event_edit.legacy_area_polygon_outer_ring">
@@ -9331,19 +9331,19 @@
     <unit id="event_edit.legacy_registration_body">
       <segment state="initial">
         <source> Saving other changes will not remove existing registrations. </source>
-        <target> Saving other changes will not remove existing registrations. </target>
+        <target> Guardar otros cambios no eliminará las inscripciones existentes. </target>
       </segment>
     </unit>
     <unit id="event_edit.legacy_registration_disable">
       <segment state="initial">
         <source> Disable registration </source>
-        <target> Disable registration </target>
+        <target> Desactivar inscripción </target>
       </segment>
     </unit>
     <unit id="event_edit.legacy_registration_title">
       <segment state="initial">
         <source> Existing PK Spot registration is preserved </source>
-        <target> Existing PK Spot registration is preserved </target>
+        <target> Se conserva la inscripción existente de PK Spot </target>
       </segment>
     </unit>
     <unit id="event_edit.link_add">
@@ -9439,25 +9439,25 @@
     <unit id="event_edit.location_clear">
       <segment state="initial">
         <source> Remove location </source>
-        <target> Remove location </target>
+        <target> Quitar ubicación </target>
       </segment>
     </unit>
     <unit id="event_edit.location_coordinates_label">
       <segment state="initial">
         <source> Main location: </source>
-        <target> Main location: </target>
+        <target> Ubicación principal: </target>
       </segment>
     </unit>
     <unit id="event_edit.location_explanation">
       <segment state="initial">
         <source> Optionally set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </source>
-        <target> Optionally set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </target>
+        <target> Opcionalmente, define la ubicación principal del evento seleccionando un Spot, un lugar de Google o haciendo clic en el mapa. Es el punto de encuentro o el centro del evento: los traceurs que vayan allí deben ver el evento y poder encontrar cosas como el punto de información u otros traceurs. </target>
       </segment>
     </unit>
     <unit id="event_edit.location_not_set">
       <segment state="initial">
         <source>Not set</source>
-        <target>Not set</target>
+        <target>No establecida</target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_google_place">
@@ -9469,25 +9469,25 @@
     <unit id="event_edit.location_search_hint">
       <segment state="initial">
         <source> Use this when the map is not already showing a relevant place. </source>
-        <target> Use this when the map is not already showing a relevant place. </target>
+        <target> Úsalo cuando el mapa no muestre ya un lugar relevante. </target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_label">
       <segment state="initial">
         <source> Search spots and Google Places </source>
-        <target> Search spots and Google Places </target>
+        <target> Buscar Spots y lugares de Google </target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_loading">
       <segment state="initial">
         <source> Searching places… </source>
-        <target> Searching places… </target>
+        <target> Buscando lugares… </target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_unnamed_spot">
       <segment state="initial">
         <source>Unnamed spot</source>
-        <target>Unnamed spot</target>
+        <target>Spot sin nombre</target>
       </segment>
     </unit>
     <unit id="event_edit.logo_background_color">
@@ -9625,13 +9625,13 @@
     <unit id="event_edit.organizer_access_hint">
       <segment state="initial">
         <source> Managers can view drafts by default. Edit access is recommended when this organization is actively hosting the event. </source>
-        <target> Managers can view drafts by default. Edit access is recommended when this organization is actively hosting the event. </target>
+        <target> Los gestores pueden ver los borradores de forma predeterminada. Se recomienda dar acceso de edición cuando esta organización organiza activamente el evento. </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_edit_access">
       <segment state="initial">
         <source> Allow this organization’s managers to edit the event </source>
-        <target> Allow this organization’s managers to edit the event </target>
+        <target> Permitir que los gestores de esta organización editen el evento </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_hint">
@@ -9643,19 +9643,19 @@
     <unit id="event_edit.organizer_linked">
       <segment state="initial">
         <source> Linked to PK Spot </source>
-        <target> Linked to PK Spot </target>
+        <target> Vinculado a PK Spot </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_unlink">
       <segment state="initial">
         <source> Unlink </source>
-        <target> Unlink </target>
+        <target> Desvincular </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_unlinked">
       <segment state="initial">
         <source> Unlinked organizer name — no PK Spot organization receives access. </source>
-        <target> Unlinked organizer name — no PK Spot organization receives access. </target>
+        <target> Nombre de organizador no vinculado: ninguna organización de PK Spot recibe acceso. </target>
       </segment>
     </unit>
     <unit id="event_edit.owner.admin_managed">
@@ -9757,7 +9757,7 @@
     <unit id="event_edit.qualification_paths_empty">
       <segment state="initial">
         <source> Add paths when this event requires qualification. </source>
-        <target> Añadir rutas when this event requires qualification. </target>
+        <target> Añade rutas cuando este evento requiera clasificación. </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_paths_heading">
@@ -9871,7 +9871,7 @@
     <unit id="event_edit.schedule_label">
       <segment state="initial">
         <source> Schedule and timing certainty </source>
-        <target> Schedule and timing certainty </target>
+        <target> Horario y certeza de la hora </target>
       </segment>
     </unit>
     <unit id="event_edit.series_id">
@@ -9889,7 +9889,7 @@
     <unit id="event_edit.series_ids_hint">
       <segment state="initial">
         <source> Plain ids for filtering/search. Membership ids are added on save. </source>
-        <target> Plain ids for filtering/search. Miembroship ids are added on save. </target>
+        <target> IDs simples para filtrar/buscar. Los IDs de membresía se añaden al guardar. </target>
       </segment>
     </unit>
     <unit id="event_edit.series_membership_add">
@@ -9907,7 +9907,7 @@
     <unit id="event_edit.series_memberships_empty">
       <segment state="initial">
         <source> Add memberships when this event belongs to a tour, qualifier path, or championship. </source>
-        <target> Añadir membresías when this event belongs to a tour, qualifier path, or championship. </target>
+        <target> Añade membresías cuando este evento pertenezca a un tour, una ruta de clasificación o un campeonato. </target>
       </segment>
     </unit>
     <unit id="event_edit.series_memberships_heading">
@@ -9925,7 +9925,7 @@
     <unit id="event_edit.series_qualification_hint">
       <segment state="initial">
         <source> Event series, qualifier targets, and required paths </source>
-        <target> Evento series, qualifier targets, and required paths </target>
+        <target> Series de eventos, objetivos de clasificación y rutas requeridas </target>
       </segment>
     </unit>
     <unit id="event_edit.series_role">
@@ -10039,13 +10039,13 @@
     <unit id="event_edit.source_metadata_heading">
       <segment state="initial">
         <source> Source/import metadata </source>
-        <target> Source/import metadata </target>
+        <target> Metadatos de origen/importación </target>
       </segment>
     </unit>
     <unit id="event_edit.source_metadata_help">
       <segment state="initial">
         <source> Records the canonical external listing and import de-duplication ID. This is not ticket configuration and does not import events automatically. </source>
-        <target> Records the canonical external listing and import de-duplication ID. This is not ticket configuration and does not import events automatically. </target>
+        <target> Registra la ficha externa canónica y el ID de deduplicación de importación. No es una configuración de entradas y no importa eventos automáticamente. </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -10111,7 +10111,7 @@
     <unit id="event_edit.start_time_required">
       <segment state="initial">
         <source> Enter a valid local start time. </source>
-        <target> Enter a valid local start time. </target>
+        <target> Introduce una hora local de inicio válida. </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_add">
@@ -10231,7 +10231,7 @@
     <unit id="event_edit.temporary_spots_hint">
       <segment state="initial">
         <source> Event-only local spots saved inside this event </source>
-        <target> Evento-only local spots saved inside this event </target>
+        <target> Spots locales exclusivos de este evento, guardados dentro del evento </target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_add">
@@ -10297,7 +10297,7 @@
     <unit id="event_edit.ticket_badge.early_bird">
       <segment state="initial">
         <source>Early bird</source>
-        <target>Early bird</target>
+        <target>Preventa</target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_badge.late">
@@ -10321,7 +10321,7 @@
     <unit id="event_edit.ticket_badge.regular">
       <segment state="initial">
         <source>Regular</source>
-        <target>Regular</target>
+        <target>General</target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_currency">
@@ -10399,55 +10399,55 @@
     <unit id="event_edit.time_zone">
       <segment state="initial">
         <source>Event time zone</source>
-        <target>Event time zone</target>
+        <target>Zona horaria del evento</target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_hint">
       <segment state="initial">
         <source> Derived from coordinates when available. For a remote event, enter an IANA zone manually. </source>
-        <target> Derived from coordinates when available. For a remote event, enter an IANA zone manually. </target>
+        <target> Se obtiene de las coordenadas cuando están disponibles. Para un evento en línea, introduce manualmente una zona IANA. </target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_required">
       <segment state="initial">
         <source> A valid IANA time zone is required for timed events. </source>
-        <target> A valid IANA time zone is required for timed events. </target>
+        <target> Los eventos con horario requieren una zona horaria IANA válida. </target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_resolve_error">
       <segment state="initial">
         <source>Time zone could not be derived. Enter it manually before saving a timed event.</source>
-        <target>Time zone could not be derived. Enter it manually before saving a timed event.</target>
+        <target>No se pudo obtener la zona horaria. Introdúcela manualmente antes de guardar un evento con horario.</target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_resolving">
       <segment state="initial">
         <source> Deriving from the map location… </source>
-        <target> Deriving from the map location… </target>
+        <target> Obteniendo de la ubicación en el mapa… </target>
       </segment>
     </unit>
     <unit id="event_edit.timing.date_only">
       <segment state="initial">
         <source> Date only — time to be announced </source>
-        <target> Date only — time to be announced </target>
+        <target> Solo fecha: hora por confirmar </target>
       </segment>
     </unit>
     <unit id="event_edit.timing.exact">
       <segment state="initial">
         <source> Exact start and end </source>
-        <target> Exact start and end </target>
+        <target> Inicio y fin exactos </target>
       </segment>
     </unit>
     <unit id="event_edit.timing.open_end">
       <segment state="initial">
         <source> Exact start, open end </source>
-        <target> Exact start, open end </target>
+        <target> Inicio exacto, sin hora de fin </target>
       </segment>
     </unit>
     <unit id="event_edit.timing_mode">
       <segment state="initial">
         <source>Timing</source>
-        <target>Timing</target>
+        <target>Horario</target>
       </segment>
     </unit>
     <unit id="event_edit.url">
@@ -10465,7 +10465,7 @@
     <unit id="event_edit.venue_optional">
       <segment state="initial">
         <source> Optional — shown as “Venue to be announced” when empty. </source>
-        <target> Optional — shown as “Venue to be announced” when empty. </target>
+        <target> Opcional: si está vacío, se muestra «Lugar por confirmar». </target>
       </segment>
     </unit>
     <unit id="event_edit.visibility">
@@ -10501,19 +10501,19 @@
     <unit id="event_featured_participant.role.artist">
       <segment state="initial">
         <source>Artist</source>
-        <target>Artist</target>
+        <target>Artista</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.athlete">
       <segment state="initial">
         <source>Athlete</source>
-        <target>Athlete</target>
+        <target>Atleta</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.coach">
       <segment state="initial">
         <source>Coach</source>
-        <target>Coach</target>
+        <target>Entrenador/a</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.dj">
@@ -10525,55 +10525,55 @@
     <unit id="event_featured_participant.role.guest">
       <segment state="initial">
         <source>Guest</source>
-        <target>Guest</target>
+        <target>Invitado/a</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.host">
       <segment state="initial">
         <source>Host</source>
-        <target>Host</target>
+        <target>Presentador/a</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.instructor">
       <segment state="initial">
         <source>Instructor</source>
-        <target>Instructor</target>
+        <target>Instructor/a</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.judge">
       <segment state="initial">
         <source>Judge</source>
-        <target>Judge</target>
+        <target>Juez/a</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.performer">
       <segment state="initial">
         <source>Performer</source>
-        <target>Performer</target>
+        <target>Intérprete</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.speaker">
       <segment state="initial">
         <source>Speaker</source>
-        <target>Speaker</target>
+        <target>Ponente</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.type.group">
       <segment state="initial">
         <source>Group or act</source>
-        <target>Group or act</target>
+        <target>Grupo o espectáculo</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.type.person">
       <segment state="initial">
         <source>Person</source>
-        <target>Person</target>
+        <target>Persona</target>
       </segment>
     </unit>
     <unit id="event_featured_participants.heading">
       <segment state="initial">
         <source> Featured people, groups &amp; acts </source>
-        <target> Featured people, groups &amp; acts </target>
+        <target> Personas, grupos y espectáculos destacados </target>
       </segment>
     </unit>
     <unit id="event_page.back_to_events">
@@ -10807,7 +10807,7 @@
     <unit id="events.status.live_open_end">
       <segment state="initial">
         <source>Ongoing — open end</source>
-        <target>Ongoing — open end</target>
+        <target>En curso: sin hora de fin</target>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -10831,7 +10831,7 @@
     <unit id="events.suggest_event">
       <segment state="initial">
         <source>Suggest an Event</source>
-        <target>Suggest an Event</target>
+        <target>Sugerir un evento</target>
       </segment>
     </unit>
     <unit id="events.status.upcoming_event_relative">
@@ -11144,7 +11144,7 @@
     <unit id="img_carousel.always_allow_external_media_domain">
       <segment state="initial">
         <source> Always allow <ph id="0" equiv="INTERPOLATION" disp="{{ domain }}"/> </source>
-        <target> Permitir siempre </target>
+        <target> Permitir siempre <ph id="0" equiv="INTERPOLATION" disp="{{ domain }}"/> </target>
       </segment>
     </unit>
     <unit id="img_carousel.external_media">
@@ -11174,7 +11174,7 @@
     <unit id="4302668244346549580">
       <segment state="initial">
         <source>Email for updates (optional when signed in)</source>
-        <target>Email for updates (optional when signed in)</target>
+        <target>Correo para novedades (opcional si has iniciado sesión)</target>
       </segment>
     </unit>
     <unit id="4320994550381609480">
@@ -11204,13 +11204,13 @@
     <unit id="434530867715201013">
       <segment state="initial">
         <source>Select every reason that applies:</source>
-        <target>Select every reason that applies:</target>
+        <target>Selecciona todos los motivos que correspondan:</target>
       </segment>
     </unit>
     <unit id="4352094314853787439">
       <segment state="initial">
         <source>Yes! We take privacy seriously. We don&apos;t sell your data and use industry-standard security. Check our Privacy Policy for full details.</source>
-        <target>Yes! We take privacy seriously. We don&apos;t sell your data and use industry-standard security. Check our Privacy Policy for full details.</target>
+        <target>¡Sí! Nos tomamos la privacidad en serio. No vendemos tus datos y usamos medidas de seguridad estándar del sector. Consulta nuestra Política de privacidad para conocer todos los detalles.</target>
       </segment>
     </unit>
     <unit id="4386559202007821626">
@@ -11318,7 +11318,7 @@
     <unit id="2850809594572783393">
       <segment state="initial">
         <source>Not relevant</source>
-        <target>Not relevant</target>
+        <target>No relevante</target>
       </segment>
     </unit>
     <unit id="2852131932578261096">
@@ -11342,7 +11342,7 @@
     <unit id="2860666001916448553">
       <segment state="initial">
         <source>Back to all events</source>
-        <target>Back to all events</target>
+        <target>Volver a todos los eventos</target>
       </segment>
     </unit>
     <unit id="2861306361489095884">
@@ -11384,7 +11384,7 @@
     <unit id="7821457763115783830">
       <segment state="initial">
         <source>Account &amp; Profile</source>
-        <target>Account &amp; Profile</target>
+        <target>Cuenta y perfil</target>
       </segment>
     </unit>
     <unit id="7824690700853674199">
@@ -11438,7 +11438,7 @@
     <unit id="7858093315829323396">
       <segment state="initial">
         <source>Age assurance</source>
-        <target>Age assurance</target>
+        <target>Verificación de edad</target>
       </segment>
     </unit>
     <unit id="7860386256947196622">
@@ -11462,13 +11462,13 @@
     <unit id="7868084107533692439">
       <segment state="initial">
         <source>Ownership claim approved.</source>
-        <target>Ownership claim approved.</target>
+        <target>Reclamación de propiedad aprobada.</target>
       </segment>
     </unit>
     <unit id="7880605355244228662">
       <segment state="initial">
         <source>Media consent</source>
-        <target>Media consent</target>
+        <target>Consentimiento para medios</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -11534,7 +11534,7 @@
     <unit id="7939156787719949830">
       <segment state="initial">
         <source>Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.</source>
-        <target>Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.</target>
+        <target>Los filtros te permiten encontrar Spots con características concretas, como estar cubiertos de la lluvia, iluminados de noche, ser interiores o tener cierto equipamiento. Accede a ellos desde el botón de filtro del mapa.</target>
       </segment>
     </unit>
     <unit id="7941428823403788384">
@@ -11546,7 +11546,7 @@
     <unit id="7945138586170930874">
       <segment state="initial">
         <source>Remove person</source>
-        <target>Remove person</target>
+        <target>Quitar persona</target>
       </segment>
     </unit>
     <unit id="5245603112373072943">
@@ -11600,7 +11600,7 @@
     <unit id="8207799228641053586">
       <segment state="initial">
         <source>Failed to update community card suggestion</source>
-        <target>Failed to update community card suggestion</target>
+        <target>No se pudo actualizar la sugerencia de tarjeta de comunidad</target>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -11654,7 +11654,7 @@
     <unit id="8288692748225980838">
       <segment state="initial">
         <source>Tap the &apos;+&apos; button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.</source>
-        <target>Tap the &apos;+&apos; button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.</target>
+        <target>Toca el botón «+» en el mapa cuando hayas hecho suficiente zoom. Coloca el marcador en la ubicación del Spot, rellena los detalles como nombre, descripción y equipamiento, y envíalo para revisión.</target>
       </segment>
     </unit>
     <unit id="8294319077118655917">
@@ -11892,7 +11892,7 @@
     <unit id="common.cancel">
       <segment state="initial">
         <source>Cancel</source>
-        <target>Cancel</target>
+        <target>Cancelar</target>
       </segment>
     </unit>
     <unit id="common.close">
@@ -12090,7 +12090,7 @@
     <unit id="community.sign_in_to_see_link">
       <segment state="initial">
         <source>Sign in to see link</source>
-        <target>Sign in to see link</target>
+        <target>Inicia sesión para ver el enlace</target>
       </segment>
     </unit>
     <unit id="community.stats.dry">
@@ -12126,7 +12126,7 @@
     <unit id="community_activity.invalid_times">
       <segment state="initial">
         <source>Choose an end time after the start time.</source>
-        <target>Choose an end time after the start time.</target>
+        <target>Elige una hora de fin posterior a la de inicio.</target>
       </segment>
     </unit>
     <unit id="contact.aside.crew.body">
@@ -12240,7 +12240,7 @@
     <unit id="contact.meta.description">
       <segment state="initial">
         <source>Contact PK Spot about support, spot map imports, partnerships, testing, or joining the crew.</source>
-        <target>Contactoar con PK Spot about support, spot map imports, partnerships, testing, or joining the crew.</target>
+        <target>Contacta con PK Spot sobre soporte, importaciones de mapas de Spots, colaboraciones, pruebas o para unirte al equipo.</target>
       </segment>
     </unit>
     <unit id="contact.meta.title">
@@ -12252,7 +12252,7 @@
     <unit id="contact.prefill.community_knowledge">
       <segment state="initial">
         <source>Hi PK Spot, I have local knowledge for <ph id="0" equiv="communityName" disp="communityName"/>: </source>
-        <target>Hi PK Spot, I have local knowledge for &lt;ph id=&quot;0&quot; equiv=&quot;communityNombre&quot; disp=&quot;communityNombre&quot;/&gt;: </target>
+        <target>Hola, PK Spot: tengo información local sobre <ph id="0" equiv="communityName" disp="communityName"/>: </target>
       </segment>
     </unit>
     <unit id="contact.prefill.crew">
@@ -12398,7 +12398,7 @@
     <unit id="8719394803198399227">
       <segment state="initial">
         <source>Decision failed.</source>
-        <target>Decision failed.</target>
+        <target>No se pudo aplicar la decisión.</target>
       </segment>
     </unit>
     <unit id="8725224299321680590">
@@ -12422,7 +12422,7 @@
     <unit id="8731046002621153148">
       <segment state="initial">
         <source>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</source>
-        <target>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</target>
+        <target>Prueba a borrar la caché de la app o a reinstalarla. Si el problema continúa, infórmanos en nuestro Discord con detalles sobre tu dispositivo y lo que estabas haciendo cuando se cerró.</target>
       </segment>
     </unit>
     <unit id="8736188664022016115">
@@ -12464,13 +12464,13 @@
     <unit id="877683860580860100">
       <segment state="initial">
         <source>Illegal or unsafe content</source>
-        <target>Illegal or unsafe content</target>
+        <target>Contenido ilegal o peligroso</target>
       </segment>
     </unit>
     <unit id="877827579793920145">
       <segment state="initial">
         <source>How do I report or edit an incorrect spot?</source>
-        <target>How do I report or edit an incorrect spot?</target>
+        <target>¿Cómo reporto o edito un Spot incorrecto?</target>
       </segment>
     </unit>
     <unit id="878082957916142359">
@@ -12524,13 +12524,13 @@
     <unit id="5646680746394158532">
       <segment state="initial">
         <source> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </source>
-        <target> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </target>
+        <target> Activa un zoom fraccionado más fluido y efectos de mapa vectorial. El renderizado ráster es el predeterminado porque es más estable en algunos WebViews móviles. </target>
       </segment>
     </unit>
     <unit id="4734349318830134239">
       <segment state="initial">
         <source>Ends</source>
-        <target>Ends</target>
+        <target>Fin</target>
       </segment>
     </unit>
     <unit id="4744376889247353452">
@@ -12566,7 +12566,7 @@
     <unit id="7774690298639065150">
       <segment state="initial">
         <source> This profile does not exist or is no longer available. </source>
-        <target> This profile does not exist or is no longer available. </target>
+        <target> Este perfil no existe o ya no está disponible. </target>
       </segment>
     </unit>
     <unit id="6680262533217185088">
@@ -12581,7 +12581,7 @@
       </notes>
       <segment state="initial">
         <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Edit media report </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Report Media </pc></source>
-        <target><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Edit media report </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Report Media </pc></target>
+        <target><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Editar reporte del medio </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Reportar medio </pc></target>
       </segment>
     </unit>
     <unit id="6684903098036930968">
@@ -12677,7 +12677,7 @@
     <unit id="4856886645538428653">
       <segment state="initial">
         <source>Enter a valid email address or leave it blank.</source>
-        <target>Enter a valid email address or leave it blank.</target>
+        <target>Introduce un correo electrónico válido o déjalo en blanco.</target>
       </segment>
     </unit>
     <unit id="profile.actions.unblock">
@@ -12725,7 +12725,7 @@
     <unit id="4897177574141849318">
       <segment state="initial">
         <source>Unsafe place or access information</source>
-        <target>Unsafe place or access information</target>
+        <target>Lugar o información de acceso inseguros</target>
       </segment>
     </unit>
     <unit id="7053728652419731548">
@@ -12737,7 +12737,7 @@
     <unit id="7058244463262851448">
       <segment state="initial">
         <source> Unblock User </source>
-        <target> Unblock User </target>
+        <target> Desbloquear usuario </target>
       </segment>
     </unit>
     <unit id="7059749880989073519">
@@ -12791,7 +12791,7 @@
     <unit id="2469314021754225074">
       <segment state="initial">
         <source>How do I delete my account?</source>
-        <target>How do I delete my account?</target>
+        <target>¿Cómo elimino mi cuenta?</target>
       </segment>
     </unit>
     <unit id="2472016265373616532">
@@ -12803,7 +12803,7 @@
     <unit id="2473567849440268466">
       <segment state="initial">
         <source>Community merge queued</source>
-        <target>Community merge queued</target>
+        <target>Fusión de comunidades en cola</target>
       </segment>
     </unit>
     <unit id="2475812979768871750">
@@ -12815,7 +12815,7 @@
     <unit id="2494595604764120182">
       <segment state="initial">
         <source>waiting on organizations</source>
-        <target>waiting on organizations</target>
+        <target>esperando a organizaciones</target>
       </segment>
     </unit>
     <unit id="2496518471623524249">
@@ -12866,7 +12866,7 @@
       </notes>
       <segment state="initial">
         <source>Update report</source>
-        <target>Update report</target>
+        <target>Actualizar reporte</target>
       </segment>
     </unit>
     <unit id="5982160190664649221">
@@ -12896,7 +12896,7 @@
     <unit id="325006844299723146">
       <segment state="initial">
         <source>pending approval</source>
-        <target>pending approval</target>
+        <target>pendiente de aprobación</target>
       </segment>
     </unit>
     <unit id="3250391385569692601">
@@ -12914,7 +12914,7 @@
     <unit id="2112768397949905814">
       <segment state="initial">
         <source>Enter a valid email address.</source>
-        <target>Enter a valid email address.</target>
+        <target>Introduce un correo electrónico válido.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -12983,7 +12983,7 @@
     <unit id="2171420900172240739">
       <segment state="initial">
         <source>Withdrawn</source>
-        <target>Withdrawn</target>
+        <target>Retirado</target>
       </segment>
     </unit>
     <unit id="2173680923654077460">
@@ -13037,7 +13037,7 @@
     <unit id="3808291968368675401">
       <segment state="initial">
         <source>Add a short summary.</source>
-        <target>Add a short summary.</target>
+        <target>Añade un breve resumen.</target>
       </segment>
     </unit>
     <unit id="3812784998942541864">
@@ -13172,7 +13172,7 @@
     <unit id="4152641197702276591">
       <segment state="initial">
         <source>Manage the reports you have submitted. Only you and moderators can see these details.</source>
-        <target>Manage the reports you have submitted. Only you and moderators can see these details.</target>
+        <target>Gestiona los reportes que has enviado. Solo tú y el equipo de moderación pueden ver estos detalles.</target>
       </segment>
     </unit>
     <unit id="4152989558688224665">
@@ -13218,13 +13218,13 @@
     <unit id="5051467674731031610">
       <segment state="initial">
         <source>Report this event</source>
-        <target>Report this event</target>
+        <target>Reportar este evento</target>
       </segment>
     </unit>
     <unit id="5061749540188881037">
       <segment state="initial">
         <source> Community cards, spot edit votes, and organization approval. </source>
-        <target> Community cards, spot edit votes, and organization approval. </target>
+        <target> Tarjetas de comunidad, votaciones de ediciones de Spots y aprobación de organizaciones. </target>
       </segment>
     </unit>
     <unit id="5063962280942321008">
@@ -13254,7 +13254,7 @@
     <unit id="5088439136498133748">
       <segment state="initial">
         <source>Check your spam folder first. If you still can&apos;t find the verification email, go to Settings &gt; Account and request a new verification email. If problems persist, contact us on Discord.</source>
-        <target>Check your spam folder first. If you still can&apos;t find the verification email, go to Settings &gt; Account and request a new verification email. If problems persist, contact us on Discord.</target>
+        <target>Primero revisa tu carpeta de spam. Si sigues sin encontrar el correo de verificación, ve a Ajustes &gt; Cuenta y solicita uno nuevo. Si el problema continúa, contáctanos en Discord.</target>
       </segment>
     </unit>
     <unit id="5092426811369162632">
@@ -13326,7 +13326,7 @@
     <unit id="8407220471361845948">
       <segment state="initial">
         <source>Paste the PK Spot URL if you have it.</source>
-        <target>Paste the PK Spot URL if you have it.</target>
+        <target>Pega la URL de PK Spot si la tienes.</target>
       </segment>
     </unit>
     <unit id="840870092040015279">
@@ -13338,7 +13338,7 @@
     <unit id="3243356092316492196">
       <segment state="initial">
         <source>How do I install the app on my phone?</source>
-        <target>How do I install the app on my phone?</target>
+        <target>¿Cómo instalo la app en mi móvil?</target>
       </segment>
     </unit>
     <unit id="3249513483374643425">
@@ -13380,7 +13380,7 @@
     <unit id="2648624934226238207">
       <segment state="initial">
         <source>Item link, path, or identifier (optional)</source>
-        <target>Item link, path, or identifier (optional)</target>
+        <target>Enlace, ruta o identificador del elemento (opcional)</target>
       </segment>
     </unit>
     <unit id="2672219549033683765">
@@ -13404,7 +13404,7 @@
     <unit id="2689184560704057247">
       <segment state="initial">
         <source>Follow request sent</source>
-        <target>Follow request sent</target>
+        <target>Solicitud de seguimiento enviada</target>
       </segment>
     </unit>
     <unit id="map.create.event">
@@ -13464,7 +13464,7 @@
     <unit id="2776617638046368313">
       <segment state="initial">
         <source>View details</source>
-        <target>View details</target>
+        <target>Ver detalles</target>
       </segment>
     </unit>
     <unit id="2781971407154812080">
@@ -13476,7 +13476,7 @@
     <unit id="2788894705152239347">
       <segment state="initial">
         <source> This location on Google Maps® </source>
-        <target> This location on Google Maps® </target>
+        <target> Esta ubicación en Google Maps® </target>
       </segment>
     </unit>
     <unit id="pk.home.description">
@@ -13512,7 +13512,7 @@
     <unit id="8025586841088932797">
       <segment state="initial">
         <source>What are the map filters?</source>
-        <target>What are the map filters?</target>
+        <target>¿Qué son los filtros del mapa?</target>
       </segment>
     </unit>
     <unit id="8036493504964207254">
@@ -13542,7 +13542,7 @@
     <unit id="8075900986566576709">
       <segment state="initial">
         <source>Coming later</source>
-        <target>Coming later</target>
+        <target>Próximamente</target>
       </segment>
     </unit>
     <unit id="8076818699210267066">
@@ -13590,7 +13590,7 @@
     <unit id="2907120007943470857">
       <segment state="initial">
         <source>Organizer</source>
-        <target>Organizer</target>
+        <target>Organizador</target>
       </segment>
     </unit>
     <unit id="2914629792519664709">
@@ -13614,7 +13614,7 @@
     <unit id="2923069032301679554">
       <segment state="initial">
         <source>Reports are private and go directly to the PK Spot safety team.</source>
-        <target>Reports are private and go directly to the PK Spot safety team.</target>
+        <target>Los reportes son privados y van directamente al equipo de seguridad de PK Spot.</target>
       </segment>
     </unit>
     <unit id="2925374545200384410">
@@ -13662,13 +13662,13 @@
     <unit id="2959460274535789482">
       <segment state="initial">
         <source>The app is crashing, what should I do?</source>
-        <target>The app is crashing, what should I do?</target>
+        <target>La app se cierra sola, ¿qué hago?</target>
       </segment>
     </unit>
     <unit id="2960388461422932845">
       <segment state="initial">
         <source>Person did not consent</source>
-        <target>Person did not consent</target>
+        <target>La persona no dio su consentimiento</target>
       </segment>
     </unit>
     <unit id="2969365666988952758">
@@ -13686,7 +13686,7 @@
     <unit id="2988814765436950391">
       <segment state="initial">
         <source>Another service complaint</source>
-        <target>Another service complaint</target>
+        <target>Otra queja sobre el servicio</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -13710,7 +13710,7 @@
     <unit id="3297542874937204469">
       <segment state="initial">
         <source>Private Spot</source>
-        <target>Private Spot</target>
+        <target>Spot privado</target>
       </segment>
     </unit>
     <unit id="add_media.label">
@@ -13770,7 +13770,7 @@
     <unit id="3173209211164608224">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="product.stickerCount"/> stickers</source>
-        <target><ph id="0" equiv="PH" disp="product.stickerCount"/> stickers</target>
+        <target><ph id="0" equiv="PH" disp="product.stickerCount"/> pegatinas</target>
       </segment>
     </unit>
     <unit id="3180781358486363266">
@@ -13848,7 +13848,7 @@
     <unit id="1571996928480119000">
       <segment state="initial">
         <source>Share event</source>
-        <target>Share event</target>
+        <target>Compartir evento</target>
       </segment>
     </unit>
     <unit id="1577979859082287846">
@@ -13876,7 +13876,7 @@
     <unit id="1584093308232863634">
       <segment state="initial">
         <source>Submit securely</source>
-        <target>Submit securely</target>
+        <target>Enviar de forma segura</target>
       </segment>
     </unit>
     <unit id="158781460362336598">
@@ -13888,7 +13888,7 @@
     <unit id="1589136879717771714">
       <segment state="initial">
         <source>Automated media decision</source>
-        <target>Automated media decision</target>
+        <target>Decisión automatizada sobre medios</target>
       </segment>
     </unit>
     <unit id="1593391712749316624">
@@ -13958,7 +13958,7 @@
     <unit id="8913794084097958305">
       <segment state="initial">
         <source>Verify</source>
-        <target>Verify</target>
+        <target>Verificar</target>
       </segment>
     </unit>
     <unit id="891476879467146439">
@@ -13992,7 +13992,7 @@
     <unit id="5307137022448766473">
       <segment state="initial">
         <source>Failed to load communities</source>
-        <target>Failed to load communities</target>
+        <target>No se pudieron cargar las comunidades</target>
       </segment>
     </unit>
     <unit id="5311639828224503795">
@@ -14010,7 +14010,7 @@
     <unit id="5320512330509370228">
       <segment state="initial">
         <source>Follow request approved</source>
-        <target>Follow request approved</target>
+        <target>Solicitud de seguimiento aprobada</target>
       </segment>
     </unit>
     <unit id="5324713868940196306">
@@ -14050,7 +14050,7 @@
     <unit id="5365781103448127790">
       <segment state="initial">
         <source>Send suggestion</source>
-        <target>Send suggestion</target>
+        <target>Enviar sugerencia</target>
       </segment>
     </unit>
     <unit id="5366185394283274884">
@@ -14290,7 +14290,7 @@
     <unit id="2502246313488671541">
       <segment state="initial">
         <source> Private accounts can approve who follows them. </source>
-        <target> Private accounts can approve who follows them. </target>
+        <target> Las cuentas privadas pueden aprobar quién las sigue. </target>
       </segment>
     </unit>
     <unit id="250704833554562493">
@@ -14374,7 +14374,7 @@
     <unit id="2047776319256281403">
       <segment state="initial">
         <source>Use Google Play’s age signal on a supported Android installation.</source>
-        <target>Use Google Play’s age signal on a supported Android installation.</target>
+        <target>Usa la señal de edad de Google Play en una instalación compatible de Android.</target>
       </segment>
     </unit>
     <unit id="2049290282534091182">
@@ -14392,13 +14392,13 @@
     <unit id="2058170987045762192">
       <segment state="initial">
         <source>Filter by region</source>
-        <target>Filter by region</target>
+        <target>Filtrar por región</target>
       </segment>
     </unit>
     <unit id="6529676412063915412">
       <segment state="initial">
         <source> Follow requests </source>
-        <target> Follow requests </target>
+        <target> Solicitudes de seguimiento </target>
       </segment>
     </unit>
     <unit id="6537027644496489823">
@@ -14500,7 +14500,7 @@
     <unit id="6179206102292432387">
       <segment state="initial">
         <source>Community cards</source>
-        <target>Community cards</target>
+        <target>Tarjetas de comunidad</target>
       </segment>
     </unit>
     <unit id="6179528187219959958">
@@ -14578,7 +14578,7 @@
     <unit id="3989796638927342332">
       <segment state="initial">
         <source>Make a complaint</source>
-        <target>Make a complaint</target>
+        <target>Presentar una queja</target>
       </segment>
     </unit>
     <unit id="3991755043359697718">
@@ -14614,13 +14614,13 @@
     <unit id="3407061818321766940">
       <segment state="initial">
         <source>Saving...</source>
-        <target>Saving...</target>
+        <target>Guardando...</target>
       </segment>
     </unit>
     <unit id="3410770871410760104">
       <segment state="initial">
         <source>Support PK Spot</source>
-        <target>Support PK Spot</target>
+        <target>Apoya a PK Spot</target>
       </segment>
     </unit>
     <unit id="3419813162979896839">
@@ -14662,7 +14662,7 @@
     <unit id="5101446301405691745">
       <segment state="initial">
         <source>Ownership claim rejected.</source>
-        <target>Ownership claim rejected.</target>
+        <target>Reclamación de propiedad rechazada.</target>
       </segment>
     </unit>
     <unit id="5103483003984888011">
@@ -14686,7 +14686,7 @@
     <unit id="5111937580799923602">
       <segment state="initial">
         <source>Media received. It will appear when processing finishes.</source>
-        <target>Media received. It will appear when processing finishes.</target>
+        <target>Medio recibido. Aparecerá cuando termine el procesamiento.</target>
       </segment>
     </unit>
     <unit id="5122797194116205318">
@@ -14746,7 +14746,7 @@
     <unit id="516176798986294299">
       <segment state="initial">
         <source>Country</source>
-        <target>Country</target>
+        <target>País</target>
       </segment>
     </unit>
     <unit id="5176605689144016167">
@@ -14764,7 +14764,7 @@
     <unit id="5189291414020124701">
       <segment state="initial">
         <source>Is my data safe?</source>
-        <target>Is my data safe?</target>
+        <target>¿Están seguros mis datos?</target>
       </segment>
     </unit>
     <unit id="519026501519052552">
@@ -14863,13 +14863,13 @@
     <unit id="3909136360386442402">
       <segment state="initial">
         <source>You have blocked this user</source>
-        <target>You have blocked this user</target>
+        <target>Has bloqueado a este usuario</target>
       </segment>
     </unit>
     <unit id="3926626271480005146">
       <segment state="initial">
         <source>No votes yet</source>
-        <target>No votes yet</target>
+        <target>Aún no hay votos</target>
       </segment>
     </unit>
     <unit id="3935646276054511852">
@@ -15025,7 +15025,7 @@
     <unit id="5430715841913413045">
       <segment state="initial">
         <source>Content or account decision</source>
-        <target>Content or account decision</target>
+        <target>Decisión sobre contenido o cuenta</target>
       </segment>
     </unit>
     <unit id="5439680339974485805">
@@ -15121,7 +15121,7 @@
     <unit id="8865873236948038164">
       <segment state="initial">
         <source>Report event</source>
-        <target>Report event</target>
+        <target>Reportar evento</target>
       </segment>
     </unit>
     <unit id="8876716314997684812">
@@ -15169,13 +15169,13 @@
     <unit id="8891745002645853349">
       <segment state="initial">
         <source>Vector map rendering</source>
-        <target>Vector map rendering</target>
+        <target>Renderizado de mapa vectorial</target>
       </segment>
     </unit>
     <unit id="8894493214990278764">
       <segment state="initial">
         <source>Error saving profile access settings.</source>
-        <target>Error saving profile access settings.</target>
+        <target>Error al guardar la configuración de acceso al perfil.</target>
       </segment>
     </unit>
     <unit id="5007909911776062380">
@@ -15229,7 +15229,7 @@
     <unit id="5995912307085156285">
       <segment state="initial">
         <source>Potentially illegal content</source>
-        <target>Potentially illegal content</target>
+        <target>Contenido potencialmente ilegal</target>
       </segment>
     </unit>
     <unit id="3959902123742995673">
@@ -15265,13 +15265,13 @@
     <unit id="8511422471788362899">
       <segment state="initial">
         <source>Not available on this installation yet.</source>
-        <target>Not available on this installation yet.</target>
+        <target>Aún no está disponible en esta instalación.</target>
       </segment>
     </unit>
     <unit id="8520138691875188234">
       <segment state="initial">
         <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
-        <target> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </target>
+        <target> Los invitados reciben un enlace de verificación de un solo uso. Tu correo electrónico y tu identidad solo son visibles para los moderadores autorizados. </target>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -15361,7 +15361,7 @@
     <unit id="spot_picker.limit_hint">
       <segment state="initial">
         <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </source>
-        <target> Hasta <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </target>
+        <target> Hasta <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </target>
       </segment>
     </unit>
     <unit id="spot_type_label">
@@ -15551,7 +15551,7 @@
     <unit id="train.allEvents">
       <segment state="initial">
         <source>All events</source>
-        <target>All events</target>
+        <target>Todos los eventos</target>
       </segment>
     </unit>
     <unit id="train.nav">
@@ -15699,7 +15699,7 @@
     <unit id="train.useLocation">
       <segment state="initial">
         <source>Use my location</source>
-        <target>Use my location</target>
+        <target>Usar mi ubicación</target>
       </segment>
     </unit>
     <unit id="train.weatherDryFilter">
@@ -15903,43 +15903,43 @@
     <unit id="trainingLog.createFirst">
       <segment state="initial">
         <source>Create first entry</source>
-        <target>Create first entry</target>
+        <target>Crear la primera entrada</target>
       </segment>
     </unit>
     <unit id="trainingLog.deleteConfirm">
       <segment state="initial">
         <source>Delete this log entry?</source>
-        <target>Delete this log entry?</target>
+        <target>¿Eliminar esta entrada del registro?</target>
       </segment>
     </unit>
     <unit id="trainingLog.emptyTitle">
       <segment state="initial">
         <source>Your first entry starts here</source>
-        <target>Your first entry starts here</target>
+        <target>Tu primera entrada empieza aquí</target>
       </segment>
     </unit>
     <unit id="trainingLog.new">
       <segment state="initial">
         <source>New training entry</source>
-        <target>New training entry</target>
+        <target>Nueva entrada de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.back">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Registro de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.delete">
       <segment state="initial">
         <source>Delete</source>
-        <target>Delete</target>
+        <target>Eliminar</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.deleteConfirm">
       <segment state="initial">
         <source>Delete this training session?</source>
-        <target>Delete this training session?</target>
+        <target>¿Eliminar esta sesión de entrenamiento?</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.descriptionTitle">
@@ -15951,19 +15951,19 @@
     <unit id="trainingSessionDetail.duration">
       <segment state="initial">
         <source>duration</source>
-        <target>duration</target>
+        <target>duración</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.edit">
       <segment state="initial">
         <source>Edit</source>
-        <target>Edit</target>
+        <target>Editar</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.errorTitle">
       <segment state="initial">
         <source>This session is not available</source>
-        <target>This session is not available</target>
+        <target>Esta sesión no está disponible</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.eyebrow">
@@ -15975,85 +15975,85 @@
     <unit id="trainingSessionDetail.invalid">
       <segment state="initial">
         <source>This training session could not be found.</source>
-        <target>This training session could not be found.</target>
+        <target>No se encontró esta sesión de entrenamiento.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.loadError">
       <segment state="initial">
         <source>Your training session could not be loaded.</source>
-        <target>Your training session could not be loaded.</target>
+        <target>No se pudo cargar tu sesión de entrenamiento.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.noPartners">
       <segment state="initial">
         <source>No training partners were added to this session.</source>
-        <target>No training partners were added to this session.</target>
+        <target>No se añadieron compañeros de entrenamiento a esta sesión.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.noSpots">
       <segment state="initial">
         <source>No individual Spots were saved with this session.</source>
-        <target>No individual Spots were saved with this session.</target>
+        <target>No se guardaron Spots individuales con esta sesión.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.notFound">
       <segment state="initial">
         <source>This training session could not be found.</source>
-        <target>This training session could not be found.</target>
+        <target>No se encontró esta sesión de entrenamiento.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.partners">
       <segment state="initial">
         <source>training partners</source>
-        <target>training partners</target>
+        <target>compañeros de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.partnersPrivacy">
       <segment state="initial">
         <source>Only people you explicitly add appear here. This is never inferred from location or check-ins.</source>
-        <target>Only people you explicitly add appear here. This is never inferred from location or check-ins.</target>
+        <target>Aquí solo aparecen las personas que añades expresamente. Nunca se deduce de la ubicación ni de los check-ins.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.partnersTitle">
       <segment state="initial">
         <source>People who were there</source>
-        <target>People who were there</target>
+        <target>Personas que estuvieron allí</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.private">
       <segment state="initial">
         <source>Private session</source>
-        <target>Private session</target>
+        <target>Sesión privada</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.return">
       <segment state="initial">
         <source>Return to training log</source>
-        <target>Return to training log</target>
+        <target>Volver al registro de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.signIn">
       <segment state="initial">
         <source>Sign in</source>
-        <target>Sign in</target>
+        <target>Iniciar sesión</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.signInTitle">
       <segment state="initial">
         <source>Sign in to open this training session</source>
-        <target>Sign in to open this training session</target>
+        <target>Inicia sesión para abrir esta sesión de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.source.checkIn">
       <segment state="initial">
         <source>Confirmed check-in</source>
-        <target>Confirmed check-in</target>
+        <target>Check-in confirmado</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.source.manual">
       <segment state="initial">
         <source>Manual session</source>
-        <target>Manual session</target>
+        <target>Sesión manual</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.spots">
@@ -16071,7 +16071,7 @@
     <unit id="trainingSessionDetail.summary.ariaLabel">
       <segment state="initial">
         <source>Session summary</source>
-        <target>Session summary</target>
+        <target>Resumen de la sesión</target>
       </segment>
     </unit>
     <unit id="trainingStats.allTime">
@@ -16209,61 +16209,61 @@
     <unit id="trainingLog.signIn">
       <segment state="initial">
         <source>Sign in</source>
-        <target>Sign in</target>
+        <target>Iniciar sesión</target>
       </segment>
     </unit>
     <unit id="trainingLog.signInTitle">
       <segment state="initial">
         <source>Sign in to use your training log</source>
-        <target>Sign in to use your training log</target>
+        <target>Inicia sesión para usar tu registro de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingLog.subtitle">
       <segment state="initial">
         <source>A private timeline for the Spots, sessions, and people that made up your training.</source>
-        <target>A private timeline for the Spots, sessions, and people that made up your training.</target>
+        <target>Una cronología privada de los Spots, las sesiones y las personas que formaron parte de tu entrenamiento.</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.days">
       <segment state="initial">
         <source>active days</source>
-        <target>active days</target>
+        <target>días activos</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.sessions">
       <segment state="initial">
         <source>sessions</source>
-        <target>sessions</target>
+        <target>sesiones</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.spots">
       <segment state="initial">
         <source>Spots visited</source>
-        <target>Spots visited</target>
+        <target>Spots visitados</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.trainingTime">
       <segment state="initial">
         <source>training time</source>
-        <target>training time</target>
+        <target>tiempo de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.confirmedCheckIn">
       <segment state="initial">
         <source>Confirmed check-in</source>
-        <target>Confirmed check-in</target>
+        <target>Check-in confirmado</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.emptyFiltered">
       <segment state="initial">
         <source>Nothing was logged for this day yet.</source>
-        <target>Nothing was logged for this day yet.</target>
+        <target>Aún no hay nada registrado para este día.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.filtered">
       <segment state="initial">
         <source>Showing sessions linked to the selected day.</source>
-        <target>Showing sessions linked to the selected day.</target>
+        <target>Mostrando las sesiones vinculadas al día seleccionado.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.intro">
@@ -16275,13 +16275,13 @@
     <unit id="trainingLog.timeline.sessionCount">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {1 session} other {<ph id="0" equiv="INTERPOLATION"/> sessions}}</source>
-        <target>{VAR_PLURAL, plural, =1 {1 session} other {<ph id="0" equiv="INTERPOLATION"/> sessions}}</target>
+        <target>{VAR_PLURAL, plural, =1 {1 sesión} other {<ph id="0" equiv="INTERPOLATION"/> sesiones}}</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.showAll">
       <segment state="initial">
         <source>Show all</source>
-        <target>Show all</target>
+        <target>Mostrar todo</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.spotCount">
@@ -16299,7 +16299,7 @@
     <unit id="trainingLog.title">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Registro de entrenamiento</target>
       </segment>
     </unit>
     <unit id="trainingLog.visibility.private">
@@ -16317,7 +16317,7 @@
     <unit id="7107156952572073315">
       <segment state="initial">
         <source>5, 10, 25 or 50 stickers</source>
-        <target>5, 10, 25 or 50 stickers</target>
+        <target>5, 10, 25 o 50 pegatinas</target>
       </segment>
     </unit>
     <unit id="7113790156926964344">
@@ -16347,7 +16347,7 @@
     <unit id="7137059156368381236">
       <segment state="initial">
         <source>Official link</source>
-        <target>Official link</target>
+        <target>Enlace oficial</target>
       </segment>
     </unit>
     <unit id="7138068972563490768">
@@ -16413,7 +16413,7 @@
     <unit id="7183346391731740218">
       <segment state="initial">
         <source>Child safety</source>
-        <target>Child safety</target>
+        <target>Seguridad infantil</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">
@@ -16449,7 +16449,7 @@
     <unit id="721979004226425951">
       <segment state="initial">
         <source>How a report was handled</source>
-        <target>How a report was handled</target>
+        <target>Cómo se gestionó un reporte</target>
       </segment>
     </unit>
     <unit id="7222489710265178271">
@@ -16491,7 +16491,7 @@
     <unit id="7295769845403931650">
       <segment state="initial">
         <source>No spot edit votes waiting.</source>
-        <target>No spot edit votes waiting.</target>
+        <target>No hay votaciones de ediciones de Spots pendientes.</target>
       </segment>
     </unit>
     <unit id="6607382385355290684">
@@ -16602,7 +16602,7 @@
     <unit id="5693332593672944029">
       <segment state="initial">
         <source> No pending follow requests. </source>
-        <target> No pending follow requests. </target>
+        <target> No hay solicitudes de seguimiento pendientes. </target>
       </segment>
     </unit>
     <unit id="569492211620333799">
@@ -16626,7 +16626,7 @@
     <unit id="4570454655933825601">
       <segment state="initial">
         <source>Review queues</source>
-        <target>Review queues</target>
+        <target>Colas de revisión</target>
       </segment>
     </unit>
     <unit id="4570725150232607497">
@@ -16641,7 +16641,7 @@
     <unit id="8972434095994344487">
       <segment state="initial">
         <source>Community card rejected</source>
-        <target>Community card rejected</target>
+        <target>Tarjeta de comunidad rechazada</target>
       </segment>
     </unit>
     <unit id="8974613806156505921">
@@ -16695,13 +16695,13 @@
     <unit id="6261837376343461951">
       <segment state="initial">
         <source>Self-harm or suicide</source>
-        <target>Self-harm or suicide</target>
+        <target>Autolesión o suicidio</target>
       </segment>
     </unit>
     <unit id="6266780676699111627">
       <segment state="initial">
         <source> Latest open spot and media reports. </source>
-        <target> Tardest open spot and media reports. </target>
+        <target> Reportes abiertos más recientes de Spots y medios. </target>
       </segment>
     </unit>
     <unit id="6272079317102347427">
@@ -16719,7 +16719,7 @@
     <unit id="6283880478744342457">
       <segment state="initial">
         <source>Notify followers of the local community when I publish</source>
-        <target>Notify followers of the local community when I publish</target>
+        <target>Avisar a los seguidores de la comunidad local cuando publique</target>
       </segment>
     </unit>
     <unit id="6299599810982807013">
@@ -16833,7 +16833,7 @@
     <unit id="3741605829844535332">
       <segment state="initial">
         <source>Starting…</source>
-        <target>Starting…</target>
+        <target>Iniciando…</target>
       </segment>
     </unit>
     <unit id="3742557968359744247">
@@ -16851,7 +16851,7 @@
     <unit id="3747597665217141319">
       <segment state="initial">
         <source>Another safety concern</source>
-        <target>Another safety concern</target>
+        <target>Otro problema de seguridad</target>
       </segment>
     </unit>
     <unit id="3750896546807006672">
@@ -17063,7 +17063,7 @@
     <unit id="1713067112201230619">
       <segment state="initial">
         <source>Enter a rejection reason.</source>
-        <target>Enter a rejection reason.</target>
+        <target>Introduce un motivo de rechazo.</target>
       </segment>
     </unit>
     <unit id="1715090817675396731">
@@ -17075,7 +17075,7 @@
     <unit id="1716052484074407499">
       <segment state="initial">
         <source>Why can&apos;t I see any spots in my area?</source>
-        <target>Why can&apos;t I see any spots in my area?</target>
+        <target>¿Por qué no veo ningún Spot en mi zona?</target>
       </segment>
     </unit>
     <unit id="1716103244838780873">
@@ -17223,13 +17223,13 @@
     <unit id="16262867878350001">
       <segment state="initial">
         <source>Reports help keep PK Spot accurate and safe.</source>
-        <target>Reports help keep PK Spot accurate and safe.</target>
+        <target>Los reportes ayudan a que PK Spot sea preciso y seguro.</target>
       </segment>
     </unit>
     <unit id="1629110082218932522">
       <segment state="initial">
         <source>Short summary</source>
-        <target>Short summary</target>
+        <target>Resumen breve</target>
       </segment>
     </unit>
     <unit id="1632949913064020849">
@@ -17289,7 +17289,7 @@
     <unit id="1660046583116975957">
       <segment state="initial">
         <source>Tap on your profile picture in your profile page, and you can select a new image from your device.</source>
-        <target>Tap on your profile picture in your profile page, and you can select a new image from your device.</target>
+        <target>Toca tu foto de perfil en tu página de perfil y podrás seleccionar una nueva imagen de tu dispositivo.</target>
       </segment>
     </unit>
     <unit id="1669593749761062093">
@@ -17367,7 +17367,7 @@
     <unit id="3845136227654022046">
       <segment state="initial">
         <source>Harassment or hate</source>
-        <target>Harassment or hate</target>
+        <target>Acoso u odio</target>
       </segment>
     </unit>
     <unit id="3849719587486813146">
@@ -17451,7 +17451,7 @@
     <unit id="2705202013183370950">
       <segment state="initial">
         <source>A public profile is required</source>
-        <target>A public profile is required</target>
+        <target>Se requiere un perfil público</target>
       </segment>
     </unit>
     <unit id="2706312198973609080">
@@ -17505,13 +17505,13 @@
     <unit id="579084822382819407">
       <segment state="initial">
         <source>Photo or video</source>
-        <target>Photo or video</target>
+        <target>Foto o vídeo</target>
       </segment>
     </unit>
     <unit id="1806667489382256324">
       <segment state="initial">
         <source>Category</source>
-        <target>Category</target>
+        <target>Categoría</target>
       </segment>
     </unit>
     <unit id="1814768182936887464">
@@ -17529,7 +17529,7 @@
     <unit id="1823464937400620836">
       <segment state="initial">
         <source> Unblock them to see their profile and posts. </source>
-        <target> Unblock them to see their profile and posts. </target>
+        <target> Desbloquea a esta persona para ver su perfil y sus publicaciones. </target>
       </segment>
     </unit>
     <unit id="1826181746940790026">
@@ -17547,7 +17547,7 @@
     <unit id="1833519671749660117">
       <segment state="initial">
         <source> Public spot contributions will show up here once this profile adds to the map. </source>
-        <target> Public spot contributions will show up here once this profile adds to the map. </target>
+        <target> Las contribuciones públicas de Spots aparecerán aquí cuando este perfil añada algo al mapa. </target>
       </segment>
     </unit>
     <unit id="1838132327858290953">
@@ -17571,7 +17571,7 @@
     <unit id="186236568870281953">
       <segment state="initial">
         <source>History</source>
-        <target>History</target>
+        <target>Historial</target>
       </segment>
     </unit>
     <unit id="1867945621264126708">
@@ -17607,7 +17607,7 @@
     <unit id="1898900891846930901">
       <segment state="initial">
         <source>Community card suggestion submitted for review</source>
-        <target>Community card suggestion submitted for review</target>
+        <target>Sugerencia de tarjeta de comunidad enviada para revisión</target>
       </segment>
     </unit>
     <unit id="3471970565051584693">
@@ -17619,7 +17619,7 @@
     <unit id="3480235560414212524">
       <segment state="initial">
         <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
-        <target> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </target>
+        <target> Los reportes son privados. Conservamos la información necesaria para investigar, prevenir abusos, explicar decisiones y tramitar una apelación. Los metadatos de seguridad de la red y del dispositivo se eliminan después de 90 días. </target>
       </segment>
     </unit>
     <unit id="3483311644139102304">
@@ -17637,7 +17637,7 @@
     <unit id="3496653775940285146">
       <segment state="initial">
         <source>Use 5–140 characters.</source>
-        <target>Use 5–140 characters.</target>
+        <target>Usa entre 5 y 140 caracteres.</target>
       </segment>
     </unit>
     <unit id="4586836015659210261">
@@ -17679,7 +17679,7 @@
     <unit id="4616666625375010169">
       <segment state="initial">
         <source> The report could not be submitted. Please check your connection and try again. </source>
-        <target> The report could not be submitted. Please check your connection and try again. </target>
+        <target> No se pudo enviar el reporte. Comprueba tu conexión e inténtalo de nuevo. </target>
       </segment>
     </unit>
     <unit id="4626291526592310042">
@@ -17697,7 +17697,7 @@
     <unit id="4648618547655278196">
       <segment state="initial">
         <source>Unknown editor</source>
-        <target>Unknown editor</target>
+        <target>Editor desconocido</target>
       </segment>
     </unit>
     <unit id="4658982717700339898">
@@ -17721,13 +17721,13 @@
     <unit id="4664742793863132957">
       <segment state="initial">
         <source>Terms of service violation</source>
-        <target>Terms of service violation</target>
+        <target>Infracción de las condiciones del servicio</target>
       </segment>
     </unit>
     <unit id="4667715772382848347">
       <segment state="initial">
         <source>Profile not found</source>
-        <target>Profile not found</target>
+        <target>Perfil no encontrado</target>
       </segment>
     </unit>
     <unit id="7423084353005525137">
@@ -17811,7 +17811,7 @@
     <unit id="2075947254275135132">
       <segment state="initial">
         <source>Problem making a report</source>
-        <target>Problem making a report</target>
+        <target>Problema al hacer un reporte</target>
       </segment>
     </unit>
     <unit id="2081295007072116210">
@@ -18235,7 +18235,7 @@
     <unit id="event_qualification.required">
       <segment state="initial">
         <source> Qualification is required for this competition. </source>
-        <target> Clasificación is required for this competition. </target>
+        <target> Se requiere clasificación para esta competición. </target>
       </segment>
     </unit>
     <unit id="event_qualification.show_less">
@@ -18253,7 +18253,7 @@
     <unit id="event_region.africa">
       <segment state="initial">
         <source>Africa</source>
-        <target>Africa</target>
+        <target>África</target>
       </segment>
     </unit>
     <unit id="event_region.asia">
@@ -18265,25 +18265,25 @@
     <unit id="event_region.europe">
       <segment state="initial">
         <source>Europe</source>
-        <target>Europe</target>
+        <target>Europa</target>
       </segment>
     </unit>
     <unit id="event_region.north_america">
       <segment state="initial">
         <source>North America</source>
-        <target>North America</target>
+        <target>América del Norte</target>
       </segment>
     </unit>
     <unit id="event_region.oceania">
       <segment state="initial">
         <source>Oceania</source>
-        <target>Oceania</target>
+        <target>Oceanía</target>
       </segment>
     </unit>
     <unit id="event_region.south_america">
       <segment state="initial">
         <source>South America</source>
-        <target>South America</target>
+        <target>América del Sur</target>
       </segment>
     </unit>
     <unit id="event_registration.cancel">
@@ -18427,13 +18427,13 @@
     <unit id="event_report.default_summary">
       <segment state="initial">
         <source>Report: <ph id="0" equiv="PH" disp="event.name"/></source>
-        <target>Report: <ph id="0" equiv="PH" disp="event.name"/></target>
+        <target>Reporte: <ph id="0" equiv="PH" disp="event.name"/></target>
       </segment>
     </unit>
     <unit id="event_report.submitted">
       <segment state="initial">
         <source>Your report has been sent securely.</source>
-        <target>Your report has been sent securely.</target>
+        <target>Tu reporte se ha enviado de forma segura.</target>
       </segment>
     </unit>
     <unit id="event_series_role.championship">
@@ -18559,13 +18559,13 @@
     <unit id="event_suggestion.failed">
       <segment state="initial">
         <source>Couldn&apos;t send your suggestion. Please try again.</source>
-        <target>Couldn&apos;t send your suggestion. Please try again.</target>
+        <target>No se pudo enviar tu sugerencia. Inténtalo de nuevo.</target>
       </segment>
     </unit>
     <unit id="event_suggestion.invalid_times">
       <segment state="initial">
         <source>Choose an end time after the start time.</source>
-        <target>Choose an end time after the start time.</target>
+        <target>Elige una hora de fin posterior a la de inicio.</target>
       </segment>
     </unit>
     <unit id="event_suggestion.meta_description">
@@ -18577,13 +18577,13 @@
     <unit id="event_suggestion.meta_title">
       <segment state="initial">
         <source>Suggest an Event</source>
-        <target>Suggest an Event</target>
+        <target>Sugerir un evento</target>
       </segment>
     </unit>
     <unit id="event_suggestion.submitted">
       <segment state="initial">
         <source>Thanks — your suggestion is ready for staff review.</source>
-        <target>Thanks — your suggestion is ready for staff review.</target>
+        <target>Gracias: tu sugerencia está lista para que el equipo la revise.</target>
       </segment>
     </unit>
     <unit id="event_tickets.availability.coming_soon">
@@ -18619,7 +18619,7 @@
     <unit id="event_tickets.badge.early_bird">
       <segment state="initial">
         <source>Early bird</source>
-        <target>Early bird</target>
+        <target>Preventa</target>
       </segment>
     </unit>
     <unit id="event_tickets.badge.late">
@@ -18637,7 +18637,7 @@
     <unit id="event_tickets.badge.regular">
       <segment state="initial">
         <source>Regular</source>
-        <target>Regular</target>
+        <target>General</target>
       </segment>
     </unit>
     <unit id="event_tickets.get_ticket">
@@ -18961,7 +18961,7 @@
     <unit id="event_edit.promote_disclaimer">
       <segment state="initial">
         <source> Disclaimer: enabling promotion can activate the map island for users who are allowed to see this promoted event. </source>
-        <target> Disclaimer: enabling promotion can activate the map island for users who are allowed to see this promoted event. </target>
+        <target> Aviso: activar la promoción puede mostrar la isla del mapa a los usuarios que pueden ver este evento promocionado. </target>
       </segment>
     </unit>
     <unit id="event_edit.promote_heading">
@@ -20125,7 +20125,7 @@
     <unit id="7219162063306578420">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> community event</source>
-        <target>{$INTERPOLATION} evento comunitario</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> evento comunitario</target>
       </segment>
     </unit>
     <unit id="3628985727060093047">

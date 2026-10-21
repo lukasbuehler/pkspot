@@ -3,7 +3,7 @@
     <unit id="1806667489382256324">
       <segment state="initial">
         <source>Category</source>
-        <target>Category</target>
+        <target>Categorie</target>
       </segment>
     </unit>
     <unit id="1814768182936887464">
@@ -21,7 +21,7 @@
     <unit id="1823464937400620836">
       <segment state="initial">
         <source> Unblock them to see their profile and posts. </source>
-        <target> Unblock them to see their profile and posts. </target>
+        <target> Deblokkeer deze persoon om het profiel en de berichten te zien. </target>
       </segment>
     </unit>
     <unit id="1826181746940790026">
@@ -39,7 +39,7 @@
     <unit id="1833519671749660117">
       <segment state="initial">
         <source> Public spot contributions will show up here once this profile adds to the map. </source>
-        <target> Public spot contributions will show up here once this profile adds to the map. </target>
+        <target> Openbare Spot-bijdragen verschijnen hier zodra dit profiel iets aan de kaart toevoegt. </target>
       </segment>
     </unit>
     <unit id="1838132327858290953">
@@ -63,7 +63,7 @@
     <unit id="186236568870281953">
       <segment state="initial">
         <source>History</source>
-        <target>History</target>
+        <target>Geschiedenis</target>
       </segment>
     </unit>
     <unit id="1867945621264126708">
@@ -99,7 +99,7 @@
     <unit id="1898900891846930901">
       <segment state="initial">
         <source>Community card suggestion submitted for review</source>
-        <target>Community card suggestion submitted for review</target>
+        <target>Voorstel voor communitykaart ingediend ter beoordeling</target>
       </segment>
     </unit>
     <unit id="3761999029709114314">
@@ -135,7 +135,7 @@
     <unit id="3786612121005562547">
       <segment state="initial">
         <source>Verification could not be started. You can try another method or try again later.</source>
-        <target>Verification could not be started. You can try another method or try again later.</target>
+        <target>De verificatie kon niet worden gestart. Je kunt een andere methode proberen of het later opnieuw proberen.</target>
       </segment>
     </unit>
     <unit id="3789771835244333891">
@@ -211,7 +211,7 @@
     <unit id="8116175184239166510">
       <segment state="initial">
         <source>Decline</source>
-        <target>Decline</target>
+        <target>Afwijzen</target>
       </segment>
     </unit>
     <unit id="8124605615260157091">
@@ -257,7 +257,7 @@
     <unit id="1782760576339691907">
       <segment state="initial">
         <source>Go to Settings &gt; Account and you&apos;ll find the option to update your email address. You&apos;ll need to verify the new email before the change takes effect.</source>
-        <target>Go to Settings &gt; Account and you&apos;ll find the option to update your email address. You&apos;ll need to verify the new email before the change takes effect.</target>
+        <target>Ga naar Instellingen &gt; Account; daar vind je de optie om je e-mailadres bij te werken. Je moet het nieuwe e-mailadres verifiëren voordat de wijziging ingaat.</target>
       </segment>
     </unit>
     <unit id="1792190533431059127">
@@ -397,7 +397,7 @@
     <unit id="6350615969580028001">
       <segment state="initial">
         <source>Shop actions</source>
-        <target>Shop actions</target>
+        <target>Winkelacties</target>
       </segment>
     </unit>
     <unit id="6350961303290386382">
@@ -445,13 +445,13 @@
     <unit id="6383039941486033298">
       <segment state="initial">
         <source>PK Spot stickers for the real world, with Swiss shipping included.</source>
-        <target>PK Spot stickers for the real world, with Swiss shipping included.</target>
+        <target>PK Spot-stickers voor de echte wereld, inclusief verzending binnen Zwitserland.</target>
       </segment>
     </unit>
     <unit id="6392361494636232622">
       <segment state="initial">
         <source>PK Spot service</source>
-        <target>PK Spot service</target>
+        <target>PK Spot-dienst</target>
       </segment>
     </unit>
     <unit id="6396144908605095471">
@@ -551,7 +551,7 @@
     <unit id="4939271577655832680">
       <segment state="initial">
         <source>There was an error approving the follow request.</source>
-        <target>There was an error approving the follow request.</target>
+        <target>Er is een fout opgetreden bij het goedkeuren van het volgverzoek.</target>
       </segment>
     </unit>
     <unit id="4939428286618017421">
@@ -605,7 +605,7 @@
     <unit id="8940432368628537952">
       <segment state="initial">
         <source>Go to Settings &gt; Account &gt; Delete Account. You&apos;ll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.</source>
-        <target>Go to Settings &gt; Account &gt; Delete Account. You&apos;ll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.</target>
+        <target>Ga naar Instellingen &gt; Account &gt; Account verwijderen. Je wordt gevraagd deze actie te bevestigen. Let op: hiermee worden al je gegevens definitief verwijderd en dit kan niet ongedaan worden gemaakt.</target>
       </segment>
     </unit>
     <unit id="8942517704279686805">
@@ -683,13 +683,13 @@
     <unit id="4481769637105317205">
       <segment state="initial">
         <source>waiting on votes</source>
-        <target>waiting on votes</target>
+        <target>wacht op stemmen</target>
       </segment>
     </unit>
     <unit id="4493161543971750886">
       <segment state="initial">
         <source>Privacy or data use</source>
-        <target>Privacy or data use</target>
+        <target>Privacy of gegevensgebruik</target>
       </segment>
     </unit>
     <unit id="8461609631969932886">
@@ -857,7 +857,7 @@
     <unit id="6824976364666397501">
       <segment state="initial">
         <source>Report a safety concern</source>
-        <target>Report a safety concern</target>
+        <target>Een veiligheidsprobleem melden</target>
       </segment>
     </unit>
     <unit id="5506176846620350292">
@@ -989,7 +989,7 @@
     <unit id="1403609706001572962">
       <segment state="initial">
         <source>I can&apos;t verify my email, what do I do?</source>
-        <target>I can&apos;t verify my email, what do I do?</target>
+        <target>Ik kan mijn e-mail niet verifiëren, wat moet ik doen?</target>
       </segment>
     </unit>
     <unit id="1426358485872019526">
@@ -1041,7 +1041,7 @@
     <unit id="1472354653162750894">
       <segment state="initial">
         <source>Open event website</source>
-        <target>Open event website</target>
+        <target>Website van het evenement openen</target>
       </segment>
     </unit>
     <unit id="1485459466100400260">
@@ -1059,19 +1059,19 @@
     <unit id="1489333176937623478">
       <segment state="initial">
         <source>PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!</source>
-        <target>PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!</target>
+        <target>PK Spot draait op bijdragen van de community. Zijn er nog geen Spots in je omgeving? Voeg dan als eerste een Spot toe!</target>
       </segment>
     </unit>
     <unit id="1494956089085338936">
       <segment state="initial">
         <source>Describe what happened and what outcome you need.</source>
-        <target>Describe what happened and what outcome you need.</target>
+        <target>Beschrijf wat er is gebeurd en welke uitkomst je nodig hebt.</target>
       </segment>
     </unit>
     <unit id="6308412905104409373">
       <segment state="initial">
         <source>View item</source>
-        <target>View item</target>
+        <target>Artikel bekijken</target>
       </segment>
     </unit>
     <unit id="6309828574111583895">
@@ -1125,7 +1125,7 @@
     <unit id="1360510412098130395">
       <segment state="initial">
         <source>You have not submitted any reports</source>
-        <target>You have not submitted any reports</target>
+        <target>Je hebt nog geen meldingen ingediend</target>
       </segment>
     </unit>
     <unit id="1370851403138688256">
@@ -1137,7 +1137,7 @@
     <unit id="1371449879775297874">
       <segment state="initial">
         <source>Shop items</source>
-        <target>Shop items</target>
+        <target>Winkelartikelen</target>
       </segment>
     </unit>
     <unit id="1381308436651796702">
@@ -1149,7 +1149,7 @@
     <unit id="1388712764439031120">
       <segment state="initial">
         <source>Open link</source>
-        <target>Open link</target>
+        <target>Link openen</target>
       </segment>
     </unit>
     <unit id="1389550100207768929">
@@ -1161,7 +1161,7 @@
     <unit id="1393288181273188560">
       <segment state="initial">
         <source>Org approval</source>
-        <target>Org approval</target>
+        <target>Goedkeuring van organisatie</target>
       </segment>
     </unit>
     <unit id="1396251268725844084">
@@ -1185,19 +1185,19 @@
     <unit id="2580257792587718487">
       <segment state="initial">
         <source>Verified 18+ status required</source>
-        <target>Verified 18+ status required</target>
+        <target>Geverifieerde 18+-status vereist</target>
       </segment>
     </unit>
     <unit id="2592135485980390676">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Trainingslogboek</target>
       </segment>
     </unit>
     <unit id="2599075381042572471">
       <segment state="initial">
         <source>No organization approvals waiting.</source>
-        <target>No organization approvals waiting.</target>
+        <target>Geen organisatiegoedkeuringen in afwachting.</target>
       </segment>
     </unit>
     <unit id="5863879151969666492">
@@ -1269,7 +1269,7 @@
     <unit id="5227214585962403800">
       <segment state="initial">
         <source> Recent messages from the public contact form. </source>
-        <target> Mensajes recientes del formulario público de contacto. </target>
+        <target> Recente berichten via het openbare contactformulier. </target>
       </segment>
     </unit>
     <unit id="5232615121937117490">
@@ -1317,7 +1317,7 @@
     <unit id="session_planner.form.add_co_host">
       <segment state="initial">
         <source> Add co-host </source>
-        <target> Add co-host </target>
+        <target> Co-host toevoegen </target>
       </segment>
     </unit>
     <unit id="session_planner.form.capacity">
@@ -1329,13 +1329,13 @@
     <unit id="session_planner.form.co_hosts">
       <segment state="initial">
         <source> Co-hosts and editors </source>
-        <target> Co-hosts and editors </target>
+        <target> Co-hosts en redacteuren </target>
       </segment>
     </unit>
     <unit id="session_planner.form.co_hosts_hint">
       <segment state="initial">
         <source> Co-hosts can edit details and publish updates, but cannot transfer, manage access, or delete the session. </source>
-        <target> Co-hosts can edit details and publish updates, but cannot transfer, manage access, or delete the session. </target>
+        <target> Co-hosts kunnen details bewerken en updates publiceren, maar kunnen de sessie niet overdragen, de toegang niet beheren en de sessie niet verwijderen. </target>
       </segment>
     </unit>
     <unit id="session_planner.form.essentials">
@@ -1395,7 +1395,7 @@
     <unit id="session_planner.form.remove_co_host">
       <segment state="initial">
         <source>Remove co-host</source>
-        <target>Remove co-host</target>
+        <target>Co-host verwijderen</target>
       </segment>
     </unit>
     <unit id="session_planner.form.rsvp">
@@ -1503,55 +1503,55 @@
     <unit id="settings.app_check.detail.default">
       <segment state="initial">
         <source>App Check status is shown here for release testing.</source>
-        <target>App Check status is shown here for release testing.</target>
+        <target>De App Check-status wordt hier getoond voor releasetests.</target>
       </segment>
     </unit>
     <unit id="settings.app_check.detail.failed">
       <segment state="initial">
         <source>App Check is not enforced yet, so the app can continue loading while this is tested.</source>
-        <target>App Check is not enforced yet, so the app can continue loading while this is tested.</target>
+        <target>App Check wordt nog niet afgedwongen, zodat de app kan blijven laden terwijl dit wordt getest.</target>
       </segment>
     </unit>
     <unit id="settings.app_check.detail.ready">
       <segment state="initial">
         <source>This app installation can request App Check tokens.</source>
-        <target>This app installation can request App Check tokens.</target>
+        <target>Deze app-installatie kan App Check-tokens aanvragen.</target>
       </segment>
     </unit>
     <unit id="settings.app_check.label">
       <segment state="initial">
         <source>App verification</source>
-        <target>App verification</target>
+        <target>App-verificatie</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.failed">
       <segment state="initial">
         <source>Failed</source>
-        <target>Failed</target>
+        <target>Mislukt</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.idle">
       <segment state="initial">
         <source>Not checked</source>
-        <target>Not checked</target>
+        <target>Niet gecontroleerd</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.initializing">
       <segment state="initial">
         <source>Checking</source>
-        <target>Checking</target>
+        <target>Controleren</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.ready">
       <segment state="initial">
         <source>Verified</source>
-        <target>Verified</target>
+        <target>Geverifieerd</target>
       </segment>
     </unit>
     <unit id="settings.app_check.status.skipped">
       <segment state="initial">
         <source>Skipped</source>
-        <target>Skipped</target>
+        <target>Overgeslagen</target>
       </segment>
     </unit>
     <unit id="profile.menu.ariaLabel">
@@ -1575,7 +1575,7 @@
     <unit id="profile.menu.notifications_unread">
       <segment state="initial">
         <source>Notifications</source>
-        <target>Notifications</target>
+        <target>Meldingen</target>
       </segment>
     </unit>
     <unit id="profile.menu.settings">
@@ -1611,7 +1611,7 @@
     <unit id="map.all_show_more_spots">
       <segment state="initial">
         <source>Show more spots</source>
-        <target>Mostrar más spots</target>
+        <target>Meer Spots tonen</target>
       </segment>
     </unit>
     <unit id="map.all_spots_heading">
@@ -1635,7 +1635,7 @@
     <unit id="map.contents_heading">
       <segment state="initial">
         <source> In this area </source>
-        <target> En esta zona </target>
+        <target> In dit gebied </target>
       </segment>
     </unit>
     <unit id="map.event_loading_label">
@@ -1955,7 +1955,7 @@
     <unit id="map_event_filters_aria_label">
       <segment state="initial">
         <source>Event filters</source>
-        <target>Filtros de eventos</target>
+        <target>Evenementfilters</target>
       </segment>
     </unit>
     <unit id="map_island.community_open">
@@ -2166,7 +2166,7 @@
     <unit id="moderation.reports.close_tooltip">
       <segment state="initial">
         <source>Close this report as no further investigation. The report is recorded in provenance and removed from the queue.</source>
-        <target>Sluiten this report as no further investigation. The report is recorded in provenance and removed from the queue.</target>
+        <target>Sluit deze melding zonder verder onderzoek. De melding blijft vastgelegd in de geschiedenis en wordt uit de wachtrij verwijderd.</target>
       </segment>
     </unit>
     <unit id="moderation.reports.delete_media_tooltip">
@@ -2322,7 +2322,7 @@
     <unit id="3514079164376470263">
       <segment state="initial">
         <source>Dangerous activity</source>
-        <target>Dangerous activity</target>
+        <target>Gevaarlijke activiteit</target>
       </segment>
     </unit>
     <unit id="3517550046701184661">
@@ -2358,7 +2358,7 @@
     <unit id="3572620215430537942">
       <segment state="initial">
         <source>How do I add a new spot?</source>
-        <target>How do I add a new spot?</target>
+        <target>Hoe voeg ik een nieuwe Spot toe?</target>
       </segment>
     </unit>
     <unit id="3572703815662689324">
@@ -2480,7 +2480,7 @@
     <unit id="signup.email_invalid">
       <segment state="initial">
         <source>Enter a valid email address.</source>
-        <target>Enter a valid email address.</target>
+        <target>Voer een geldig e-mailadres in.</target>
       </segment>
     </unit>
     <unit id="signup.meta.description">
@@ -2498,13 +2498,13 @@
     <unit id="signup.password_mismatch">
       <segment state="initial">
         <source>The passwords must match.</source>
-        <target>The passwords must match.</target>
+        <target>De wachtwoorden moeten overeenkomen.</target>
       </segment>
     </unit>
     <unit id="signup.password_short">
       <segment state="initial">
         <source>Use at least 6 characters.</source>
-        <target>Use at least 6 characters.</target>
+        <target>Gebruik minstens 6 tekens.</target>
       </segment>
     </unit>
     <unit id="account.about.button">
@@ -2528,61 +2528,61 @@
     <unit id="account.app_check.detail.failed">
       <segment state="initial">
         <source>Firebase App Check failed in this browser. Sign-in may still work while enforcement is off.</source>
-        <target>Firebase App Check failed in this browser. Sign-in may still work while enforcement is off.</target>
+        <target>Firebase App Check is mislukt in deze browser. Inloggen kan nog werken zolang afdwingen is uitgeschakeld.</target>
       </segment>
     </unit>
     <unit id="account.app_check.detail.initializing">
       <segment state="initial">
         <source>Checking Firebase App Check for this browser.</source>
-        <target>Checking Firebase App Check for this browser.</target>
+        <target>Firebase App Check wordt gecontroleerd voor deze browser.</target>
       </segment>
     </unit>
     <unit id="account.app_check.detail.ready">
       <segment state="initial">
         <source>This browser can request Firebase App Check tokens.</source>
-        <target>This browser can request Firebase App Check tokens.</target>
+        <target>Deze browser kan Firebase App Check-tokens aanvragen.</target>
       </segment>
     </unit>
     <unit id="account.app_check.detail.skipped">
       <segment state="initial">
         <source>Firebase App Check was not run in this context.</source>
-        <target>Firebase App Check was not run in this context.</target>
+        <target>Firebase App Check is in deze context niet uitgevoerd.</target>
       </segment>
     </unit>
     <unit id="account.app_check.label">
       <segment state="initial">
         <source>App verification</source>
-        <target>App verification</target>
+        <target>App-verificatie</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.failed">
       <segment state="initial">
         <source>Failed</source>
-        <target>Failed</target>
+        <target>Mislukt</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.idle">
       <segment state="initial">
         <source>Not checked</source>
-        <target>Not checked</target>
+        <target>Niet gecontroleerd</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.initializing">
       <segment state="initial">
         <source>Checking</source>
-        <target>Checking</target>
+        <target>Controleren</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.ready">
       <segment state="initial">
         <source>Verified</source>
-        <target>Verified</target>
+        <target>Geverifieerd</target>
       </segment>
     </unit>
     <unit id="account.app_check.status.skipped">
       <segment state="initial">
         <source>Skipped</source>
-        <target>Skipped</target>
+        <target>Overgeslagen</target>
       </segment>
     </unit>
     <unit id="account.auth.kicker">
@@ -2654,7 +2654,7 @@
     <unit id="5701618810648052610">
       <segment state="initial">
         <source>Title</source>
-        <target>Title</target>
+        <target>Titel</target>
       </segment>
     </unit>
     <unit id="5717355661357017349">
@@ -2696,7 +2696,7 @@
     <unit id="4281314225728884844">
       <segment state="initial">
         <source>Could not load ownership claims.</source>
-        <target>Could not load ownership claims.</target>
+        <target>Eigendomsclaims konden niet worden geladen.</target>
       </segment>
     </unit>
     <unit id="4292524783489016046">
@@ -2744,7 +2744,7 @@
     <unit id="7728834599660689787">
       <segment state="initial">
         <source>Failed to queue community merge</source>
-        <target>Failed to queue community merge</target>
+        <target>Kon het samenvoegen van community’s niet in de wachtrij zetten</target>
       </segment>
     </unit>
     <unit id="7730768294447572928">
@@ -2786,7 +2786,7 @@
     <unit id="7740572490638436380">
       <segment state="initial">
         <source>What happened, and what would you like us to do?</source>
-        <target>What happened, and what would you like us to do?</target>
+        <target>Wat is er gebeurd en wat wil je dat we doen?</target>
       </segment>
     </unit>
     <unit id="7742018872696898961">
@@ -2798,7 +2798,7 @@
     <unit id="7742164960555824051">
       <segment state="initial">
         <source>PK Spot things, for the community.</source>
-        <target>PK Spot things, for the community.</target>
+        <target>PK Spot-spullen, voor de community.</target>
       </segment>
     </unit>
     <unit id="7747602784925344705">
@@ -2822,7 +2822,7 @@
     <unit id="7314366616785648252">
       <segment state="initial">
         <source>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</source>
-        <target>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</target>
+        <target>Vraag Apple om een 18+-leeftijdscategorie te delen op een ondersteunde iPhone- of iPad-installatie.</target>
       </segment>
     </unit>
     <unit id="7317396157754495933">
@@ -2852,7 +2852,7 @@
     <unit id="6962699013778688473">
       <segment state="initial">
         <source>Continue</source>
-        <target>Continue</target>
+        <target>Doorgaan</target>
       </segment>
     </unit>
     <unit id="6964548934732214977">
@@ -2894,7 +2894,7 @@
     <unit id="69928384265189430">
       <segment state="initial">
         <source>Loading your reports…</source>
-        <target>Loading your reports…</target>
+        <target>Je meldingen worden geladen…</target>
       </segment>
     </unit>
     <unit id="6997602168024654529">
@@ -2906,7 +2906,7 @@
     <unit id="3002792374831127014">
       <segment state="initial">
         <source>Event title</source>
-        <target>Event title</target>
+        <target>Titel van het evenement</target>
       </segment>
     </unit>
     <unit id="3013055597615607317">
@@ -2942,13 +2942,13 @@
     <unit id="309182425721385503">
       <segment state="initial">
         <source>Use OneID’s privacy-preserving 18+ check when it is available for your account.</source>
-        <target>Use OneID’s privacy-preserving 18+ check when it is available for your account.</target>
+        <target>Gebruik de privacyvriendelijke 18+-controle van OneID wanneer die beschikbaar is voor je account.</target>
       </segment>
     </unit>
     <unit id="6849734841047073254">
       <segment state="initial">
         <source>App &amp; Technical</source>
-        <target>App &amp; Technical</target>
+        <target>App en techniek</target>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -3038,7 +3038,7 @@
     <unit id="4522831263356539404">
       <segment state="initial">
         <source>Add at least one community card before submitting</source>
-        <target>Add at least one community card before submitting</target>
+        <target>Voeg minstens één communitykaart toe voordat je verstuurt</target>
       </segment>
     </unit>
     <unit id="4523261781339006646">
@@ -3080,7 +3080,7 @@
     <unit id="5265692635538057834">
       <segment state="initial">
         <source>Starts</source>
-        <target>Starts</target>
+        <target>Begin</target>
       </segment>
     </unit>
     <unit id="5274576717459953946">
@@ -3158,7 +3158,7 @@
     <unit id="208754813279042651">
       <segment state="initial">
         <source> Public map activity from this profile. </source>
-        <target> Public map activity from this profile. </target>
+        <target> Openbare kaartactiviteit van dit profiel. </target>
       </segment>
     </unit>
     <unit id="1034149520601449069">
@@ -3170,7 +3170,7 @@
     <unit id="1035459065824093652">
       <segment state="initial">
         <source>Open edit</source>
-        <target>Open edit</target>
+        <target>Bewerking openen</target>
       </segment>
     </unit>
     <unit id="1053544786475957394">
@@ -3218,7 +3218,7 @@
     <unit id="1263548881803803113">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</source>
-        <target><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</target>
+        <target><ph id="0" equiv="PH" disp="summary.yes_count"/> ja · <ph id="1" equiv="PH_1" disp="summary.no_count"/> nee</target>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -3302,7 +3302,7 @@
     <unit id="6480397588679623769">
       <segment state="initial">
         <source>Provide at least 10 characters and no more than 4000.</source>
-        <target>Provide at least 10 characters and no more than 4000.</target>
+        <target>Gebruik minstens 10 en hoogstens 4000 tekens.</target>
       </segment>
     </unit>
     <unit id="6482719729528694797">
@@ -3314,7 +3314,7 @@
     <unit id="6483130493535015475">
       <segment state="initial">
         <source>Apple age range</source>
-        <target>Apple age range</target>
+        <target>Apple-leeftijdscategorie</target>
       </segment>
     </unit>
     <unit id="6484510802892706344">
@@ -3332,7 +3332,7 @@
     <unit id="6496554534263466402">
       <segment state="initial">
         <source>Follow request declined</source>
-        <target>Follow request declined</target>
+        <target>Volgverzoek afgewezen</target>
       </segment>
     </unit>
     <unit id="1921077401852097555">
@@ -3344,7 +3344,7 @@
     <unit id="1922856447604899399">
       <segment state="initial">
         <source>What do you need to do?</source>
-        <target>What do you need to do?</target>
+        <target>Wat wil je doen?</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -3398,7 +3398,7 @@
     <unit id="1999955189900316314">
       <segment state="initial">
         <source>Could not submit this case. Please try again.</source>
-        <target>Could not submit this case. Please try again.</target>
+        <target>Deze zaak kon niet worden ingediend. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -3428,7 +3428,7 @@
     <unit id="362734614337874993">
       <segment state="initial">
         <source>Claim submission failed.</source>
-        <target>Claim submission failed.</target>
+        <target>Indienen van de claim is mislukt.</target>
       </segment>
     </unit>
     <unit id="3628374603023447227">
@@ -3452,7 +3452,7 @@
     <unit id="3646247581011421406">
       <segment state="initial">
         <source>How do I change my profile picture?</source>
-        <target>How do I change my profile picture?</target>
+        <target>Hoe wijzig ik mijn profielfoto?</target>
       </segment>
     </unit>
     <unit id="3665571050825458932">
@@ -3476,7 +3476,7 @@
     <unit id="3687813860684285439">
       <segment state="initial">
         <source>Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.</source>
-        <target>Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.</target>
+        <target>Open de details van de Spot en tik op het bewerkpictogram. Je kunt wijzigingen voorstellen die door de community worden beoordeeld. Gebruik voor ernstige problemen de meldknop.</target>
       </segment>
     </unit>
     <unit id="3689301942396726798">
@@ -3586,7 +3586,7 @@
     <unit id="6727906839729645379">
       <segment state="initial">
         <source>Harassment or abuse</source>
-        <target>Acoso o abuso</target>
+        <target>Intimidatie of misbruik</target>
       </segment>
     </unit>
     <unit id="6731957520296691946">
@@ -3626,7 +3626,7 @@
     <unit id="8004315903155516282">
       <segment state="initial">
         <source>Suggest an Event</source>
-        <target>Suggest an Event</target>
+        <target>Evenement voorstellen</target>
       </segment>
     </unit>
     <unit id="8011758699583016596">
@@ -3638,7 +3638,7 @@
     <unit id="5385906161252826395">
       <segment state="initial">
         <source>Manage paid sticker orders</source>
-        <target>Manage paid sticker orders</target>
+        <target>Betaalde stickerbestellingen beheren</target>
       </segment>
     </unit>
     <unit id="5387369293317164071">
@@ -3692,7 +3692,7 @@
     <unit id="579084822382819407">
       <segment state="initial">
         <source>Photo or video</source>
-        <target>Photo or video</target>
+        <target>Foto of video</target>
       </segment>
     </unit>
     <unit id="1502330665583066827">
@@ -3734,7 +3734,7 @@
     <unit id="1528946323951752035">
       <segment state="initial">
         <source> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </source>
-        <target> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </target>
+        <target> Dit is optioneel. De normale functies van PK Spot en privé-check-ins blijven ook zonder verificatie beschikbaar. Verificatie ontgrendelt alleen functies voor volwassenen, zoals je profiel openbaar maken en je huidige locatie delen zodra die functie beschikbaar is. </target>
       </segment>
     </unit>
     <unit id="1534029177398918729">
@@ -3791,7 +3791,7 @@
     <unit id="6959547043904768184">
       <segment state="initial">
         <source> Enable vector maps </source>
-        <target> Enable vector maps </target>
+        <target> Vectorkaarten inschakelen </target>
       </segment>
     </unit>
     <unit id="6001163963116907226">
@@ -3803,13 +3803,13 @@
     <unit id="6008995610936337562">
       <segment state="initial">
         <source>What is this about?</source>
-        <target>What is this about?</target>
+        <target>Waar gaat het over?</target>
       </segment>
     </unit>
     <unit id="601278657052307519">
       <segment state="initial">
         <source>Spam or a malicious link</source>
-        <target>Spam or a malicious link</target>
+        <target>Spam of een schadelijke link</target>
       </segment>
     </unit>
     <unit id="6020607686749008401">
@@ -3833,7 +3833,7 @@
     <unit id="603746038161851978">
       <segment state="initial">
         <source>Explore the map</source>
-        <target>Explore the map</target>
+        <target>Verken de kaart</target>
       </segment>
     </unit>
     <unit id="6044276004948174494">
@@ -3857,7 +3857,7 @@
     <unit id="6090595749329244912">
       <segment state="initial">
         <source>Community card approved</source>
-        <target>Community card approved</target>
+        <target>Communitykaart goedgekeurd</target>
       </segment>
     </unit>
     <unit id="8411563267246095898">
@@ -3875,7 +3875,7 @@
     <unit id="8417842421847722492">
       <segment state="initial">
         <source>My orders</source>
-        <target>My orders</target>
+        <target>Mijn bestellingen</target>
       </segment>
     </unit>
     <unit id="8425534745547037864">
@@ -3893,7 +3893,7 @@
     <unit id="8436223332064456837">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
-        <target>&lt;ph id=&quot;0&quot; equiv=&quot;PH&quot; disp=&quot;challengeNaam&quot;/&gt; - &lt;ph id=&quot;1&quot; equiv=&quot;PH_1&quot; disp=&quot;spotNaam&quot;/&gt;</target>
+        <target><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></target>
       </segment>
     </unit>
     <unit id="8439955599488894226">
@@ -3941,7 +3941,7 @@
     <unit id="3261642323287960585">
       <segment state="initial">
         <source>Sexual content</source>
-        <target>Sexual content</target>
+        <target>Seksuele inhoud</target>
       </segment>
     </unit>
     <unit id="3268843240047650795">
@@ -3977,7 +3977,7 @@
     <unit id="4172689758346256013">
       <segment state="initial">
         <source>There was an error declining the follow request.</source>
-        <target>There was an error declining the follow request.</target>
+        <target>Er is een fout opgetreden bij het afwijzen van het volgverzoek.</target>
       </segment>
     </unit>
     <unit id="4178793080892122578">
@@ -4049,7 +4049,7 @@
     <unit id="1147358182484006761">
       <segment state="initial">
         <source>Shop</source>
-        <target>Shop</target>
+        <target>Winkel</target>
       </segment>
     </unit>
     <unit id="1165007284037457711">
@@ -4073,7 +4073,7 @@
     <unit id="8361822038727829961">
       <segment state="initial">
         <source>No reports match this filter.</source>
-        <target>Ningún reporte coincide con este filtro.</target>
+        <target>Geen meldingen komen overeen met dit filter.</target>
       </segment>
     </unit>
     <unit id="8366055039424158608">
@@ -4181,7 +4181,7 @@
     <unit id="8640413159088021987">
       <segment state="initial">
         <source>Profile access saved</source>
-        <target>Profile access saved</target>
+        <target>Profieltoegang opgeslagen</target>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -4193,13 +4193,13 @@
     <unit id="8658317676793040364">
       <segment state="initial">
         <source>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</source>
-        <target>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</target>
+        <target>PK Spot is beschikbaar voor iOS en Android. Je kunt het ook als Progressive Web App (PWA) installeren door het menu van je browser te openen en ‘Toevoegen aan startscherm’ of ‘Installeren’ te kiezen.</target>
       </segment>
     </unit>
     <unit id="8665225557897160418">
       <segment state="initial">
         <source>Spot report</source>
-        <target>Reporte de spot</target>
+        <target>Spot-melding</target>
       </segment>
     </unit>
     <unit id="8666275494339219378">
@@ -4307,7 +4307,7 @@
     <unit id="4406719211202279831">
       <segment state="initial">
         <source>My reports</source>
-        <target>My reports</target>
+        <target>Mijn meldingen</target>
       </segment>
     </unit>
     <unit id="4411678463999056889">
@@ -4319,7 +4319,7 @@
     <unit id="4412828079367710507">
       <segment state="initial">
         <source>Spot edit votes</source>
-        <target>Spot edit votes</target>
+        <target>Stemmen over Spot-bewerkingen</target>
       </segment>
     </unit>
     <unit id="4416413576346763682">
@@ -4343,7 +4343,7 @@
     <unit id="2314075913167237221">
       <segment state="initial">
         <source>City</source>
-        <target>City</target>
+        <target>Stad</target>
       </segment>
     </unit>
     <unit id="2325032840535506648">
@@ -5733,7 +5733,7 @@
     <unit id="notification_center.community_event.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> is coming to <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;community_name&quot;]"/></source>
-        <target>Nieuw evenement in <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/></target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> komt naar <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;community_name&quot;]"/></target>
       </segment>
     </unit>
     <unit id="notification_center.community_info.approved_body">
@@ -5745,7 +5745,7 @@
     <unit id="notification_center.community_info.approved_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> info is now live</source>
-        <target>Community-informatie goedgekeurd</target>
+        <target>Info over <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> staat nu online</target>
       </segment>
     </unit>
     <unit id="notification_center.community_info.rejected_body">
@@ -5769,13 +5769,13 @@
     <unit id="notification_center.community_spot_digest.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> new Spots worth a look</source>
-        <target>Spots die het bekijken waard zijn</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> nieuwe Spots die de moeite waard zijn</target>
       </segment>
     </unit>
     <unit id="notification_center.community_spot_digest.top_body">
       <segment state="initial">
         <source>Starting with <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;top_spot_name&quot;]"/> and more fresh recommendations.</source>
-        <target>Starting with <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;top_spot_name&quot;]"/> and more fresh recommendations.</target>
+        <target>Te beginnen met <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;top_spot_name&quot;]"/> en meer nieuwe aanraders.</target>
       </segment>
     </unit>
     <unit id="notification_center.dismiss">
@@ -5805,7 +5805,7 @@
     <unit id="notification_center.event_ownership.title">
       <segment state="initial">
         <source>Event management update</source>
-        <target>Event management update</target>
+        <target>Update over evenementbeheer</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.body">
@@ -5817,7 +5817,7 @@
     <unit id="notification_center.event_reminder.day_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is tomorrow</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is tomorrow</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is morgen</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.interested_body">
@@ -5829,73 +5829,73 @@
     <unit id="notification_center.event_reminder.thirty_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 30 minutes</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 30 minutes</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> begint over 30 minuten</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.two_hour_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 2 hours</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 2 hours</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> begint over 2 uur</target>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.venue_body">
       <segment state="initial">
         <source>See you at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</source>
-        <target>See you at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
+        <target>Tot ziens bij <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.cancelled_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> was cancelled</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> was cancelled</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is geannuleerd</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.location_body">
       <segment state="initial">
         <source>Check the updated location.</source>
-        <target>Check the updated location.</target>
+        <target>Bekijk de bijgewerkte locatie.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.location_title">
       <segment state="initial">
         <source>New location for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></source>
-        <target>New location for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
+        <target>Nieuwe locatie voor <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.location_venue">
       <segment state="initial">
         <source>The event is now at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</source>
-        <target>The event is now at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
+        <target>Het evenement is nu bij <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.open_body">
       <segment state="initial">
         <source>Open the event for the latest details.</source>
-        <target>Open the event for the latest details.</target>
+        <target>Open het evenement voor de nieuwste details.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.restored_body">
       <segment state="initial">
         <source>The event is active again.</source>
-        <target>The event is active again.</target>
+        <target>Het evenement is weer actief.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.restored_title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is back on</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is back on</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="eventName"/> gaat weer door</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.time_body">
       <segment state="initial">
         <source>Check the updated date and time.</source>
-        <target>Check the updated date and time.</target>
+        <target>Bekijk de bijgewerkte datum en tijd.</target>
       </segment>
     </unit>
     <unit id="notification_center.event_update.time_title">
       <segment state="initial">
         <source>New time for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></source>
-        <target>New time for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
+        <target>Nieuwe tijd voor <ph id="0" equiv="INTERPOLATION" disp="eventName"/></target>
       </segment>
     </unit>
     <unit id="notification_center.follow_accepted.body">
@@ -5907,7 +5907,7 @@
     <unit id="notification_center.follow_accepted.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> accepted your follow request</source>
-        <target>Volgverzoek geaccepteerd</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> heeft je volgverzoek geaccepteerd</target>
       </segment>
     </unit>
     <unit id="notification_center.follow_request.body">
@@ -5919,7 +5919,7 @@
     <unit id="notification_center.follow_request.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you</source>
-        <target>Volgverzoek</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wil je volgen</target>
       </segment>
     </unit>
     <unit id="notification_center.heading">
@@ -5979,7 +5979,7 @@
     <unit id="notification_center.mutual_follower.title">
       <segment state="initial">
         <source>You and <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> follow each other</source>
-        <target>Nieuwe wederzijdse volger</target>
+        <target>Jij en <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> volgen elkaar</target>
       </segment>
     </unit>
     <unit id="notification_center.new_follower.body">
@@ -5991,7 +5991,7 @@
     <unit id="notification_center.new_follower.title">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> is following you</source>
-        <target>Nieuwe volger</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> volgt je</target>
       </segment>
     </unit>
     <unit id="notification_center.ok">
@@ -6003,31 +6003,31 @@
     <unit id="notification_center.resolved.accepted">
       <segment state="initial">
         <source>Accepted</source>
-        <target>Accepted</target>
+        <target>Geaccepteerd</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.declined">
       <segment state="initial">
         <source>Declined</source>
-        <target>Declined</target>
+        <target>Afgewezen</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.following">
       <segment state="initial">
         <source>Following</source>
-        <target>Following</target>
+        <target>Volgend</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.going">
       <segment state="initial">
         <source>Going</source>
-        <target>Going</target>
+        <target>Ik ga</target>
       </segment>
     </unit>
     <unit id="notification_center.resolved.saved">
       <segment state="initial">
         <source>Saved</source>
-        <target>Saved</target>
+        <target>Opgeslagen</target>
       </segment>
     </unit>
     <unit id="notification_center.retry">
@@ -6045,7 +6045,7 @@
     <unit id="notification_center.show_history">
       <segment state="initial">
         <source>Show earlier updates</source>
-        <target>Show earlier updates</target>
+        <target>Eerdere updates tonen</target>
       </segment>
     </unit>
     <unit id="notification_center.spot_edit.approved_body">
@@ -6063,7 +6063,7 @@
     <unit id="notification_center.spot_edit.organization_body">
       <segment state="initial">
         <source>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. It was approved by <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;organization_name&quot;]"/>.</source>
-        <target>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. It was approved by <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;organization_name&quot;]"/>.</target>
+        <target>Bedankt voor het verbeteren van <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. De wijziging is goedgekeurd door <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;organization_name&quot;]"/>.</target>
       </segment>
     </unit>
     <unit id="notification_center.spot_edit.rejected_body">
@@ -6081,7 +6081,7 @@
     <unit id="notification_center.spot_edit.vote_body">
       <segment state="initial">
         <source>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. The community approved it with <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;yes_count&quot;]"/> yes and <ph id="2" equiv="INTERPOLATION_2" disp="payload[&quot;no_count&quot;]"/> no votes.</source>
-        <target>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. The community approved it with <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;yes_count&quot;]"/> yes and <ph id="2" equiv="INTERPOLATION_2" disp="payload[&quot;no_count&quot;]"/> no votes.</target>
+        <target>Bedankt voor het verbeteren van <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. De community heeft het goedgekeurd met <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;yes_count&quot;]"/> stemmen voor en <ph id="2" equiv="INTERPOLATION_2" disp="payload[&quot;no_count&quot;]"/> tegen.</target>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.action_body">
@@ -6093,7 +6093,7 @@
     <unit id="notification_center.spot_report.action_title">
       <segment state="initial">
         <source>Thanks for reporting <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/></source>
-        <target>Actie ondernomen na je Spot-melding</target>
+        <target>Bedankt voor je melding over <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/></target>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.reviewed_body">
@@ -6111,37 +6111,37 @@
     <unit id="notification_center.success.accepted">
       <segment state="initial">
         <source>Follow request accepted</source>
-        <target>Follow request accepted</target>
+        <target>Volgverzoek geaccepteerd</target>
       </segment>
     </unit>
     <unit id="notification_center.success.declined">
       <segment state="initial">
         <source>Follow request declined</source>
-        <target>Follow request declined</target>
+        <target>Volgverzoek afgewezen</target>
       </segment>
     </unit>
     <unit id="notification_center.success.following">
       <segment state="initial">
         <source>You are now following them</source>
-        <target>You are now following them</target>
+        <target>Je volgt deze persoon nu</target>
       </segment>
     </unit>
     <unit id="notification_center.success.going">
       <segment state="initial">
         <source>Marked as going</source>
-        <target>Marked as going</target>
+        <target>Gemarkeerd als ‘Ik ga’</target>
       </segment>
     </unit>
     <unit id="notification_center.success.saved">
       <segment state="initial">
         <source>Event saved</source>
-        <target>Event saved</target>
+        <target>Evenement opgeslagen</target>
       </segment>
     </unit>
     <unit id="notification_center.success.undone">
       <segment state="initial">
         <source>Action undone</source>
-        <target>Action undone</target>
+        <target>Actie ongedaan gemaakt</target>
       </segment>
     </unit>
     <unit id="notification_center.unread_count">
@@ -6159,19 +6159,19 @@
     <unit id="notification_center.view">
       <segment state="initial">
         <source> View </source>
-        <target> View </target>
+        <target> Bekijken </target>
       </segment>
     </unit>
     <unit id="notification_center.waitlist.body">
       <segment state="initial">
         <source>A place opened up and your registration is confirmed.</source>
-        <target>A place opened up and your registration is confirmed.</target>
+        <target>Er is een plek vrijgekomen en je inschrijving is bevestigd.</target>
       </segment>
     </unit>
     <unit id="notification_center.waitlist.title">
       <segment state="initial">
         <source>You&apos;re in for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/>!</source>
-        <target>You&apos;re in for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/>!</target>
+        <target>Je bent erbij voor <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/>!</target>
       </segment>
     </unit>
     <unit id="notification_center.weather.title">
@@ -6429,55 +6429,55 @@
     <unit id="report_outcome.action_body">
       <segment state="initial">
         <source> We reviewed the report and took appropriate action. </source>
-        <target> We reviewed the report and took appropriate action. </target>
+        <target> We hebben de melding beoordeeld en passende maatregelen genomen. </target>
       </segment>
     </unit>
     <unit id="report_outcome.action_title">
       <segment state="initial">
         <source>Thanks for your report</source>
-        <target>Thanks for your report</target>
+        <target>Bedankt voor je melding</target>
       </segment>
     </unit>
     <unit id="report_outcome.back">
       <segment state="initial">
         <source>Notifications</source>
-        <target>Notifications</target>
+        <target>Meldingen</target>
       </segment>
     </unit>
     <unit id="report_outcome.closed_body">
       <segment state="initial">
         <source> We reviewed the available information and no action was needed. </source>
-        <target> We reviewed the available information and no action was needed. </target>
+        <target> We hebben de beschikbare informatie beoordeeld en er was geen actie nodig. </target>
       </segment>
     </unit>
     <unit id="report_outcome.eyebrow">
       <segment state="initial">
         <source>REPORT UPDATE</source>
-        <target>REPORT UPDATE</target>
+        <target>UPDATE OVER MELDING</target>
       </segment>
     </unit>
     <unit id="report_outcome.load_error">
       <segment state="initial">
         <source>Report update unavailable</source>
-        <target>Report update unavailable</target>
+        <target>Update over melding niet beschikbaar</target>
       </segment>
     </unit>
     <unit id="report_outcome.not_found">
       <segment state="initial">
         <source>Report update not found</source>
-        <target>Report update not found</target>
+        <target>Update over melding niet gevonden</target>
       </segment>
     </unit>
     <unit id="report_outcome.privacy">
       <segment state="initial">
         <source> To protect everyone involved, internal moderation notes and evidence are not shown here. </source>
-        <target> To protect everyone involved, internal moderation notes and evidence are not shown here. </target>
+        <target> Om iedereen die betrokken is te beschermen, worden interne moderatienotities en bewijs hier niet getoond. </target>
       </segment>
     </unit>
     <unit id="report_outcome.reviewed_title">
       <segment state="initial">
         <source>Your report was reviewed</source>
-        <target>Your report was reviewed</target>
+        <target>Je melding is beoordeeld</target>
       </segment>
     </unit>
     <unit id="review_spot_button_label">
@@ -6505,7 +6505,7 @@
     <unit id="9017499308763862338">
       <segment state="initial">
         <source>Choose a one-time amount to help keep PK Spot moving.</source>
-        <target>Choose a one-time amount to help keep PK Spot moving.</target>
+        <target>Kies een eenmalig bedrag om PK Spot draaiende te houden.</target>
       </segment>
     </unit>
     <unit id="9019759608416406738">
@@ -6517,7 +6517,7 @@
     <unit id="9023791413043930148">
       <segment state="initial">
         <source>No community card suggestions.</source>
-        <target>No community card suggestions.</target>
+        <target>Geen voorstellen voor communitykaarten.</target>
       </segment>
     </unit>
     <unit id="9035893448017132543">
@@ -6541,7 +6541,7 @@
     <unit id="9056381689300790104">
       <segment state="initial">
         <source>Choose an organization, explain the claim, and add evidence.</source>
-        <target>Choose an organization, explain the claim, and add evidence.</target>
+        <target>Kies een organisatie, licht de claim toe en voeg bewijs toe.</target>
       </segment>
     </unit>
     <unit id="9058496705928443158">
@@ -6553,7 +6553,7 @@
     <unit id="9067558040232302554">
       <segment state="initial">
         <source>How do I change my email address?</source>
-        <target>How do I change my email address?</target>
+        <target>Hoe wijzig ik mijn e-mailadres?</target>
       </segment>
     </unit>
     <unit id="9068926282349592226">
@@ -6601,7 +6601,7 @@
     <unit id="profile.trainingLog">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Trainingslogboek</target>
       </segment>
     </unit>
     <unit id="train.now.addNotes">
@@ -6709,13 +6709,13 @@
     <unit id="9134186591632250216">
       <segment state="initial">
         <source>Copyright infringement</source>
-        <target>Copyright infringement</target>
+        <target>Inbreuk op het auteursrecht</target>
       </segment>
     </unit>
     <unit id="9140895998943713645">
       <segment state="initial">
         <source>Age-assurance decision</source>
-        <target>Age-assurance decision</target>
+        <target>Besluit over leeftijdsverificatie</target>
       </segment>
     </unit>
     <unit id="9147694429145547851">
@@ -6754,7 +6754,7 @@
     <unit id="9167637664887633063">
       <segment state="initial">
         <source>Sign in to see your reports</source>
-        <target>Sign in to see your reports</target>
+        <target>Log in om je meldingen te zien</target>
       </segment>
     </unit>
     <unit id="9170384147435945980">
@@ -6874,7 +6874,7 @@
     <unit id="934990675622429392">
       <segment state="initial">
         <source>Safety process or legal duty</source>
-        <target>Safety process or legal duty</target>
+        <target>Veiligheidsprocedure of wettelijke plicht</target>
       </segment>
     </unit>
     <unit id="940154517504196358">
@@ -6892,7 +6892,7 @@
     <unit id="943622778225300320">
       <segment state="initial">
         <source>(recommended)</source>
-        <target>(recommended)</target>
+        <target>(aanbevolen)</target>
       </segment>
     </unit>
     <unit id="947995176992343811">
@@ -6904,13 +6904,13 @@
     <unit id="95213720452925222">
       <segment state="initial">
         <source>Not specified</source>
-        <target>Not specified</target>
+        <target>Niet opgegeven</target>
       </segment>
     </unit>
     <unit id="962179517602562850">
       <segment state="initial">
         <source>Privacy or doxxing</source>
-        <target>Privacy or doxxing</target>
+        <target>Privacy of doxing</target>
       </segment>
     </unit>
     <unit id="967806009511704497">
@@ -6922,7 +6922,7 @@
     <unit id="979884833201290493">
       <segment state="initial">
         <source>Open — edit or withdraw</source>
-        <target>Open — edit or withdraw</target>
+        <target>Open — bewerken of intrekken</target>
       </segment>
     </unit>
     <unit id="987307797836003655">
@@ -6940,7 +6940,7 @@
     <unit id="6431080344212430103">
       <segment state="initial">
         <source>Bad quality</source>
-        <target>Bad quality</target>
+        <target>Slechte kwaliteit</target>
       </segment>
     </unit>
     <unit id="6431756795596367554">
@@ -7308,7 +7308,7 @@
     <unit id="settings.notifications.reminder_day">
       <segment state="initial">
         <source>1 day</source>
-        <target>1 day</target>
+        <target>1 dag</target>
       </segment>
     </unit>
     <unit id="settings.notifications.reminder_thirty_minutes">
@@ -7320,7 +7320,7 @@
     <unit id="settings.notifications.reminder_times_aria">
       <segment state="initial">
         <source>Default event reminder times</source>
-        <target>Default event reminder times</target>
+        <target>Standaard herinneringstijden voor evenementen</target>
       </segment>
     </unit>
     <unit id="settings.notifications.reminder_times_label">
@@ -7332,7 +7332,7 @@
     <unit id="settings.notifications.reminder_two_hours">
       <segment state="initial">
         <source>2 hours</source>
-        <target>2 hours</target>
+        <target>2 uur</target>
       </segment>
     </unit>
     <unit id="settings.notifications.reports_description">
@@ -7440,7 +7440,7 @@
     <unit id="6136284828823087442">
       <segment state="initial">
         <source>Your reports could not be loaded</source>
-        <target>Your reports could not be loaded</target>
+        <target>Je meldingen konden niet worden geladen</target>
       </segment>
     </unit>
     <unit id="6138468027048267884">
@@ -7458,7 +7458,7 @@
     <unit id="6147096546149362686">
       <segment state="initial">
         <source>Using the Map</source>
-        <target>Using the Map</target>
+        <target>De kaart gebruiken</target>
       </segment>
     </unit>
     <unit id="6150046349171143373">
@@ -8088,7 +8088,7 @@
     <unit id="7602303323284138919">
       <segment state="initial">
         <source>My cart</source>
-        <target>My cart</target>
+        <target>Mijn winkelwagen</target>
       </segment>
     </unit>
     <unit id="7648040324495665523">
@@ -8377,19 +8377,19 @@
     <unit id="event.timing.date_only_label">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="range"/> · Time to be announced</source>
-        <target><ph id="0" equiv="PH" disp="range"/> · Time to be announced</target>
+        <target><ph id="0" equiv="PH" disp="range"/> · Tijd volgt nog</target>
       </segment>
     </unit>
     <unit id="event.timing.open_end_label">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="start"/> · Open end</source>
-        <target><ph id="0" equiv="PH" disp="start"/> · Open end</target>
+        <target><ph id="0" equiv="PH" disp="start"/> · Open einde</target>
       </segment>
     </unit>
     <unit id="event.venue_tba">
       <segment state="initial">
         <source>Venue to be announced</source>
-        <target>Venue to be announced</target>
+        <target>Locatie volgt nog</target>
       </segment>
     </unit>
     <unit id="event_access.add">
@@ -8575,13 +8575,13 @@
     <unit id="event_category.awards">
       <segment state="initial">
         <source>Awards</source>
-        <target>Premios</target>
+        <target>Awards</target>
       </segment>
     </unit>
     <unit id="event_category.camp">
       <segment state="initial">
         <source>Camp</source>
-        <target>Campamento</target>
+        <target>Kamp</target>
       </segment>
     </unit>
     <unit id="event_category.competition">
@@ -8611,13 +8611,13 @@
     <unit id="event_category.social">
       <segment state="initial">
         <source>Social</source>
-        <target>Social</target>
+        <target>Ontmoeting</target>
       </segment>
     </unit>
     <unit id="event_category.travel">
       <segment state="initial">
         <source>Travel</source>
-        <target>Viaje</target>
+        <target>Reis</target>
       </segment>
     </unit>
     <unit id="event_category.workshop">
@@ -8629,241 +8629,241 @@
     <unit id="event_claims.admin_only">
       <segment state="initial">
         <source> Administrator access is required. </source>
-        <target> Administrator access is required. </target>
+        <target> Beheerderstoegang is vereist. </target>
       </segment>
     </unit>
     <unit id="event_claims.approve">
       <segment state="initial">
         <source> Approve </source>
-        <target> Approve </target>
+        <target> Goedkeuren </target>
       </segment>
     </unit>
     <unit id="event_claims.claim_explanation">
       <segment state="initial">
         <source> Claim explanation </source>
-        <target> Claim explanation </target>
+        <target> Toelichting op de claim </target>
       </segment>
     </unit>
     <unit id="event_claims.contest">
       <segment state="initial">
         <source> Contest claim </source>
-        <target> Contest claim </target>
+        <target> Claim betwisten </target>
       </segment>
     </unit>
     <unit id="event_claims.current_organizer">
       <segment state="initial">
         <source>Current organizer</source>
-        <target>Current organizer</target>
+        <target>Huidige organisator</target>
       </segment>
     </unit>
     <unit id="event_claims.current_owner">
       <segment state="initial">
         <source>Current owner</source>
-        <target>Current owner</target>
+        <target>Huidige eigenaar</target>
       </segment>
     </unit>
     <unit id="event_claims.empty">
       <segment state="initial">
         <source> There are no pending ownership claims. </source>
-        <target> There are no pending ownership claims. </target>
+        <target> Er zijn geen openstaande eigendomsclaims. </target>
       </segment>
     </unit>
     <unit id="event_claims.evidence">
       <segment state="initial">
         <source> Public evidence URLs (one per line) </source>
-        <target> Public evidence URLs (one per line) </target>
+        <target> Openbare bewijs-URL’s (één per regel) </target>
       </segment>
     </unit>
     <unit id="event_claims.explanation">
       <segment state="initial">
         <source>Explanation</source>
-        <target>Explanation</target>
+        <target>Toelichting</target>
       </segment>
     </unit>
     <unit id="event_claims.former_owner">
       <segment state="initial">
         <source>Former owner</source>
-        <target>Former owner</target>
+        <target>Vorige eigenaar</target>
       </segment>
     </unit>
     <unit id="event_claims.former_owner_suggestion">
       <segment state="initial">
         <source> Suggested former-owner access </source>
-        <target> Suggested former-owner access </target>
+        <target> Voorgestelde toegang voor de vorige eigenaar </target>
       </segment>
     </unit>
     <unit id="event_claims.inbox_heading">
       <segment state="initial">
         <source> Event ownership claims </source>
-        <target> Event ownership claims </target>
+        <target> Eigendomsclaims voor evenementen </target>
       </segment>
     </unit>
     <unit id="event_claims.inbox_intro">
       <segment state="initial">
         <source> Review evidence and decide ownership, public organizer linkage, and former-owner access separately. </source>
-        <target> Review evidence and decide ownership, public organizer linkage, and former-owner access separately. </target>
+        <target> Bekijk het bewijs en beslis afzonderlijk over eigendom, de openbare koppeling met de organisator en toegang voor de vorige eigenaar. </target>
       </segment>
     </unit>
     <unit id="event_claims.link_organizer">
       <segment state="initial">
         <source> Link organization publicly </source>
-        <target> Link organization publicly </target>
+        <target> Organisatie openbaar koppelen </target>
       </segment>
     </unit>
     <unit id="event_claims.loading_organizations">
       <segment state="initial">
         <source>Loading your organizations…</source>
-        <target>Loading your organizations…</target>
+        <target>Je organisaties worden geladen…</target>
       </segment>
     </unit>
     <unit id="event_claims.no_manager_orgs">
       <segment state="initial">
         <source> You must manage an active PK Spot organization to submit a claim. </source>
-        <target> You must manage an active PK Spot organization to submit a claim. </target>
+        <target> Je moet een actieve PK Spot-organisatie beheren om een claim in te dienen. </target>
       </segment>
     </unit>
     <unit id="event_claims.organization">
       <segment state="initial">
         <source>Organization</source>
-        <target>Organization</target>
+        <target>Organisatie</target>
       </segment>
     </unit>
     <unit id="event_claims.owner_message">
       <segment state="initial">
         <source> Optional response </source>
-        <target> Optional response </target>
+        <target> Optionele reactie </target>
       </segment>
     </unit>
     <unit id="event_claims.owner_response">
       <segment state="initial">
         <source> Current owner response </source>
-        <target> Current owner response </target>
+        <target> Reactie van de huidige eigenaar </target>
       </segment>
     </unit>
     <unit id="event_claims.owner_response_help">
       <segment state="initial">
         <source> Supporting or contesting helps administrators decide. They may decide immediately when the public evidence is already sufficient. </source>
-        <target> Supporting or contesting helps administrators decide. They may decide immediately when the public evidence is already sufficient. </target>
+        <target> Steunen of betwisten helpt beheerders te beslissen. Ze kunnen direct beslissen als het openbare bewijs al voldoende is. </target>
       </segment>
     </unit>
     <unit id="event_claims.reason">
       <segment state="initial">
         <source>Decision reason</source>
-        <target>Decision reason</target>
+        <target>Reden van het besluit</target>
       </segment>
     </unit>
     <unit id="event_claims.reject">
       <segment state="initial">
         <source> Reject </source>
-        <target> Reject </target>
+        <target> Afwijzen </target>
       </segment>
     </unit>
     <unit id="event_claims.reload">
       <segment state="initial">
         <source>Reload</source>
-        <target>Reload</target>
+        <target>Opnieuw laden</target>
       </segment>
     </unit>
     <unit id="event_claims.remove_access">
       <segment state="initial">
         <source> Remove access </source>
-        <target> Remove access </target>
+        <target> Toegang intrekken </target>
       </segment>
     </unit>
     <unit id="event_claims.request">
       <segment state="initial">
         <source>Request organization ownership</source>
-        <target>Request organization ownership</target>
+        <target>Eigendom voor organisatie aanvragen</target>
       </segment>
     </unit>
     <unit id="event_claims.response_contest_label">
       <segment state="initial">
         <source>Contested</source>
-        <target>Contested</target>
+        <target>Betwist</target>
       </segment>
     </unit>
     <unit id="event_claims.response_contested">
       <segment state="initial">
         <source>Your objection was recorded.</source>
-        <target>Your objection was recorded.</target>
+        <target>Je bezwaar is vastgelegd.</target>
       </segment>
     </unit>
     <unit id="event_claims.response_failed">
       <segment state="initial">
         <source>Could not save your response.</source>
-        <target>Could not save your response.</target>
+        <target>Je reactie kon niet worden opgeslagen.</target>
       </segment>
     </unit>
     <unit id="event_claims.response_heading">
       <segment state="initial">
         <source> Organization ownership claim </source>
-        <target> Organization ownership claim </target>
+        <target> Eigendomsclaim van een organisatie </target>
       </segment>
     </unit>
     <unit id="event_claims.response_support_label">
       <segment state="initial">
         <source>Supported</source>
-        <target>Supported</target>
+        <target>Gesteund</target>
       </segment>
     </unit>
     <unit id="event_claims.response_supported">
       <segment state="initial">
         <source>Your support was recorded.</source>
-        <target>Your support was recorded.</target>
+        <target>Je steun is vastgelegd.</target>
       </segment>
     </unit>
     <unit id="event_claims.response_unavailable_body">
       <segment state="initial">
         <source> Only the claimant, the current owner, and PK Spot administrators can view this claim. </source>
-        <target> Only the claimant, the current owner, and PK Spot administrators can view this claim. </target>
+        <target> Alleen de aanvrager, de huidige eigenaar en PK Spot-beheerders kunnen deze claim bekijken. </target>
       </segment>
     </unit>
     <unit id="event_claims.response_unavailable_heading">
       <segment state="initial">
         <source> Ownership claim unavailable </source>
-        <target> Ownership claim unavailable </target>
+        <target> Eigendomsclaim niet beschikbaar </target>
       </segment>
     </unit>
     <unit id="event_claims.retain_editor">
       <segment state="initial">
         <source> Retain as editor </source>
-        <target> Retain as editor </target>
+        <target> Behouden als redacteur </target>
       </segment>
     </unit>
     <unit id="event_claims.status_approved">
       <segment state="initial">
         <source>Claim approved</source>
-        <target>Claim approved</target>
+        <target>Claim goedgekeurd</target>
       </segment>
     </unit>
     <unit id="event_claims.status_rejected">
       <segment state="initial">
         <source>Claim rejected</source>
-        <target>Claim rejected</target>
+        <target>Claim afgewezen</target>
       </segment>
     </unit>
     <unit id="event_claims.submit">
       <segment state="initial">
         <source> Submit claim </source>
-        <target> Submit claim </target>
+        <target> Claim indienen </target>
       </segment>
     </unit>
     <unit id="event_claims.submit_heading">
       <segment state="initial">
         <source> Request organization ownership </source>
-        <target> Request organization ownership </target>
+        <target> Eigendom voor organisatie aanvragen </target>
       </segment>
     </unit>
     <unit id="event_claims.support">
       <segment state="initial">
         <source> Support claim </source>
-        <target> Support claim </target>
+        <target> Claim steunen </target>
       </segment>
     </unit>
     <unit id="event_claims.transfer">
       <segment state="initial">
         <source> Transfer event ownership </source>
-        <target> Transfer event ownership </target>
+        <target> Eigendom van het evenement overdragen </target>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -8923,7 +8923,7 @@
     <unit id="event_create.snackbar.times_required">
       <segment state="initial">
         <source>Enter an exact start and end time before creating the event.</source>
-        <target>Enter an exact start and end time before creating the event.</target>
+        <target>Voer een exacte begin- en eindtijd in voordat je het evenement aanmaakt.</target>
       </segment>
     </unit>
     <unit id="event_description.show_less">
@@ -8965,25 +8965,25 @@
     <unit id="event_edit.active_until_date">
       <segment state="initial">
         <source> Active until date </source>
-        <target> Active until date </target>
+        <target> Actief tot (datum) </target>
       </segment>
     </unit>
     <unit id="event_edit.active_until_help">
       <segment state="initial">
         <source> Open-ended events show no public end time. The operational cutoff controls live and map visibility only; four hours after the start is suggested. </source>
-        <target> Open-ended events show no public end time. The operational cutoff controls live and map visibility only; four hours after the start is suggested. </target>
+        <target> Evenementen zonder vaste eindtijd tonen geen openbare eindtijd. De operationele grens bepaalt alleen de live- en kaartzichtbaarheid; vier uur na de start wordt aangeraden. </target>
       </segment>
     </unit>
     <unit id="event_edit.active_until_required">
       <segment state="initial">
         <source> Choose a cutoff after the start. </source>
-        <target> Choose a cutoff after the start. </target>
+        <target> Kies een grens na de start. </target>
       </segment>
     </unit>
     <unit id="event_edit.active_until_time">
       <segment state="initial">
         <source> Active until time </source>
-        <target> Active until time </target>
+        <target> Actief tot (tijd) </target>
       </segment>
     </unit>
     <unit id="event_edit.additional_spot_count">
@@ -9031,13 +9031,13 @@
     <unit id="event_edit.attendance_instructions">
       <segment state="initial">
         <source> Entry or on-site instructions </source>
-        <target> Entry or on-site instructions </target>
+        <target> Instructies voor toegang of ter plaatse </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_instructions_hint">
       <segment state="initial">
         <source> Optional check-in, wristband, ticket-desk, or on-site guidance. </source>
-        <target> Optional check-in, wristband, ticket-desk, or on-site guidance. </target>
+        <target> Optionele aanwijzingen voor check-in, polsbandjes, kassa of ter plaatse. </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_organization">
@@ -9085,7 +9085,7 @@
     <unit id="event_edit.banner_preview">
       <segment state="initial">
         <source> Cover preview </source>
-        <target> Vista previa del banner </target>
+        <target> Voorbeeld van de omslag </target>
       </segment>
     </unit>
     <unit id="event_edit.bounds_required">
@@ -9169,7 +9169,7 @@
     <unit id="event_edit.custom_marker_description">
       <segment state="initial">
         <source> Description </source>
-        <target> Description </target>
+        <target> Beschrijving </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_google_place_id">
@@ -9181,13 +9181,13 @@
     <unit id="event_edit.custom_marker_icons">
       <segment state="initial">
         <source> Icons </source>
-        <target> Iconos </target>
+        <target> Pictogrammen </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_image_url">
       <segment state="initial">
         <source> Image URL </source>
-        <target> Image URL </target>
+        <target> Afbeeldings-URL </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_lat">
@@ -9205,7 +9205,7 @@
     <unit id="event_edit.custom_marker_locality">
       <segment state="initial">
         <source> Locality </source>
-        <target> Locality </target>
+        <target> Plaats </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_name">
@@ -9229,7 +9229,7 @@
     <unit id="event_edit.custom_marker_url">
       <segment state="initial">
         <source> External URL </source>
-        <target> External URL </target>
+        <target> Externe URL </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_markers_empty">
@@ -9241,7 +9241,7 @@
     <unit id="event_edit.custom_markers_heading">
       <segment state="initial">
         <source> Custom map markers </source>
-        <target> Marcadores personalizados </target>
+        <target> Aangepaste kaartmarkeringen </target>
       </segment>
     </unit>
     <unit id="event_edit.dates_end_label">
@@ -9295,7 +9295,7 @@
     <unit id="event_edit.end_time_required">
       <segment state="initial">
         <source> Enter an end time after the start. </source>
-        <target> Enter an end time after the start. </target>
+        <target> Voer een eindtijd na de start in. </target>
       </segment>
     </unit>
     <unit id="event_edit.event_categories">
@@ -9319,25 +9319,25 @@
     <unit id="event_edit.external_media_attribution">
       <segment state="initial">
         <source> Attribution text </source>
-        <target> Texto de atribución </target>
+        <target> Tekst voor naamsvermelding </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_attribution_placeholder">
       <segment state="initial">
         <source>Photo: Author name</source>
-        <target>Foto: nombre del autor</target>
+        <target>Foto: naam van de maker</target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_invalid">
       <segment state="initial">
         <source> Use a public http or https link. </source>
-        <target> Usa un enlace público http o https. </target>
+        <target> Gebruik een openbare http- of https-link. </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_label">
       <segment state="initial">
         <source> External media links </source>
-        <target> Enlaces de medios externos </target>
+        <target> Links naar externe media </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_remove">
@@ -9349,97 +9349,97 @@
     <unit id="event_edit.external_media_source_invalid">
       <segment state="initial">
         <source> Use a public http or https link. </source>
-        <target> Usa un enlace público http o https. </target>
+        <target> Gebruik een openbare http- of https-link. </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_source_page_url">
       <segment state="initial">
         <source> Source page URL </source>
-        <target> URL de la página fuente </target>
+        <target> URL van de bronpagina </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_url">
       <segment state="initial">
         <source> Image or video URL </source>
-        <target> URL de imagen o video </target>
+        <target> URL van afbeelding of video </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_id">
       <segment state="initial">
         <source> External source id </source>
-        <target> External source id </target>
+        <target> ID van de externe bron </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider">
       <segment state="initial">
         <source> External source provider </source>
-        <target> External source provider </target>
+        <target> Provider van de externe bron </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider.none">
       <segment state="initial">
         <source> None </source>
-        <target> None </target>
+        <target> Geen </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider.other">
       <segment state="initial">
         <source> Other </source>
-        <target> Other </target>
+        <target> Overig </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_provider_hint">
       <segment state="initial">
         <source> Drives provider-specific map preview labels when no primary event link is set. </source>
-        <target> Drives provider-specific map preview labels when no primary event link is set. </target>
+        <target> Bepaalt providerspecifieke labels in de kaartvoorbeeldweergave als er geen primaire evenementlink is ingesteld. </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_url">
       <segment state="initial">
         <source> External source URL </source>
-        <target> External source URL </target>
+        <target> URL van de externe bron </target>
       </segment>
     </unit>
     <unit id="event_edit.external_source_url_invalid">
       <segment state="initial">
         <source> Use a public http or https link. </source>
-        <target> Use a public http or https link. </target>
+        <target> Gebruik een openbare http- of https-link. </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_add">
       <segment state="initial">
         <source>Add featured</source>
-        <target>Add featured</target>
+        <target>Uitgelichte toevoegen</target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_description">
       <segment state="initial">
         <source> Short note </source>
-        <target> Short note </target>
+        <target> Korte notitie </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_image">
       <segment state="initial">
         <source> Image URL </source>
-        <target> Image URL </target>
+        <target> Afbeeldings-URL </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_name">
       <segment state="initial">
         <source> Name </source>
-        <target> Name </target>
+        <target> Naam </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_remove">
       <segment state="initial">
         <source>Remove featured person, group or act</source>
-        <target>Remove featured person, group or act</target>
+        <target>Uitgelichte persoon, groep of act verwijderen</target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_role">
       <segment state="initial">
         <source> Role </source>
-        <target> Role </target>
+        <target> Rol </target>
       </segment>
     </unit>
     <unit id="event_edit.featured_participant_type">
@@ -9457,7 +9457,7 @@
     <unit id="event_edit.featured_participants_heading">
       <segment state="initial">
         <source> Featured people, groups &amp; acts </source>
-        <target> Featured people, groups &amp; acts </target>
+        <target> Uitgelichte personen, groepen en acts </target>
       </segment>
     </unit>
     <unit id="event_edit.focus_zoom">
@@ -9493,7 +9493,7 @@
     <unit id="event_edit.is_promoted">
       <segment state="initial">
         <source> Promote in the map island </source>
-        <target> Promocionar in the map island </target>
+        <target> Promoten op het kaarteiland </target>
       </segment>
     </unit>
     <unit id="event_edit.legacy_area_polygon_outer_ring">
@@ -9505,19 +9505,19 @@
     <unit id="event_edit.legacy_registration_body">
       <segment state="initial">
         <source> Saving other changes will not remove existing registrations. </source>
-        <target> Saving other changes will not remove existing registrations. </target>
+        <target> Andere wijzigingen opslaan verwijdert bestaande inschrijvingen niet. </target>
       </segment>
     </unit>
     <unit id="event_edit.legacy_registration_disable">
       <segment state="initial">
         <source> Disable registration </source>
-        <target> Disable registration </target>
+        <target> Inschrijving uitschakelen </target>
       </segment>
     </unit>
     <unit id="event_edit.legacy_registration_title">
       <segment state="initial">
         <source> Existing PK Spot registration is preserved </source>
-        <target> Existing PK Spot registration is preserved </target>
+        <target> Bestaande PK Spot-inschrijving blijft behouden </target>
       </segment>
     </unit>
     <unit id="event_edit.link_add">
@@ -9535,7 +9535,7 @@
     <unit id="event_edit.link_kind.livestream">
       <segment state="initial">
         <source>Livestream</source>
-        <target>Directo</target>
+        <target>Livestream</target>
       </segment>
     </unit>
     <unit id="event_edit.link_kind.other">
@@ -9577,7 +9577,7 @@
     <unit id="event_edit.link_primary">
       <segment state="initial">
         <source> Primary CTA </source>
-        <target> CTA principal </target>
+        <target> Primaire CTA </target>
       </segment>
     </unit>
     <unit id="event_edit.link_provider">
@@ -9601,7 +9601,7 @@
     <unit id="event_edit.links_heading">
       <segment state="initial">
         <source> Event links </source>
-        <target> Enlaces del evento </target>
+        <target> Evenementlinks </target>
       </segment>
     </unit>
     <unit id="event_edit.locality">
@@ -9613,25 +9613,25 @@
     <unit id="event_edit.location_clear">
       <segment state="initial">
         <source> Remove location </source>
-        <target> Remove location </target>
+        <target> Locatie verwijderen </target>
       </segment>
     </unit>
     <unit id="event_edit.location_coordinates_label">
       <segment state="initial">
         <source> Main location: </source>
-        <target> Main location: </target>
+        <target> Hoofdlocatie: </target>
       </segment>
     </unit>
     <unit id="event_edit.location_explanation">
       <segment state="initial">
         <source> Optionally set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </source>
-        <target> Optionally set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </target>
+        <target> Stel optioneel de hoofdlocatie van het evenement in door een Spot of Google-plaats te kiezen of op de kaart te klikken. Dit is het ontmoetingspunt of het centrum van het evenement: traceurs die hierheen gaan, moeten het evenement zien en dingen als de infobalie of andere traceurs kunnen vinden. </target>
       </segment>
     </unit>
     <unit id="event_edit.location_not_set">
       <segment state="initial">
         <source>Not set</source>
-        <target>Not set</target>
+        <target>Niet ingesteld</target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_google_place">
@@ -9643,31 +9643,31 @@
     <unit id="event_edit.location_search_hint">
       <segment state="initial">
         <source> Use this when the map is not already showing a relevant place. </source>
-        <target> Use this when the map is not already showing a relevant place. </target>
+        <target> Gebruik dit als de kaart nog geen relevante plek toont. </target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_label">
       <segment state="initial">
         <source> Search spots and Google Places </source>
-        <target> Search spots and Google Places </target>
+        <target> Spots en Google-plaatsen zoeken </target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_loading">
       <segment state="initial">
         <source> Searching places… </source>
-        <target> Searching places… </target>
+        <target> Plaatsen zoeken… </target>
       </segment>
     </unit>
     <unit id="event_edit.location_search_unnamed_spot">
       <segment state="initial">
         <source>Unnamed spot</source>
-        <target>Unnamed spot</target>
+        <target>Naamloze Spot</target>
       </segment>
     </unit>
     <unit id="event_edit.logo_background_color">
       <segment state="initial">
         <source> Event logo background </source>
-        <target> Fondo del logo del evento </target>
+        <target> Achtergrond van het evenementlogo </target>
       </segment>
     </unit>
     <unit id="event_edit.logo_fit">
@@ -9685,19 +9685,19 @@
     <unit id="event_edit.logo_preview">
       <segment state="initial">
         <source> Event logo preview </source>
-        <target> Vista previa del logo del evento </target>
+        <target> Voorbeeld van het evenementlogo </target>
       </segment>
     </unit>
     <unit id="event_edit.marker_color.gray">
       <segment state="initial">
         <source> Muted </source>
-        <target> Discreto </target>
+        <target> Gedempt </target>
       </segment>
     </unit>
     <unit id="event_edit.marker_color.primary">
       <segment state="initial">
         <source> Primary </source>
-        <target> Primario </target>
+        <target> Primair </target>
       </segment>
     </unit>
     <unit id="event_edit.marker_color.secondary">
@@ -9709,7 +9709,7 @@
     <unit id="event_edit.marker_color.tertiary">
       <segment state="initial">
         <source> Utility </source>
-        <target> Utilidad </target>
+        <target> Functioneel </target>
       </segment>
     </unit>
     <unit id="event_edit.marker_priority.auto">
@@ -9799,13 +9799,13 @@
     <unit id="event_edit.organizer_access_hint">
       <segment state="initial">
         <source> Managers can view drafts by default. Edit access is recommended when this organization is actively hosting the event. </source>
-        <target> Managers can view drafts by default. Edit access is recommended when this organization is actively hosting the event. </target>
+        <target> Beheerders kunnen standaard concepten bekijken. Bewerkrechten worden aangeraden als deze organisatie het evenement actief organiseert. </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_edit_access">
       <segment state="initial">
         <source> Allow this organization’s managers to edit the event </source>
-        <target> Allow this organization’s managers to edit the event </target>
+        <target> Beheerders van deze organisatie toestaan het evenement te bewerken </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_hint">
@@ -9817,19 +9817,19 @@
     <unit id="event_edit.organizer_linked">
       <segment state="initial">
         <source> Linked to PK Spot </source>
-        <target> Linked to PK Spot </target>
+        <target> Gekoppeld aan PK Spot </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_unlink">
       <segment state="initial">
         <source> Unlink </source>
-        <target> Unlink </target>
+        <target> Ontkoppelen </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer_unlinked">
       <segment state="initial">
         <source> Unlinked organizer name — no PK Spot organization receives access. </source>
-        <target> Unlinked organizer name — no PK Spot organization receives access. </target>
+        <target> Niet-gekoppelde organisatornaam — geen enkele PK Spot-organisatie krijgt toegang. </target>
       </segment>
     </unit>
     <unit id="event_edit.owner.admin_managed">
@@ -9901,7 +9901,7 @@
     <unit id="event_edit.qualification_hint">
       <segment state="initial">
         <source> Qualification hint </source>
-        <target> Pista de clasificación </target>
+        <target> Kwalificatiehint </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_path_add">
@@ -9913,7 +9913,7 @@
     <unit id="event_edit.qualification_path_id">
       <segment state="initial">
         <source> Path id </source>
-        <target> ID de ruta </target>
+        <target> Pad-ID </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_path_label">
@@ -9931,13 +9931,13 @@
     <unit id="event_edit.qualification_paths_empty">
       <segment state="initial">
         <source> Add paths when this event requires qualification. </source>
-        <target> Pad toevoegens when this event requires qualification. </target>
+        <target> Voeg paden toe als dit evenement kwalificatie vereist. </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_paths_heading">
       <segment state="initial">
         <source> Required qualification paths </source>
-        <target> Rutas de clasificación requeridas </target>
+        <target> Vereiste kwalificatiepaden </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_ref_event">
@@ -9949,7 +9949,7 @@
     <unit id="event_edit.qualification_ref_event_id">
       <segment state="initial">
         <source> Event id </source>
-        <target> ID del evento </target>
+        <target> Evenement-ID </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_ref_kind">
@@ -9961,19 +9961,19 @@
     <unit id="event_edit.qualification_ref_program_item">
       <segment state="initial">
         <source> Program item </source>
-        <target> Elemento del programa </target>
+        <target> Programmaonderdeel </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_ref_program_item_id">
       <segment state="initial">
         <source> Program item id </source>
-        <target> ID de elemento del programa </target>
+        <target> Programmaonderdeel-ID </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_required">
       <segment state="initial">
         <source> Qualification required </source>
-        <target> Clasificación requerida </target>
+        <target> Kwalificatie vereist </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_requirement_add">
@@ -9991,7 +9991,7 @@
     <unit id="event_edit.qualification_requirements">
       <segment state="initial">
         <source> Requirements </source>
-        <target> Requisitos </target>
+        <target> Vereisten </target>
       </segment>
     </unit>
     <unit id="event_edit.qualifies_to_add">
@@ -10021,19 +10021,19 @@
     <unit id="event_edit.requirement_mode">
       <segment state="initial">
         <source> Requirement </source>
-        <target> Requisito </target>
+        <target> Vereiste </target>
       </segment>
     </unit>
     <unit id="event_edit.requirement_mode.all">
       <segment state="initial">
         <source> All listed events </source>
-        <target> Todos los eventos listados </target>
+        <target> Alle vermelde evenementen </target>
       </segment>
     </unit>
     <unit id="event_edit.requirement_mode.any">
       <segment state="initial">
         <source> Any one listed event </source>
-        <target> Cualquier evento listado </target>
+        <target> Een van de vermelde evenementen </target>
       </segment>
     </unit>
     <unit id="event_edit.save">
@@ -10045,25 +10045,25 @@
     <unit id="event_edit.schedule_label">
       <segment state="initial">
         <source> Schedule and timing certainty </source>
-        <target> Schedule and timing certainty </target>
+        <target> Planning en zekerheid van tijden </target>
       </segment>
     </unit>
     <unit id="event_edit.series_id">
       <segment state="initial">
         <source> Series id </source>
-        <target> ID de serie </target>
+        <target> Serie-ID </target>
       </segment>
     </unit>
     <unit id="event_edit.series_ids">
       <segment state="initial">
         <source> Series ids </source>
-        <target> IDs de serie </target>
+        <target> Serie-ID’s </target>
       </segment>
     </unit>
     <unit id="event_edit.series_ids_hint">
       <segment state="initial">
         <source> Plain ids for filtering/search. Membership ids are added on save. </source>
-        <target> Plain ids for filtering/search. Lidship ids are added on save. </target>
+        <target> Eenvoudige ID’s voor filteren/zoeken. Lidmaatschaps-ID’s worden bij het opslaan toegevoegd. </target>
       </segment>
     </unit>
     <unit id="event_edit.series_membership_add">
@@ -10081,25 +10081,25 @@
     <unit id="event_edit.series_memberships_empty">
       <segment state="initial">
         <source> Add memberships when this event belongs to a tour, qualifier path, or championship. </source>
-        <target> Lidmaatschap toevoegens when this event belongs to a tour, qualifier path, or championship. </target>
+        <target> Voeg lidmaatschappen toe als dit evenement deel uitmaakt van een tour, kwalificatiepad of kampioenschap. </target>
       </segment>
     </unit>
     <unit id="event_edit.series_memberships_heading">
       <segment state="initial">
         <source> Series memberships </source>
-        <target> Membresías de serie </target>
+        <target> Serielidmaatschappen </target>
       </segment>
     </unit>
     <unit id="event_edit.series_qualification_heading">
       <segment state="initial">
         <source> Series &amp; qualification </source>
-        <target> Serie y clasificación </target>
+        <target> Series en kwalificatie </target>
       </segment>
     </unit>
     <unit id="event_edit.series_qualification_hint">
       <segment state="initial">
         <source> Event series, qualifier targets, and required paths </source>
-        <target> Evenement series, qualifier targets, and required paths </target>
+        <target> Evenementseries, kwalificatiedoelen en vereiste paden </target>
       </segment>
     </unit>
     <unit id="event_edit.series_role">
@@ -10111,25 +10111,25 @@
     <unit id="event_edit.series_role.championship">
       <segment state="initial">
         <source>Championship</source>
-        <target>Campeonato</target>
+        <target>Kampioenschap</target>
       </segment>
     </unit>
     <unit id="event_edit.series_role.feeder">
       <segment state="initial">
         <source>Feeder</source>
-        <target>Clasificatorio feeder</target>
+        <target>Feeder</target>
       </segment>
     </unit>
     <unit id="event_edit.series_role.final">
       <segment state="initial">
         <source>Final</source>
-        <target>Final</target>
+        <target>Finale</target>
       </segment>
     </unit>
     <unit id="event_edit.series_role.qualifier">
       <segment state="initial">
         <source>Qualifier</source>
-        <target>Clasificatorio</target>
+        <target>Qualifier</target>
       </segment>
     </unit>
     <unit id="event_edit.series_role.related">
@@ -10147,7 +10147,7 @@
     <unit id="event_edit.series_source_url">
       <segment state="initial">
         <source> Source URL </source>
-        <target> URL fuente </target>
+        <target> Bron-URL </target>
       </segment>
     </unit>
     <unit id="event_edit.slug">
@@ -10213,13 +10213,13 @@
     <unit id="event_edit.source_metadata_heading">
       <segment state="initial">
         <source> Source/import metadata </source>
-        <target> Source/import metadata </target>
+        <target> Bron-/importmetadata </target>
       </segment>
     </unit>
     <unit id="event_edit.source_metadata_help">
       <segment state="initial">
         <source> Records the canonical external listing and import de-duplication ID. This is not ticket configuration and does not import events automatically. </source>
-        <target> Records the canonical external listing and import de-duplication ID. This is not ticket configuration and does not import events automatically. </target>
+        <target> Legt de canonieke externe vermelding en de importdeduplicatie-ID vast. Dit is geen ticketconfiguratie en importeert evenementen niet automatisch. </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -10231,7 +10231,7 @@
     <unit id="event_edit.sponsor_logo_background_color">
       <segment state="initial">
         <source> Partner logo background </source>
-        <target> Fondo del logo del partner </target>
+        <target> Achtergrond van het partnerlogo </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo_fit">
@@ -10243,7 +10243,7 @@
     <unit id="event_edit.sponsor_logo_preview">
       <segment state="initial">
         <source> Partner logo preview </source>
-        <target> Vista previa del logo del partner </target>
+        <target> Voorbeeld van het partnerlogo </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_name">
@@ -10267,7 +10267,7 @@
     <unit id="event_edit.spots_heading">
       <segment state="initial">
         <source> General map spots </source>
-        <target> Spots generales del mapa </target>
+        <target> Algemene Spots op de kaart </target>
       </segment>
     </unit>
     <unit id="event_edit.start_date">
@@ -10285,7 +10285,7 @@
     <unit id="event_edit.start_time_required">
       <segment state="initial">
         <source> Enter a valid local start time. </source>
-        <target> Enter a valid local start time. </target>
+        <target> Voer een geldige lokale begintijd in. </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_add">
@@ -10297,7 +10297,7 @@
     <unit id="event_edit.temporary_spot_bounds">
       <segment state="initial">
         <source> Bounds </source>
-        <target> Límites </target>
+        <target> Grenzen </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_bounds_add">
@@ -10339,25 +10339,25 @@
     <unit id="event_edit.temporary_spot_iconic">
       <segment state="initial">
         <source> Iconic </source>
-        <target> Icónico </target>
+        <target> Iconisch </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_id">
       <segment state="initial">
         <source> Spot id </source>
-        <target> ID del spot </target>
+        <target> Spot-ID </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_images">
       <segment state="initial">
         <source> Image URLs </source>
-        <target> URLs de imagen </target>
+        <target> Afbeeldings-URL’s </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_images_hint">
       <segment state="initial">
         <source> Comma-separated. First image becomes the preview. </source>
-        <target> Separado por comas. La primera imagen será la vista previa. </target>
+        <target> Gescheiden door komma’s. De eerste afbeelding wordt het voorbeeld. </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_lat">
@@ -10393,19 +10393,19 @@
     <unit id="event_edit.temporary_spots_empty">
       <segment state="initial">
         <source> No temporary event spots yet. </source>
-        <target> Aún no hay spots temporales del evento. </target>
+        <target> Nog geen tijdelijke evenement-Spots. </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spots_heading">
       <segment state="initial">
         <source> Temporary event spots </source>
-        <target> Spots temporales del evento </target>
+        <target> Tijdelijke evenement-Spots </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spots_hint">
       <segment state="initial">
         <source> Event-only local spots saved inside this event </source>
-        <target> Evenement-only local spots saved inside this event </target>
+        <target> Lokale Spots die alleen voor dit evenement worden opgeslagen </target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_add">
@@ -10459,7 +10459,7 @@
     <unit id="event_edit.ticket_badge">
       <segment state="initial">
         <source>Badge</source>
-        <target>Insignia</target>
+        <target>Badge</target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_badge.discount">
@@ -10519,13 +10519,13 @@
     <unit id="event_edit.ticket_max">
       <segment state="initial">
         <source> Range max </source>
-        <target> Rango máx. </target>
+        <target> Bereik max. </target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_min">
       <segment state="initial">
         <source> Range min </source>
-        <target> Rango mín. </target>
+        <target> Bereik min. </target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_original_amount">
@@ -10549,13 +10549,13 @@
     <unit id="event_edit.ticket_sale_end">
       <segment state="initial">
         <source> Sale ends </source>
-        <target> Venta termina </target>
+        <target> Verkoop eindigt </target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_sale_start">
       <segment state="initial">
         <source> Sale starts </source>
-        <target> Venta empieza </target>
+        <target> Verkoop begint </target>
       </segment>
     </unit>
     <unit id="event_edit.ticket_url">
@@ -10567,61 +10567,61 @@
     <unit id="event_edit.tickets_heading">
       <segment state="initial">
         <source> Ticket options </source>
-        <target> Opciones de entradas </target>
+        <target> Ticketopties </target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone">
       <segment state="initial">
         <source>Event time zone</source>
-        <target>Event time zone</target>
+        <target>Tijdzone van het evenement</target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_hint">
       <segment state="initial">
         <source> Derived from coordinates when available. For a remote event, enter an IANA zone manually. </source>
-        <target> Derived from coordinates when available. For a remote event, enter an IANA zone manually. </target>
+        <target> Afgeleid van coördinaten indien beschikbaar. Voer voor een online evenement handmatig een IANA-zone in. </target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_required">
       <segment state="initial">
         <source> A valid IANA time zone is required for timed events. </source>
-        <target> A valid IANA time zone is required for timed events. </target>
+        <target> Voor evenementen met tijden is een geldige IANA-tijdzone vereist. </target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_resolve_error">
       <segment state="initial">
         <source>Time zone could not be derived. Enter it manually before saving a timed event.</source>
-        <target>Time zone could not be derived. Enter it manually before saving a timed event.</target>
+        <target>Tijdzone kon niet worden afgeleid. Voer deze handmatig in voordat je een evenement met tijden opslaat.</target>
       </segment>
     </unit>
     <unit id="event_edit.time_zone_resolving">
       <segment state="initial">
         <source> Deriving from the map location… </source>
-        <target> Deriving from the map location… </target>
+        <target> Afleiden van de kaartlocatie… </target>
       </segment>
     </unit>
     <unit id="event_edit.timing.date_only">
       <segment state="initial">
         <source> Date only — time to be announced </source>
-        <target> Date only — time to be announced </target>
+        <target> Alleen datum — tijd volgt nog </target>
       </segment>
     </unit>
     <unit id="event_edit.timing.exact">
       <segment state="initial">
         <source> Exact start and end </source>
-        <target> Exact start and end </target>
+        <target> Exacte begin- en eindtijd </target>
       </segment>
     </unit>
     <unit id="event_edit.timing.open_end">
       <segment state="initial">
         <source> Exact start, open end </source>
-        <target> Exact start, open end </target>
+        <target> Exacte begintijd, open einde </target>
       </segment>
     </unit>
     <unit id="event_edit.timing_mode">
       <segment state="initial">
         <source>Timing</source>
-        <target>Timing</target>
+        <target>Tijden</target>
       </segment>
     </unit>
     <unit id="event_edit.url">
@@ -10639,7 +10639,7 @@
     <unit id="event_edit.venue_optional">
       <segment state="initial">
         <source> Optional — shown as “Venue to be announced” when empty. </source>
-        <target> Optional — shown as “Venue to be announced” when empty. </target>
+        <target> Optioneel — wordt getoond als ‘Locatie volgt nog’ als het leeg is. </target>
       </segment>
     </unit>
     <unit id="event_edit.visibility">
@@ -10675,13 +10675,13 @@
     <unit id="event_featured_participant.role.artist">
       <segment state="initial">
         <source>Artist</source>
-        <target>Artist</target>
+        <target>Artiest</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.athlete">
       <segment state="initial">
         <source>Athlete</source>
-        <target>Athlete</target>
+        <target>Atleet</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.coach">
@@ -10699,25 +10699,25 @@
     <unit id="event_featured_participant.role.guest">
       <segment state="initial">
         <source>Guest</source>
-        <target>Guest</target>
+        <target>Gast</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.host">
       <segment state="initial">
         <source>Host</source>
-        <target>Host</target>
+        <target>Presentator</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.instructor">
       <segment state="initial">
         <source>Instructor</source>
-        <target>Instructor</target>
+        <target>Instructeur</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.judge">
       <segment state="initial">
         <source>Judge</source>
-        <target>Judge</target>
+        <target>Jurylid</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.role.performer">
@@ -10729,25 +10729,25 @@
     <unit id="event_featured_participant.role.speaker">
       <segment state="initial">
         <source>Speaker</source>
-        <target>Speaker</target>
+        <target>Spreker</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.type.group">
       <segment state="initial">
         <source>Group or act</source>
-        <target>Group or act</target>
+        <target>Groep of act</target>
       </segment>
     </unit>
     <unit id="event_featured_participant.type.person">
       <segment state="initial">
         <source>Person</source>
-        <target>Person</target>
+        <target>Persoon</target>
       </segment>
     </unit>
     <unit id="event_featured_participants.heading">
       <segment state="initial">
         <source> Featured people, groups &amp; acts </source>
-        <target> Featured people, groups &amp; acts </target>
+        <target> Uitgelichte personen, groepen en acts </target>
       </segment>
     </unit>
     <unit id="event_page.back_to_events">
@@ -10981,7 +10981,7 @@
     <unit id="events.status.live_open_end">
       <segment state="initial">
         <source>Ongoing — open end</source>
-        <target>Ongoing — open end</target>
+        <target>Bezig — open einde</target>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -11005,13 +11005,13 @@
     <unit id="events.suggest_event">
       <segment state="initial">
         <source>Suggest an Event</source>
-        <target>Suggest an Event</target>
+        <target>Evenement voorstellen</target>
       </segment>
     </unit>
     <unit id="events.status.upcoming_event_relative">
       <segment state="initial">
         <source>Event <ph id="0" equiv="PH" disp="relative"/></source>
-        <target>Evenement</target>
+        <target>Evenement <ph id="0" equiv="PH" disp="relative"/></target>
       </segment>
     </unit>
     <unit id="events.title">
@@ -11318,7 +11318,7 @@
     <unit id="img_carousel.always_allow_external_media_domain">
       <segment state="initial">
         <source> Always allow <ph id="0" equiv="INTERPOLATION" disp="{{ domain }}"/> </source>
-        <target> Altijd toestaan </target>
+        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ domain }}"/> altijd toestaan </target>
       </segment>
     </unit>
     <unit id="img_carousel.external_media">
@@ -11336,7 +11336,7 @@
     <unit id="img_carousel.load_external_media_from">
       <segment state="initial">
         <source> Load external media from </source>
-        <target> Cargar medios externos de </target>
+        <target> Externe media laden van </target>
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
@@ -11348,7 +11348,7 @@
     <unit id="4302668244346549580">
       <segment state="initial">
         <source>Email for updates (optional when signed in)</source>
-        <target>Email for updates (optional when signed in)</target>
+        <target>E-mail voor updates (optioneel als je bent ingelogd)</target>
       </segment>
     </unit>
     <unit id="4320994550381609480">
@@ -11378,19 +11378,19 @@
     <unit id="434530867715201013">
       <segment state="initial">
         <source>Select every reason that applies:</source>
-        <target>Select every reason that applies:</target>
+        <target>Selecteer alle redenen die van toepassing zijn:</target>
       </segment>
     </unit>
     <unit id="4352094314853787439">
       <segment state="initial">
         <source>Yes! We take privacy seriously. We don&apos;t sell your data and use industry-standard security. Check our Privacy Policy for full details.</source>
-        <target>Yes! We take privacy seriously. We don&apos;t sell your data and use industry-standard security. Check our Privacy Policy for full details.</target>
+        <target>Ja! We nemen privacy serieus. We verkopen je gegevens niet en gebruiken beveiliging volgens de industriestandaard. Lees ons privacybeleid voor alle details.</target>
       </segment>
     </unit>
     <unit id="4386559202007821626">
       <segment state="initial">
         <source>The Crew</source>
-        <target>El equipo</target>
+        <target>Het team</target>
       </segment>
     </unit>
     <unit id="4396128088744719857">
@@ -11492,7 +11492,7 @@
     <unit id="2850809594572783393">
       <segment state="initial">
         <source>Not relevant</source>
-        <target>Not relevant</target>
+        <target>Niet relevant</target>
       </segment>
     </unit>
     <unit id="2852131932578261096">
@@ -11516,7 +11516,7 @@
     <unit id="2860666001916448553">
       <segment state="initial">
         <source>Back to all events</source>
-        <target>Back to all events</target>
+        <target>Terug naar alle evenementen</target>
       </segment>
     </unit>
     <unit id="2861306361489095884">
@@ -11558,7 +11558,7 @@
     <unit id="7821457763115783830">
       <segment state="initial">
         <source>Account &amp; Profile</source>
-        <target>Account &amp; Profile</target>
+        <target>Account en profiel</target>
       </segment>
     </unit>
     <unit id="7824690700853674199">
@@ -11612,7 +11612,7 @@
     <unit id="7858093315829323396">
       <segment state="initial">
         <source>Age assurance</source>
-        <target>Age assurance</target>
+        <target>Leeftijdsverificatie</target>
       </segment>
     </unit>
     <unit id="7860386256947196622">
@@ -11636,13 +11636,13 @@
     <unit id="7868084107533692439">
       <segment state="initial">
         <source>Ownership claim approved.</source>
-        <target>Ownership claim approved.</target>
+        <target>Eigendomsclaim goedgekeurd.</target>
       </segment>
     </unit>
     <unit id="7880605355244228662">
       <segment state="initial">
         <source>Media consent</source>
-        <target>Media consent</target>
+        <target>Toestemming voor media</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -11672,7 +11672,7 @@
     <unit id="791844227054671315">
       <segment state="initial">
         <source>Media report</source>
-        <target>Reporte de medio</target>
+        <target>Mediamelding</target>
       </segment>
     </unit>
     <unit id="7918594686638498781">
@@ -11708,7 +11708,7 @@
     <unit id="7939156787719949830">
       <segment state="initial">
         <source>Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.</source>
-        <target>Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.</target>
+        <target>Met filters vind je Spots met specifieke kenmerken, zoals overdekt tegen regen, ’s nachts verlicht, binnen of met bepaalde voorzieningen. Je opent ze via de filterknop op de kaart.</target>
       </segment>
     </unit>
     <unit id="7941428823403788384">
@@ -11720,7 +11720,7 @@
     <unit id="7945138586170930874">
       <segment state="initial">
         <source>Remove person</source>
-        <target>Remove person</target>
+        <target>Persoon verwijderen</target>
       </segment>
     </unit>
     <unit id="5245603112373072943">
@@ -11774,7 +11774,7 @@
     <unit id="8207799228641053586">
       <segment state="initial">
         <source>Failed to update community card suggestion</source>
-        <target>Failed to update community card suggestion</target>
+        <target>Kon het voorstel voor de communitykaart niet bijwerken</target>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -11828,7 +11828,7 @@
     <unit id="8288692748225980838">
       <segment state="initial">
         <source>Tap the &apos;+&apos; button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.</source>
-        <target>Tap the &apos;+&apos; button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.</target>
+        <target>Tik op de knop ‘+’ op de kaart wanneer je ver genoeg bent ingezoomd. Plaats de markering op de locatie van de Spot, vul details zoals naam, beschrijving en voorzieningen in en dien hem in ter beoordeling.</target>
       </segment>
     </unit>
     <unit id="8294319077118655917">
@@ -11844,13 +11844,13 @@
       </notes>
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Website </source>
-        <target>&lt;pc id=&quot;0&quot; equivStart=&quot;START_TAG_MAT_ICON&quot; equivEinde=&quot;CLOSE_TAG_MAT_ICON&quot; type=&quot;other&quot; dispStart=&quot;&lt;mat-icon&gt;&quot; dispEinde=&quot;&lt;/mat-icon&gt;&quot;&gt;language&lt;/pc&gt; Website </target>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Website </target>
       </segment>
     </unit>
     <unit id="5804136287826733566">
       <segment state="initial">
         <source>No open reports.</source>
-        <target>No hay reportes abiertos.</target>
+        <target>Geen open meldingen.</target>
       </segment>
     </unit>
     <unit id="580610642120364720">
@@ -12066,7 +12066,7 @@
     <unit id="common.cancel">
       <segment state="initial">
         <source>Cancel</source>
-        <target>Cancel</target>
+        <target>Annuleren</target>
       </segment>
     </unit>
     <unit id="common.close">
@@ -12174,7 +12174,7 @@
     <unit id="community.knowledge_cta.title">
       <segment state="initial">
         <source> Know this community? </source>
-        <target> ¿Conoces esta comunidad? </target>
+        <target> Ken je deze community? </target>
       </segment>
     </unit>
     <unit id="community.local_knowledge_heading">
@@ -12264,7 +12264,7 @@
     <unit id="community.sign_in_to_see_link">
       <segment state="initial">
         <source>Sign in to see link</source>
-        <target>Sign in to see link</target>
+        <target>Log in om de link te zien</target>
       </segment>
     </unit>
     <unit id="community.stats.dry">
@@ -12300,7 +12300,7 @@
     <unit id="community_activity.invalid_times">
       <segment state="initial">
         <source>Choose an end time after the start time.</source>
-        <target>Choose an end time after the start time.</target>
+        <target>Kies een eindtijd na de begintijd.</target>
       </segment>
     </unit>
     <unit id="contact.aside.crew.body">
@@ -12312,7 +12312,7 @@
     <unit id="contact.aside.crew.title">
       <segment state="initial">
         <source> Join the crew </source>
-        <target> Únete al equipo </target>
+        <target> Word lid van het team </target>
       </segment>
     </unit>
     <unit id="contact.aside.import.body">
@@ -12324,7 +12324,7 @@
     <unit id="contact.aside.import.title">
       <segment state="initial">
         <source> Spot map imports </source>
-        <target> Importaciones de mapas de spots </target>
+        <target> Imports van Spot-kaarten </target>
       </segment>
     </unit>
     <unit id="contact.back_to_support">
@@ -12348,7 +12348,7 @@
     <unit id="contact.contact_info.label">
       <segment state="initial">
         <source> How can we reach you? </source>
-        <target> ¿Cómo podemos contactarte? </target>
+        <target> Hoe kunnen we je bereiken? </target>
       </segment>
     </unit>
     <unit id="contact.discord.body">
@@ -12366,7 +12366,7 @@
     <unit id="contact.discord.title">
       <segment state="initial">
         <source> Discord works too </source>
-        <target> Discord también funciona </target>
+        <target> Discord kan ook </target>
       </segment>
     </unit>
     <unit id="contact.instagram.body">
@@ -12384,13 +12384,13 @@
     <unit id="contact.instagram.title">
       <segment state="initial">
         <source> Instagram works too </source>
-        <target> Instagram también funciona </target>
+        <target> Instagram kan ook </target>
       </segment>
     </unit>
     <unit id="contact.kicker">
       <segment state="initial">
         <source> Get in touch </source>
-        <target> Ponte en contacto </target>
+        <target> Neem contact op </target>
       </segment>
     </unit>
     <unit id="contact.message.error">
@@ -12414,7 +12414,7 @@
     <unit id="contact.meta.description">
       <segment state="initial">
         <source>Contact PK Spot about support, spot map imports, partnerships, testing, or joining the crew.</source>
-        <target>Neem contact op met PK Spot about support, spot map imports, partnerships, testing, or joining the crew.</target>
+        <target>Neem contact op met PK Spot over support, imports van Spot-kaarten, partnerschappen, testen of om bij het team te komen.</target>
       </segment>
     </unit>
     <unit id="contact.meta.title">
@@ -12426,7 +12426,7 @@
     <unit id="contact.prefill.community_knowledge">
       <segment state="initial">
         <source>Hi PK Spot, I have local knowledge for <ph id="0" equiv="communityName" disp="communityName"/>: </source>
-        <target>Hi PK Spot, I have local knowledge for &lt;ph id=&quot;0&quot; equiv=&quot;communityNaam&quot; disp=&quot;communityNaam&quot;/&gt;: </target>
+        <target>Hoi PK Spot, ik heb lokale kennis over <ph id="0" equiv="communityName" disp="communityName"/>: </target>
       </segment>
     </unit>
     <unit id="contact.prefill.crew">
@@ -12462,7 +12462,7 @@
     <unit id="contact.success.send_another">
       <segment state="initial">
         <source>Send another</source>
-        <target>Enviar otro</target>
+        <target>Nog een versturen</target>
       </segment>
     </unit>
     <unit id="contact.success.title">
@@ -12480,7 +12480,7 @@
     <unit id="contact.topic.crew.title">
       <segment state="initial">
         <source>Join the crew</source>
-        <target>Únete al equipo</target>
+        <target>Word lid van het team</target>
       </segment>
     </unit>
     <unit id="contact.topic.general.intro">
@@ -12572,7 +12572,7 @@
     <unit id="8719394803198399227">
       <segment state="initial">
         <source>Decision failed.</source>
-        <target>Decision failed.</target>
+        <target>Besluit mislukt.</target>
       </segment>
     </unit>
     <unit id="8725224299321680590">
@@ -12596,7 +12596,7 @@
     <unit id="8731046002621153148">
       <segment state="initial">
         <source>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</source>
-        <target>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</target>
+        <target>Probeer de app-cache te wissen of de app opnieuw te installeren. Blijft het probleem bestaan, meld het dan op onze Discord met details over je apparaat en wat je aan het doen was toen de app crashte.</target>
       </segment>
     </unit>
     <unit id="8736188664022016115">
@@ -12638,13 +12638,13 @@
     <unit id="877683860580860100">
       <segment state="initial">
         <source>Illegal or unsafe content</source>
-        <target>Illegal or unsafe content</target>
+        <target>Illegale of onveilige inhoud</target>
       </segment>
     </unit>
     <unit id="877827579793920145">
       <segment state="initial">
         <source>How do I report or edit an incorrect spot?</source>
-        <target>How do I report or edit an incorrect spot?</target>
+        <target>Hoe meld of bewerk ik een onjuiste Spot?</target>
       </segment>
     </unit>
     <unit id="878082957916142359">
@@ -12698,13 +12698,13 @@
     <unit id="5646680746394158532">
       <segment state="initial">
         <source> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </source>
-        <target> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </target>
+        <target> Schakel vloeiender fractioneel zoomen en vectorkaarteffecten in. Rasterweergave is de standaard omdat die stabieler is in sommige mobiele WebViews. </target>
       </segment>
     </unit>
     <unit id="4734349318830134239">
       <segment state="initial">
         <source>Ends</source>
-        <target>Ends</target>
+        <target>Einde</target>
       </segment>
     </unit>
     <unit id="4744376889247353452">
@@ -12740,7 +12740,7 @@
     <unit id="7774690298639065150">
       <segment state="initial">
         <source> This profile does not exist or is no longer available. </source>
-        <target> This profile does not exist or is no longer available. </target>
+        <target> Dit profiel bestaat niet of is niet meer beschikbaar. </target>
       </segment>
     </unit>
     <unit id="6680262533217185088">
@@ -12755,7 +12755,7 @@
       </notes>
       <segment state="initial">
         <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Edit media report </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Report Media </pc></source>
-        <target><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Edit media report </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Report Media </pc></target>
+        <target><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Mediamelding bewerken </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Media melden </pc></target>
       </segment>
     </unit>
     <unit id="6684903098036930968">
@@ -12851,7 +12851,7 @@
     <unit id="4856886645538428653">
       <segment state="initial">
         <source>Enter a valid email address or leave it blank.</source>
-        <target>Enter a valid email address or leave it blank.</target>
+        <target>Voer een geldig e-mailadres in of laat het leeg.</target>
       </segment>
     </unit>
     <unit id="profile.actions.unblock">
@@ -12899,19 +12899,19 @@
     <unit id="4897177574141849318">
       <segment state="initial">
         <source>Unsafe place or access information</source>
-        <target>Unsafe place or access information</target>
+        <target>Onveilige plek of toegangsinformatie</target>
       </segment>
     </unit>
     <unit id="7053728652419731548">
       <segment state="initial">
         <source>Session replay</source>
-        <target>Repetición de sesión</target>
+        <target>Sessieherhaling</target>
       </segment>
     </unit>
     <unit id="7058244463262851448">
       <segment state="initial">
         <source> Unblock User </source>
-        <target> Unblock User </target>
+        <target> Gebruiker deblokkeren </target>
       </segment>
     </unit>
     <unit id="7059749880989073519">
@@ -12965,19 +12965,19 @@
     <unit id="2469314021754225074">
       <segment state="initial">
         <source>How do I delete my account?</source>
-        <target>How do I delete my account?</target>
+        <target>Hoe verwijder ik mijn account?</target>
       </segment>
     </unit>
     <unit id="2472016265373616532">
       <segment state="initial">
         <source>Open Data License</source>
-        <target>Licencia de datos abiertos</target>
+        <target>Open-datalicentie</target>
       </segment>
     </unit>
     <unit id="2473567849440268466">
       <segment state="initial">
         <source>Community merge queued</source>
-        <target>Community merge queued</target>
+        <target>Samenvoegen van community’s in de wachtrij</target>
       </segment>
     </unit>
     <unit id="2475812979768871750">
@@ -12989,7 +12989,7 @@
     <unit id="2494595604764120182">
       <segment state="initial">
         <source>waiting on organizations</source>
-        <target>waiting on organizations</target>
+        <target>wacht op organisaties</target>
       </segment>
     </unit>
     <unit id="2496518471623524249">
@@ -13040,7 +13040,7 @@
       </notes>
       <segment state="initial">
         <source>Update report</source>
-        <target>Update report</target>
+        <target>Melding bijwerken</target>
       </segment>
     </unit>
     <unit id="5982160190664649221">
@@ -13070,7 +13070,7 @@
     <unit id="325006844299723146">
       <segment state="initial">
         <source>pending approval</source>
-        <target>pending approval</target>
+        <target>wacht op goedkeuring</target>
       </segment>
     </unit>
     <unit id="3250391385569692601">
@@ -13088,7 +13088,7 @@
     <unit id="2112768397949905814">
       <segment state="initial">
         <source>Enter a valid email address.</source>
-        <target>Enter a valid email address.</target>
+        <target>Voer een geldig e-mailadres in.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -13151,13 +13151,13 @@
     <unit id="2159535252430707382">
       <segment state="initial">
         <source>Moderation action recorded</source>
-        <target>Acción de moderación registrada</target>
+        <target>Moderatieactie vastgelegd</target>
       </segment>
     </unit>
     <unit id="2171420900172240739">
       <segment state="initial">
         <source>Withdrawn</source>
-        <target>Withdrawn</target>
+        <target>Ingetrokken</target>
       </segment>
     </unit>
     <unit id="2173680923654077460">
@@ -13211,7 +13211,7 @@
     <unit id="3808291968368675401">
       <segment state="initial">
         <source>Add a short summary.</source>
-        <target>Add a short summary.</target>
+        <target>Voeg een korte samenvatting toe.</target>
       </segment>
     </unit>
     <unit id="3812784998942541864">
@@ -13265,7 +13265,7 @@
     <unit id="3845136227654022046">
       <segment state="initial">
         <source>Harassment or hate</source>
-        <target>Harassment or hate</target>
+        <target>Intimidatie of haat</target>
       </segment>
     </unit>
     <unit id="3849719587486813146">
@@ -13394,7 +13394,7 @@
     <unit id="4152641197702276591">
       <segment state="initial">
         <source>Manage the reports you have submitted. Only you and moderators can see these details.</source>
-        <target>Manage the reports you have submitted. Only you and moderators can see these details.</target>
+        <target>Beheer de meldingen die je hebt ingediend. Alleen jij en moderators kunnen deze details zien.</target>
       </segment>
     </unit>
     <unit id="4152989558688224665">
@@ -13440,13 +13440,13 @@
     <unit id="5051467674731031610">
       <segment state="initial">
         <source>Report this event</source>
-        <target>Report this event</target>
+        <target>Dit evenement melden</target>
       </segment>
     </unit>
     <unit id="5061749540188881037">
       <segment state="initial">
         <source> Community cards, spot edit votes, and organization approval. </source>
-        <target> Community cards, spot edit votes, and organization approval. </target>
+        <target> Communitykaarten, stemmen over Spot-bewerkingen en goedkeuring van organisaties. </target>
       </segment>
     </unit>
     <unit id="5063962280942321008">
@@ -13476,7 +13476,7 @@
     <unit id="5088439136498133748">
       <segment state="initial">
         <source>Check your spam folder first. If you still can&apos;t find the verification email, go to Settings &gt; Account and request a new verification email. If problems persist, contact us on Discord.</source>
-        <target>Check your spam folder first. If you still can&apos;t find the verification email, go to Settings &gt; Account and request a new verification email. If problems persist, contact us on Discord.</target>
+        <target>Controleer eerst je spammap. Kun je de verificatiemail nog steeds niet vinden, ga dan naar Instellingen &gt; Account en vraag een nieuwe aan. Blijft het probleem bestaan, neem dan contact met ons op via Discord.</target>
       </segment>
     </unit>
     <unit id="5092426811369162632">
@@ -13548,7 +13548,7 @@
     <unit id="8407220471361845948">
       <segment state="initial">
         <source>Paste the PK Spot URL if you have it.</source>
-        <target>Paste the PK Spot URL if you have it.</target>
+        <target>Plak de PK Spot-URL als je die hebt.</target>
       </segment>
     </unit>
     <unit id="840870092040015279">
@@ -13560,7 +13560,7 @@
     <unit id="3243356092316492196">
       <segment state="initial">
         <source>How do I install the app on my phone?</source>
-        <target>How do I install the app on my phone?</target>
+        <target>Hoe installeer ik de app op mijn telefoon?</target>
       </segment>
     </unit>
     <unit id="3249513483374643425">
@@ -13602,7 +13602,7 @@
     <unit id="2648624934226238207">
       <segment state="initial">
         <source>Item link, path, or identifier (optional)</source>
-        <target>Item link, path, or identifier (optional)</target>
+        <target>Link, pad of ID van het item (optioneel)</target>
       </segment>
     </unit>
     <unit id="2672219549033683765">
@@ -13626,7 +13626,7 @@
     <unit id="2689184560704057247">
       <segment state="initial">
         <source>Follow request sent</source>
-        <target>Follow request sent</target>
+        <target>Volgverzoek verzonden</target>
       </segment>
     </unit>
     <unit id="map.create.event">
@@ -13668,13 +13668,13 @@
     <unit id="2762746842237643658">
       <segment state="initial">
         <source>Spam or malicious links</source>
-        <target>Spam o enlaces maliciosos</target>
+        <target>Spam of schadelijke links</target>
       </segment>
     </unit>
     <unit id="2766652354178868162">
       <segment state="initial">
         <source>Contact messages</source>
-        <target>Mensajes de contacto</target>
+        <target>Contactberichten</target>
       </segment>
     </unit>
     <unit id="2772374745622574688">
@@ -13686,7 +13686,7 @@
     <unit id="2776617638046368313">
       <segment state="initial">
         <source>View details</source>
-        <target>View details</target>
+        <target>Details bekijken</target>
       </segment>
     </unit>
     <unit id="2781971407154812080">
@@ -13698,7 +13698,7 @@
     <unit id="2788894705152239347">
       <segment state="initial">
         <source> This location on Google Maps® </source>
-        <target> This location on Google Maps® </target>
+        <target> Deze locatie op Google Maps® </target>
       </segment>
     </unit>
     <unit id="pk.home.description">
@@ -13734,7 +13734,7 @@
     <unit id="8025586841088932797">
       <segment state="initial">
         <source>What are the map filters?</source>
-        <target>What are the map filters?</target>
+        <target>Wat zijn de kaartfilters?</target>
       </segment>
     </unit>
     <unit id="8036493504964207254">
@@ -13764,7 +13764,7 @@
     <unit id="8075900986566576709">
       <segment state="initial">
         <source>Coming later</source>
-        <target>Coming later</target>
+        <target>Komt later</target>
       </segment>
     </unit>
     <unit id="8076818699210267066">
@@ -13812,7 +13812,7 @@
     <unit id="2907120007943470857">
       <segment state="initial">
         <source>Organizer</source>
-        <target>Organizer</target>
+        <target>Organisator</target>
       </segment>
     </unit>
     <unit id="2914629792519664709">
@@ -13836,7 +13836,7 @@
     <unit id="2923069032301679554">
       <segment state="initial">
         <source>Reports are private and go directly to the PK Spot safety team.</source>
-        <target>Reports are private and go directly to the PK Spot safety team.</target>
+        <target>Meldingen zijn privé en gaan rechtstreeks naar het veiligheidsteam van PK Spot.</target>
       </segment>
     </unit>
     <unit id="2925374545200384410">
@@ -13884,13 +13884,13 @@
     <unit id="2959460274535789482">
       <segment state="initial">
         <source>The app is crashing, what should I do?</source>
-        <target>The app is crashing, what should I do?</target>
+        <target>De app crasht, wat moet ik doen?</target>
       </segment>
     </unit>
     <unit id="2960388461422932845">
       <segment state="initial">
         <source>Person did not consent</source>
-        <target>Person did not consent</target>
+        <target>De persoon heeft geen toestemming gegeven</target>
       </segment>
     </unit>
     <unit id="2969365666988952758">
@@ -13908,7 +13908,7 @@
     <unit id="2988814765436950391">
       <segment state="initial">
         <source>Another service complaint</source>
-        <target>Another service complaint</target>
+        <target>Andere klacht over de dienst</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -13932,7 +13932,7 @@
     <unit id="3297542874937204469">
       <segment state="initial">
         <source>Private Spot</source>
-        <target>Private Spot</target>
+        <target>Privé-Spot</target>
       </segment>
     </unit>
     <unit id="add_media.label">
@@ -14070,7 +14070,7 @@
     <unit id="1571996928480119000">
       <segment state="initial">
         <source>Share event</source>
-        <target>Share event</target>
+        <target>Evenement delen</target>
       </segment>
     </unit>
     <unit id="1577979859082287846">
@@ -14098,7 +14098,7 @@
     <unit id="1584093308232863634">
       <segment state="initial">
         <source>Submit securely</source>
-        <target>Submit securely</target>
+        <target>Veilig versturen</target>
       </segment>
     </unit>
     <unit id="158781460362336598">
@@ -14110,7 +14110,7 @@
     <unit id="1589136879717771714">
       <segment state="initial">
         <source>Automated media decision</source>
-        <target>Automated media decision</target>
+        <target>Geautomatiseerd besluit over media</target>
       </segment>
     </unit>
     <unit id="1593391712749316624">
@@ -14180,7 +14180,7 @@
     <unit id="8913794084097958305">
       <segment state="initial">
         <source>Verify</source>
-        <target>Verify</target>
+        <target>Verifiëren</target>
       </segment>
     </unit>
     <unit id="891476879467146439">
@@ -14214,7 +14214,7 @@
     <unit id="5307137022448766473">
       <segment state="initial">
         <source>Failed to load communities</source>
-        <target>Failed to load communities</target>
+        <target>Community’s konden niet worden geladen</target>
       </segment>
     </unit>
     <unit id="5311639828224503795">
@@ -14232,7 +14232,7 @@
     <unit id="5320512330509370228">
       <segment state="initial">
         <source>Follow request approved</source>
-        <target>Follow request approved</target>
+        <target>Volgverzoek goedgekeurd</target>
       </segment>
     </unit>
     <unit id="5324713868940196306">
@@ -14272,7 +14272,7 @@
     <unit id="5365781103448127790">
       <segment state="initial">
         <source>Send suggestion</source>
-        <target>Send suggestion</target>
+        <target>Suggestie versturen</target>
       </segment>
     </unit>
     <unit id="5366185394283274884">
@@ -14512,7 +14512,7 @@
     <unit id="2502246313488671541">
       <segment state="initial">
         <source> Private accounts can approve who follows them. </source>
-        <target> Private accounts can approve who follows them. </target>
+        <target> Privéaccounts kunnen goedkeuren wie hen volgt. </target>
       </segment>
     </unit>
     <unit id="250704833554562493">
@@ -14596,7 +14596,7 @@
     <unit id="2047776319256281403">
       <segment state="initial">
         <source>Use Google Play’s age signal on a supported Android installation.</source>
-        <target>Use Google Play’s age signal on a supported Android installation.</target>
+        <target>Gebruik het leeftijdssignaal van Google Play op een ondersteunde Android-installatie.</target>
       </segment>
     </unit>
     <unit id="2049290282534091182">
@@ -14614,13 +14614,13 @@
     <unit id="2058170987045762192">
       <segment state="initial">
         <source>Filter by region</source>
-        <target>Filter by region</target>
+        <target>Filteren op regio</target>
       </segment>
     </unit>
     <unit id="6529676412063915412">
       <segment state="initial">
         <source> Follow requests </source>
-        <target> Follow requests </target>
+        <target> Volgverzoeken </target>
       </segment>
     </unit>
     <unit id="6537027644496489823">
@@ -14722,7 +14722,7 @@
     <unit id="6179206102292432387">
       <segment state="initial">
         <source>Community cards</source>
-        <target>Community cards</target>
+        <target>Communitykaarten</target>
       </segment>
     </unit>
     <unit id="6179528187219959958">
@@ -14734,7 +14734,7 @@
     <unit id="6185035155992471587">
       <segment state="initial">
         <source>Something else</source>
-        <target>Otra cosa</target>
+        <target>Iets anders</target>
       </segment>
     </unit>
     <unit id="6195271498647131229">
@@ -14800,7 +14800,7 @@
     <unit id="3989796638927342332">
       <segment state="initial">
         <source>Make a complaint</source>
-        <target>Make a complaint</target>
+        <target>Een klacht indienen</target>
       </segment>
     </unit>
     <unit id="3991755043359697718">
@@ -14836,13 +14836,13 @@
     <unit id="3407061818321766940">
       <segment state="initial">
         <source>Saving...</source>
-        <target>Saving...</target>
+        <target>Opslaan...</target>
       </segment>
     </unit>
     <unit id="3410770871410760104">
       <segment state="initial">
         <source>Support PK Spot</source>
-        <target>Support PK Spot</target>
+        <target>Steun PK Spot</target>
       </segment>
     </unit>
     <unit id="3419813162979896839">
@@ -14890,7 +14890,7 @@
     <unit id="3480235560414212524">
       <segment state="initial">
         <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
-        <target> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </target>
+        <target> Meldingen zijn privé. We bewaren de informatie die nodig is om te onderzoeken, misbruik te voorkomen, beslissingen toe te lichten en een bezwaar te behandelen. Beveiligingsmetadata van netwerk en apparaat worden na 90 dagen verwijderd. </target>
       </segment>
     </unit>
     <unit id="3483311644139102304">
@@ -14908,13 +14908,13 @@
     <unit id="3496653775940285146">
       <segment state="initial">
         <source>Use 5–140 characters.</source>
-        <target>Use 5–140 characters.</target>
+        <target>Gebruik 5–140 tekens.</target>
       </segment>
     </unit>
     <unit id="5101446301405691745">
       <segment state="initial">
         <source>Ownership claim rejected.</source>
-        <target>Ownership claim rejected.</target>
+        <target>Eigendomsclaim afgewezen.</target>
       </segment>
     </unit>
     <unit id="5103483003984888011">
@@ -14938,7 +14938,7 @@
     <unit id="5111937580799923602">
       <segment state="initial">
         <source>Media received. It will appear when processing finishes.</source>
-        <target>Media received. It will appear when processing finishes.</target>
+        <target>Media ontvangen. Het verschijnt zodra de verwerking klaar is.</target>
       </segment>
     </unit>
     <unit id="5122797194116205318">
@@ -14962,7 +14962,7 @@
     <unit id="5137148690998116244">
       <segment state="initial">
         <source>Impersonation</source>
-        <target>Suplantación</target>
+        <target>Identiteitsfraude</target>
       </segment>
     </unit>
     <unit id="5141203522177015720">
@@ -14998,7 +14998,7 @@
     <unit id="516176798986294299">
       <segment state="initial">
         <source>Country</source>
-        <target>Country</target>
+        <target>Land</target>
       </segment>
     </unit>
     <unit id="5176605689144016167">
@@ -15016,7 +15016,7 @@
     <unit id="5189291414020124701">
       <segment state="initial">
         <source>Is my data safe?</source>
-        <target>Is my data safe?</target>
+        <target>Zijn mijn gegevens veilig?</target>
       </segment>
     </unit>
     <unit id="519026501519052552">
@@ -15115,13 +15115,13 @@
     <unit id="3909136360386442402">
       <segment state="initial">
         <source>You have blocked this user</source>
-        <target>You have blocked this user</target>
+        <target>Je hebt deze gebruiker geblokkeerd</target>
       </segment>
     </unit>
     <unit id="3926626271480005146">
       <segment state="initial">
         <source>No votes yet</source>
-        <target>No votes yet</target>
+        <target>Nog geen stemmen</target>
       </segment>
     </unit>
     <unit id="3935646276054511852">
@@ -15247,7 +15247,7 @@
     <unit id="7408848507140682339">
       <segment state="initial">
         <source>Keep warning</source>
-        <target>Mantener advertencia</target>
+        <target>Waarschuwing behouden</target>
       </segment>
     </unit>
     <unit id="7410675842585212070">
@@ -15277,7 +15277,7 @@
     <unit id="5430715841913413045">
       <segment state="initial">
         <source>Content or account decision</source>
-        <target>Content or account decision</target>
+        <target>Besluit over inhoud of account</target>
       </segment>
     </unit>
     <unit id="5439680339974485805">
@@ -15373,7 +15373,7 @@
     <unit id="8865873236948038164">
       <segment state="initial">
         <source>Report event</source>
-        <target>Report event</target>
+        <target>Evenement melden</target>
       </segment>
     </unit>
     <unit id="8876716314997684812">
@@ -15421,13 +15421,13 @@
     <unit id="8891745002645853349">
       <segment state="initial">
         <source>Vector map rendering</source>
-        <target>Vector map rendering</target>
+        <target>Vectorkaartweergave</target>
       </segment>
     </unit>
     <unit id="8894493214990278764">
       <segment state="initial">
         <source>Error saving profile access settings.</source>
-        <target>Error saving profile access settings.</target>
+        <target>Fout bij het opslaan van de instellingen voor profieltoegang.</target>
       </segment>
     </unit>
     <unit id="5007909911776062380">
@@ -15481,7 +15481,7 @@
     <unit id="5995912307085156285">
       <segment state="initial">
         <source>Potentially illegal content</source>
-        <target>Potentially illegal content</target>
+        <target>Mogelijk illegale inhoud</target>
       </segment>
     </unit>
     <unit id="3959902123742995673">
@@ -15517,13 +15517,13 @@
     <unit id="8511422471788362899">
       <segment state="initial">
         <source>Not available on this installation yet.</source>
-        <target>Not available on this installation yet.</target>
+        <target>Nog niet beschikbaar op deze installatie.</target>
       </segment>
     </unit>
     <unit id="8520138691875188234">
       <segment state="initial">
         <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
-        <target> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </target>
+        <target> Gasten ontvangen een eenmalige verificatielink. Je e-mailadres en identiteit zijn alleen zichtbaar voor bevoegde moderators. </target>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -15613,7 +15613,7 @@
     <unit id="spot_picker.limit_hint">
       <segment state="initial">
         <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </source>
-        <target> Tot <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </target>
+        <target> Tot <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </target>
       </segment>
     </unit>
     <unit id="spot_type_label">
@@ -15803,7 +15803,7 @@
     <unit id="train.allEvents">
       <segment state="initial">
         <source>All events</source>
-        <target>All events</target>
+        <target>Alle evenementen</target>
       </segment>
     </unit>
     <unit id="train.nav">
@@ -15951,7 +15951,7 @@
     <unit id="train.useLocation">
       <segment state="initial">
         <source>Use my location</source>
-        <target>Use my location</target>
+        <target>Mijn locatie gebruiken</target>
       </segment>
     </unit>
     <unit id="train.weatherDryFilter">
@@ -16155,43 +16155,43 @@
     <unit id="trainingLog.createFirst">
       <segment state="initial">
         <source>Create first entry</source>
-        <target>Create first entry</target>
+        <target>Eerste item maken</target>
       </segment>
     </unit>
     <unit id="trainingLog.deleteConfirm">
       <segment state="initial">
         <source>Delete this log entry?</source>
-        <target>Delete this log entry?</target>
+        <target>Dit logboekitem verwijderen?</target>
       </segment>
     </unit>
     <unit id="trainingLog.emptyTitle">
       <segment state="initial">
         <source>Your first entry starts here</source>
-        <target>Your first entry starts here</target>
+        <target>Je eerste item begint hier</target>
       </segment>
     </unit>
     <unit id="trainingLog.new">
       <segment state="initial">
         <source>New training entry</source>
-        <target>New training entry</target>
+        <target>Nieuw trainingsitem</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.back">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Trainingslogboek</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.delete">
       <segment state="initial">
         <source>Delete</source>
-        <target>Delete</target>
+        <target>Verwijderen</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.deleteConfirm">
       <segment state="initial">
         <source>Delete this training session?</source>
-        <target>Delete this training session?</target>
+        <target>Deze trainingssessie verwijderen?</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.descriptionTitle">
@@ -16203,19 +16203,19 @@
     <unit id="trainingSessionDetail.duration">
       <segment state="initial">
         <source>duration</source>
-        <target>duration</target>
+        <target>duur</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.edit">
       <segment state="initial">
         <source>Edit</source>
-        <target>Edit</target>
+        <target>Bewerken</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.errorTitle">
       <segment state="initial">
         <source>This session is not available</source>
-        <target>This session is not available</target>
+        <target>Deze sessie is niet beschikbaar</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.eyebrow">
@@ -16227,85 +16227,85 @@
     <unit id="trainingSessionDetail.invalid">
       <segment state="initial">
         <source>This training session could not be found.</source>
-        <target>This training session could not be found.</target>
+        <target>Deze trainingssessie is niet gevonden.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.loadError">
       <segment state="initial">
         <source>Your training session could not be loaded.</source>
-        <target>Your training session could not be loaded.</target>
+        <target>Je trainingssessie kon niet worden geladen.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.noPartners">
       <segment state="initial">
         <source>No training partners were added to this session.</source>
-        <target>No training partners were added to this session.</target>
+        <target>Er zijn geen trainingspartners aan deze sessie toegevoegd.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.noSpots">
       <segment state="initial">
         <source>No individual Spots were saved with this session.</source>
-        <target>No individual Spots were saved with this session.</target>
+        <target>Er zijn geen afzonderlijke Spots bij deze sessie opgeslagen.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.notFound">
       <segment state="initial">
         <source>This training session could not be found.</source>
-        <target>This training session could not be found.</target>
+        <target>Deze trainingssessie is niet gevonden.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.partners">
       <segment state="initial">
         <source>training partners</source>
-        <target>training partners</target>
+        <target>trainingspartners</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.partnersPrivacy">
       <segment state="initial">
         <source>Only people you explicitly add appear here. This is never inferred from location or check-ins.</source>
-        <target>Only people you explicitly add appear here. This is never inferred from location or check-ins.</target>
+        <target>Hier verschijnen alleen mensen die je zelf toevoegt. Dit wordt nooit afgeleid uit locatie of check-ins.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.partnersTitle">
       <segment state="initial">
         <source>People who were there</source>
-        <target>People who were there</target>
+        <target>Mensen die erbij waren</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.private">
       <segment state="initial">
         <source>Private session</source>
-        <target>Private session</target>
+        <target>Privésessie</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.return">
       <segment state="initial">
         <source>Return to training log</source>
-        <target>Return to training log</target>
+        <target>Terug naar het trainingslogboek</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.signIn">
       <segment state="initial">
         <source>Sign in</source>
-        <target>Sign in</target>
+        <target>Inloggen</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.signInTitle">
       <segment state="initial">
         <source>Sign in to open this training session</source>
-        <target>Sign in to open this training session</target>
+        <target>Log in om deze trainingssessie te openen</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.source.checkIn">
       <segment state="initial">
         <source>Confirmed check-in</source>
-        <target>Confirmed check-in</target>
+        <target>Bevestigde check-in</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.source.manual">
       <segment state="initial">
         <source>Manual session</source>
-        <target>Manual session</target>
+        <target>Handmatige sessie</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.spots">
@@ -16323,7 +16323,7 @@
     <unit id="trainingSessionDetail.summary.ariaLabel">
       <segment state="initial">
         <source>Session summary</source>
-        <target>Session summary</target>
+        <target>Sessieoverzicht</target>
       </segment>
     </unit>
     <unit id="trainingStats.allTime">
@@ -16461,61 +16461,61 @@
     <unit id="trainingLog.signIn">
       <segment state="initial">
         <source>Sign in</source>
-        <target>Sign in</target>
+        <target>Inloggen</target>
       </segment>
     </unit>
     <unit id="trainingLog.signInTitle">
       <segment state="initial">
         <source>Sign in to use your training log</source>
-        <target>Sign in to use your training log</target>
+        <target>Log in om je trainingslogboek te gebruiken</target>
       </segment>
     </unit>
     <unit id="trainingLog.subtitle">
       <segment state="initial">
         <source>A private timeline for the Spots, sessions, and people that made up your training.</source>
-        <target>A private timeline for the Spots, sessions, and people that made up your training.</target>
+        <target>Een privétijdlijn van de Spots, sessies en mensen die deel uitmaakten van je training.</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.days">
       <segment state="initial">
         <source>active days</source>
-        <target>active days</target>
+        <target>actieve dagen</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.sessions">
       <segment state="initial">
         <source>sessions</source>
-        <target>sessions</target>
+        <target>sessies</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.spots">
       <segment state="initial">
         <source>Spots visited</source>
-        <target>Spots visited</target>
+        <target>Bezochte Spots</target>
       </segment>
     </unit>
     <unit id="trainingLog.summary.trainingTime">
       <segment state="initial">
         <source>training time</source>
-        <target>training time</target>
+        <target>trainingstijd</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.confirmedCheckIn">
       <segment state="initial">
         <source>Confirmed check-in</source>
-        <target>Confirmed check-in</target>
+        <target>Bevestigde check-in</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.emptyFiltered">
       <segment state="initial">
         <source>Nothing was logged for this day yet.</source>
-        <target>Nothing was logged for this day yet.</target>
+        <target>Voor deze dag is nog niets gelogd.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.filtered">
       <segment state="initial">
         <source>Showing sessions linked to the selected day.</source>
-        <target>Showing sessions linked to the selected day.</target>
+        <target>Sessies van de geselecteerde dag worden getoond.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.intro">
@@ -16527,13 +16527,13 @@
     <unit id="trainingLog.timeline.sessionCount">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {1 session} other {<ph id="0" equiv="INTERPOLATION"/> sessions}}</source>
-        <target>{VAR_PLURAL, plural, =1 {1 session} other {<ph id="0" equiv="INTERPOLATION"/> sessions}}</target>
+        <target>{VAR_PLURAL, plural, =1 {1 sessie} other {<ph id="0" equiv="INTERPOLATION"/> sessies}}</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.showAll">
       <segment state="initial">
         <source>Show all</source>
-        <target>Show all</target>
+        <target>Alles tonen</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.spotCount">
@@ -16551,7 +16551,7 @@
     <unit id="trainingLog.title">
       <segment state="initial">
         <source>Training log</source>
-        <target>Training log</target>
+        <target>Trainingslogboek</target>
       </segment>
     </unit>
     <unit id="trainingLog.visibility.private">
@@ -16569,7 +16569,7 @@
     <unit id="7107156952572073315">
       <segment state="initial">
         <source>5, 10, 25 or 50 stickers</source>
-        <target>5, 10, 25 or 50 stickers</target>
+        <target>5, 10, 25 of 50 stickers</target>
       </segment>
     </unit>
     <unit id="7113790156926964344">
@@ -16599,7 +16599,7 @@
     <unit id="7137059156368381236">
       <segment state="initial">
         <source>Official link</source>
-        <target>Official link</target>
+        <target>Officiële link</target>
       </segment>
     </unit>
     <unit id="7138068972563490768">
@@ -16665,7 +16665,7 @@
     <unit id="7183346391731740218">
       <segment state="initial">
         <source>Child safety</source>
-        <target>Child safety</target>
+        <target>Kinderveiligheid</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">
@@ -16701,7 +16701,7 @@
     <unit id="721979004226425951">
       <segment state="initial">
         <source>How a report was handled</source>
-        <target>How a report was handled</target>
+        <target>Hoe een melding is afgehandeld</target>
       </segment>
     </unit>
     <unit id="7222489710265178271">
@@ -16743,7 +16743,7 @@
     <unit id="7295769845403931650">
       <segment state="initial">
         <source>No spot edit votes waiting.</source>
-        <target>No spot edit votes waiting.</target>
+        <target>Geen stemmingen over Spot-bewerkingen in afwachting.</target>
       </segment>
     </unit>
     <unit id="6607382385355290684">
@@ -16854,7 +16854,7 @@
     <unit id="5693332593672944029">
       <segment state="initial">
         <source> No pending follow requests. </source>
-        <target> No pending follow requests. </target>
+        <target> Geen openstaande volgverzoeken. </target>
       </segment>
     </unit>
     <unit id="569492211620333799">
@@ -16878,7 +16878,7 @@
     <unit id="4570454655933825601">
       <segment state="initial">
         <source>Review queues</source>
-        <target>Review queues</target>
+        <target>Beoordelingswachtrijen</target>
       </segment>
     </unit>
     <unit id="4570725150232607497">
@@ -16923,7 +16923,7 @@
     <unit id="8972434095994344487">
       <segment state="initial">
         <source>Community card rejected</source>
-        <target>Community card rejected</target>
+        <target>Communitykaart afgewezen</target>
       </segment>
     </unit>
     <unit id="8974613806156505921">
@@ -16977,13 +16977,13 @@
     <unit id="6261837376343461951">
       <segment state="initial">
         <source>Self-harm or suicide</source>
-        <target>Self-harm or suicide</target>
+        <target>Zelfbeschadiging of zelfdoding</target>
       </segment>
     </unit>
     <unit id="6266780676699111627">
       <segment state="initial">
         <source> Latest open spot and media reports. </source>
-        <target> Laatst open spot and media reports. </target>
+        <target> Nieuwste open Spot- en mediameldingen. </target>
       </segment>
     </unit>
     <unit id="6272079317102347427">
@@ -17001,7 +17001,7 @@
     <unit id="6283880478744342457">
       <segment state="initial">
         <source>Notify followers of the local community when I publish</source>
-        <target>Notify followers of the local community when I publish</target>
+        <target>Volgers van de lokale community laten weten wanneer ik publiceer</target>
       </segment>
     </unit>
     <unit id="6299599810982807013">
@@ -17013,7 +17013,7 @@
     <unit id="6943542297023366963">
       <segment state="initial">
         <source>Contact Form</source>
-        <target>Formulario de contacto</target>
+        <target>Contactformulier</target>
       </segment>
     </unit>
     <unit id="6944287574672504844">
@@ -17115,7 +17115,7 @@
     <unit id="3741605829844535332">
       <segment state="initial">
         <source>Starting…</source>
-        <target>Starting…</target>
+        <target>Starten…</target>
       </segment>
     </unit>
     <unit id="3742557968359744247">
@@ -17133,7 +17133,7 @@
     <unit id="3747597665217141319">
       <segment state="initial">
         <source>Another safety concern</source>
-        <target>Another safety concern</target>
+        <target>Ander veiligheidsprobleem</target>
       </segment>
     </unit>
     <unit id="3750896546807006672">
@@ -17345,7 +17345,7 @@
     <unit id="1713067112201230619">
       <segment state="initial">
         <source>Enter a rejection reason.</source>
-        <target>Enter a rejection reason.</target>
+        <target>Voer een reden voor afwijzing in.</target>
       </segment>
     </unit>
     <unit id="1715090817675396731">
@@ -17357,7 +17357,7 @@
     <unit id="1716052484074407499">
       <segment state="initial">
         <source>Why can&apos;t I see any spots in my area?</source>
-        <target>Why can&apos;t I see any spots in my area?</target>
+        <target>Waarom zie ik geen Spots in mijn omgeving?</target>
       </segment>
     </unit>
     <unit id="1716103244838780873">
@@ -17505,13 +17505,13 @@
     <unit id="16262867878350001">
       <segment state="initial">
         <source>Reports help keep PK Spot accurate and safe.</source>
-        <target>Reports help keep PK Spot accurate and safe.</target>
+        <target>Meldingen helpen PK Spot accuraat en veilig te houden.</target>
       </segment>
     </unit>
     <unit id="1629110082218932522">
       <segment state="initial">
         <source>Short summary</source>
-        <target>Short summary</target>
+        <target>Korte samenvatting</target>
       </segment>
     </unit>
     <unit id="1632949913064020849">
@@ -17571,7 +17571,7 @@
     <unit id="1660046583116975957">
       <segment state="initial">
         <source>Tap on your profile picture in your profile page, and you can select a new image from your device.</source>
-        <target>Tap on your profile picture in your profile page, and you can select a new image from your device.</target>
+        <target>Tik op je profielfoto op je profielpagina en kies een nieuwe afbeelding van je apparaat.</target>
       </segment>
     </unit>
     <unit id="1669593749761062093">
@@ -17649,7 +17649,7 @@
     <unit id="778210565718150542">
       <segment state="initial">
         <source>Tell us what is wrong with</source>
-        <target>Dinos qué está mal</target>
+        <target>Vertel ons wat er mis is met</target>
       </segment>
     </unit>
     <unit id="7788049772453800084">
@@ -17685,7 +17685,7 @@
     <unit id="2705202013183370950">
       <segment state="initial">
         <source>A public profile is required</source>
-        <target>A public profile is required</target>
+        <target>Een openbaar profiel is vereist</target>
       </segment>
     </unit>
     <unit id="2706312198973609080">
@@ -17721,7 +17721,7 @@
     <unit id="4616666625375010169">
       <segment state="initial">
         <source> The report could not be submitted. Please check your connection and try again. </source>
-        <target> The report could not be submitted. Please check your connection and try again. </target>
+        <target> De melding kon niet worden verzonden. Controleer je verbinding en probeer het opnieuw. </target>
       </segment>
     </unit>
     <unit id="4626291526592310042">
@@ -17739,7 +17739,7 @@
     <unit id="4648618547655278196">
       <segment state="initial">
         <source>Unknown editor</source>
-        <target>Unknown editor</target>
+        <target>Onbekende bewerker</target>
       </segment>
     </unit>
     <unit id="4658982717700339898">
@@ -17751,7 +17751,7 @@
     <unit id="4662252870324398885">
       <segment state="initial">
         <source>Community knowledge saved</source>
-        <target>Conocimiento de comunidad guardado</target>
+        <target>Communitykennis opgeslagen</target>
       </segment>
     </unit>
     <unit id="4662484626065169408">
@@ -17763,13 +17763,13 @@
     <unit id="4664742793863132957">
       <segment state="initial">
         <source>Terms of service violation</source>
-        <target>Terms of service violation</target>
+        <target>Schending van de servicevoorwaarden</target>
       </segment>
     </unit>
     <unit id="4667715772382848347">
       <segment state="initial">
         <source>Profile not found</source>
-        <target>Profile not found</target>
+        <target>Profiel niet gevonden</target>
       </segment>
     </unit>
     <unit id="3031673576218082316">
@@ -17811,7 +17811,7 @@
     <unit id="2075947254275135132">
       <segment state="initial">
         <source>Problem making a report</source>
-        <target>Problem making a report</target>
+        <target>Probleem bij het maken van een melding</target>
       </segment>
     </unit>
     <unit id="2081295007072116210">
@@ -18223,7 +18223,7 @@
     <unit id="event_qualification.path_default">
       <segment state="initial">
         <source>Qualification pathway</source>
-        <target>Ruta de clasificación</target>
+        <target>Kwalificatietraject</target>
       </segment>
     </unit>
     <unit id="event_qualification.qualifies_to">
@@ -18235,7 +18235,7 @@
     <unit id="event_qualification.required">
       <segment state="initial">
         <source> Qualification is required for this competition. </source>
-        <target> Kwalificatie is required for this competition. </target>
+        <target> Voor deze wedstrijd is kwalificatie vereist. </target>
       </segment>
     </unit>
     <unit id="event_qualification.show_less">
@@ -18253,37 +18253,37 @@
     <unit id="event_region.africa">
       <segment state="initial">
         <source>Africa</source>
-        <target>Africa</target>
+        <target>Afrika</target>
       </segment>
     </unit>
     <unit id="event_region.asia">
       <segment state="initial">
         <source>Asia</source>
-        <target>Asia</target>
+        <target>Azië</target>
       </segment>
     </unit>
     <unit id="event_region.europe">
       <segment state="initial">
         <source>Europe</source>
-        <target>Europe</target>
+        <target>Europa</target>
       </segment>
     </unit>
     <unit id="event_region.north_america">
       <segment state="initial">
         <source>North America</source>
-        <target>North America</target>
+        <target>Noord-Amerika</target>
       </segment>
     </unit>
     <unit id="event_region.oceania">
       <segment state="initial">
         <source>Oceania</source>
-        <target>Oceania</target>
+        <target>Oceanië</target>
       </segment>
     </unit>
     <unit id="event_region.south_america">
       <segment state="initial">
         <source>South America</source>
-        <target>South America</target>
+        <target>Zuid-Amerika</target>
       </segment>
     </unit>
     <unit id="event_registration.cancel">
@@ -18427,37 +18427,37 @@
     <unit id="event_report.default_summary">
       <segment state="initial">
         <source>Report: <ph id="0" equiv="PH" disp="event.name"/></source>
-        <target>Report: <ph id="0" equiv="PH" disp="event.name"/></target>
+        <target>Melding: <ph id="0" equiv="PH" disp="event.name"/></target>
       </segment>
     </unit>
     <unit id="event_report.submitted">
       <segment state="initial">
         <source>Your report has been sent securely.</source>
-        <target>Your report has been sent securely.</target>
+        <target>Je melding is veilig verzonden.</target>
       </segment>
     </unit>
     <unit id="event_series_role.championship">
       <segment state="initial">
         <source>Championship</source>
-        <target>Campeonato</target>
+        <target>Kampioenschap</target>
       </segment>
     </unit>
     <unit id="event_series_role.feeder">
       <segment state="initial">
         <source>Feeder</source>
-        <target>Clasificatorio feeder</target>
+        <target>Feeder</target>
       </segment>
     </unit>
     <unit id="event_series_role.final">
       <segment state="initial">
         <source>Final</source>
-        <target>Final</target>
+        <target>Finale</target>
       </segment>
     </unit>
     <unit id="event_series_role.qualifier">
       <segment state="initial">
         <source>Qualifier</source>
-        <target>Clasificatorio</target>
+        <target>Qualifier</target>
       </segment>
     </unit>
     <unit id="event_series_role.related">
@@ -18559,13 +18559,13 @@
     <unit id="event_suggestion.failed">
       <segment state="initial">
         <source>Couldn&apos;t send your suggestion. Please try again.</source>
-        <target>Couldn&apos;t send your suggestion. Please try again.</target>
+        <target>Je suggestie kon niet worden verzonden. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="event_suggestion.invalid_times">
       <segment state="initial">
         <source>Choose an end time after the start time.</source>
-        <target>Choose an end time after the start time.</target>
+        <target>Kies een eindtijd na de begintijd.</target>
       </segment>
     </unit>
     <unit id="event_suggestion.meta_description">
@@ -18577,13 +18577,13 @@
     <unit id="event_suggestion.meta_title">
       <segment state="initial">
         <source>Suggest an Event</source>
-        <target>Suggest an Event</target>
+        <target>Evenement voorstellen</target>
       </segment>
     </unit>
     <unit id="event_suggestion.submitted">
       <segment state="initial">
         <source>Thanks — your suggestion is ready for staff review.</source>
-        <target>Thanks — your suggestion is ready for staff review.</target>
+        <target>Bedankt — je suggestie staat klaar voor beoordeling door het team.</target>
       </segment>
     </unit>
     <unit id="event_tickets.availability.coming_soon">
@@ -18823,7 +18823,7 @@
     <unit id="event_edit.program_item_linked_event">
       <segment state="initial">
         <source> Linked event id </source>
-        <target> ID de evento vinculado </target>
+        <target> Gekoppelde evenement-ID </target>
       </segment>
     </unit>
     <unit id="event_edit.program_item_remove">
@@ -18883,7 +18883,7 @@
     <unit id="event_edit.program_items">
       <segment state="initial">
         <source> Program items </source>
-        <target> Elementos del programa </target>
+        <target> Programmaonderdelen </target>
       </segment>
     </unit>
     <unit id="event_edit.program_items_empty">
@@ -18907,7 +18907,7 @@
     <unit id="event_edit.program_plan_condition">
       <segment state="initial">
         <source> Condition label </source>
-        <target> Etiqueta de condición </target>
+        <target> Label van de voorwaarde </target>
       </segment>
     </unit>
     <unit id="event_edit.program_plan_kind">
@@ -18919,7 +18919,7 @@
     <unit id="event_edit.program_plan_kind.alternate">
       <segment state="initial">
         <source>Alternate</source>
-        <target>Alternativo</target>
+        <target>Alternatief</target>
       </segment>
     </unit>
     <unit id="event_edit.program_plan_kind.main">
@@ -18931,7 +18931,7 @@
     <unit id="event_edit.program_plan_label">
       <segment state="initial">
         <source> Plan label </source>
-        <target> Etiqueta del plan </target>
+        <target> Planlabel </target>
       </segment>
     </unit>
     <unit id="event_edit.program_plan_remove">
@@ -18943,7 +18943,7 @@
     <unit id="event_edit.promo_radius">
       <segment state="initial">
         <source> Promotion radius (m) </source>
-        <target> Radio de promoción (m) </target>
+        <target> Promotieradius (m) </target>
       </segment>
     </unit>
     <unit id="event_edit.promo_radius_hint">
@@ -18961,19 +18961,19 @@
     <unit id="event_edit.promote_disclaimer">
       <segment state="initial">
         <source> Disclaimer: enabling promotion can activate the map island for users who are allowed to see this promoted event. </source>
-        <target> Disclaimer: enabling promotion can activate the map island for users who are allowed to see this promoted event. </target>
+        <target> Let op: promotie inschakelen kan het kaarteiland activeren voor gebruikers die dit gepromote evenement mogen zien. </target>
       </segment>
     </unit>
     <unit id="event_edit.promote_heading">
       <segment state="initial">
         <source> Promote </source>
-        <target> Promocionar </target>
+        <target> Promoten </target>
       </segment>
     </unit>
     <unit id="event_edit.promote_hint">
       <segment state="initial">
         <source> Boosting and map-island radius </source>
-        <target> Boosting y radio de isla del mapa </target>
+        <target> Boost en straal van het kaarteiland </target>
       </segment>
     </unit>
     <unit id="event_info.share_button">
@@ -20023,91 +20023,91 @@
     <unit id="community_event.edit_heading">
       <segment state="initial">
         <source>Edit community event</source>
-        <target>Edit community event</target>
+        <target>Community-evenement bewerken</target>
       </segment>
     </unit>
     <unit id="community_event.plan_heading">
       <segment state="initial">
         <source>Plan a community event</source>
-        <target>Plan a community event</target>
+        <target>Een community-evenement plannen</target>
       </segment>
     </unit>
     <unit id="community_event.description">
       <segment state="initial">
         <source>Bring your local parkour community together.</source>
-        <target>Bring your local parkour community together.</target>
+        <target>Breng je lokale parkourcommunity samen.</target>
       </segment>
     </unit>
     <unit id="community_event.updated">
       <segment state="initial">
         <source>Your community event is updated.</source>
-        <target>Your community event is updated.</target>
+        <target>Je community-evenement is bijgewerkt.</target>
       </segment>
     </unit>
     <unit id="community_event.created">
       <segment state="initial">
         <source>Your community event is published.</source>
-        <target>Your community event is published.</target>
+        <target>Je community-evenement is gepubliceerd.</target>
       </segment>
     </unit>
     <unit id="community_event.create_failed">
       <segment state="initial">
         <source>Couldn&apos;t publish this community event. Please try again.</source>
-        <target>Couldn&apos;t publish this community event. Please try again.</target>
+        <target>Kon dit community-evenement niet publiceren. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="community_event.cancelled">
       <segment state="initial">
         <source>Your community event is cancelled.</source>
-        <target>Your community event is cancelled.</target>
+        <target>Je community-evenement is geannuleerd.</target>
       </segment>
     </unit>
     <unit id="community_event.cancel_failed">
       <segment state="initial">
         <source>Couldn&apos;t cancel this community event. Please try again.</source>
-        <target>Couldn&apos;t cancel this community event. Please try again.</target>
+        <target>Kon dit community-evenement niet annuleren. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="events.listing_tier_event">
       <segment state="initial">
         <source>Events</source>
-        <target>Events</target>
+        <target>Evenementen</target>
       </segment>
     </unit>
     <unit id="event_listing.community">
       <segment state="initial">
         <source>Community event</source>
-        <target>Community event</target>
+        <target>Community-evenement</target>
       </segment>
     </unit>
     <unit id="6241445530231242277">
       <segment state="initial">
         <source>Sign in to plan a community event</source>
-        <target>Sign in to plan a community event</target>
+        <target>Log in om een community-evenement te plannen</target>
       </segment>
     </unit>
     <unit id="1723550153638974909">
       <segment state="initial">
         <source>Community events are created by verified adult community members.</source>
-        <target>Community events are created by verified adult community members.</target>
+        <target>Community-evenementen worden aangemaakt door geverifieerde volwassen communityleden.</target>
       </segment>
     </unit>
     <unit id="1739404177510113816">
       <segment state="initial">
         <source>Your currently active server-confirmed adult assurance is required before publishing a community event.</source>
-        <target>Your currently active server-confirmed adult assurance is required before publishing a community event.</target>
+        <target>Voordat je een community-evenement publiceert, is een actieve, door de server bevestigde leeftijdsverificatie nodig.</target>
       </segment>
     </unit>
     <unit id="5462767174124636395">
       <segment state="initial">
         <source>Public community events show their organizer.</source>
-        <target>Public community events show their organizer.</target>
+        <target>Openbare community-evenementen tonen hun organisator.</target>
       </segment>
     </unit>
     <unit id="4205547259664450146">
       <segment state="initial">
         <source>Loading community event…</source>
-        <target>Loading community event…</target>
+        <target>Community-evenement wordt geladen…</target>
       </segment>
     </unit>
     <unit id="4207916966377787111">
@@ -20119,43 +20119,43 @@
     <unit id="4299657868649430560">
       <segment state="initial">
         <source>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source>
-        <target>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</target>
+        <target>Community-evenementen gebruiken aanmelden via RSVP. Tickets, programma’s en media-uploads maken geen deel uit van deze eerste versie.</target>
       </segment>
     </unit>
     <unit id="7219162063306578420">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> community event</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> community event</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> community-evenement</target>
       </segment>
     </unit>
     <unit id="3628985727060093047">
       <segment state="initial">
         <source>Off by default. This can only be chosen when the community event is first published.</source>
-        <target>Off by default. This can only be chosen when the community event is first published.</target>
+        <target>Standaard uit. Dit kan alleen worden gekozen wanneer het community-evenement voor het eerst wordt gepubliceerd.</target>
       </segment>
     </unit>
     <unit id="7962838458002654901">
       <segment state="initial">
         <source> Cancel community event </source>
-        <target> Cancel community event </target>
+        <target> Community-evenement annuleren </target>
       </segment>
     </unit>
     <unit id="3792622364508901777">
       <segment state="initial">
         <source>Send an Event to PK Spot staff for review. It will not be published from this form.</source>
-        <target>Send an Event to PK Spot staff for review. It will not be published from this form.</target>
+        <target>Stuur een evenement ter beoordeling naar het PK Spot-team. Het wordt niet via dit formulier gepubliceerd.</target>
       </segment>
     </unit>
     <unit id="552004881794875858">
       <segment state="initial">
         <source>Community event</source>
-        <target>Community event</target>
+        <target>Community-evenement</target>
       </segment>
     </unit>
     <unit id="2008167069818962786">
       <segment state="initial">
         <source>Checking Event authoring access…</source>
-        <target>Checking Event authoring access…</target>
+        <target>Toegang tot het maken van evenementen controleren…</target>
       </segment>
     </unit>
     <unit id="bounds_picker.inline_spot_area_hint">

@@ -726,7 +726,7 @@ async function main() {
     // A translated shell must also expose translated crawler metadata. These
     // pages use stored community facts; rendering must not depend on GeoNames.
     for (const [locale, heading, description, placeName] of [
-      ["fr", "Parkour en Suisse", "Découvrez des Spots de parkour en Suisse", "Suisse"],
+      ["fr", "Parkour en Suisse", "Découvre des Spots de parkour en Suisse", "Suisse"],
       ["it", "Parkour in Svizzera", "Scopri gli Spots di parkour in Svizzera", "Svizzera"],
     ]) {
       const response = await fetchWithTimeout(
