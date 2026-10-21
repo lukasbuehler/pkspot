@@ -590,6 +590,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _routerSubscription?: Subscription;
   private _locationSubscription?: SubscriptionLike;
+  /** Set once ngOnInit has applied the requested route's selection. */
+  private _initialRouteApplied = false;
   private _breakpointSubscription?: Subscription;
   private _consentSubscription?: Subscription;
   private _authStateSubscription?: Subscription;
@@ -2789,15 +2791,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     void this.pendingTasks.run(async () => {
-      await this._loadEventFromRouteIfPresent(this.router.url);
-      await this._handleURLParamsChange(
-        routeState.spotIdOrSlug,
-        routeState.showChallenges,
-        routeState.challengeId,
-        routeState.showEditHistory,
-        contentData?.spot || null,
-        contentData?.challenge || null,
-      );
+      try {
+        await this._loadEventFromRouteIfPresent(this.router.url);
+        await this._handleURLParamsChange(
+          routeState.spotIdOrSlug,
+          routeState.showChallenges,
+          routeState.challengeId,
+          routeState.showEditHistory,
+          contentData?.spot || null,
+          contentData?.challenge || null,
+        );
+      } finally {
+        this._initialRouteApplied = true;
+      }
     });
 
     const queryIndex = this.router.url.indexOf("?");
@@ -3992,6 +3998,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Browser history reflects interactive selection. During SSR a missing Spot
     // must retain its requested URL and 404, not become a redirect to /map.
     if (this.isServer) return;
+    // Until the requested Spot, event, or community is applied, an empty
+    // selection only means "still loading". Rewriting the URL to /map here
+    // also made crawlers record the map's canonical for Spot pages.
+    if (!this._initialRouteApplied) return;
     // Only update URL if we're currently on the map page
     // This prevents interfering with navigation away from the map
     if (!this.router.url.startsWith("/map")) {
