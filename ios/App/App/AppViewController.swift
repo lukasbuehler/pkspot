@@ -4,7 +4,40 @@ import WebKit
 @objc(AppViewController)
 class AppViewController: CAPBridgeViewController {
     private var pageLoadObservation: NSKeyValueObservation?
+    private var canGoBackObservation: NSKeyValueObservation?
     private var lastPublishedInsets: UIEdgeInsets?
+    private lazy var backItem = UIBarButtonItem(
+        title: String(localized: "Back"),
+        image: UIImage(systemName: "chevron.backward"),
+        primaryAction: UIAction { [weak self] _ in self?.webView?.goBack() }
+    )
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        navigationItem.leftBarButtonItem = backItem
+        if #available(iOS 27.1, *) {
+            registerForTraitChanges(UITraitCollection.systemTraitsAffectingVerticalBarEdge) {
+                (self: Self, _: UITraitCollection) in
+                self.updateVerticalBar()
+            }
+        }
+        updateVerticalBar()
+    }
+
+    /// Shows the navigation bar only where iOS lays it out vertically (iPhone
+    /// Duo). There it sits in the side column the system reserves anyway, so the
+    /// web layout is unchanged; on every other device it stays hidden. Back
+    /// walks the web view's history, which includes Angular route changes.
+    private func updateVerticalBar() {
+        backItem.isHidden = !(webView?.canGoBack ?? false)
+        var vertical = false
+        if #available(iOS 27.1, *) {
+            vertical = traitCollection.verticalBarEdge != .unspecified
+        }
+        if navigationController?.isNavigationBarHidden == vertical {
+            navigationController?.setNavigationBarHidden(!vertical, animated: false)
+        }
+    }
 
     // WebKit on foldable simulators can expose stale env(safe-area-inset-*)
     // values until the first rotation. UIKit is the authoritative source; the
@@ -45,6 +78,9 @@ class AppViewController: CAPBridgeViewController {
             if !webView.isLoading {
                 self?.publishSafeAreaInsets(force: true)
             }
+        }
+        canGoBackObservation = webView?.observe(\.canGoBack, options: [.new]) { [weak self] _, _ in
+            self?.updateVerticalBar()
         }
 
         bridge?.registerPluginInstance(StoreReviewPlugin())

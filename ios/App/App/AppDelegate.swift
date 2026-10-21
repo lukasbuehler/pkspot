@@ -182,6 +182,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // UIKit instantiates Main.storyboard from the scene manifest. Preserve
         // the window accessor used by existing Capacitor plugins.
         (UIApplication.shared.delegate as? AppDelegate)?.window = window
+        if let root = window?.rootViewController, !(root is UINavigationController) {
+            // The container only lets iOS place native bar items in the vertical
+            // bar of iPhone Duo. AppViewController keeps its bar hidden elsewhere.
+            let navigation = UINavigationController(rootViewController: root)
+            navigation.setNavigationBarHidden(true, animated: false)
+            window?.rootViewController = navigation
+            root.loadViewIfNeeded()
+        }
         window?.rootViewController?.loadViewIfNeeded()
         self.scene(scene, openURLContexts: connectionOptions.urlContexts)
         for activity in connectionOptions.userActivities {
