@@ -36,6 +36,9 @@ describe("navigation layout", () => {
       "drawer-overlay",
     );
     expect(getMapPanelLayout({ width: 678, height: 466 })).toBe("drawer-overlay");
+    // Split screen halves are short but not landscape: keep the bottom sheet.
+    expect(getMapPanelLayout({ width: 449, height: 495 })).toBe("bottom-sheet");
+    expect(getMapPanelLayout({ width: 600, height: 480 })).toBe("bottom-sheet");
   });
 
   it("reserves document space only for the floating bottom navigation", () => {

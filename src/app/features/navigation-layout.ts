@@ -13,6 +13,12 @@ export interface NavigationViewport {
 
 const RAIL_MIN_WIDTH = 640;
 const RAIL_MIN_HEIGHT = 560;
+/**
+ * A short viewport gets the side drawer only when it is clearly landscape
+ * (a phone on its side). Short but narrow viewports, such as one half of a
+ * split screen, keep the bottom sheet so the map stays wide enough to use.
+ */
+const SIDE_DRAWER_MIN_ASPECT = 1.3;
 
 export function isAlainViewport({ width, height }: NavigationViewport): boolean {
   if (width === null || height === null) return false;
@@ -47,7 +53,8 @@ export function getMapPanelLayout(
 
   const { height, width } = viewport;
   if (navigation === "menu") {
-    return height !== null && height < 500
+    return height !== null && height < 500 && width !== null &&
+      width >= height * SIDE_DRAWER_MIN_ASPECT
       ? "drawer-overlay"
       : "bottom-sheet";
   }
