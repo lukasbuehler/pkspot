@@ -41,19 +41,17 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>PK Spot needs access to your camera to let you upload photos of spots.</string>
+	<string>PK Spot needs access to your camera to let you upload photos.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>PK Spot uses your location to display your location, nearby spots and verify training sessions while you use the app.</string>
+	<string>PK Spot uses your location to display your location, nearby spots and to let you check-in at spots.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>PK Spot needs your location to verify training sessions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>PK Spot needs your location to display your location, nearby spots and verify your active sessions.</string>
+	<string>PK Spot uses your location to display your location, nearby spots and to let you check-in at spots.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>PK Spot needs access to save photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>PK Spot needs access to your library to select spot photos.</string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>PK Spot needs access to your library to select photos.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -73,6 +71,8 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

@@ -7,63 +7,77 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		26251697C001475887BF728E /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211D3018D474758B1B88323 /* ShareViewController.swift */; };
+		283F6A61E88D4A729D0AB756 /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		4583FF6436EC42C1BEE20BFF /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */; };
+		46D27AE99FD745D7AFCF7022 /* MapsLauncherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
+		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
+		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
+		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
+		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		5874F50C666E415F8DA83070 /* PK Spot Maps Share.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 7A208716BD624724A56EA8E4 /* PK Spot Maps Share.appex */; };
+		653975D6D2DD41F2B774A734 /* MapSharePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043D99B9C0E24748910D487B /* MapSharePlugin.swift */; };
+		7B878ADD972E40CBA6167E36 /* MapLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */; };
 		80A610012F1F000100000001 /* AgeAssurancePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610002F1F000100000001 /* AgeAssurancePlugin.swift */; };
 		80A610032F1F000100000003 /* GooglePlacePhotoPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */; };
 		80A610052F1F000100000005 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 80A610042F1F000100000004 /* GooglePlaces */; };
 		80A610082F1F000100000008 /* AppViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610072F1F000100000007 /* AppViewController.swift */; };
 		80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */; };
-		46D27AE99FD745D7AFCF7022 /* MapsLauncherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */; };
-		80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */; };
-		81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */; };
-		91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */; };
 		80A6100B2F1F00010000000B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 80A6100D2F1F00010000000D /* FirebaseMessaging */; };
-		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
-		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
-		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
-		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */; };
 		80D508C62F01488800B544DF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 80D508C52F01488800B544DF /* GoogleService-Info.plist */; };
-		5874F50C666E415F8DA83070 /* PK Spot Maps Share.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 7A208716BD624724A56EA8E4 /* PK Spot Maps Share.appex */; };
-		26251697C001475887BF728E /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211D3018D474758B1B88323 /* ShareViewController.swift */; };
-		4583FF6436EC42C1BEE20BFF /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */; };
-		283F6A61E88D4A729D0AB756 /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */; };
-		653975D6D2DD41F2B774A734 /* MapSharePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043D99B9C0E24748910D487B /* MapSharePlugin.swift */; };
-		EA9B74FDEC454778B428A193 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2F92A2B323D3431B87939641 /* Localizable.xcstrings */; };
-		7B878ADD972E40CBA6167E36 /* MapLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */; };
+		81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */; };
 		8903EAF5225541DE813153CF /* NearbySpotSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3099C64C2904CB080439A89 /* NearbySpotSearch.swift */; };
+		91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */; };
 		A35AA5025C474CA9A976AAD5 /* MapLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */; };
+		EA9B74FDEC454778B428A193 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2F92A2B323D3431B87939641 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		AF6C1522A0004B20BDC9A762 /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5874F50C666E415F8DA83070 /* PK Spot Maps Share.appex in Copy Files */,
+			);
+			name = "Copy Files";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		043D99B9C0E24748910D487B /* MapSharePlugin.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = MapSharePlugin.swift; path = App/MapSharePlugin.swift; sourceTree = "<group>"; };
+		257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsLauncherPlugin.swift; sourceTree = "<group>"; };
+		2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SharedMapStore.swift; path = MapShareExtension/SharedMapStore.swift; sourceTree = "<group>"; };
+		2F92A2B323D3431B87939641 /* Localizable.xcstrings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = text.json.xcstrings; name = Localizable.xcstrings; path = MapShareExtension/Localizable.xcstrings; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* PK Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PK Spot.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		80A610002F1F000100000001 /* AgeAssurancePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeAssurancePlugin.swift; sourceTree = "<group>"; };
-		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
-		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
-		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
-		257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsLauncherPlugin.swift; sourceTree = "<group>"; };
-		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
-		81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreReviewPlugin.swift; sourceTree = "<group>"; };
-		91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewPlugin.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = MapLinkResolver.swift; path = MapShareExtension/MapLinkResolver.swift; sourceTree = "<group>"; };
+		7A208716BD624724A56EA8E4 /* PK Spot Maps Share.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = 9; includeInIndex = 0; path = "PK Spot Maps Share.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		80A610002F1F000100000001 /* AgeAssurancePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeAssurancePlugin.swift; sourceTree = "<group>"; };
+		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
+		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
+		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
+		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
 		80D508C52F01488800B544DF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreReviewPlugin.swift; sourceTree = "<group>"; };
+		91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewPlugin.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
-		7A208716BD624724A56EA8E4 /* PK Spot Maps Share.appex */ = {isa = PBXFileReference; name = "PK Spot Maps Share.appex"; path = "PK Spot Maps Share.appex"; sourceTree = BUILT_PRODUCTS_DIR; fileEncoding = undefined; lastKnownFileType = undefined; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; };
-		B211D3018D474758B1B88323 /* ShareViewController.swift */ = {isa = PBXFileReference; name = "ShareViewController.swift"; path = "MapShareExtension/ShareViewController.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */ = {isa = PBXFileReference; name = "SharedMapStore.swift"; path = "MapShareExtension/SharedMapStore.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		043D99B9C0E24748910D487B /* MapSharePlugin.swift */ = {isa = PBXFileReference; name = "MapSharePlugin.swift"; path = "App/MapSharePlugin.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		2F92A2B323D3431B87939641 /* Localizable.xcstrings */ = {isa = PBXFileReference; name = "Localizable.xcstrings"; path = "MapShareExtension/Localizable.xcstrings"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = text.json.xcstrings; explicitFileType = undefined; includeInIndex = 0; };
-		6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */ = {isa = PBXFileReference; name = "MapLinkResolver.swift"; path = "MapShareExtension/MapLinkResolver.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		B3099C64C2904CB080439A89 /* NearbySpotSearch.swift */ = {isa = PBXFileReference; name = "NearbySpotSearch.swift"; path = "MapShareExtension/NearbySpotSearch.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		B211D3018D474758B1B88323 /* ShareViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = MapShareExtension/ShareViewController.swift; sourceTree = "<group>"; };
+		B3099C64C2904CB080439A89 /* NearbySpotSearch.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = NearbySpotSearch.swift; path = MapShareExtension/NearbySpotSearch.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,13 +154,29 @@
 			isa = PBXGroup;
 			children = (
 			);
-			name = MapShareExtension;
 			path = MapShareExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4C411E05D66D4C248650947D /* PK Spot Maps Share */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E225CA968DB243F180939FF3 /* Build configuration list for PBXNativeTarget "PK Spot Maps Share" */;
+			buildPhases = (
+				B2C572F62CAF401C974A5620 /* Sources */,
+				56E8A50CEF174ED0A4E2A915 /* Frameworks */,
+				8B1F2CE54C81490E91654676 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "PK Spot Maps Share";
+			productName = "PK Spot Maps Share";
+			productReference = 7A208716BD624724A56EA8E4 /* PK Spot Maps Share.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		504EC3031FED79650016851F /* PK Spot */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 504EC3161FED79650016851F /* Build configuration list for PBXNativeTarget "PK Spot" */;
@@ -169,23 +199,6 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* PK Spot.app */;
 			productType = "com.apple.product-type.application";
-		};
-		4C411E05D66D4C248650947D /* "PK Spot Maps Share" */ = {
-			isa = PBXNativeTarget;
-			name = "PK Spot Maps Share";
-			productName = "PK Spot Maps Share";
-			productReference = 7A208716BD624724A56EA8E4;
-			productType = "com.apple.product-type.app-extension";
-			buildConfigurationList = E225CA968DB243F180939FF3;
-			buildPhases = (
-				B2C572F62CAF401C974A5620 /* Sources */,
-				56E8A50CEF174ED0A4E2A915 /* Frameworks */,
-				8B1F2CE54C81490E91654676 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
 		};
 /* End PBXNativeTarget section */
 
@@ -227,7 +240,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* PK Spot */,
-				4C411E05D66D4C248650947D /* "PK Spot Maps Share" */,
+				4C411E05D66D4C248650947D /* PK Spot Maps Share */,
 			);
 		};
 /* End PBXProject section */
@@ -310,6 +323,38 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		22A8B34AE699444DA0013BFF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MapShareExtension/MapShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 19;
+				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MapShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app.mapshare;
+				PRODUCT_MODULE_NAME = PKSpotMapsShare;
+				PRODUCT_NAME = "PK Spot Maps Share";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		504EC3141FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
@@ -469,57 +514,33 @@
 			};
 			name = Release;
 		};
-		22A8B34AE699444DA0013BFF /* Debug */ = {
-			name = Debug;
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = MapShareExtension/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_NAME = "PK Spot Maps Share";
-				SKIP_INSTALL = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.pkspot.app.mapshare";
-				CODE_SIGN_ENTITLEMENTS = MapShareExtension/MapShareExtension.entitlements;
-				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
-				CODE_SIGN_STYLE = Automatic;
-				SWIFT_VERSION = 5.0;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				CURRENT_PROJECT_VERSION = 19;
-				MARKETING_VERSION = 1.2;
-				GENERATE_INFOPLIST_FILE = NO;
-				PRODUCT_MODULE_NAME = PKSpotMapsShare;
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-			};
-		};
 		C260EEDEF49149F99CDFBE8C /* Release */ = {
-			name = Release;
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = MapShareExtension/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_NAME = "PK Spot Maps Share";
-				SKIP_INSTALL = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.pkspot.app.mapshare";
-				CODE_SIGN_ENTITLEMENTS = MapShareExtension/MapShareExtension.entitlements;
-				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
-				CODE_SIGN_STYLE = Automatic;
-				SWIFT_VERSION = 5.0;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				CODE_SIGN_ENTITLEMENTS = MapShareExtension/MapShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 19;
-				MARKETING_VERSION = 1.2;
+				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MapShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app.mapshare;
 				PRODUCT_MODULE_NAME = PKSpotMapsShare;
+				PRODUCT_NAME = "PK Spot Maps Share";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
@@ -553,15 +574,14 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		80A6100C2F1F00010000000C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.7.0;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "CapApp-SPM";
 		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
 		80A610062F1F000100000006 /* XCRemoteSwiftPackageReference "ios-places-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googlemaps/ios-places-sdk";
@@ -570,14 +590,15 @@
 				version = 10.14.0;
 			};
 		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "CapApp-SPM";
+		80A6100C2F1F00010000000C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		4D22ABE82AF431CB00220026 /* CapApp-SPM */ = {
@@ -596,20 +617,6 @@
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		AF6C1522A0004B20BDC9A762 /* Copy Files */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				5874F50C666E415F8DA83070 /* PK Spot Maps Share.appex in Copy Files */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			name = "Copy Files";
-			dstPath = "";
-			dstSubfolderSpec = 13;
-		};
-/* End PBXCopyFilesBuildPhase section */
 	};
 	rootObject = 504EC2FC1FED79650016851F /* Project object */;
 }
