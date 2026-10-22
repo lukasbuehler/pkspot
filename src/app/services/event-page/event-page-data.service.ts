@@ -105,7 +105,7 @@ export class EventPageDataService {
       baseBounds,
     );
 
-    const normalized = this._normalizeBounds(bounds);
+    const normalized = this._withMinimumSpan(this._normalizeBounds(bounds));
     // Leave room to pan beyond pins, with extra headroom for the day chips.
     const latitudePadding = (normalized.north - normalized.south) * 0.1;
     const longitudePadding = (normalized.east - normalized.west) * 0.1;
@@ -115,6 +115,29 @@ export class EventPageDataService {
       east: normalized.east + longitudePadding,
       west: normalized.west - longitudePadding,
     });
+  }
+
+  /**
+   * A single Spot or a tight cluster would otherwise fit (and restrict) the
+   * map to a few streets. Grow small bounds around their centre to roughly a
+   * city view (about 7 km tall) so visitors can see where the event is.
+   */
+  private _withMinimumSpan(bounds: EventBoundsSchema): EventBoundsSchema {
+    // Bounds crossing the antimeridian are never small enough to matter.
+    if (bounds.east < bounds.west) return bounds;
+    const minLatitudeSpan = 0.06;
+    const centerLat = (bounds.north + bounds.south) / 2;
+    const centerLng = (bounds.east + bounds.west) / 2;
+    const minLongitudeSpan =
+      minLatitudeSpan / Math.max(Math.cos((centerLat * Math.PI) / 180), 0.1);
+    const growLatitude = bounds.north - bounds.south < minLatitudeSpan;
+    const growLongitude = bounds.east - bounds.west < minLongitudeSpan;
+    return {
+      north: growLatitude ? centerLat + minLatitudeSpan / 2 : bounds.north,
+      south: growLatitude ? centerLat - minLatitudeSpan / 2 : bounds.south,
+      east: growLongitude ? centerLng + minLongitudeSpan / 2 : bounds.east,
+      west: growLongitude ? centerLng - minLongitudeSpan / 2 : bounds.west,
+    };
   }
 
   private _boundsAroundPoint(

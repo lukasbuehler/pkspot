@@ -343,6 +343,27 @@ describe("EventPageDataService", () => {
     expect(bounds.east).toBeGreaterThan(bounds.west);
   });
 
+  it("shows about a city around an event with a single Spot", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const bounds = service.eventMapBounds(buildEvent("city-jam", { location: undefined }), [
+      { lat: 47.37, lng: 8.54 },
+    ])!;
+
+    // Roughly 7 km of latitude before the pan padding is added.
+    expect(bounds.north - bounds.south).toBeGreaterThan(0.06);
+    expect(bounds.east - bounds.west).toBeGreaterThan(0.06);
+  });
+
   it("loads linked event spots from Typesense previews", async () => {
     const searchService = {
       searchSpotPreviewsByIds: vi.fn(() =>
