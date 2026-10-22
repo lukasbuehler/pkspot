@@ -124,9 +124,6 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private mutationObserver: MutationObserver | null = null;
   private layoutRecalculationFrameId: number | null = null;
   private animationFrameId: number | null = null;
-  private snap: { sheetEl: HTMLElement; alwaysVisible: number } | null = null;
-  // easeOutCubic, matching the previous frame-by-frame animation.
-  private static readonly snapEasing = "cubic-bezier(0.33, 1, 0.68, 1)";
 
   // ─── Shared drag helpers ───────────────────────────────────────────
 
@@ -244,17 +241,6 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Snaps the sheet with a CSS transform transition, which WebKit and
-   * Chromium run on the compositor: the sheet stays smooth while the map
-   * page keeps the main thread busy. The panel headers follow through the
-   * registered --sheet-open-progress property (see styles.scss) with the
-   * same timing. A frame loop only detects the end; it writes no styles.
-   *
-   * Parents hear about the new position when it starts opening (so content
-   * is ready when the sheet arrives) or when it has closed (so the list does
-   * not shrink while still visible).
-   */
   private animateToPosition(
     sheetEl: HTMLElement,
     fromOffset: number,
@@ -267,65 +253,42 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         targetOffset === 0 ? "scroll" : "hidden";
     }
 
-    const opening = targetOffset < fromOffset;
-    const timing = `${this.animationDurationMs}ms ${BottomSheetComponent.snapEasing}`;
-    const host = this.hostEl.nativeElement as HTMLElement;
-    sheetEl.style.transition = `transform ${timing}`;
-    host.style.transition = `--sheet-open-progress ${timing}`;
-    this.snap = { sheetEl, alwaysVisible };
-
-    this.currentOffset = targetOffset;
-    sheetEl.style.transform = `translateY(${targetOffset}px)`;
-    this.applySheetVisualState(targetOffset, alwaysVisible);
-    if (opening) this.emitSheetOutputs(targetOffset, alwaysVisible);
-
+    const distance = targetOffset - fromOffset;
     let start = 0;
+
     const step = (timestamp: number) => {
       if (!start) start = timestamp;
-      if (timestamp - start < this.animationDurationMs) {
+      const timeProgress = Math.min(timestamp - start, this.animationDurationMs);
+
+      const current = this.easeOutCubic(
+        timeProgress,
+        fromOffset,
+        distance,
+        this.animationDurationMs,
+      );
+
+      this.currentOffset = current;
+      sheetEl.style.transform = `translateY(${current}px)`;
+      this.emitSheetState(current, alwaysVisible);
+
+      if (timeProgress < this.animationDurationMs) {
         this.animationFrameId = window.requestAnimationFrame(step);
-        return;
+      } else {
+        this.animationFrameId = null;
+        this.currentOffset = targetOffset;
+        sheetEl.style.transform = `translateY(${targetOffset}px)`;
+        this.syncContentOverflow();
+        this.emitSheetState(targetOffset, alwaysVisible);
       }
-      this.animationFrameId = null;
-      this.clearSnapTransition();
-      this.syncContentOverflow();
-      this.emitSheetState(targetOffset, alwaysVisible);
     };
     this.animationFrameId = window.requestAnimationFrame(step);
   }
 
-  /** Stops a running snap where the sheet currently is, e.g. when a drag starts. */
   private cancelAnimation(): void {
     if (this.animationFrameId !== null) {
       window.cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
-    const snap = this.snap;
-    if (!snap) return;
-    const offset = this.renderedOffset(snap.sheetEl) ?? this.currentOffset;
-    this.clearSnapTransition();
-    this.currentOffset = offset;
-    snap.sheetEl.style.transform = `translateY(${offset}px)`;
-    this.emitSheetState(offset, snap.alwaysVisible);
-  }
-
-  private clearSnapTransition(): void {
-    if (this.snap) this.snap.sheetEl.style.transition = "";
-    (this.hostEl.nativeElement as HTMLElement).style.transition = "";
-    this.snap = null;
-  }
-
-  /** The vertical offset the compositor is currently showing. */
-  private renderedOffset(sheetEl: HTMLElement): number | null {
-    const transform = getComputedStyle(sheetEl).transform;
-    const matrix = transform.match(/^matrix(3d)?\(([^)]+)\)$/);
-    if (matrix) {
-      const values = matrix[2].split(",").map(Number);
-      const y = matrix[1] ? values[13] : values[5];
-      return Number.isFinite(y) ? y : null;
-    }
-    const translate = transform.match(/translateY\((-?[\d.]+)px\)/);
-    return translate ? Number(translate[1]) : null;
   }
 
   private syncContentOverflow(): void {
@@ -981,6 +944,12 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     return target.closest(this.dragExcludeSelector) !== null;
   }
 
+  private easeOutCubic(t: number, b: number, c: number, d: number): number {
+    t /= d;
+    t--;
+    return c * (t * t * t + 1) + b;
+  }
+
   private addListener(
     target: HTMLElement,
     eventName: string,
@@ -992,21 +961,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   }
 
   private emitSheetState(top: number, alwaysVisibleHeight: number) {
-    this.applySheetVisualState(top, alwaysVisibleHeight);
-    this.emitSheetOutputs(top, alwaysVisibleHeight);
-  }
-
-  private sheetProgress(top: number, alwaysVisibleHeight: number): number {
     const clampedTop = Math.max(0, Math.min(alwaysVisibleHeight, top));
-    return alwaysVisibleHeight > 0
-      ? 1 - Math.min(Math.max(clampedTop / alwaysVisibleHeight, 0), 1)
-      : 0;
-  }
+    const atTop = Math.abs(clampedTop) < 0.5;
+    if (this.lastIsAtTop !== atTop) {
+      this.lastIsAtTop = atTop;
+      this.isAtTopChange.emit(atTop);
+    }
 
-  /** Styles that follow the sheet directly, without change detection. */
-  private applySheetVisualState(top: number, alwaysVisibleHeight: number) {
-    const progress = this.sheetProgress(top, alwaysVisibleHeight);
-    const atTop = Math.abs(Math.max(0, Math.min(alwaysVisibleHeight, top))) < 0.5;
+    const progress =
+      alwaysVisibleHeight > 0
+        ? 1 - Math.min(Math.max(clampedTop / alwaysVisibleHeight, 0), 1)
+        : 0;
 
     // Panels follow this every frame without waiting for change detection,
     // which lags behind fast flicks on slower web views (notably iOS).
@@ -1025,16 +990,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     if (sheetEl && sheetEl.style.touchAction !== touchAction) {
       sheetEl.style.touchAction = touchAction;
     }
-  }
 
-  private emitSheetOutputs(top: number, alwaysVisibleHeight: number) {
-    const atTop = Math.abs(Math.max(0, Math.min(alwaysVisibleHeight, top))) < 0.5;
-    if (this.lastIsAtTop !== atTop) {
-      this.lastIsAtTop = atTop;
-      this.isAtTopChange.emit(atTop);
-    }
-
-    const progress = this.sheetProgress(top, alwaysVisibleHeight);
     const isTerminalProgress = progress <= 0.001 || progress >= 0.999;
 
     if (

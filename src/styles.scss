@@ -465,13 +465,3 @@ app-notification-settings {
     max-width: min(760px, 100%) !important;
   }
 }
-
-// Bottom sheets set this on their host and snap it with the same transition
-// as the sheet itself; panel headers inside read it for their collapse.
-// Registering it as a number lets the browser interpolate it. Outside a sheet
-// it stays 1 (fully shown).
-@property --sheet-open-progress {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 1;
-}
