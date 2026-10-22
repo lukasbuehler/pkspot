@@ -274,6 +274,18 @@ describe("BottomSheetComponent touch gestures", () => {
     expect(sheet.style.transform).toBe("translateY(510px)");
   });
 
+  it("reports progress only when a threshold is crossed", () => {
+    const progress: number[] = [];
+    fixture.componentInstance.openProgressChange.subscribe((value) => progress.push(value));
+
+    touch("touchstart", 550);
+    for (let y = 545; y >= 50; y -= 5) touch("touchmove", y);
+
+    // 100 moves across the whole sheet, but only one report per band.
+    expect(progress.length).toBeLessThanOrEqual(5);
+    expect(progress.at(-1)).toBeGreaterThan(0.95);
+  });
+
   it("stops a snap animation when a new drag starts", () => {
     fixture.componentInstance.maximize();
     frame(1);

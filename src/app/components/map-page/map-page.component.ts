@@ -21,6 +21,7 @@ import {
   inject,
   effect,
   computed,
+  linkedSignal,
   NgZone,
   Injector,
   ChangeDetectionStrategy,
@@ -515,9 +516,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Default to expected fallback (32 chip + 100 padding)
   chipsSpacerHeight = signal<number>(132);
 
+  /**
+   * Becomes true the first time the bottom sheet opens and stays true, so
+   * the full list is rendered once instead of growing (layout and image
+   * decoding) at the start of every opening animation.
+   */
+  private readonly _bottomSheetHasOpened = linkedSignal<boolean, boolean>({
+    source: () => this.bottomSheetProgress() > 0,
+    computation: (opened, previous) => opened || (previous?.value ?? false),
+  });
+
   spotListLimit = computed(() => {
-    // Keep the compact bottom-sheet preview short until the sheet opens.
-    if (this.usesMapBottomSheet() && this.bottomSheetProgress() <= 0) {
+    // Keep the compact bottom-sheet preview short until the sheet first opens.
+    if (this.usesMapBottomSheet() && !this._bottomSheetHasOpened()) {
       return 2;
     }
     if (this.mapObjectMode() === "all") {

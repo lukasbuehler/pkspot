@@ -249,6 +249,19 @@ mat-drawer-container.sidenav-open .map-context-host {
   display: grid;
   width: 100%;
   min-width: 0;
+  transition: opacity 150ms ease-out;
+
+  // The open bottom sheet covers the chips. The sheet reports thresholds,
+  // not every frame, so the chips fade on their own once it starts opening.
+  &.filter-chips-switcher--covered {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-chips-switcher {
+    transition: none;
+  }
 }
 
 .filter-chips-switcher__bar {

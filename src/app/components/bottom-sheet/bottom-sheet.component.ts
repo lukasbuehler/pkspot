@@ -112,7 +112,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private destroyListeners: (() => void)[] = [];
   private activePointerId: number | null = null;
   private activeTouchId: number | null = null;
-  private lastEmittedProgress = Number.NaN;
+  private lastEmittedProgressBand = -1;
   private lastIsAtTop: boolean | null = null;
   // Track current offset internally to avoid reading offsetTop (layout thrashing)
   private currentOffset = 0;
@@ -991,15 +991,24 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       sheetEl.style.touchAction = touchAction;
     }
 
-    const isTerminalProgress = progress <= 0.001 || progress >= 0.999;
-
-    if (
-      Number.isNaN(this.lastEmittedProgress) ||
-      Math.abs(progress - this.lastEmittedProgress) > 0.01 ||
-      isTerminalProgress
-    ) {
-      this.lastEmittedProgress = progress;
+    // Report progress only when it crosses a threshold a parent acts on.
+    // Every report re-renders the parent (the map page is large), and doing
+    // that each frame made the sheet's own animation drop frames. Visuals
+    // that follow the sheet continuously read --sheet-open-progress instead.
+    const band = BottomSheetComponent.progressBand(progress);
+    if (band !== this.lastEmittedProgressBand) {
+      this.lastEmittedProgressBand = band;
       this.openProgressChange.emit(progress);
     }
+  }
+
+  /** Closed, peeking, collapsing headers (< 0.1), mostly open, nearly and fully open. */
+  private static progressBand(progress: number): number {
+    if (progress <= 0.001) return 0;
+    if (progress < 0.05) return 1;
+    if (progress < 0.1) return 2;
+    if (progress <= 0.95) return 3;
+    if (progress < 0.999) return 4;
+    return 5;
   }
 }

@@ -255,8 +255,8 @@
   <!-- Filter chips bar with horizontally scrollable presets and Filters button -->
   <div
     class="filter-chips-switcher"
-    [style.opacity]="
-      usesMapBottomSheet() ? 1 - bottomSheetProgress() : 1
+    [class.filter-chips-switcher--covered]="
+      usesMapBottomSheet() && bottomSheetProgress() > 0.05
     "
     [style.pointer-events]="
       usesMapBottomSheet() && bottomSheetProgress() > 0.95
