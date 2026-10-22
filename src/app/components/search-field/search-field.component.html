@@ -1,4 +1,8 @@
-<mat-form-field [appearance]="appearance()" class="w-100 spot-search-field">
+<mat-form-field
+  [appearance]="appearance()"
+  class="w-100 spot-search-field"
+  [class.spot-search-field--outline]="appearance() === 'outline'"
+>
   @if (contextLabel()) {
     <button
       matIconButton

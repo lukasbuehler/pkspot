@@ -39,6 +39,18 @@
   }
 }
 
+// Outlined fields (dialogs, forms) draw their own rounded outline. Clipping
+// to the glass shape would cut off the outline's corners.
+.spot-search-field.spot-search-field--outline {
+  --mat-form-field-outlined-container-shape: 16px;
+  overflow: visible;
+
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    overflow: visible;
+    background: transparent !important;
+  }
+}
+
 html.map-glass-blur-enabled .spot-search-field {
   ::ng-deep .mat-mdc-text-field-wrapper {
     backdrop-filter: blur(10px) !important;
