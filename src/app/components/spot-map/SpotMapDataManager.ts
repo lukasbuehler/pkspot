@@ -1,4 +1,5 @@
 import { firstValueFrom } from "rxjs";
+import { GeoPoint } from "firebase/firestore";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import {
@@ -560,6 +561,12 @@ export class SpotMapDataManager {
    * @param currentData - The current/new spot data after editing
    * @returns A partial object containing only the fields that changed
    */
+  private static readonly _wholeValueKeys = new Set([
+    "location_raw",
+    "bounds_raw",
+    "tile_coordinates",
+  ]);
+
   private _computeDataDiff(
     originalData: Partial<any>,
     currentData: Partial<any>
@@ -579,8 +586,12 @@ export class SpotMapDataManager {
           currentValue !== null &&
           !Array.isArray(currentValue) &&
           !(currentValue instanceof Date) &&
-          currentValue._latitude === undefined && // not a GeoPoint
-          currentValue.seconds === undefined // not a Timestamp
+          !(currentValue instanceof GeoPoint) &&
+          currentValue._latitude === undefined && // not a serialized GeoPoint
+          currentValue.seconds === undefined && // not a Timestamp
+          // Coordinates are only meaningful as a whole: a pin moved along one
+          // axis must still send both values, or the server rejects the edit.
+          !SpotMapDataManager._wholeValueKeys.has(key)
         ) {
           // This is a plain object - compute the diff for nested properties
           const nestedDiff = this._computeNestedDiff(
@@ -642,6 +653,9 @@ export class SpotMapDataManager {
     if (typeof a !== "object" || typeof b !== "object") return false;
 
     // Handle GeoPoint (Firebase Firestore type)
+    if (a instanceof GeoPoint && b instanceof GeoPoint) {
+      return a.isEqual(b);
+    }
     if (a._latitude !== undefined && b._latitude !== undefined) {
       return a._latitude === b._latitude && a._longitude === b._longitude;
     }
