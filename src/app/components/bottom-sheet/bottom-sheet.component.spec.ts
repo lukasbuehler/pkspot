@@ -274,6 +274,25 @@ describe("BottomSheetComponent touch gestures", () => {
     expect(sheet.style.transform).toBe("translateY(510px)");
   });
 
+  it("snaps with a compositor transition and reports opening early, closing late", () => {
+    const progress: number[] = [];
+    fixture.componentInstance.openProgressChange.subscribe((value) => progress.push(value));
+
+    fixture.componentInstance.maximize();
+    expect(sheet.style.transition).toContain("transform 500ms");
+    expect(sheet.style.transform).toBe("translateY(0px)");
+    expect(progress.at(-1)).toBe(1);
+    frame(1);
+    frame(501);
+    expect(sheet.style.transition).toBe("");
+
+    fixture.componentInstance.minimize();
+    expect(progress.at(-1)).toBe(1);
+    frame(601);
+    frame(1101);
+    expect(progress.at(-1)).toBe(0);
+  });
+
   it("stops a snap animation when a new drag starts", () => {
     fixture.componentInstance.maximize();
     frame(1);
