@@ -60,10 +60,7 @@
 .button-container:active > .image,
 :host.active > .button-container > mat-icon,
 :host.active > .button-container > .image {
-  @media (max-width: 959.98px) {
-    width: 64px;
-  }
-  @media (min-width: 960px) {
-    width: 56px;
-  }
+  // One compact indicator everywhere: the wider 64px variant crowded the
+  // edges of narrow bottom bars.
+  width: 56px;
 }
