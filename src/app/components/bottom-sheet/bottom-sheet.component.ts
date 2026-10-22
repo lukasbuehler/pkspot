@@ -708,20 +708,12 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         }
 
         // Chromium decides native scroll ownership on the first move, before
-        // our visual drag threshold. Reserve sheet gestures immediately while
-        // leaving content scrolling and horizontal carousels native.
-        if (!event.cancelable) {
-          this.cleanupTouchListeners(
-            removeTouchMove,
-            removeTouchEnd,
-            removeTouchCancel,
-          );
-          this.activeTouchId = null;
-          originalTarget = null;
-          originalTouch = null;
-          this.syncContentOverflow();
-          return;
-        }
+        // our visual drag threshold, so reserve sheet gestures immediately.
+        // A move we cannot cancel is skipped, not treated as lost: WebKit
+        // dispatches the first move of a fast flick as non-cancelable and the
+        // rest as cancelable, while Chromium keeps every later move of a
+        // natively scrolled gesture non-cancelable, so the sheet never claims it.
+        if (!event.cancelable) return;
         event.preventDefault();
         if (Math.abs(pageY - dragStartY) <= this.minDragDistance) return;
 
@@ -977,6 +969,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       "--sheet-open-progress",
       String(progress),
     );
+
+    // Until the sheet is fully open, vertical gestures belong to the sheet.
+    // Content links and buttons allow pan-y for scrolling the open sheet;
+    // pan-x on the sheet keeps the browser from starting a native vertical
+    // pan on them meanwhile, while horizontal rows such as chips still
+    // scroll. Fully open, the content scrolls natively again.
+    const touchAction = atTop ? "" : "pan-x";
+    const sheetEl = this.bottomSheet?.nativeElement;
+    if (sheetEl && sheetEl.style.touchAction !== touchAction) {
+      sheetEl.style.touchAction = touchAction;
+    }
 
     const isTerminalProgress = progress <= 0.001 || progress >= 0.999;
 

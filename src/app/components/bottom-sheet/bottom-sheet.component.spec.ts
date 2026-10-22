@@ -67,6 +67,14 @@ describe("BottomSheetComponent touch gestures", () => {
     vi.restoreAllMocks();
   });
 
+  it("reserves vertical pans for the sheet until it is fully open", () => {
+    // Closed: a fast flick must reach the sheet, horizontal rows still scroll.
+    expect(sheet.style.touchAction).toBe("pan-x");
+    openSheet();
+    // Fully open: the content scrolls natively again.
+    expect(sheet.style.touchAction).toBe("");
+  });
+
   it("reserves the first small move before Android commits native scrolling", () => {
     touch("touchstart", 550);
     expect(touch("touchmove", 547).defaultPrevented).toBe(true);
@@ -227,6 +235,16 @@ describe("BottomSheetComponent touch gestures", () => {
     expect(touch("touchmove", 551, { target: scroller, x: 104 }).defaultPrevented).toBe(false);
     touch("touchmove", 500, { target: scroller, x: 150 });
     expect(sheet.style.transform).toBe("translateY(510px)");
+  });
+
+  it("follows a WebKit fast flick whose first move cannot be cancelled", () => {
+    // iOS sends the first move of a fast flick as non-cancelable and the rest
+    // as cancelable; the sheet must not give up the gesture on that first move.
+    touch("touchstart", 550);
+    expect(touch("touchmove", 538, { cancelable: false }).defaultPrevented).toBe(false);
+    expect(touch("touchmove", 515).defaultPrevented).toBe(true);
+    touch("touchmove", 480);
+    expect(sheet.style.transform).not.toBe("translateY(510px)");
   });
 
   it("does not cancel or take over an already native gesture", () => {
