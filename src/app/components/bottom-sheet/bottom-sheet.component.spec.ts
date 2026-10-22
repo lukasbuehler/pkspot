@@ -247,6 +247,25 @@ describe("BottomSheetComponent touch gestures", () => {
     expect(sheet.style.transform).not.toBe("translateY(510px)");
   });
 
+  it("closes from the top of open content even when iOS owns the gesture", () => {
+    openSheet();
+    content.scrollTop = 0;
+    // iOS gives the content's scroller the whole gesture: nothing is cancelable.
+    touch("touchstart", 100);
+    touch("touchmove", 112, { cancelable: false });
+    touch("touchmove", 160, { cancelable: false });
+    expect(sheet.style.transform).not.toBe("translateY(0px)");
+  });
+
+  it("leaves real content scrolling to iOS", () => {
+    openSheet();
+    content.scrollTop = 100;
+    touch("touchstart", 100);
+    touch("touchmove", 112, { cancelable: false });
+    touch("touchmove", 160, { cancelable: false });
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
   it("does not cancel or take over an already native gesture", () => {
     touch("touchstart", 550);
     const preventDefault = vi.spyOn(Event.prototype, "preventDefault");

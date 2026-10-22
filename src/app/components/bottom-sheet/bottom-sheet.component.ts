@@ -602,6 +602,13 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     // Track original touch target to dispatch touchcancel when drag starts
     let originalTarget: HTMLElement | null = null;
     let originalTouch: Touch | null = null;
+    // The gesture began on the content of the fully open sheet. iOS hands
+    // such a gesture to the content's own scroller from the first move, so
+    // every move is non-cancelable. That scroller is clipped at the top
+    // (overscroll-behavior: none) and the content-can-scroll checks below
+    // leave real scrolling native, so a pull-down there moves nothing else
+    // and the sheet may follow the finger, as it did in 1.1.5.
+    let startedInOpenContent = false;
 
     const handleTouchStart = (event: TouchEvent) => {
       if (this.activeTouchId !== null) return;
@@ -617,6 +624,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.activeTouchId = touch.identifier;
       originalTarget = target;
       originalTouch = touch;
+      startedInOpenContent =
+        this.currentOffset === 0 && !!target && this.contentElement.contains(target);
       lastY = touch.clientY;
       initialX = touch.clientX;
       initialY = touch.clientY;
@@ -713,8 +722,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         // dispatches the first move of a fast flick as non-cancelable and the
         // rest as cancelable, while Chromium keeps every later move of a
         // natively scrolled gesture non-cancelable, so the sheet never claims it.
-        if (!event.cancelable) return;
-        event.preventDefault();
+        if (!event.cancelable && !startedInOpenContent) return;
+        if (event.cancelable) event.preventDefault();
         if (Math.abs(pageY - dragStartY) <= this.minDragDistance) return;
 
         this.cancelAnimation();
@@ -730,12 +739,13 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         }
       }
 
-      // Never move the sheet alongside a gesture already owned by the browser.
-      if (!event.cancelable) {
+      // Never move the sheet alongside a gesture the browser may be using to
+      // move something else; see startedInOpenContent for the safe exception.
+      if (!event.cancelable && !startedInOpenContent) {
         handleTouchEnd(event);
         return;
       }
-      event.preventDefault();
+      if (event.cancelable) event.preventDefault();
 
       let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
       this.currentOffset = newTop;
