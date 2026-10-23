@@ -166,6 +166,27 @@
               <p i18n="@@train.comingUp.error">Events could not be loaded.</p>
               <button matButton="outlined" type="button" (click)="retryEvents()" i18n="@@notification_center.retry">Retry</button>
             </div>
+          } @else if (comingUpCards().length) {
+            <div class="coming-up-cards">
+              @for (card of comingUpCards(); track card.item.id) {
+                <div class="coming-up-cards__item">
+                  <app-event-card [event]="card.event" />
+                  @if (card.item.distance || card.item.community || card.item.relationship) {
+                    <p class="coming-up-cards__meta mat-label-medium">
+                      @if (card.item.distance) {
+                        <span class="coming-up-cards__distance">{{ card.item.distance }}</span>
+                      }
+                      @if (card.item.community; as community) {
+                        <span i18n="@@train.comingUp.followedCommunity">From your communities: {{ community }}</span>
+                      }
+                      @if (card.item.relationship; as relationship) {
+                        <span class="coming-up__relationship">{{ relationship }}</span>
+                      }
+                    </p>
+                  }
+                </div>
+              }
+            </div>
           } @else {
             <mat-card appearance="outlined" class="coming-up__card">
               <mat-nav-list class="coming-up__list">

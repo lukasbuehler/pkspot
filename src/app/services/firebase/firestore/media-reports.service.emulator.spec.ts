@@ -231,7 +231,12 @@ runWithEmulator("media report submission callable", () => {
 
     expect(updated.data).toEqual({reportId: first.data.reportId, created: false});
     expect(report["reasons"]).toEqual(["bad quality", "other"]);
-    await expect(submit({...target, reasons: ["duplicate"]})).rejects.toThrow(/duplicateMedia.src is required/i);
+    await expect(submit({...target, reasons: ["duplicate"]})).resolves.toEqual({
+      data: {reportId: first.data.reportId, created: false},
+    });
+    const duplicateReport = await waitForReport(first.data.reportId,
+      (data) => Array.isArray(data["reasons"]) && data["reasons"].includes("duplicate"));
+    expect(duplicateReport["duplicate_media"]).toBeUndefined();
     await expect(submit({
       ...target,
       reasons: ["duplicate"],

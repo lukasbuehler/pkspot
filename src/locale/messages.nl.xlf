@@ -3854,6 +3854,12 @@
         <target>{VAR_PLURAL, plural, =1 {Je hebt één aankomend evenement gemarkeerd als ‘Ik ga’ of ‘Geïnteresseerd’. PK Spot kan je voor de start herinneren en belangrijke wijzigingen melden.} other {Je hebt <ph id="0" equiv="INTERPOLATION"/> aankomende evenementen gemarkeerd als ‘Ik ga’ of ‘Geïnteresseerd’. PK Spot kan je voor de start herinneren en belangrijke wijzigingen melden.}}</target>
       </segment>
     </unit>
+    <unit id="6089563637434055690">
+      <segment state="translated">
+        <source>URL of the original media (optional)</source>
+        <target>URL van de oorspronkelijke media (optioneel)</target>
+      </segment>
+    </unit>
     <unit id="6090595749329244912">
       <segment state="initial">
         <source>Community card approved</source>
@@ -11567,12 +11573,6 @@
         <target>Huidige beoordelingsstatus</target>
       </segment>
     </unit>
-    <unit id="7825696169404064512">
-      <segment state="initial">
-        <source>Please add the URL of the media this duplicates.</source>
-        <target>Voeg de URL toe van de media waarvan dit een duplicaat is.</target>
-      </segment>
-    </unit>
     <unit id="78295015887661250">
       <segment state="initial">
         <source>Organization saved.</source>
@@ -13513,12 +13513,6 @@
       <segment state="initial">
         <source> Frequently Asked Questions </source>
         <target> Veelgestelde Vragen </target>
-      </segment>
-    </unit>
-    <unit id="8330499970959786492">
-      <segment state="initial">
-        <source>URL of the original media</source>
-        <target>URL van de oorspronkelijke media</target>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -17390,6 +17384,30 @@
         <target> Glasvervaging op de kaart inschakelen </target>
       </segment>
     </unit>
+    <unit id="settings.maps_app.automatic">
+      <segment state="translated">
+        <source>Automatic</source>
+        <target>Automatisch</target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.description">
+      <segment state="translated">
+        <source> Used for &quot;Open in Maps&quot; and directions. Automatic uses your default navigation app in the iOS app and Google Maps everywhere else. </source>
+        <target> Wordt gebruikt voor ‘Openen in Kaarten’ en routes. Automatisch gebruikt in de iOS-app je standaard navigatie-app en overal anders Google Maps. </target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.heading">
+      <segment state="translated">
+        <source> Maps app </source>
+        <target> Kaarten-app </target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.label">
+      <segment state="translated">
+        <source>Open locations in</source>
+        <target>Locaties openen in</target>
+      </segment>
+    </unit>
     <unit id="1744316082077040772">
       <segment state="initial">
         <source>Loading Google Maps® API...</source>
@@ -20432,30 +20450,6 @@
       <segment state="translated">
         <source>Open Spot on map</source>
         <target>Spot op de kaart openen</target>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.automatic">
-      <segment state="translated">
-        <source>Automatic</source>
-        <target>Automatisch</target>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.description">
-      <segment state="translated">
-        <source> Used for &quot;Open in Maps&quot; and directions. Automatic uses your default navigation app in the iOS app and Google Maps everywhere else. </source>
-        <target> Wordt gebruikt voor ‘Openen in Kaarten’ en routes. Automatisch gebruikt in de iOS-app je standaard navigatie-app en overal anders Google Maps. </target>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.heading">
-      <segment state="translated">
-        <source> Maps app </source>
-        <target> Kaarten-app </target>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.label">
-      <segment state="translated">
-        <source>Open locations in</source>
-        <target>Locaties openen in</target>
       </segment>
     </unit>
   </file>

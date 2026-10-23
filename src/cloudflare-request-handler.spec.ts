@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCloudflareRequestHandler } from "./cloudflare-request-handler";
 
-function setup() {
+function setup(host = "test.pkspot.app") {
   const render = vi.fn<(request: Request) => Promise<Response>>(
     async () =>
       new Response("<title>SSR page</title>", {
@@ -19,13 +19,34 @@ function setup() {
     render,
     assets,
     request: (path: string, init?: RequestInit) =>
-      handle(new Request(`https://test.pkspot.app${path}`, init), {
+      handle(new Request(`https://${host}${path}`, init), {
         ASSETS: assets,
       }),
   };
 }
 
 describe("Cloudflare request routing", () => {
+  it.each([
+    "test.pkspot.app", "branch.test.pkspot.app", "pkspot-web.workers.dev", "pkspot.app",
+  ])("rejects probes on %s before rendering, assets or redirects", async (host) => {
+    const { request, render, assets } = setup(host);
+    for (const path of [
+      "/.env", "/backend/.env", "/de/.env.production", "/%2egit/config",
+      "/wp-admin/", "/wp-content/debug.log", "/wp-includes/version.php",
+      "/wp-login.php", "/xmlrpc.php", "/en/wp-admin/", "/INFO.PHP",
+    ]) {
+      for (const method of ["GET", "HEAD", "POST"]) {
+        const response = await request(path, { method });
+        expect(response.status, `${method} ${path}`).toBe(404);
+        expect(response.headers.get("Cache-Control")).toBe("no-store");
+        expect(response.headers.get("Location")).toBeNull();
+        expect(await response.text()).toBe(method === "HEAD" ? "" : "Not Found");
+      }
+    }
+    expect(render).not.toHaveBeenCalled();
+    expect(assets.fetch).not.toHaveBeenCalled();
+  });
+
   it("preserves deep links and queries when selecting the preferred supported locale", async () => {
     const { request, render, assets } = setup();
     const response = await request("/map/spots/imax?tab=photos", {

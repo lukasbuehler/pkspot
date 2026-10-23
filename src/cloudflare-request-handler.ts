@@ -3,6 +3,7 @@ import {
   LEGACY_UI_LOCALE_REDIRECTS,
 } from "./app/config/ui-locales";
 import { getLegacySsrRedirectTarget } from "./server-redirects";
+import { isSensitiveProbePath } from "./request-path-policy.mjs";
 
 export interface CloudflareAssets {
   fetch(request: Request): Promise<Response>;
@@ -47,6 +48,16 @@ async function routeRequest(
   assets: CloudflareAssets,
   render: RenderRequest,
 ): Promise<Response> {
+  // Apply the shared policy before redirects, asset lookups or Angular SSR.
+  if (isSensitiveProbePath(url.pathname)) {
+    return new Response("Not Found", {
+      status: 404,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
+    });
+  }
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response("Method Not Allowed", {
       status: 405,

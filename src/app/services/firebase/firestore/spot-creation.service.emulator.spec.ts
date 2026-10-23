@@ -1,3 +1,15 @@
+import { TestBed } from "@angular/core/testing";
+import { LocalSpot } from "../../../../db/models/Spot";
+import { AnalyticsService } from "../../analytics.service";
+import { ConsentService } from "../../consent.service";
+import { PlatformService } from "../../platform.service";
+import { FirebaseAppCheckService } from "../app-check.service";
+import { AuthenticationService } from "../authentication.service";
+import { FIREBASE_APP, FIREBASE_FUNCTIONS } from "../firebase-client.providers";
+import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
+import { SpotEditsService } from "./spot-edits.service";
+import { UsersService } from "./users.service";
 import { deleteApp, initializeApp, type FirebaseApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInAnonymously } from "firebase/auth";
 import {
@@ -106,6 +118,7 @@ const request = (submissionId: string): CreateSpotSubmissionRequest => ({
 
 runWithEmulator("idempotent Spot creation", () => {
   afterEach(async () => {
+    TestBed.resetTestingModule();
     await Promise.all(apps.splice(0).map((app) => deleteApp(app)));
   });
 
@@ -113,6 +126,46 @@ runWithEmulator("idempotent Spot creation", () => {
     await adminApp?.delete();
     adminApp = undefined;
   });
+
+  it("creates a model-generated Spot through the app service without server-owned activity", async () => {
+    const client = await authenticatedCallable();
+    const app = apps[apps.length - 1];
+    TestBed.configureTestingModule({
+      providers: [
+        SpotEditsService,
+        FunctionsAdapterService,
+        { provide: FIREBASE_APP, useValue: app },
+        { provide: FIREBASE_FUNCTIONS, useValue: client.functions },
+        { provide: FirestoreAdapterService, useValue: {} },
+        { provide: UsersService, useValue: {} },
+        { provide: AuthenticationService, useValue: { user: { uid: client.uid } } },
+        { provide: ConsentService, useValue: {} },
+        { provide: AnalyticsService, useValue: { trackEvent: () => undefined } },
+        { provide: FirebaseAppCheckService, useValue: {} },
+        { provide: PlatformService, useValue: {
+          isNative: () => false, getPlatform: () => "web",
+        } },
+      ],
+    });
+    const spot = new LocalSpot({
+      ...request("model_activity_123456").data,
+      name: { en: "Idempotent Spot" },
+    }, "en");
+    expect(spot.data().recent_activity_min_30d).toBeNull();
+    const result = await TestBed.inject(SpotEditsService).createSpotWithEdit(
+      spot.data(), "model_activity_123456",
+    );
+    const editRef = db().doc(`spots/${result.spotId}/edits/${result.editId}`);
+    await waitForProcessedEdit(editRef);
+    const storedSpot = await db().doc(`spots/${result.spotId}`).get();
+    const storedEdit = await editRef.get();
+    expect(storedSpot.exists).toBe(true);
+    expect(storedEdit.data()?.["data"]).toMatchObject({
+      name: { en: { text: "Idempotent Spot" } },
+    });
+    expect(storedSpot.data()).not.toHaveProperty("recent_activity_min_30d");
+    expect(storedEdit.data()?.["data"]).not.toHaveProperty("recent_activity_min_30d");
+  }, 30_000);
 
   it("creates one Spot and edit for simultaneous and repeated submissions", async () => {
     const client = await authenticatedCallable();

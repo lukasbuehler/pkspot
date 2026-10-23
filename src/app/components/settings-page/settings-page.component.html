@@ -534,6 +534,32 @@
           </div>
 
           <div class="my-4 p-3 settings-box border">
+            <h3 class="mat-h3 m-0" i18n="@@settings.maps_app.heading">
+              Maps app
+            </h3>
+            <p
+              class="mat-body mt-2 mb-3"
+              i18n="@@settings.maps_app.description"
+            >
+              Used for "Open in Maps" and directions. Automatic uses your
+              default navigation app in the iOS app and Google Maps everywhere
+              else.
+            </p>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label i18n="@@settings.maps_app.label">Open locations in</mat-label>
+              <mat-select
+                [value]="appSettings.mapsApp()"
+                (selectionChange)="appSettings.mapsApp.set($event.value)"
+              >
+                <mat-option value="automatic" i18n="@@settings.maps_app.automatic">Automatic</mat-option>
+                <mat-option value="google">Google Maps</mat-option>
+                <mat-option value="apple">Apple Maps</mat-option>
+                <mat-option value="osm">OpenStreetMap</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="my-4 p-3 settings-box border">
             <h3 class="mat-h3 m-0" i18n="@@settings.time_format.heading">
               Time format
             </h3>

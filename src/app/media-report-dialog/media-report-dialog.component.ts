@@ -197,8 +197,7 @@ export class MediaReportDialogComponent implements AfterViewInit {
     const comment = String(this.reportForm.controls["comment"].value ?? "").trim();
     if (
       !this.canSubmitReason() || !this.reportForm.valid ||
-      (reasons.includes("other") && !comment) ||
-      (reasons.includes("duplicate") && !this.duplicateMediaUrl())
+      (reasons.includes("other") && !comment)
     ) {
       return;
     }

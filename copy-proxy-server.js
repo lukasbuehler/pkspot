@@ -3,6 +3,7 @@ const path = require("path");
 
 const sourcePath = "src/proxy-server.mjs";
 const helperSourcePath = "src/proxy-server-helpers.mjs";
+const requestPathPolicySourcePath = "src/request-path-policy.mjs";
 const destinationDir = "dist/pkspot/server";
 const destinationFile = path.join(destinationDir, "server.mjs");
 const helperDestinationFile = path.join(
@@ -58,13 +59,14 @@ function getSupportedLanguageCodes() {
 }
 
 // Check if the source file exists
-if (fs.existsSync(sourcePath) && fs.existsSync(helperSourcePath)) {
+if (fs.existsSync(sourcePath) && fs.existsSync(helperSourcePath) && fs.existsSync(requestPathPolicySourcePath)) {
   const sourceAbsolutePath = path.resolve(sourcePath);
   const helperSourceAbsolutePath = path.resolve(helperSourcePath);
   const destinationAbsolutePath = path.resolve(destinationFile);
   const helperDestinationAbsolutePath = path.resolve(helperDestinationFile);
 
   fs.mkdirSync(path.resolve(destinationDir), { recursive: true });
+  fs.copyFileSync(requestPathPolicySourcePath, path.join(destinationDir, "request-path-policy.mjs"));
 
   // Copy the source file to the destination
   fs.copyFile(sourceAbsolutePath, destinationAbsolutePath, (err) => {

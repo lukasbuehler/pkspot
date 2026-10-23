@@ -1435,11 +1435,6 @@
         <source>Current review state</source>
       </segment>
     </unit>
-    <unit id="7825696169404064512">
-      <segment>
-        <source>Please add the URL of the media this duplicates.</source>
-      </segment>
-    </unit>
     <unit id="78295015887661250">
       <segment>
         <source>Organization saved.</source>
@@ -2257,6 +2252,26 @@
     <unit id="settings.map_glass_blur.toggle">
       <segment>
         <source> Enable glass blur on the map </source>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.automatic">
+      <segment>
+        <source>Automatic</source>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.description">
+      <segment>
+        <source> Used for &quot;Open in Maps&quot; and directions. Automatic uses your default navigation app in the iOS app and Google Maps everywhere else. </source>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.heading">
+      <segment>
+        <source> Maps app </source>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.label">
+      <segment>
+        <source>Open locations in</source>
       </segment>
     </unit>
     <unit id="1612722476211621614">
@@ -7287,11 +7302,6 @@
     <unit id="721979004226425951">
       <segment>
         <source>How a report was handled</source>
-      </segment>
-    </unit>
-    <unit id="8330499970959786492">
-      <segment>
-        <source>URL of the original media</source>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -13031,6 +13041,11 @@
         <source>{VAR_PLURAL, plural, =1 {You have one upcoming event marked Going or Interested. PK Spot can remind you before it starts and tell you about important changes.} other {You have <ph id="0" equiv="INTERPOLATION"/> upcoming events marked Going or Interested. PK Spot can remind you before they start and tell you about important changes.}}</source>
       </segment>
     </unit>
+    <unit id="6089563637434055690">
+      <segment>
+        <source>URL of the original media (optional)</source>
+      </segment>
+    </unit>
     <unit id="6090595749329244912">
       <segment>
         <source>Community card approved</source>
@@ -17105,26 +17120,6 @@
     <unit id="event_info.open_spot_map">
       <segment>
         <source>Open Spot on map</source>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.automatic">
-      <segment>
-        <source>Automatic</source>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.description">
-      <segment>
-        <source> Used for &quot;Open in Maps&quot; and directions. Automatic uses your default navigation app in the iOS app and Google Maps everywhere else. </source>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.heading">
-      <segment>
-        <source> Maps app </source>
-      </segment>
-    </unit>
-    <unit id="settings.maps_app.label">
-      <segment>
-        <source>Open locations in</source>
       </segment>
     </unit>
   </file>

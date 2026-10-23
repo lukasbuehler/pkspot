@@ -880,6 +880,27 @@ export class SearchService {
     const found = SearchService._readFound(firstPage) || allHits.length;
     const pageFound = SearchService._readTopLevelFound(firstPage) || found;
 
+    // Tile sampling is useful in crowded viewports, but must not hide Spots
+    // when every matching document fits within the requested preview budget.
+    const matchingDocuments =
+      (firstPage as { found_docs?: number }).found_docs ?? found;
+    if (
+      groupBy &&
+      matchingDocuments <= perPage &&
+      allHits.length < matchingDocuments
+    ) {
+      const completePage = await this.client
+        .collections(this.TYPESENSE_COLLECTION_SPOTS)
+        .documents()
+        .search({ ...searchParams, per_page: perPage, page: 1 }, {});
+      return {
+        hits: this.sortHitsByPriorityThenMedia(
+          SearchService._flattenTypesenseHits(completePage),
+        ).slice(0, num_spots),
+        found: SearchService._readFound(completePage),
+      };
+    }
+
     // If we already satisfied the requested number (after filtering)
     if (allHits.length >= num_spots || pageFound <= perPage) {
       if (!groupBy) {

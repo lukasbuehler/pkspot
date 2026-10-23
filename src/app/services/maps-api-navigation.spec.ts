@@ -10,20 +10,25 @@ vi.mock("@capacitor/core", async (importOriginal) => {
   };
 });
 
+import { signal } from "@angular/core";
+import type { MapsAppPreference } from "./app-settings.service";
 import { MapsApiService } from "./maps-api.service";
 
 describe("external map navigation", () => {
   const location = { lat: 47.3769, lng: 8.5417 };
   let service: MapsApiService;
   let open: ReturnType<typeof vi.spyOn>;
+  const mapsApp = signal<MapsAppPreference>("automatic");
 
   beforeEach(() => {
     native.platform.mockReturnValue("web");
+    mapsApp.set("automatic");
     native.open.mockReset().mockResolvedValue(undefined);
     open = vi.spyOn(window, "open").mockReturnValue(null);
     // These launch methods need analytics only, not the Google loader or consent DI.
     service = Object.assign(Object.create(MapsApiService.prototype) as MapsApiService, {
       _analytics: { addUtmToUrl: () => undefined, trackEvent: vi.fn() },
+      _appSettings: { mapsApp },
     });
   });
   afterEach(() => vi.restoreAllMocks());
@@ -59,14 +64,21 @@ describe("external map navigation", () => {
     ));
   });
 
-  it("opens web links during the click even without analytics URL tagging", () => {
-    vi.spyOn(service, "isMacOSOriOS").mockReturnValue(false);
+  it("opens Google Maps during the click in browsers, Macs included", () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Firefox/140.0");
     void service.openLatLngInMaps(location);
-    expect(open).toHaveBeenCalledWith(expect.stringContaining("query=47.3769,8.5417"));
+    expect(open).toHaveBeenCalledWith(expect.stringContaining("https://www.google.com/maps/search/?api=1&query=47.3769,8.5417"));
   });
 
-  it("recognizes Mac browsers without literal slashes around the user agent", () => {
-    vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)");
-    expect(service.isMacOSOriOS()).toBe(true);
+  it.each([
+    ["apple", "https://maps.apple.com/?daddr=47.3769,8.5417"],
+    ["osm", "https://www.openstreetmap.org/directions?to=47.3769,8.5417"],
+    ["google", "https://www.google.com/maps/dir/?api=1&destination=47.3769,8.5417"],
+  ] as const)("uses the chosen maps app %s, even in the iOS app", async (choice, url) => {
+    native.platform.mockReturnValue("ios");
+    mapsApp.set(choice);
+    await service.openDirectionsInMaps(location);
+    expect(native.open).not.toHaveBeenCalled();
+    expect(open).toHaveBeenCalledWith(url);
   });
 });

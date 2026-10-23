@@ -1,3 +1,4 @@
+import { EventCardComponent } from "../event-card/event-card.component";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -146,6 +147,8 @@ export interface ComingUpItem {
   day: string;
   title: string;
   detail: string;
+  /** Straight-line distance from the training area, shown below the card. */
+  distance: string | null;
   community: string | null;
   relationship: string | null;
 }
@@ -171,6 +174,7 @@ export interface RecentEntryView {
   selector: "app-train-page",
   imports: [
     CheckInLogPromptComponent,
+    EventCardComponent,
     FabMenuComponent,
     FilterChipsBarComponent,
     MatButtonModule,
@@ -391,6 +395,29 @@ export class TrainPageComponent {
       .map((event) =>
         this.toComingUpItem(event, communityEventIds.has(event.id)),
       );
+  });
+
+  /**
+   * Full events for the Coming up cards (media, series, dates). Loaded in one
+   * search call; the compact list stays as the fallback while it loads or if
+   * it fails.
+   */
+  private readonly comingUpEvents = resource({
+    params: () => {
+      const ids = this.comingUp().map((item) => item.id);
+      return this.isBrowser && ids.length ? ids : undefined;
+    },
+    loader: ({ params }) => this.search.getEventCardsByIds(params),
+  });
+
+  readonly comingUpCards = computed(() => {
+    const events = this.comingUpEvents.hasValue() ? this.comingUpEvents.value() : [];
+    const byId = new Map(events.map((event) => [String(event.id), event]));
+    const cards = this.comingUp().flatMap((item) => {
+      const event = byId.get(item.id);
+      return event ? [{ item, event }] : [];
+    });
+    return cards.length === this.comingUp().length ? cards : [];
   });
 
   // Rhythm and reflection --------------------------------------------------------
@@ -996,6 +1023,7 @@ export class TrainPageComponent {
       day: this.dateTime.format(start, { day: "numeric", timeZone: event.timeZone }),
       title: event.name,
       detail: this.eventDetail(event),
+      distance: formatDistanceKm(event.distanceKm, this.locale),
       community,
       relationship:
         relationship === "going"

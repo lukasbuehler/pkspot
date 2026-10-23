@@ -726,18 +726,52 @@ describe("SearchService", () => {
       expect(results.hits.map((hit) => hit.document.id)).toEqual(["spot-a"]);
     });
 
+    it.each([12, 14])("returns all three Locarno Spots within the preview budget at zoom %s", async (zoom) => {
+      const hits = [
+        { document: { id: "burbaglio", rating: 0 } },
+        { document: { id: "scuola", rating: 0 } },
+        { document: { id: "castello", rating: 0 } },
+      ];
+      typesenseSearchMock
+        .mockResolvedValueOnce({
+          found: zoom === 12 ? 1 : 2,
+          found_docs: 3,
+          grouped_hits: zoom === 12
+            ? [{ group_key: [8592, 5817], found: 3, hits: hits.slice(0, 1) }]
+            : [
+                { group_key: [34371, 23270], found: 1, hits: hits.slice(0, 1) },
+                { group_key: [34368, 23271], found: 2, hits: hits.slice(1, 2) },
+              ],
+        })
+        .mockResolvedValueOnce({ found: 3, hits });
+
+      const result = await service.searchSpotsInRawBounds(
+        46.2, 46.14, 8.84, 8.74, 250,
+        undefined, undefined, undefined, undefined, false, zoom,
+      );
+
+      expect(result.hits).toEqual(hits);
+      expect(result.found).toBe(3);
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      const [sampledParams] = typesenseSearchMock.mock.calls[0];
+      const [completeParams] = typesenseSearchMock.mock.calls[1];
+      expect(completeParams.group_by).toBeUndefined();
+      expect(completeParams.group_limit).toBeUndefined();
+      expect(completeParams.filter_by).toBe(sampledParams.filter_by);
+    });
+
     it("uses finer groups so a lower-rated geographic pocket remains represented", async () => {
       typesenseSearchMock.mockResolvedValueOnce({
         found: 2,
         grouped_hits: [
           {
             group_key: [34322, 22950],
-            found: 5,
+            found: 50,
             hits: [{ document: { id: "rated-a", rating: 4 } }],
           },
           {
             group_key: [34322, 22948],
-            found: 3,
+            found: 30,
             hits: [{ document: { id: "walchestrasse", rating: 0 } }],
           },
         ],
@@ -765,6 +799,26 @@ describe("SearchService", () => {
         "rated-a",
         "walchestrasse",
       ]);
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps sampling when the total document count exceeds the budget", async () => {
+      const hit = { document: { id: "sample", rating: 0 } };
+      typesenseSearchMock.mockResolvedValueOnce({
+        found: 300,
+        found_docs: 600,
+        grouped_hits: [{ found: 2, hits: [hit] }],
+      });
+      typesenseSearchMock.mockResolvedValue({ grouped_hits: [], found: 300 });
+
+      await service.searchSpotsInRawBounds(
+        46.2, 46.14, 8.84, 8.74, 250,
+        undefined, undefined, undefined, undefined, false, 12,
+      );
+
+      for (const [params] of typesenseSearchMock.mock.calls) {
+        expect(params.group_by).toBeDefined();
+      }
     });
 
     it("clamps close-zoom spot grouping at the finest indexed tile level", async () => {

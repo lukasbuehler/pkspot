@@ -337,6 +337,38 @@ describe("SpotEditsService", () => {
     expect(mockFirestoreAdapter.addDocument).not.toHaveBeenCalled();
   });
 
+  it.each([null, 25] as const)(
+    "omits server-owned recent activity (%s) from creation and update payloads",
+    async (activity) => {
+      const spotData = {
+        name: { en: "Activity regression" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        recent_activity_min_30d: activity,
+      };
+      await service.createSpotWithEdit(spotData, "activity_submission_1234");
+      expect(mockFunctionsAdapter.call).toHaveBeenCalledWith(
+        "createSpotSubmission",
+        expect.objectContaining({ data: {
+          name: spotData.name,
+          location_raw: spotData.location_raw,
+        } }),
+      );
+
+      await service.createSpotUpdateEdit("spot-1", spotData, {
+        uid: "user-1", display_name: "Test User",
+      });
+      expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+        "spots/spot-1/edits",
+        expect.objectContaining({ data: {
+          name: spotData.name,
+          location_raw: spotData.location_raw,
+        } }),
+      );
+      // Filtering a write must not remove the value from the read model.
+      expect(spotData.recent_activity_min_30d).toBe(activity);
+    },
+  );
+
   it("sends CREATE edits with clean location-only payloads", async () => {
     await service.createSpotWithEdit(
       {

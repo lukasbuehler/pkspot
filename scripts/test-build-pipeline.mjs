@@ -461,6 +461,11 @@ async function main() {
   console.log("\n==> verifying copied server files and build info");
   assertFileExists(distProxyServerPath, "Copied proxy server");
   assertFileExists(distProxyHelpersPath, "Copied proxy server helpers");
+  assert.equal(
+    readFileSync(path.join(distServerDir, "request-path-policy.mjs"), "utf8"),
+    readFileSync(path.join(repoRoot, "src/request-path-policy.mjs"), "utf8"),
+    "Express must package the same request path policy used by Cloudflare",
+  );
   assertFileExists(buildInfoPath, "Generated build info");
   assert.equal(
     readFileSync(distProxyServerPath, "utf8"),
@@ -948,6 +953,16 @@ async function main() {
       }, `missing entity ${route}`);
       assert.equal(response.status, 404, `${route} must remain a 404, not a redirect or server error`);
       assert.match(await response.text(), /<!doctype html>/i, "Missing entities should still render HTML");
+    }
+
+    for (const route of ["/.env", "/backend/.env", "/.git/logs/HEAD", "/info.php", "/en/.env.production"]) {
+      const response = await fetchWithTimeout(`${baseUrl}${route}`, {
+        redirect: "manual",
+      }, `sensitive path ${route}`);
+      assert.equal(response.status, 404, `${route} should be rejected before SSR`);
+      assert.equal(response.headers.get("Location"), null);
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      assert.equal(await response.text(), "Not Found");
     }
 
     const notFoundResponse = await fetchWithTimeout(

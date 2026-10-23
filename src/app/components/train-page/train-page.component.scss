@@ -193,7 +193,8 @@ h2 {
   }
 }
 
-.spot-preview-grid {
+.spot-preview-grid,
+.coming-up-cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
@@ -259,6 +260,32 @@ h2 {
 
 .coming-up__relationship {
   color: var(--mat-sys-primary);
+}
+
+// Event cards share the Spot preview row layout above.
+.coming-up-cards__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+
+  app-event-card {
+    flex: 1 1 auto;
+  }
+}
+
+// Below the card, aligned with its edge.
+.coming-up-cards__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding-inline: 4px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.coming-up-cards__distance {
+  color: var(--mat-sys-on-surface);
 }
 
 // Rail ------------------------------------------------------------------------
@@ -523,7 +550,8 @@ h2 {
   }
 
   // A swipeable row keeps four Spots to one screen height instead of four.
-  .spot-preview-grid {
+  .spot-preview-grid,
+  .coming-up-cards {
     grid-template-columns: none;
     grid-auto-flow: column;
     grid-auto-columns: 72%;
@@ -535,7 +563,8 @@ h2 {
     padding: 0 16px 4px;
   }
 
-  .spot-preview-link {
+  .spot-preview-link,
+  .coming-up-cards__item {
     scroll-snap-align: start;
   }
 }

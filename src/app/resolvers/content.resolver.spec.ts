@@ -189,6 +189,7 @@ describe("contentResolver", () => {
     try {
       const result = await TestBed.runInInjectionContext(() => contentResolver(createRouteSnapshot("unavailable-spot") as ActivatedRouteSnapshot));
       expect(result).not.toHaveProperty("spot");
+      expect(result.spotLoadFailed).toBe(true);
       expect(response.status).toBe(status);
       expect(getMetaContent(testDocument, 'meta[name="robots"]')).toBe("noindex,nofollow");
       expect(errorLog).not.toHaveBeenCalled();

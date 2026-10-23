@@ -27,6 +27,7 @@ import {
   reportInvalidMapCoordinate,
 } from "../shared/map-coordinate-utils";
 import { FirebaseAppCheckService } from "./firebase/app-check.service";
+import { AppSettingsService, type MapsAppPreference } from "./app-settings.service";
 
 const MapsLauncher = registerPlugin<{
   open(options: { lat: number; lng: number; directions: boolean }): Promise<void>;
@@ -90,6 +91,7 @@ export function attachGoogleMapsAppCheck(
 })
 export class MapsApiService extends ConsentAwareService {
   private _analytics = inject(AnalyticsService);
+  private _appSettings = inject(AppSettingsService);
   private _appCheck = inject(FirebaseAppCheckService);
   private _isApiLoaded: WritableSignal<boolean> = signal(false);
   public isApiLoaded: Signal<boolean> = this._isApiLoaded;
@@ -309,75 +311,47 @@ export class MapsApiService extends ConsentAwareService {
     return Promise.resolve(mapStyle as "roadmap" | "satellite");
   }
 
-  isMacOSOriOS(): boolean {
-    if (typeof window === "undefined") return false; // abort if not in browser
-
-    return Capacitor.getPlatform() === "ios" ||
-      /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
-  }
-
+  /**
+   * Shows a location in the user's maps app. `mapsType` forces a provider;
+   * otherwise the "Maps app" setting decides (see MapsAppPreference).
+   */
   async openLatLngInMaps(
     location: google.maps.LatLngLiteral,
     mapsType?: "google" | "apple",
   ) {
-    if (typeof window === "undefined") return; // abort if not in browser
-
-    if (!mapsType && Capacitor.getPlatform() === "ios" &&
-        await this.openInDefaultIosMaps(location, false)) return;
-    // A named provider is an explicit choice and must override platform defaults.
-    if ((mapsType ?? (this.isMacOSOriOS() ? "apple" : "google")) === "apple") {
-      this._openLatLngInAppleMaps(location);
-    } else {
-      this._openLatLngInGoogleMaps(location);
-    }
-  }
-
-  private _openLatLngInAppleMaps(location: google.maps.LatLngLiteral) {
-    console.debug("opening in apple maps");
-    const url = `https://maps.apple.com/?ll=${location.lat},${location.lng}&q=${location.lat},${location.lng}`;
-    const taggedUrl = this._analytics.addUtmToUrl(
-      url,
-      "open_in_maps",
-      "referral",
-    );
-
-    this._analytics.trackEvent("open_maps", {
-      platform: "apple",
-      location: location,
-      url: taggedUrl || url,
-    });
-
-    window.open(taggedUrl || url);
-  }
-
-  private _openLatLngInGoogleMaps(location: google.maps.LatLngLiteral) {
-    console.debug("opening in google maps");
-    const url = `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`;
-    const taggedUrl = this._analytics.addUtmToUrl(
-      url,
-      "open_in_maps",
-      "referral",
-    );
-
-    this._analytics.trackEvent("open_maps", {
-      platform: "google",
-      location: location,
-      url: taggedUrl || url,
-    });
-
-    window.open(taggedUrl || url);
+    await this._openInMaps(location, false, mapsType);
   }
 
   async openDirectionsInMaps(location: google.maps.LatLngLiteral) {
+    await this._openInMaps(location, true);
+  }
+
+  private async _openInMaps(
+    location: google.maps.LatLngLiteral,
+    directions: boolean,
+    forced?: Exclude<MapsAppPreference, "automatic">,
+  ): Promise<void> {
     if (typeof window === "undefined") return; // abort if not in browser
 
-    if (Capacitor.getPlatform() === "ios" &&
-        await this.openInDefaultIosMaps(location, true)) return;
-    if (this.isMacOSOriOS()) {
-      this._openDirectionsInAppleMaps(location);
-    } else {
-      this._openDirectionsInGoogleMaps(location);
+    const preference = forced ?? this._appSettings.mapsApp();
+    if (preference === "automatic") {
+      // The iOS app hands off to the default navigation app (Apple Maps
+      // through MapKit when none is set). Browsers and Android use Google
+      // Maps, which opens its app when installed.
+      if (
+        Capacitor.getPlatform() === "ios" &&
+        (await this.openInDefaultIosMaps(location, directions))
+      ) {
+        return;
+      }
+      this._openWebMaps(
+        Capacitor.getPlatform() === "ios" ? "apple" : "google",
+        location,
+        directions,
+      );
+      return;
     }
+    this._openWebMaps(preference, location, directions);
   }
 
   private async openInDefaultIosMaps(
@@ -398,36 +372,32 @@ export class MapsApiService extends ConsentAwareService {
     }
   }
 
-  private _openDirectionsInAppleMaps(location: google.maps.LatLngLiteral) {
-    if (typeof window === "undefined") return; // abort if not in browser
-    const url = `https://maps.apple.com/?daddr=${location.lat},${location.lng}`;
+  private _openWebMaps(
+    provider: Exclude<MapsAppPreference, "automatic">,
+    location: google.maps.LatLngLiteral,
+    directions: boolean,
+  ): void {
+    const { lat, lng } = location;
+    const url = directions
+      ? {
+          google: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+          apple: `https://maps.apple.com/?daddr=${lat},${lng}`,
+          osm: `https://www.openstreetmap.org/directions?to=${lat},${lng}`,
+        }[provider]
+      : {
+          google: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+          apple: `https://maps.apple.com/?ll=${lat},${lng}&q=${lat},${lng}`,
+          osm: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}`,
+        }[provider];
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
-      "directions",
+      directions ? "directions" : "open_in_maps",
       "referral",
     );
 
-    this._analytics.trackEvent("get_directions", {
-      platform: "apple",
-      location: location,
-      url: taggedUrl || url,
-    });
-
-    window.open(taggedUrl || url);
-  }
-
-  private _openDirectionsInGoogleMaps(location: google.maps.LatLngLiteral) {
-    if (typeof window === "undefined") return; // abort if not in browser
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`;
-    const taggedUrl = this._analytics.addUtmToUrl(
-      url,
-      "directions",
-      "referral",
-    );
-
-    this._analytics.trackEvent("get_directions", {
-      platform: "google",
-      location: location,
+    this._analytics.trackEvent(directions ? "get_directions" : "open_maps", {
+      platform: provider,
+      location,
       url: taggedUrl || url,
     });
 

@@ -6,6 +6,7 @@ import {
   applyTrustedClientRegionHeader,
   handlePublicCallableRequest,
   handleQrStickerRequest,
+  isSensitiveProbePath,
   getRetiredUiLocaleRedirectTarget,
   getStaticAssetCacheControl,
   REVALIDATING_ASSET_CACHE_CONTROL,
@@ -167,6 +168,12 @@ function run() {
   const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
   server.use(compression());
+  // Do not redirect or bootstrap Angular for requests for server secrets.
+  server.use((req, res, next) => {
+    if (!isSensitiveProbePath(req.path)) return next();
+    res.setHeader("Cache-Control", "no-store");
+    res.status(404).type("text/plain").send("Not Found");
+  });
   server.set("trust proxy", 1); // Express trusts exactly 1 proxy hop (For Firebase App Hosting)
   server.use((req, _res, next) => {
     applyTrustedClientRegionHeader(req.headers);

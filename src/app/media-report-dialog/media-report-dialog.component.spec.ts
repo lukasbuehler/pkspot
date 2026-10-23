@@ -93,16 +93,12 @@ describe("MediaReportDialogComponent", () => {
     expect(submitMediaReport).not.toHaveBeenCalled();
   });
 
-  it("requires and submits the duplicate-media target", async () => {
+  it("submits duplicate reports without a URL", async () => {
     const component = TestBed.createComponent(MediaReportDialogComponent).componentInstance;
     component.isAuthenticated.set(true);
     component.selectedReasons.set(["duplicate"]);
     component.reportForm.setValue({comment: "", duplicateMediaUrl: "", reporterEmail: ""});
 
-    component.submitReport();
-    expect(submitMediaReport).not.toHaveBeenCalled();
-
-    component.reportForm.controls["duplicateMediaUrl"].setValue("https://example.test/original.jpg");
     component.submitReport();
     await vi.waitFor(() => expect(dialogRef.close).toHaveBeenCalledWith(true));
 
@@ -115,7 +111,7 @@ describe("MediaReportDialogComponent", () => {
       "spot-1",
       "spot",
       "spot-1",
-      "https://example.test/original.jpg",
+      "",
     );
   });
 });

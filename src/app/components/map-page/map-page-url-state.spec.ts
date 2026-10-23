@@ -224,6 +224,7 @@ describe("MapPageComponent URL-driven panel state", () => {
       "await this.loadSpotById(spotId as SpotId, false, pendingPreview)"
     );
     expect(source).toContain("const maxAttempts = preview ? 60 : 1;");
+    expect(source).toContain("if (this.isServer && contentData?.spotLoadFailed) return;");
   });
 
   it("preserves route challenge URLs while challenge data is unresolved", () => {

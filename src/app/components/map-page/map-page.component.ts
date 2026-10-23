@@ -18,6 +18,7 @@ import {
   signal,
   WritableSignal,
   PendingTasks,
+  RESPONSE_INIT,
   inject,
   effect,
   computed,
@@ -31,6 +32,8 @@ import {
 import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import { SpotLoadError } from "../../../db/models/SpotLoadError";
+import { handleSpotResolutionError } from "../../resolvers/spot-resolution-error";
 import { SpotMapDataManager } from "../spot-map/SpotMapDataManager";
 import {
   SpotFilterMode,
@@ -344,6 +347,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   pendingTasks = inject(PendingTasks);
+  private readonly serverResponse = inject(RESPONSE_INIT, { optional: true });
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
   private readonly injector = inject(Injector);
@@ -526,9 +530,37 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     computation: (opened, previous) => opened || (previous?.value ?? false),
   });
 
+  /**
+   * Renders the full list once the page has settled, so the first opening
+   * of the sheet does not start by laying out and decoding six more cards.
+   */
+  private readonly _fullSpotListPrerendered = signal(false);
+
+  private _schedulePrerenderOfFullSpotList(destroyRef: DestroyRef): void {
+    afterNextRender(() => {
+      let idleId: number | undefined;
+      const timer = setTimeout(() => {
+        const prerender = () => this._fullSpotListPrerendered.set(true);
+        // Safari has no requestIdleCallback; the delay alone keeps this
+        // clear of the initial map load there.
+        idleId = window.requestIdleCallback?.(prerender, { timeout: 2000 });
+        if (idleId === undefined) prerender();
+      }, 3000);
+      destroyRef.onDestroy(() => {
+        clearTimeout(timer);
+        if (idleId !== undefined) window.cancelIdleCallback?.(idleId);
+      });
+    });
+  }
+
   spotListLimit = computed(() => {
-    // Keep the compact bottom-sheet preview short until the sheet first opens.
-    if (this.usesMapBottomSheet() && !this._bottomSheetHasOpened()) {
+    // Keep the compact bottom-sheet preview short until the page has settled
+    // or the sheet first opens.
+    if (
+      this.usesMapBottomSheet() &&
+      !this._bottomSheetHasOpened() &&
+      !this._fullSpotListPrerendered()
+    ) {
       return 2;
     }
     if (this.mapObjectMode() === "all") {
@@ -2068,6 +2100,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+    this._schedulePrerenderOfFullSpotList(inject(DestroyRef));
 
     if (isPlatformBrowser(this.platformId)) {
       const denseMapPerformanceMode =
@@ -2814,6 +2847,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     void this.pendingTasks.run(async () => {
       try {
         await this._loadEventFromRouteIfPresent(this.router.url);
+        // A resolver failure already set the HTTP status. Retrying it here
+        // used to escape PendingTasks and turn an ordinary 404 into a 500.
+        if (this.isServer && contentData?.spotLoadFailed) return;
         await this._handleURLParamsChange(
           routeState.spotIdOrSlug,
           routeState.showChallenges,
@@ -3022,14 +3058,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           false,
         );
-        const spotId = await this._getSpotIdFromSlugOrId(spotIdOrSlug);
-        if (!spotId) {
-          console.warn("Could not get spot id from slug or id.");
-          return;
+        try {
+          const spotId = await this._getSpotIdFromSlugOrId(spotIdOrSlug);
+          if (!spotId) {
+            this.pendingSpotPreview.set(null);
+            return;
+          }
+          await this.loadSpotById(spotId as SpotId, false, pendingPreview);
+        } catch (error) {
+          handleSpotResolutionError(error, this.serverResponse);
         }
-
-        // open the spot
-        await this.loadSpotById(spotId as SpotId, false, pendingPreview);
       }
     } else {
       this._routeChallengeId = null;
@@ -3216,7 +3254,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Retry only when we have a pending preview from an in-app selection.
     // Direct URL loads should fail quickly for invalid IDs instead of holding
     // SSR/browser navigation open for the full retry window.
-    let lastError: any;
+    let lastError: unknown;
     const maxAttempts = preview ? 60 : 1;
     const delayMs = 500;
 
@@ -3249,7 +3287,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // All attempts failed
-    console.error("Failed to load spot after retries:", lastError);
+    if (!(lastError instanceof SpotLoadError)) {
+      console.error("Failed to load Spot after retries:", { spotId }, lastError);
+    }
     if (requestVersion === this._spotLoadRequestVersion) {
       this.pendingSpotPreview.set(null);
     }

@@ -154,6 +154,21 @@ try {
     },
   );
 
+  for (const route of [
+    "/.env", "/backend/.env", "/de/.env.production", "/.git/logs/HEAD",
+    "/wp-admin/", "/wp-content/debug.log", "/wp-login.php", "/xmlrpc.php",
+  ]) {
+    for (const method of ["GET", "HEAD", "POST"]) {
+      const response = await request(worker, route, { method });
+      assert.equal(response.status, 404, `${method} ${route}`);
+      assert.equal(response.headers.get("location"), null, route);
+      assert.equal(response.headers.get("cache-control"), "no-store", route);
+      assert.equal(await response.text(), method === "HEAD" ? "" : "Not Found");
+      checks++;
+    }
+  }
+  console.log("PASS: secret-file and WordPress probes rejected before rendering");
+
   for (let round = 0; round < 2; round++) {
     for (const [route, title] of routes) await page(worker, route, title);
   }

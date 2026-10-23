@@ -118,7 +118,7 @@ describe("SpotsService", () => {
 
       await expect(
         service.getSpotById("nonexistent" as SpotId, "en")
-      ).rejects.toThrow("Error! This Spot does not exist.");
+      ).rejects.toThrow("Spot nonexistent does not exist.");
     });
 
     it("should reject a placeholder spot document before it can render at 0,0", async () => {
@@ -196,7 +196,7 @@ describe("SpotsService", () => {
       const spot$ = service.getSpotById$("nonexistent" as SpotId, "en");
 
       await expect(firstValueFrom(spot$)).rejects.toThrow(
-        "Error! This Spot does not exist."
+        "Spot nonexistent does not exist."
       );
     });
 

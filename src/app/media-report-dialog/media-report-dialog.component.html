@@ -50,11 +50,8 @@
 
     @if (isReasonSelected('duplicate')) {
       <mat-form-field class="w-100" appearance="outline">
-        <mat-label i18n>URL of the original media</mat-label>
+        <mat-label i18n>URL of the original media (optional)</mat-label>
         <input matInput type="url" formControlName="duplicateMediaUrl" autocomplete="url" />
-        @if (!duplicateMediaUrl()) {
-          <mat-error i18n>Please add the URL of the media this duplicates.</mat-error>
-        }
       </mat-form-field>
     }
 
@@ -91,7 +88,7 @@
   } @else { <span></span> }
   <div class="d-flex gap-2">
     <button matButton="outlined" [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">Cancel</button>
-    <button matButton="filled" color="warn" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim()) || (isReasonSelected('duplicate') && !duplicateMediaUrl())">
+    <button matButton="filled" color="warn" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim())">
       @if (isSubmitting()) {
         <span i18n="submitting label">Saving...</span>
       } @else if (ownReport()) {

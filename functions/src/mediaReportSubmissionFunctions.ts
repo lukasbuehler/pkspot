@@ -160,10 +160,9 @@ const cleanMedia = (
 const cleanDuplicateMedia = (
   value: unknown,
   currentMedia: SubmitMediaReportRequest["media"],
-  required: boolean,
 ): {type: string; src: string} | undefined => {
   const input = recordValue(value);
-  const src = cleanUrl(input["src"], "duplicateMedia.src", required);
+  const src = cleanUrl(input["src"], "duplicateMedia.src", false);
   if (!src) return undefined;
   if (src === currentMedia.src) {
     throw new HttpsError("invalid-argument", "duplicateMedia must refer to different media.");
@@ -261,7 +260,6 @@ export const submitMediaReport = onCall(
     const duplicateMedia = cleanDuplicateMedia(
       input["duplicateMedia"],
       media,
-      reasons.includes("duplicate"),
     );
     if (!reasons.includes("duplicate") && input["duplicateMedia"] !== undefined) {
       throw new HttpsError("invalid-argument", "duplicateMedia is only allowed with the duplicate reason.");

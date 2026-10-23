@@ -2,6 +2,12 @@ import { Injectable, signal, effect, PLATFORM_ID, Inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 
 export type TimeFormatPreference = "automatic" | "12-hour" | "24-hour";
+/**
+ * App used by "Open in Maps" and directions. "automatic" hands off to the
+ * default navigation app in the iOS app and uses Google Maps elsewhere.
+ */
+export type MapsAppPreference = "automatic" | "google" | "apple" | "osm";
+const MAPS_APP_PREFERENCES: readonly MapsAppPreference[] = ["automatic", "google", "apple", "osm"];
 
 type StoredAppSettings = {
   debugMode?: unknown;
@@ -9,6 +15,7 @@ type StoredAppSettings = {
   enableVectorMaps?: unknown;
   enableMapGlassBlur?: unknown;
   timeFormat?: unknown;
+  mapsApp?: unknown;
 };
 
 @Injectable({
@@ -22,6 +29,7 @@ export class AppSettingsService {
   enableVectorMaps = signal<boolean>(false);
   enableMapGlassBlur = signal<boolean>(false);
   timeFormat = signal<TimeFormatPreference>("automatic");
+  mapsApp = signal<MapsAppPreference>("automatic");
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this._loadSettings();
@@ -63,6 +71,9 @@ export class AppSettingsService {
         ) {
           this.timeFormat.set(parsed.timeFormat);
         }
+        if (MAPS_APP_PREFERENCES.includes(parsed.mapsApp as MapsAppPreference)) {
+          this.mapsApp.set(parsed.mapsApp as MapsAppPreference);
+        }
       }
     } catch (e) {
       console.warn("Failed to load app settings", e);
@@ -80,6 +91,7 @@ export class AppSettingsService {
         enableVectorMaps: this.enableVectorMaps(),
         enableMapGlassBlur: this.enableMapGlassBlur(),
         timeFormat: this.timeFormat(),
+        mapsApp: this.mapsApp(),
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
     } catch (e) {

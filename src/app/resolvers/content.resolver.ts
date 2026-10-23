@@ -32,6 +32,8 @@ export type ContentType =
 export interface RouteContentData {
   contentType: ContentType;
   spot?: Spot;
+  /** The resolver already handled this request; SSR must not fetch it again. */
+  spotLoadFailed?: boolean;
   challenge?: SpotChallenge;
   event?: any; // TODO: Replace with proper Event type
   user?: any; // TODO: Replace with proper User type
@@ -214,6 +216,7 @@ async function resolveSpotContent(
 
     return result;
   } catch (error) {
+    result.spotLoadFailed = true;
     handleSpotResolutionError(error, services.response);
     // Only the server decides that a Spot is missing. A failed browser load
     // (for example a crawler renderer dropping the Firestore connection) must

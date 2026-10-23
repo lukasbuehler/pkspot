@@ -1160,12 +1160,13 @@
             >
               You can re-order the spot media below using drag-and-drop.
             </p>
-            <app-media-preview-grid
-              [media]="spot()!.userMedia()"
-              [spotId]="getSpotId()"
-              (mediaChanged)="mediaChanged($event)"
-            ></app-media-preview-grid>
           }
+          <app-media-preview-grid
+            [media]="spot()!.userMedia()"
+            [processingMedia]="processingSpotMedia()"
+            [spotId]="getSpotId()"
+            (mediaChanged)="mediaChanged($event)"
+          ></app-media-preview-grid>
           @if (processingSpotMedia().length > 0) {
             <div class="media-processing-note mat-body-small mt-2 mb-2" i18n>
               Media is processing and will appear here when it is ready.

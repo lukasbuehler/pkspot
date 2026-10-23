@@ -701,6 +701,7 @@ export class SpotEditsService extends ConsentAwareService {
       "rating_histogram",
       "highlighted_reviews",
       // Computed fields (calculated server-side)
+      "recent_activity_min_30d",
       "tile_coordinates",
       "is_iconic",
       "stewardship",
