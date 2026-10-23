@@ -20434,5 +20434,29 @@
         <target>Ouvrir le Spot sur la carte</target>
       </segment>
     </unit>
+    <unit id="settings.maps_app.automatic">
+      <segment state="translated">
+        <source>Automatic</source>
+        <target>Automatique</target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.description">
+      <segment state="translated">
+        <source> Used for &quot;Open in Maps&quot; and directions. Automatic uses your default navigation app in the iOS app and Google Maps everywhere else. </source>
+        <target> Utilisée pour « Ouvrir dans Plans » et les itinéraires. Automatique utilise ton app de navigation par défaut dans l’app iOS et Google Maps partout ailleurs. </target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.heading">
+      <segment state="translated">
+        <source> Maps app </source>
+        <target> App de cartes </target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.label">
+      <segment state="translated">
+        <source>Open locations in</source>
+        <target>Ouvrir les lieux dans</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

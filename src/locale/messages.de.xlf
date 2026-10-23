@@ -20456,5 +20456,29 @@
         <target>Spot auf der Karte öffnen</target>
       </segment>
     </unit>
+    <unit id="settings.maps_app.automatic">
+      <segment state="translated">
+        <source>Automatic</source>
+        <target>Automatisch</target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.description">
+      <segment state="translated">
+        <source> Used for &quot;Open in Maps&quot; and directions. Automatic uses your default navigation app in the iOS app and Google Maps everywhere else. </source>
+        <target> Wird für „In Karten öffnen“ und die Navigation verwendet. Automatisch nutzt in der iOS-App deine Standard-Navigations-App und überall sonst Google Maps. </target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.heading">
+      <segment state="translated">
+        <source> Maps app </source>
+        <target> Karten-App </target>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.label">
+      <segment state="translated">
+        <source>Open locations in</source>
+        <target>Orte öffnen in</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

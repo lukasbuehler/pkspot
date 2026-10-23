@@ -17107,5 +17107,25 @@
         <source>Open Spot on map</source>
       </segment>
     </unit>
+    <unit id="settings.maps_app.automatic">
+      <segment>
+        <source>Automatic</source>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.description">
+      <segment>
+        <source> Used for &quot;Open in Maps&quot; and directions. Automatic uses your default navigation app in the iOS app and Google Maps everywhere else. </source>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.heading">
+      <segment>
+        <source> Maps app </source>
+      </segment>
+    </unit>
+    <unit id="settings.maps_app.label">
+      <segment>
+        <source>Open locations in</source>
+      </segment>
+    </unit>
   </file>
 </xliff>
