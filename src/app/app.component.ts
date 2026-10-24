@@ -884,6 +884,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       const dialogRef = this.dialog.open(WelcomeDialogComponent, {
         data: { version: currentTermsVersion },
+        width: "680px",
         maxWidth: "min(680px, calc(100vw - 2rem))",
         maxHeight: "calc(100dvh - 2rem)",
         hasBackdrop: true,

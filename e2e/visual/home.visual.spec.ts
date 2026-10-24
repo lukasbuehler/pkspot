@@ -22,6 +22,11 @@ test.describe("Home Page Visual Regression @visual", () => {
     // Wait for any animations to complete
     await page.waitForTimeout(2000);
 
+    // The shared viewport clamp must not stretch the welcome dialog on desktop.
+    const welcome = page.locator("mat-dialog-container");
+    await expect(welcome).toBeVisible();
+    expect((await welcome.boundingBox())!.width).toBeLessThanOrEqual(680);
+
     const dynamicMap = page.locator(
       "app-google-map-2d canvas, .gm-style, google-map"
     );
