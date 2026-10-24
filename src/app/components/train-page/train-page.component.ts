@@ -201,12 +201,8 @@ export class TrainPageComponent {
   private readonly locationAccess = inject(LocationAccessService);
   private readonly dialog = inject(MatDialog);
   readonly localLegend = inject(LocalLegendService);
-  /** Invite people who have not chosen yet, once they have verified training this month. */
-  readonly showLocalLegendInvite = computed(() => {
-    if (this.localLegend.state() !== "undecided") return false;
-    const month = this.trainingMonths().find((item) => item.month === this.currentMonthKey());
-    return Object.values(month?.spots ?? {}).some((spot) => spot.verified_days > 0);
-  });
+  /** Joining must be discoverable before any check-in can count. */
+  readonly showLocalLegendInvite = computed(() => this.localLegend.state() === "undecided");
 
   openLocalLegend(): void {
     LocalLegendJoinDialogComponent.open(this.dialog);

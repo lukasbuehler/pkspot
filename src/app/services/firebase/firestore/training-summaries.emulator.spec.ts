@@ -217,9 +217,9 @@ runWithEmulator("private training summaries and Spot ranks", () => {
     await expect(setDoc(doc(regular.firestore, `users/${regular.uid}/training_settings/local_legend`), { enabled: true }))
       .rejects.toMatchObject({ code: "permission-denied" });
 
-    // Joining adds this month's tally from the existing summary right away.
+    // Joining never imports earlier check-ins.
     await regular.setLegend({ enabled: true });
-    expect((await tallyRef.get()).data()).toMatchObject({ verified_days: 2, spot_id: spotId });
+    expect((await tallyRef.get()).data()).toMatchObject({ verified_days: 0, spot_id: spotId });
     const settings = await getDoc(doc(regular.firestore, `users/${regular.uid}/training_settings/local_legend`));
     expect(settings.data()).toMatchObject({ enabled: true });
 
@@ -243,7 +243,7 @@ runWithEmulator("private training summaries and Spot ranks", () => {
     // Leaving removes the person from comparisons but keeps their own history.
     await regular.setLegend({ enabled: false });
     expect((await tallyRef.get()).exists).toBe(false);
-    expect((await db().doc(ranksPath).get()).exists).toBe(true);
+    expect((await db().doc(ranksPath).get()).exists).toBe(false);
 
     // Past ranks can be removed one by one; the open month cannot.
     await expect(regular.deleteRank({ month: currentMonth(), spotId }))
@@ -259,8 +259,21 @@ runWithEmulator("private training summaries and Spot ranks", () => {
     await regular.deleteRank({ month: pastMonth, spotId });
     expect((await db().doc(pastPath).get()).exists).toBe(false);
 
-    // Dropping below two verified days withdraws the rank right away.
+    // Rejoining does not restore earlier contributions; repeated activation
+    // keeps the same server boundary, while a real rejoin advances it.
+    const firstSince = settings.data()?.["enabled_since_raw_ms"];
+    await regular.setLegend({enabled: true});
+    const ref = db().doc(`users/${regular.uid}/training_settings/local_legend`);
+    const nextSince = (await ref.get()).get("enabled_since_raw_ms");
+    expect(nextSince).toBeGreaterThan(firstSince);
+    await regular.setLegend({enabled: true});
+    expect((await ref.get()).get("enabled_since_raw_ms")).toBe(nextSince);
+    expect((await tallyRef.get()).get("verified_days")).toBe(0);
+    // Deletions change private totals immediately but leave open ranks alone
+    // until nightly publication.
+    await db().doc(ranksPath).set(published);
     await db().doc(`users/${regular.uid}/session_records/seeded-1`).delete();
-    await eventually(async () => (await db().doc(ranksPath).get()).exists, (exists) => !exists);
+    await eventually(async () => (await monthDoc(regular.uid).get()).get(`spots.${spotId}.verified_days`), (days) => days === 1);
+    expect((await db().doc(ranksPath).get()).get(`spots.${spotId}.rank`)).toBe(1);
   }, 120_000);
 });

@@ -680,6 +680,23 @@ const routeVisualCases: RouteVisualCase[] = [
 ];
 
 test.describe("Route visual regression @visual", () => {
+  test("manages past Local Legend ranks while participation is off", async ({page}) => {
+    await page.addInitScript(() => {
+      (window as typeof window & {__PKSPOT_SCREENSHOT_LOCAL_LEGEND__?: boolean}).__PKSPOT_SCREENSHOT_LOCAL_LEGEND__ = false;
+    });
+    await prepareRoute(page, {name: "local-legend-data", path: "/settings/general", signedIn: true,
+      trainingLogFixture: true, fixedTime: "2026-10-24T12:00:00Z", viewport: mobileViewport});
+    await page.getByRole("button", {name: "Local-Legend-Daten verwalten", exact: true}).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("Sihlcity");
+    await expect(dialog.getByRole("button", {name: "Local Legend verlassen", exact: true})).toHaveCount(0);
+    await expect(dialog).toHaveScreenshot("local-legend-data-off-mobile.png");
+    await dialog.getByRole("button", {name: "Diesen Rang entfernen", exact: true}).click();
+    await expect(dialog.getByRole("button", {name: "Entfernen", exact: true})).toBeVisible();
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    await expect(dialog).toHaveScreenshot("local-legend-data-confirm-mobile.png");
+  });
+
   test("loads YouTube only after consent and resets permissions from Settings", async ({page}) => {
     const requests: string[] = [];
     await page.route(/https:\/\/(?:www\.)?(?:youtube(?:-nocookie)?\.com|i\.ytimg\.com)\//, async route => {

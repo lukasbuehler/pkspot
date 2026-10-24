@@ -225,6 +225,23 @@ export function buildTrainingSpotSummary(
   return result;
 }
 
+/** Restricts comparison data to server-confirmed visits after activation.
+ * Training history itself is never filtered by participation.
+ */
+export function buildLocalLegendMonthSummary(
+  month: string,
+  sessions: readonly TrainingSummarySession[],
+  verifiedIds: ReadonlySet<string>,
+  enabledSinceMs: number,
+  nowMs: number,
+): TrainingMonthSchema | null {
+  return buildTrainingMonthSummary(month, sessions.map((session) => ({
+    ...session,
+    spot_visits: (session.spot_visits ?? []).filter((visit) =>
+      visit.arrived_at_raw_ms >= enabledSinceMs),
+  })), verifiedIds, nowMs);
+}
+
 /** The server-only tallies a month contributes to private Spot ranks. */
 export function legendTalliesForMonth(
   uid: string,

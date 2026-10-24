@@ -77,7 +77,7 @@ describe("CheckInRewardSheetComponent", () => {
     expect(element.textContent).toContain("won't count toward your Spot rank");
   });
 
-  it("shows verified days and an invitation to people outside Local Legend", async () => {
+  it("shows private verified days without a second participation invitation", async () => {
     const { fixture, element } = render({
       spotId: "river", spotName: "Riverside", response: { ...response, spotVisitCount: 3, verified: true },
     }, { updated_at_raw_ms: Date.now(), spots: { river: { verified_days: 2 } } }, "undecided");
@@ -86,7 +86,7 @@ describe("CheckInRewardSheetComponent", () => {
       expect(element.textContent).toContain("2 days this month");
     });
     expect(element.textContent).not.toContain("ranked after tonight's update");
-    expect(element.textContent).toContain("Learn more");
+    expect(element.textContent).not.toContain("Learn more");
   });
 
   it("opens before confirmation, then shows a failure with a retry", () => {

@@ -90,7 +90,7 @@ export class TrainingStatsComponent {
   readonly showAllSpots = signal(false);
 
   readonly months = resource({
-    params: () => ({ reload: this.reloadKey() }),
+    params: () => ({ reload: this.reloadKey(), participating: this.localLegend.enabled() }),
     loader: () => this.summaries.listMyMonths(),
   });
   /** Ranks are monthly, so they load for the month being viewed only. */
@@ -167,8 +167,9 @@ export class TrainingStatsComponent {
     const ranks = monthView ? this.ranks.value() : null;
     // Live progress ("1 more day") only makes sense for the open month.
     const live = monthView && this.anchor() === this.currentMonth;
+    const eligible = this.allMonths().find((month) => month.month === this.anchor());
     return spots.map((spot, index) => {
-      const state = monthView ? spotRankState(ranks, spot.spotId, live ? spot.verifiedDays : 0) : null;
+      const state = monthView ? spotRankState(ranks, spot.spotId, live ? (eligible?.spots[spot.spotId]?.local_legend_days ?? spot.verifiedDays) : 0) : null;
       return {
         spotId: spot.spotId,
         position: index + 1,

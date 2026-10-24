@@ -112,7 +112,7 @@ describe("TrainingStatsComponent", () => {
     fixture.componentInstance.step(-1);
     await vi.waitFor(() => {
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector(".stats-spot")!.textContent).toContain("Too few people to rank");
+      expect(fixture.nativeElement.querySelector(".stats-spot")!.textContent).toContain("Rank unavailable");
     });
   });
 

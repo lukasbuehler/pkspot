@@ -12022,17 +12022,17 @@
     </unit>
     <unit id="spotRank.tooFewBody">
       <segment>
-        <source>Fewer than three people have checked in here this month. Bring some friends!</source>
+        <source>Local Legend only shows a rank when at least three participating accounts have qualifying check-ins this month.</source>
       </segment>
     </unit>
     <unit id="spotRank.tooFewShort">
       <segment>
-        <source>Too few people to rank</source>
+        <source>Rank unavailable</source>
       </segment>
     </unit>
     <unit id="spotRank.tooFewTitle">
       <segment>
-        <source>Not enough people for a local legend yet</source>
+        <source>Rank unavailable</source>
       </segment>
     </unit>
     <unit id="spotPersonalStats.since">
@@ -16632,6 +16632,11 @@
         <source>Export</source>
       </segment>
     </unit>
+    <unit id="trainingLog.checkIns.legendImpact">
+      <segment>
+        <source>Deleted check-ins no longer contribute to Local Legend. Your rank may change after the overnight update.</source>
+      </segment>
+    </unit>
     <unit id="training.loadingSpot">
       <segment>
         <source>Loading Spot…</source>
@@ -16707,6 +16712,46 @@
         <source>Use device location?</source>
       </segment>
     </unit>
+    <unit id="localLegend.data.confirmLeave">
+      <segment>
+        <source>Leave and delete current ranks</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.empty">
+      <segment>
+        <source>No past ranks to manage.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.explanation">
+      <segment>
+        <source>Only verified check-ins made after you turn Local Legend on count. Ranks update overnight. Your check-ins and training history are kept when you leave or delete a past rank.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.leave">
+      <segment>
+        <source>Leave Local Legend</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.loadFailed">
+      <segment>
+        <source>Couldn&apos;t load your rank history.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.retry">
+      <segment>
+        <source>Try again</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.title">
+      <segment>
+        <source>Manage Local Legend data</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.withdrawConfirm">
+      <segment>
+        <source>Leave Local Legend? Your current-month ranks and comparison data will be deleted across all Spots. Past ranks stay. If you join again, only new check-ins will count.</source>
+      </segment>
+    </unit>
     <unit id="localLegend.history.help">
       <segment>
         <source>Removing a rank deletes it from your history for good.</source>
@@ -16742,11 +16787,6 @@
         <source>Learn more</source>
       </segment>
     </unit>
-    <unit id="localLegend.invite.body">
-      <segment>
-        <source>See your private monthly rank at this Spot.</source>
-      </segment>
-    </unit>
     <unit id="localLegend.invite.title">
       <segment>
         <source>Become the local legend</source>
@@ -16755,6 +16795,11 @@
     <unit id="localLegend.invite.trainBody">
       <segment>
         <source>Opt in to a private monthly rank at the Spots where you check in.</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.beforeCheckIn">
+      <segment>
+        <source>Your check-in will be sent after you choose. Closing without choosing cancels this check-in.</source>
       </segment>
     </unit>
     <unit id="localLegend.join.compare">
@@ -16784,7 +16829,7 @@
     </unit>
     <unit id="localLegend.join.optional">
       <segment>
-        <source> Participation is optional. You can turn it off in Settings and keep using private check-ins. </source>
+        <source> Participation is optional. Only new verified check-ins count after you turn it on. You can leave in Settings and keep using private check-ins. </source>
       </segment>
     </unit>
     <unit id="localLegend.join.private">
@@ -16807,9 +16852,14 @@
         <source> A private monthly rank at the Spots where you check in, based on days with a verified check-in. Only participating accounts are compared, and nobody else sees your rank. </source>
       </segment>
     </unit>
-    <unit id="localLegend.settings.offHelp">
+    <unit id="localLegend.settings.manage">
       <segment>
-        <source> You are not compared with anyone. Your past ranks are kept privately and come back if you turn Local Legend on again. </source>
+        <source>Manage Local Legend data</source>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.participationHelp">
+      <segment>
+        <source>Only new verified check-ins count after you turn it on. Ranks update overnight. Leaving removes your current-month ranks; past ranks stay private.</source>
       </segment>
     </unit>
     <unit id="localLegend.settings.title">

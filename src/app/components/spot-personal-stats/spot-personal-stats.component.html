@@ -20,19 +20,6 @@
       </mat-card>
     }
 
-    @if (stats.invite) {
-      <mat-card appearance="outlined" class="spot-rank">
-        <div class="spot-rank__tile">
-          <mat-icon aria-hidden="true" class="spot-rank__gold">trophy</mat-icon>
-        </div>
-        <div class="spot-rank__text">
-          <strong i18n="@@localLegend.invite.title">Become the local legend</strong>
-          <span i18n="@@localLegend.invite.body">See your private monthly rank at this Spot.</span>
-          <button matButton type="button" class="spot-rank__action" (click)="openJoin()" i18n="@@localLegend.invite.action">Learn more</button>
-        </div>
-      </mat-card>
-    }
-
     <mat-card appearance="outlined" class="spot-visits">
       <div class="spot-visits__header">
         <h3 id="spot-personal-stats-title" i18n="@@spotPersonalStats.title">Your visits</h3>

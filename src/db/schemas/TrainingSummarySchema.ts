@@ -11,6 +11,8 @@ export interface TrainingMonthSpotSchema {
   visits: number;
   /** Distinct local days with a proximity-verified check-in at this Spot. */
   verified_days: number;
+  /** Verified days eligible since the latest Local Legend activation. */
+  local_legend_days?: number;
   /** Logged training time attributed to this Spot (sessions split evenly). */
   minutes: number;
   first_ms: number;
@@ -120,6 +122,8 @@ export interface LocalLegendSettingsSchema {
   enabled: boolean;
   /** When the person last chose; the join invitation is not repeated after a choice. */
   decided_at_raw_ms: number;
+  /** Server timestamp of the latest activation; repeated on requests preserve it. */
+  enabled_since_raw_ms?: number;
 }
 
 export interface SetLocalLegendParticipationRequest {
@@ -128,6 +132,7 @@ export interface SetLocalLegendParticipationRequest {
 
 export interface SetLocalLegendParticipationResponse {
   enabled: boolean;
+  enabledSinceRawMs?: number;
 }
 
 /** Removes one past month's rank at one Spot from the person's own history. */

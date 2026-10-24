@@ -408,6 +408,12 @@ export class CheckInService {
     return R * c;
   }
 
+  /** Read-only preflight for the participation choice; never requests location. */
+  public canCheckIn(): boolean {
+    return this.isEnabled && this._locationAccess.enabled() &&
+      this._getGeolocationService().currentLocation() !== null;
+  }
+
   public async checkIn(spotId: SpotId): Promise<ConfirmCheckInResponse | null> {
     if (!this.isEnabled) return null;
     const location = this._getGeolocationService().currentLocation();

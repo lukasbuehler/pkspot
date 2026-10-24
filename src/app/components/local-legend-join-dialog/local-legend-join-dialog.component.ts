@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
-import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -23,9 +23,11 @@ export class LocalLegendJoinDialogComponent {
   private readonly snackbar = inject(MatSnackBar);
   readonly localLegend = inject(LocalLegendService);
   readonly choosing = signal<boolean | null>(null);
+  readonly forCheckIn = inject<{forCheckIn?: boolean}>(MAT_DIALOG_DATA, {optional: true})?.forCheckIn === true;
 
-  static open(dialog: MatDialog): MatDialogRef<LocalLegendJoinDialogComponent, boolean> {
+  static open(dialog: MatDialog, data: {forCheckIn?: boolean} = {}): MatDialogRef<LocalLegendJoinDialogComponent, boolean> {
     return dialog.open(LocalLegendJoinDialogComponent, {
+      role: "dialog", ariaModal: true, data,
       width: "480px",
       maxWidth: "calc(100vw - 2rem)",
       maxHeight: "calc(100dvh - 2rem)",
@@ -34,7 +36,9 @@ export class LocalLegendJoinDialogComponent {
   }
 
   async choose(enabled: boolean): Promise<void> {
+    if (this.choosing() !== null) return;
     this.choosing.set(enabled);
+    this.dialogRef.disableClose = true;
     try {
       await this.localLegend.setEnabled(enabled);
       this.dialogRef.close(enabled);
@@ -46,6 +50,7 @@ export class LocalLegendJoinDialogComponent {
       );
     } finally {
       this.choosing.set(null);
+      this.dialogRef.disableClose = false;
     }
   }
 }

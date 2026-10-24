@@ -63,7 +63,7 @@ export class EventCardComponent {
   readonly status = computed<EventStatus>(() => this.event().status());
   readonly dateRange = computed(() => {
     const event = this.event();
-    return eventScheduleLabel(event, this._dateTime, "long");
+    return eventScheduleLabel(event, this._dateTime, "long", false);
   });
   readonly route = computed(() => [
     "/events",

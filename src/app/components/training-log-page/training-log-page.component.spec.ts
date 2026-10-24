@@ -1,3 +1,5 @@
+import { signal } from "@angular/core";
+import { LocalLegendService } from "../../services/local-legend.service";
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
 import { StoreReviewService } from "../../reviews/store-review.service";
@@ -50,6 +52,22 @@ const recoveryPause: RecoveryPauseDocument = {
 
 describe("TrainingLogPageComponent", () => {
   beforeEach(() => TestBed.resetTestingModule());
+
+  it("warns about Local Legend only for potentially contributing check-ins", async () => {
+    const component = createComponent();
+    const legend = TestBed.inject(LocalLegendService);
+    vi.spyOn(legend, "enabled").mockReturnValue(true);
+    vi.spyOn(legend, "enabledSinceMs").mockReturnValue(1000);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const visit = {checkInId: "check", sessionRecordId: "session", spotId: "river", arrivedAtRawMs: 2000, verified: true};
+    await component.removeCheckIn(visit);
+    expect(confirm).toHaveBeenLastCalledWith(expect.stringContaining("Local Legend"));
+    await component.removeCheckIn({...visit, verified: false});
+    expect(confirm).toHaveBeenLastCalledWith("Delete this check-in from your private history?");
+    await component.removeCheckIn({...visit, arrivedAtRawMs: 500});
+    expect(confirm).toHaveBeenLastCalledWith("Delete this check-in from your private history?");
+    confirm.mockRestore();
+  });
 
   it("renders legacy notes as private without changing the saved audience field", async () => {
     createComponent();
@@ -218,6 +236,7 @@ function createComponent(
   TestBed.configureTestingModule({
     imports: [TrainingLogPageComponent],
     providers: [
+      {provide: LocalLegendService, useValue: {enabled: signal(false), enabledSinceMs: signal(0)}},
       { provide: SpotSelectionDataService, useValue: { resolveVisitNames: vi.fn().mockResolvedValue(new Map()) } },
         { provide: StoreReviewService, useValue: { registerCompletionSurface: () => () => {} } },
       provideRouter([]),

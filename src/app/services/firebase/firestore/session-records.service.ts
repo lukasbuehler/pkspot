@@ -40,6 +40,7 @@ export interface CheckInHistoryItem {
   spotId: string;
   spotName?: string;
   arrivedAtRawMs: number;
+  verified?: boolean;
 }
 
 interface ScreenshotGlobal {
@@ -194,6 +195,7 @@ export class SessionRecordsService {
             spotId: visit.spot_id,
             ...(visit.spot_name ? { spotName: visit.spot_name } : {}),
             arrivedAtRawMs: visit.arrived_at_raw_ms,
+            ...(visit.verified !== undefined ? {verified: visit.verified} : {}),
           } satisfies CheckInHistoryItem];
         }),
       )

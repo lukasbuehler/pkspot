@@ -6,6 +6,9 @@
   </div>
 
   <h2 class="join__title mat-headline-small" i18n="@@localLegend.join.title">Join Local Legend</h2>
+  @if (forCheckIn) {
+    <p class="join__lead" i18n="@@localLegend.join.beforeCheckIn">Your check-in will be sent after you choose. Closing without choosing cancels this check-in.</p>
+  }
   <p class="join__lead" i18n="@@localLegend.join.lead">
     See your private monthly rank based on your verified training days at each Spot.
   </p>
@@ -26,7 +29,7 @@
   </ul>
 
   <p class="join__optional mat-body-small" i18n="@@localLegend.join.optional">
-    Participation is optional. You can turn it off in Settings and keep using private check-ins.
+    Participation is optional. Only new verified check-ins count after you turn it on. You can leave in Settings and keep using private check-ins.
   </p>
 </mat-dialog-content>
 

@@ -52,7 +52,7 @@ export function spotRankLabel(state: SpotRankState): string {
         ? $localize`:@@spotRank.legend:Local legend`
         : $localize`:@@spotRank.rank:#${state.rank}:rank:`;
     case "too_few_people":
-      return $localize`:@@spotRank.tooFewShort:Too few people to rank`;
+      return $localize`:@@spotRank.tooFewShort:Rank unavailable`;
     case "pending":
       return $localize`:@@spotRank.pendingShort:Rank after tonight's update`;
     case "needs_days":
@@ -68,7 +68,7 @@ export function spotRankTitle(state: SpotRankState): string {
         ? $localize`:@@spotRank.legend:Local legend`
         : $localize`:@@spotRank.rankAtSpot:#${state.rank}:rank: at this Spot`;
     case "too_few_people":
-      return $localize`:@@spotRank.tooFewTitle:Not enough people for a local legend yet`;
+      return $localize`:@@spotRank.tooFewTitle:Rank unavailable`;
     case "pending":
       return $localize`:@@spotRank.pendingTitle:You'll be ranked after tonight's update`;
     case "needs_days":
@@ -88,7 +88,7 @@ export function spotRankDetail(state: SpotRankState): string {
         ? $localize`:@@spotRank.legendBody:You trained here on more days than anyone else this month.`
         : $localize`:@@spotRank.rankBody:Ranked by days with a verified check-in this month.`;
     case "too_few_people":
-      return $localize`:@@spotRank.tooFewBody:Fewer than three people have checked in here this month. Bring some friends!`;
+      return $localize`:@@spotRank.tooFewBody:Local Legend only shows a rank when at least three participating accounts have qualifying check-ins this month.`;
     case "pending":
     case "needs_days":
       return $localize`:@@spotRank.needsDaysBody:Ranks count days with a verified check-in. One visit doesn't make a local legend.`;

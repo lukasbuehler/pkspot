@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { checkOutDurationMinutes } from "../schemas/TrainingSummarySchema";
 import {
   buildTrainingMonthSummary,
+  buildLocalLegendMonthSummary,
   buildTrainingSpotSummary,
   legendTalliesForMonth,
   localDateKey,
@@ -193,5 +194,21 @@ describe("training summaries", () => {
     expect(checkOutDurationMinutes(start, start + 60_000)).toBe(5);
     expect(checkOutDurationMinutes(start, start + 95 * 60_000)).toBe(95);
     expect(checkOutDurationMinutes(start, start + 20 * 3_600_000)).toBe(720);
+  });
+});
+
+describe("Local Legend activation boundary", () => {
+  it("keeps earlier training private while counting only visits after activation, including within a session", () => {
+    const sessions = [checkIn("mixed", "2026-10-10T08:00:00Z", [
+      {spot: "river", at: "2026-10-10T08:00:00Z", verified: true},
+      {spot: "steps", at: "2026-10-10T10:00:00Z", verified: true},
+    ]), checkIn("later", "2026-10-11T10:00:00Z", [{spot: "steps", verified: true}])];
+    const full = buildTrainingMonthSummary("2026-10", sessions, new Set(), Date.now());
+    const eligible = buildLocalLegendMonthSummary("2026-10", sessions, new Set(), at("2026-10-10T09:00:00Z"), Date.now());
+    expect(full?.spots["river"].verified_days).toBe(1);
+    expect(eligible?.spots["river"]).toBeUndefined();
+    expect(eligible?.spots["steps"].verified_days).toBe(2);
+    const rejoined = buildLocalLegendMonthSummary("2026-10", sessions, new Set(), at("2026-10-12T09:00:00Z"), Date.now());
+    expect(legendTalliesForMonth("user", rejoined)).toEqual([]);
   });
 });

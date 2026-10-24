@@ -28,6 +28,29 @@ describe("LocalLegendJoinDialogComponent", () => {
     expect(element.textContent).toContain("Participation is optional");
   });
 
+  it("keeps the dialog open until the server saves the choice and prevents duplicate saves", async () => {
+    const {fixture, setEnabled, close} = render();
+    let finish!: () => void;
+    setEnabled.mockImplementation(() => new Promise<void>(resolve => {finish = resolve;}));
+    const choosing = fixture.componentInstance.choose(true);
+    expect(close).not.toHaveBeenCalled();
+    expect(TestBed.inject(MatDialogRef).disableClose).toBe(true);
+    await fixture.componentInstance.choose(false);
+    expect(setEnabled).toHaveBeenCalledOnce();
+    finish();
+    await choosing;
+    expect(close).toHaveBeenCalledWith(true);
+  });
+
+  it("keeps the choice available when saving fails", async () => {
+    const {fixture, setEnabled, close} = render();
+    setEnabled.mockRejectedValue(new Error("offline"));
+    await fixture.componentInstance.choose(true);
+    expect(close).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.choosing()).toBe(null);
+    expect(TestBed.inject(MatDialogRef).disableClose).toBe(false);
+  });
+
   it("joins only from the explicit button and records Not now as off", async () => {
     const joined = render();
     await joined.fixture.componentInstance.choose(true);

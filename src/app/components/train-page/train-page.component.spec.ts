@@ -1,3 +1,4 @@
+import { LocalLegendService, type LocalLegendState } from "../../services/local-legend.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { take } from "rxjs";
 import { SessionRecordsService } from '../../services/firebase/firestore/session-records.service';
@@ -62,6 +63,18 @@ const eventResult: EventDiscoverySearchResult = {
 
 describe("TrainPageComponent", () => {
   beforeEach(() => TestBed.resetTestingModule());
+
+  it.each(["undecided", "off", "on", "unavailable"] as const)("offers joining before training only for an undecided account (state=%s)", (legendState) => {
+    const component = createComponent({
+      authUser: {uid: "new-user"}, legendState,
+      geolocation: {currentLocation: signal(null), error: signal(null), checkPermissions: vi.fn(), startWatching: vi.fn()},
+      locationAccess: {enabled: signal(false), startWatchingIfEnabled: vi.fn()},
+      search: {searchEventDiscovery: vi.fn(), searchTopSpotPreviewsNearLocation: vi.fn()},
+      series: {getSeriesByIds: vi.fn()},
+    });
+    expect(component.trainingMonths()).toEqual([]);
+    expect(component.showLocalLegendInvite()).toBe(legendState === "undecided");
+  });
 
   it("uses an already-authorized location and loads event series", async () => {
     const currentLocation = signal<{
@@ -419,6 +432,7 @@ function createComponent({
       },
     }),
   },
+  legendState = "unavailable",
   myEvents = {
     goingEventIds: signal<string[]>([]),
     savedEventIds: signal<string[]>([]),
@@ -426,6 +440,7 @@ function createComponent({
   },
 }: {
   authUser?: { uid: string } | null;
+  legendState?: LocalLegendState;
   follows?: { listMine: ReturnType<typeof vi.fn> };
   logs?: { listMine: ReturnType<typeof vi.fn> };
   sessions?: { listMine: ReturnType<typeof vi.fn> };
@@ -460,6 +475,7 @@ function createComponent({
   TestBed.configureTestingModule({
     providers: [
       { provide: PLATFORM_ID, useValue: "browser" },
+      { provide: LocalLegendService, useValue: {state: signal(legendState), enabled: signal(legendState === "on")} },
       { provide: AuthenticationService, useValue: auth },
       { provide: CommunityFollowsService, useValue: follows },
       { provide: LogEntriesService, useValue: logs },

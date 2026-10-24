@@ -1,0 +1,27 @@
+:host { display: block; }
+
+.legend-settings__help {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.legend-settings__subtitle {
+  margin: 8px 0 0;
+}
+
+.legend-settings__list {
+  padding: 0;
+}
+
+.legend-settings__confirmation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 0 16px 12px;
+}
+
+// Removing is destructive, so the confirmation uses the error role.
+.legend-settings__remove {
+  --mat-button-tonal-container-color: var(--mat-sys-error-container);
+  --mat-button-tonal-label-text-color: var(--mat-sys-on-error-container);
+}

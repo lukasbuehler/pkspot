@@ -49,13 +49,26 @@ export class LocalLegendService {
     return settings.enabled ? "on" : "off";
   });
   readonly enabled = computed(() => this.state() === "on");
+  readonly enabledSinceMs = computed(() => this.settings.value()?.enabled_since_raw_ms ?? this.settings.value()?.decided_at_raw_ms ?? 0);
   readonly saving = signal(false);
+
+  /** Resolve loading before a first check-in; unavailable must never mean off. */
+  async choiceForCheckIn(): Promise<"on" | "off" | "undecided"> {
+    const state = this.state();
+    if (state !== "unavailable") return state;
+    const uid = this.uid();
+    if (!uid) throw new Error("Sign in before checking in.");
+    const settings = await this.summaries.getLocalLegend();
+    if (this.uid() !== uid) throw new Error("The signed-in account changed.");
+    this.settings.set(settings);
+    return settings === null ? "undecided" : settings.enabled ? "on" : "off";
+  }
 
   async setEnabled(enabled: boolean): Promise<void> {
     this.saving.set(true);
     try {
-      await this.summaries.setLocalLegend(enabled);
-      this.settings.set({ enabled, decided_at_raw_ms: Date.now() });
+      const result = await this.summaries.setLocalLegend(enabled);
+      this.settings.set({ enabled, decided_at_raw_ms: Date.now(), enabled_since_raw_ms: result.enabledSinceRawMs });
     } catch (error) {
       // Show the stored choice again rather than one that was not saved.
       this.reload.update((value) => value + 1);

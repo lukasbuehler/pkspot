@@ -1,3 +1,4 @@
+import { LocalLegendService } from "../../services/local-legend.service";
 import { LOCALE_ID } from "@angular/core";
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { CheckInLogPromptComponent } from '../check-in-log-prompt/check-in-log-prompt.component';
@@ -88,6 +89,7 @@ interface TrainingTimelineGroup {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainingLogPageComponent {
+  private readonly localLegend = inject(LocalLegendService);
   private readonly router = inject(Router);
   private readonly spotData = inject(SpotSelectionDataService);
   private readonly locale = inject(LOCALE_ID);
@@ -246,14 +248,25 @@ export class TrainingLogPageComponent {
     this.logs.update((logs) => logs.filter((log) => log.id !== id));
   }
 
+  private affectsLocalLegend(checkIn: CheckInHistoryItem): boolean {
+    return this.localLegend.enabled() && checkIn.verified !== false &&
+      checkIn.arrivedAtRawMs >= this.localLegend.enabledSinceMs();
+  }
+
   async removeCheckIn(checkIn: CheckInHistoryItem): Promise<void> {
-    if (!confirm($localize`:@@trainingLog.checkIns.deleteConfirm:Delete this check-in from your private history?`)) return;
+    const warning = this.affectsLocalLegend(checkIn)
+      ? "\n\n" + $localize`:@@trainingLog.checkIns.legendImpact:Deleted check-ins no longer contribute to Local Legend. Your rank may change after the overnight update.`
+      : "";
+    if (!confirm($localize`:@@trainingLog.checkIns.deleteConfirm:Delete this check-in from your private history?` + warning)) return;
     await this.sessionsService.deleteCheckIn(checkIn.checkInId);
     await this.load();
   }
 
   async clearCheckIns(): Promise<void> {
-    if (!confirm($localize`:@@trainingLog.checkIns.clearConfirm:Delete all check-ins from your private history? This cannot be undone.`)) return;
+    const warning = this.checkIns().some((checkIn) => this.affectsLocalLegend(checkIn))
+      ? "\n\n" + $localize`:@@trainingLog.checkIns.legendImpact:Deleted check-ins no longer contribute to Local Legend. Your rank may change after the overnight update.`
+      : "";
+    if (!confirm($localize`:@@trainingLog.checkIns.clearConfirm:Delete all check-ins from your private history? This cannot be undone.` + warning)) return;
     await this.sessionsService.deleteAllCheckIns();
     await this.load();
   }

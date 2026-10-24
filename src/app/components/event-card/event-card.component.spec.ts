@@ -48,6 +48,16 @@ describe("EventCardComponent", () => {
     vi.useRealTimers();
   });
 
+  it("shows only the date for date-only previews", () => {
+    fixture.componentRef.setInput("event", buildEvent("date-only", "2026-12-18T00:00:00Z", "2026-12-20T23:59:00Z", {
+      timing: {mode: "date_only", start_date: "2026-12-18", end_date: "2026-12-20"},
+    }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.dateRange()).toContain("2026");
+    expect(fixture.componentInstance.dateRange()).not.toContain("Time to be announced");
+    expect(fixture.componentInstance.dateRange()).not.toContain("·");
+  });
+
   it("links cards to the canonical event slug route", () => {
     fixture.componentRef.setInput(
       "event",

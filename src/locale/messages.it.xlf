@@ -15563,21 +15563,21 @@
       </segment>
     </unit>
     <unit id="spotRank.tooFewBody">
-      <segment state="translated">
-        <source>Fewer than three people have checked in here this month. Bring some friends!</source>
-        <target>Questo mese meno di tre persone hanno fatto check-in qui. Porta qualche amico!</target>
+      <segment state="initial">
+        <source>Local Legend only shows a rank when at least three participating accounts have qualifying check-ins this month.</source>
+        <target>Local Legend mostra una posizione solo quando almeno tre account partecipanti hanno check-in validi questo mese.</target>
       </segment>
     </unit>
     <unit id="spotRank.tooFewShort">
-      <segment state="translated">
-        <source>Too few people to rank</source>
-        <target>Troppe poche persone per una posizione</target>
+      <segment state="initial">
+        <source>Rank unavailable</source>
+        <target>Posizione non disponibile</target>
       </segment>
     </unit>
     <unit id="spotRank.tooFewTitle">
-      <segment state="translated">
-        <source>Not enough people for a local legend yet</source>
-        <target>Non ci sono ancora abbastanza persone per una leggenda locale</target>
+      <segment state="initial">
+        <source>Rank unavailable</source>
+        <target>Posizione non disponibile</target>
       </segment>
     </unit>
     <unit id="spotPersonalStats.since">
@@ -19864,6 +19864,12 @@
         <target>Esporta</target>
       </segment>
     </unit>
+    <unit id="trainingLog.checkIns.legendImpact">
+      <segment state="initial">
+        <source>Deleted check-ins no longer contribute to Local Legend. Your rank may change after the overnight update.</source>
+        <target>I check-in eliminati non contano più per Local Legend. La tua posizione può cambiare dopo l’aggiornamento notturno.</target>
+      </segment>
+    </unit>
     <unit id="training.loadingSpot">
       <segment state="translated">
         <source>Loading Spot…</source>
@@ -19954,6 +19960,54 @@
         <target>Usare la posizione del dispositivo?</target>
       </segment>
     </unit>
+    <unit id="localLegend.data.confirmLeave">
+      <segment state="initial">
+        <source>Leave and delete current ranks</source>
+        <target>Esci ed elimina le posizioni attuali</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.empty">
+      <segment state="initial">
+        <source>No past ranks to manage.</source>
+        <target>Nessuna posizione passata da gestire.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.explanation">
+      <segment state="initial">
+        <source>Only verified check-ins made after you turn Local Legend on count. Ranks update overnight. Your check-ins and training history are kept when you leave or delete a past rank.</source>
+        <target>Contano solo i check-in verificati effettuati dopo l’attivazione di Local Legend. Le posizioni vengono aggiornate di notte. I tuoi check-in e la cronologia degli allenamenti restano quando esci o elimini una posizione passata.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.leave">
+      <segment state="initial">
+        <source>Leave Local Legend</source>
+        <target>Esci da Local Legend</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.loadFailed">
+      <segment state="initial">
+        <source>Couldn&apos;t load your rank history.</source>
+        <target>Impossibile caricare la cronologia delle posizioni.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.retry">
+      <segment state="initial">
+        <source>Try again</source>
+        <target>Riprova</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.title">
+      <segment state="initial">
+        <source>Manage Local Legend data</source>
+        <target>Gestisci i dati di Local Legend</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.data.withdrawConfirm">
+      <segment state="initial">
+        <source>Leave Local Legend? Your current-month ranks and comparison data will be deleted across all Spots. Past ranks stay. If you join again, only new check-ins will count.</source>
+        <target>Uscire da Local Legend? Le tue posizioni del mese corrente e i dati di confronto saranno eliminati per tutti gli Spots. Le posizioni passate restano. Se partecipi di nuovo, conteranno solo i nuovi check-in.</target>
+      </segment>
+    </unit>
     <unit id="localLegend.history.help">
       <segment state="translated">
         <source>Removing a rank deletes it from your history for good.</source>
@@ -19996,12 +20050,6 @@
         <target>Scopri di più</target>
       </segment>
     </unit>
-    <unit id="localLegend.invite.body">
-      <segment state="translated">
-        <source>See your private monthly rank at this Spot.</source>
-        <target>Vedi la tua posizione mensile privata in questo Spot.</target>
-      </segment>
-    </unit>
     <unit id="localLegend.invite.title">
       <segment state="translated">
         <source>Become the local legend</source>
@@ -20012,6 +20060,12 @@
       <segment state="translated">
         <source>Opt in to a private monthly rank at the Spots where you check in.</source>
         <target>Partecipa e vedi la tua posizione mensile privata negli Spot in cui fai check-in.</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.join.beforeCheckIn">
+      <segment state="initial">
+        <source>Your check-in will be sent after you choose. Closing without choosing cancels this check-in.</source>
+        <target>Il check-in verrà inviato dopo la tua scelta. Chiudendo senza scegliere, questo check-in viene annullato.</target>
       </segment>
     </unit>
     <unit id="localLegend.join.compare">
@@ -20045,9 +20099,9 @@
       </segment>
     </unit>
     <unit id="localLegend.join.optional">
-      <segment state="translated">
-        <source> Participation is optional. You can turn it off in Settings and keep using private check-ins. </source>
-        <target>La partecipazione è facoltativa. Puoi disattivarla nelle impostazioni e continuare a usare i check-in privati.</target>
+      <segment state="initial">
+        <source> Participation is optional. Only new verified check-ins count after you turn it on. You can leave in Settings and keep using private check-ins. </source>
+        <target>La partecipazione è facoltativa. Contano solo i nuovi check-in verificati dopo l’attivazione. Puoi uscire nelle impostazioni e continuare a usare i check-in privati.</target>
       </segment>
     </unit>
     <unit id="localLegend.join.private">
@@ -20074,10 +20128,16 @@
         <target>Una posizione mensile privata negli Spot in cui fai check-in, basata sui giorni con un check-in verificato. Vengono confrontati solo gli account partecipanti e nessun altro vede la tua posizione.</target>
       </segment>
     </unit>
-    <unit id="localLegend.settings.offHelp">
-      <segment state="translated">
-        <source> You are not compared with anyone. Your past ranks are kept privately and come back if you turn Local Legend on again. </source>
-        <target>Non vieni confrontato con nessuno. Le tue posizioni passate restano salvate privatamente e tornano se riattivi Local Legend.</target>
+    <unit id="localLegend.settings.manage">
+      <segment state="initial">
+        <source>Manage Local Legend data</source>
+        <target>Gestisci i dati di Local Legend</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.settings.participationHelp">
+      <segment state="initial">
+        <source>Only new verified check-ins count after you turn it on. Ranks update overnight. Leaving removes your current-month ranks; past ranks stay private.</source>
+        <target>Contano solo i nuovi check-in verificati dopo l’attivazione. Le posizioni vengono aggiornate di notte. Uscire elimina le posizioni del mese corrente; quelle passate restano private.</target>
       </segment>
     </unit>
     <unit id="localLegend.settings.title">

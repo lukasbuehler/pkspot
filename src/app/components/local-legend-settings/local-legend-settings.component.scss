@@ -21,23 +21,3 @@
 .legend-settings__help {
   color: var(--mat-sys-on-surface-variant);
 }
-
-.legend-settings__subtitle {
-  margin: 8px 0 0;
-}
-
-.legend-settings__list {
-  padding: 0;
-}
-
-.legend-settings__actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-// Removing is destructive, so the confirmation uses the error role.
-.legend-settings__remove {
-  --mat-button-tonal-container-color: var(--mat-sys-error-container);
-  --mat-button-tonal-label-text-color: var(--mat-sys-on-error-container);
-}
