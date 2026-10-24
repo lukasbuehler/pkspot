@@ -86,6 +86,12 @@
   margin-bottom: 3rem;
 }
 
+@media (min-width: 800px) {
+  .event-hero {
+    height: clamp(280px, 42vh, 420px);
+  }
+}
+
 .event-hero app-event-hero-media {
   display: block;
   inline-size: 100%;
@@ -411,10 +417,6 @@ a.featured-participant-name {
   .qualification-event-grid {
     grid-template-columns: 1fr;
   }
-}
-.event-now-next {
-  display: block;
-  margin-bottom: 1rem;
 }
 
 // Data-source attribution belongs at the end of the page, not in the header.

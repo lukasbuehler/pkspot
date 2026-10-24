@@ -364,6 +364,76 @@ describe("EventPageDataService", () => {
     expect(bounds.east - bounds.west).toBeGreaterThan(0.06);
   });
 
+  it.each<{ name: string; patch: Partial<EventSchema>; cityView: boolean }>([
+    { name: "one linked Spot", patch: { spot_ids: ["one"] }, cityView: true },
+    { name: "multiple linked Spots", patch: { spot_ids: ["one", "two"] }, cityView: false },
+    {
+      name: "linked and inline Spots",
+      patch: { spot_ids: ["one"], inline_spots: [{ name: "Two", location: { lat: 47.351, lng: 8.551 } }] },
+      cityView: false,
+    },
+    {
+      name: "multiple inline Spots",
+      patch: { inline_spots: [
+        { name: "One", location: { lat: 47.35, lng: 8.55 } },
+        { name: "Two", location: { lat: 47.351, lng: 8.551 } },
+      ] },
+      cityView: false,
+    },
+    {
+      name: "one custom pin",
+      patch: { custom_markers: [{ location: { lat: 47.35, lng: 8.55 } }] },
+      cityView: true,
+    },
+    {
+      name: "multiple custom pins",
+      patch: { custom_markers: [
+        { location: { lat: 47.35, lng: 8.55 } },
+        { location: { lat: 47.351, lng: 8.551 } },
+      ] },
+      cityView: false,
+    },
+    {
+      name: "a Spot and a custom pin",
+      patch: { spot_ids: ["one"], custom_markers: [{ location: { lat: 47.351, lng: 8.551 } }] },
+      cityView: false,
+    },
+    {
+      name: "an area",
+      patch: { area_polygon: [{ points: [
+        { lat: 47.35, lng: 8.55 },
+        { lat: 47.351, lng: 8.55 },
+        { lat: 47.351, lng: 8.551 },
+      ] }] },
+      cityView: false,
+    },
+  ])("uses the appropriate map extent for $name", ({ patch, cityView }) => {
+    TestBed.configureTestingModule({ providers: [
+      { provide: EventsService, useValue: {} },
+      { provide: SpotsService, useValue: {} },
+      { provide: SpotChallengesService, useValue: {} },
+      { provide: SearchService, useValue: {} },
+      { provide: LOCALE_ID, useValue: "en" },
+    ] });
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("small-map", {
+      bounds: { north: 47.352, south: 47.35, east: 8.552, west: 8.55 },
+      ...patch,
+    });
+
+    const bounds = service.eventMapBounds(event)!;
+
+    if (cityView) {
+      expect(bounds.north - bounds.south).toBeGreaterThan(0.06);
+    } else {
+      // Keep the previous fit and pan padding without the city-sized minimum.
+      expect(bounds.north).toBeCloseTo(47.3532);
+      expect(bounds.south).toBeCloseTo(47.3498);
+      expect(bounds.east).toBeCloseTo(8.5522);
+      expect(bounds.west).toBeCloseTo(8.5498);
+    }
+  });
+
   it("loads linked event spots from Typesense previews", async () => {
     const searchService = {
       searchSpotPreviewsByIds: vi.fn(() =>

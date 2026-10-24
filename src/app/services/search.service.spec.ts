@@ -994,6 +994,13 @@ describe("SearchService", () => {
   });
 
   describe("getEventPreviewFromHit", () => {
+    it.each([true, false, undefined])("carries explicit livestream status %s through a Typesense-only map preview", (live) => {
+      const hit = {document: {id: "broadcast", name: "Broadcast", start_seconds: 1792750000,
+        end_seconds: 1792850000, livestream_live: live}};
+      expect(service.getEventPreviewFromHit(hit).livestreamLive).toBe(live === true);
+      expect(service.getEventFromHit(hit)?.livestreamLive).toBe(live === true);
+    });
+
     it("maps Typesense event hits to lightweight previews with resolved media and geo fields", () => {
       const preview = service.getEventPreviewFromHit({
         document: {

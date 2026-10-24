@@ -35,6 +35,7 @@ export const EVENT_DISCOVERY_FIELDS = [
   "active_until",
   "url",
   "event_links",
+  "livestream_live",
   "ticket_options",
   "event_categories",
   "listing_tier",

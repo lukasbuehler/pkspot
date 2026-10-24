@@ -1,0 +1,18 @@
+:host { display: block; width: 100%; height: 100%; pointer-events: auto; }
+.youtube-player { display: flex; flex-direction: column; height: 100%; width: 100%; background: var(--mat-sys-surface-container-high); border-radius: inherit; overflow: hidden; }
+iframe { width: 100%; flex: 1; min-height: 0; border: 0; }
+.youtube-consent { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 8px; padding: 16px; text-align: center; font: var(--mat-sys-body-small); }
+p { margin: 0; }
+a { color: var(--mat-sys-primary); }
+.youtube-watch { flex-shrink: 0; }
+.youtube-policies { margin-top: 4px; }
+
+@media (max-width: 799px) {
+  .youtube-consent p {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}
+
+.youtube-consent button,
+.youtube-consent .youtube-watch { flex-shrink: 0; max-width: 100%; white-space: normal; height: auto; min-height: 40px; padding-block: 8px; }

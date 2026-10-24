@@ -1249,6 +1249,7 @@ export class SearchService {
           : undefined,
       url: typeof doc?.url === "string" ? doc.url : undefined,
       eventLinks: readEventLinks(doc?.event_links),
+      livestreamLive: doc?.livestream_live === true,
       ticketOptions: readEventTicketOptions(doc?.ticket_options),
       spotIds,
       communityKeys: Array.isArray(doc?.community_keys)
@@ -1348,6 +1349,7 @@ export class SearchService {
           : undefined,
       url: preview.url,
       event_links: preview.eventLinks,
+      livestream_live: preview.livestreamLive,
       ticket_options: preview.ticketOptions,
       spot_ids: preview.spotIds,
       community_keys: preview.communityKeys,
@@ -1854,6 +1856,7 @@ export class SearchService {
       "promo_region_radius_m",
       "url",
       "event_links",
+      "livestream_live",
       "ticket_options",
       "spot_ids",
       "community_keys",
@@ -2792,6 +2795,7 @@ export interface EventSearchPreview {
   externalSourceUrl?: string;
   url?: string;
   eventLinks: EventLinkSchema[];
+  livestreamLive?: boolean;
   ticketOptions: EventTicketOptionSchema[];
   spotIds: string[];
   communityKeys: string[];

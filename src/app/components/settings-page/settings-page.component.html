@@ -463,6 +463,22 @@
           </h3>
 
           <app-local-legend-settings class="my-4" />
+          <section class="my-4 p-3 settings-box border">
+            <h3 class="mat-h3 m-0" i18n="@@external_media.settings.title">External media</h3>
+            <p class="mat-body mt-2" i18n="@@external_media.settings.description">These choices are saved on this device. Loading third-party content connects to its provider and may share device and playback data.</p>
+            <div class="d-flex flex-column gap-3">
+              <p class="mat-body-small">
+                <span i18n="@@youtube.settings_agreement">By allowing YouTube, you agree to its Terms of Service.</span>
+                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" i18n="@@youtube.terms">YouTube Terms</a>
+                · <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" i18n="@@youtube.privacy">Google Privacy Policy</a>
+              </p>
+              <mat-slide-toggle [checked]="externalMedia.youtubeAllowed()" (change)="externalMedia.setYoutubeAllowed($event.checked)" i18n="@@external_media.settings.youtube">Always allow YouTube</mat-slide-toggle>
+              <mat-slide-toggle [checked]="externalMedia.external().allowAll" (change)="externalMedia.setOtherAllowed($event.checked)" i18n="@@external_media.settings.other">Always allow other external images and videos</mat-slide-toggle>
+              <p class="mat-body-small" i18n="@@external_media.settings.separate">YouTube is controlled separately. Individual website permissions can also be granted in the media carousel. Resetting clears all saved and temporary permissions.</p>
+              <button mat-stroked-button type="button" (click)="externalMedia.reset()" i18n="@@external_media.settings.reset">Reset external media permissions</button>
+            </div>
+          </section>
+
 
           <div class="my-4 p-3 settings-box border">
             <h3 class="mat-h3 m-0" i18n="@@locationAccess.settings.title">Location</h3>

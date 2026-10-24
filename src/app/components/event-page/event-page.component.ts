@@ -109,7 +109,6 @@ import {
   EventOwnershipClaimDialogData,
 } from "../event-ownership-claim-dialog/event-ownership-claim-dialog.component";
 import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
-import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next-card.component";
 import { EventTicketListComponent } from "../event-ticket-list/event-ticket-list.component";
 import {
   eventProgramDays,
@@ -170,7 +169,6 @@ type ProgramMapMarker = MarkerSchema & {
     EventAccessManagerComponent,
     EventRegistrationManagerComponent,
     EventProgramDayChipsComponent,
-    EventNowNextCardComponent,
     EventTicketListComponent,
     SafetyCaseFormComponent,
   ],

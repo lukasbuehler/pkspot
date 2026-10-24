@@ -43,14 +43,22 @@
       {{ island.event.name }}
     </div>
     <div class="island-secondary-text mat-label-small text-truncate">
-      {{ island.event.localityLabel }}
+      @if (hasBroadcast()) {
+        <span i18n="@@map_island.broadcast">Watch the broadcast</span>
+      } @else {
+        {{ island.event.localityLabel }}
+      }
     </div>
   </button>
 
   <div class="island-actions d-flex flex-row gap-1">
     <button type="button" mat-flat-button color="primary" class="flex-shrink-0"
       (click)="onOpenEvent(); $event.stopPropagation()">
-      <span i18n="@@map_island.event_open">Open</span>
+      @if (hasBroadcast()) {
+        <span i18n="@@map_island.watch">Watch</span>
+      } @else {
+        <span i18n="@@map_island.event_open">Open</span>
+      }
     </button>
 
     <button type="button" mat-icon-button class="flex-shrink-0 d-flex"

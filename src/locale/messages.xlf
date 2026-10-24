@@ -191,6 +191,11 @@
         <source>Event filters</source>
       </segment>
     </unit>
+    <unit id="map_island.broadcast">
+      <segment>
+        <source>Watch the broadcast</source>
+      </segment>
+    </unit>
     <unit id="map_island.community_open">
       <segment>
         <source>View</source>
@@ -244,6 +249,11 @@
     <unit id="map_island.event_open">
       <segment>
         <source>Open</source>
+      </segment>
+    </unit>
+    <unit id="map_island.watch">
+      <segment>
+        <source>Watch</source>
       </segment>
     </unit>
     <unit id="spot.upcoming_events.header">
@@ -1223,11 +1233,6 @@
     <unit id="train.now.openSession">
       <segment>
         <source>Open session</source>
-      </segment>
-    </unit>
-    <unit id="train.now.saved">
-      <segment>
-        <source>Saved</source>
       </segment>
     </unit>
     <unit id="train.now.startsAt">
@@ -4569,6 +4574,16 @@
         <source> Event links </source>
       </segment>
     </unit>
+    <unit id="event_edit.livestream_live">
+      <segment>
+        <source> Livestream is live </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.livestream_live_hint">
+      <segment>
+        <source> Show broadcast wording in the map island while this event is active. Turn this off when the stream ends; keep the video for replays. </source>
+      </segment>
+    </unit>
     <unit id="event_edit.locality">
       <segment>
         <source>Locality</source>
@@ -6676,6 +6691,36 @@
       </notes>
       <segment>
         <source>Events</source>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.description">
+      <segment>
+        <source>These choices are saved on this device. Loading third-party content connects to its provider and may share device and playback data.</source>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.other">
+      <segment>
+        <source>Always allow other external images and videos</source>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.reset">
+      <segment>
+        <source>Reset external media permissions</source>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.separate">
+      <segment>
+        <source>YouTube is controlled separately. Individual website permissions can also be granted in the media carousel. Resetting clears all saved and temporary permissions.</source>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.title">
+      <segment>
+        <source>External media</source>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.youtube">
+      <segment>
+        <source>Always allow YouTube</source>
       </segment>
     </unit>
     <unit id="for_parkour_spots_chip_label">
@@ -13367,6 +13412,11 @@
         <source>Spot deleted</source>
       </segment>
     </unit>
+    <unit id="3877213706369116643">
+      <segment>
+        <source>YouTube video player</source>
+      </segment>
+    </unit>
     <unit id="5274576717459953946">
       <segment>
         <source>Containment summary</source>
@@ -13593,6 +13643,46 @@
     <unit id="whatsNew.train.title">
       <segment>
         <source>Train tab</source>
+      </segment>
+    </unit>
+    <unit id="youtube.agreement">
+      <segment>
+        <source> Loading means you agree to YouTube’s Terms of Service. </source>
+      </segment>
+    </unit>
+    <unit id="youtube.always">
+      <segment>
+        <source> Always allow YouTube on this device </source>
+      </segment>
+    </unit>
+    <unit id="youtube.consent">
+      <segment>
+        <source> YouTube/Google may collect device and playback data when loaded. Privacy-enhanced mode is enabled. </source>
+      </segment>
+    </unit>
+    <unit id="youtube.load">
+      <segment>
+        <source> Load this video </source>
+      </segment>
+    </unit>
+    <unit id="youtube.privacy">
+      <segment>
+        <source>Google Privacy Policy</source>
+      </segment>
+    </unit>
+    <unit id="youtube.settings_agreement">
+      <segment>
+        <source>By allowing YouTube, you agree to its Terms of Service.</source>
+      </segment>
+    </unit>
+    <unit id="youtube.terms">
+      <segment>
+        <source>YouTube Terms</source>
+      </segment>
+    </unit>
+    <unit id="youtube.watch">
+      <segment>
+        <source>Watch on YouTube</source>
       </segment>
     </unit>
     <unit id="welcomeDialogText">

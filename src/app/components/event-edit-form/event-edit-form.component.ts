@@ -1,3 +1,4 @@
+import { youtubeVideoId } from "../../../db/utils/youtube-video";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -487,6 +488,7 @@ export class EventEditFormComponent {
     series_ids_csv: [""],
     promo_radius_m: [null as number | null],
     is_promoted: [false],
+    livestream_live: [false],
     sponsor_name: [""],
     sponsor_url: [""],
     sponsor_logo_src: [""],
@@ -895,6 +897,7 @@ export class EventEditFormComponent {
             ? e.promoRegion.radius_m
             : null,
         is_promoted: e.isPromoted,
+        livestream_live: e.livestreamLive,
         sponsor_name: e.sponsor?.name ?? "",
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
@@ -2359,6 +2362,7 @@ export class EventEditFormComponent {
       logo_background_color: trimOrUndefined(v.logo_background_color),
       focus_zoom: numberOrUndefined(v.focus_zoom),
       media: [...this.externalMedia()],
+      livestream_live: v.livestream_live === true,
       custom_markers: this._buildCustomMarkersPatch(),
       inline_spots: this._buildInlineSpotsPatch(),
       spot_ids: [...this.spotIds()],
@@ -3274,7 +3278,7 @@ function safeExternalUrl(value: string | null | undefined): string | null {
 
 function inferMediaType(url: string): MediaType {
   const pathname = new URL(url).pathname.toLowerCase();
-  return /\.(?:mp4|m4v|mov|webm|ogv)$/u.test(pathname)
+  return youtubeVideoId(url) || /\.(?:mp4|m4v|mov|webm|ogv)$/u.test(pathname)
     ? MediaType.Video
     : MediaType.Image;
 }

@@ -48,6 +48,14 @@ describe("ImgCarouselComponent", () => {
     return scrollTo;
   };
 
+  it("routes YouTube through its own consent gate without requesting thumbnails or video files", () => {
+    const fixture = createFixture();
+    fixture.componentRef.setInput("media", [new ExternalVideo("https://youtu.be/uG9SCwcHA7k")]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector("app-youtube-player")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector("img, video, iframe, .external-media-gate-card")).toBeNull();
+  });
+
   it("renders external videos with an external media source link", () => {
     localStorage.setItem(
       "pkspot.showExternalMedia.v1",
@@ -382,6 +390,9 @@ describe("SwiperDialogComponent", () => {
   });
 
   it("keeps temporarily allowed external media in the swiper", () => {
+    localStorage.setItem("pkspot.showExternalMedia.v1", JSON.stringify({
+      allowAll: false, allowedDomains: [], temporaryAllowedDomains: { "temporary.example.com": Date.now() + 60000 },
+    }));
     const temporaryAllowed = new ExternalImage(
       "https://temporary.example.com/image.jpg",
     );

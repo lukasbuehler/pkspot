@@ -1738,6 +1738,20 @@
           >
             External media links
           </p>
+          <mat-checkbox
+            formControlName="livestream_live"
+            i18n="@@event_edit.livestream_live"
+          >
+            Livestream is live
+          </mat-checkbox>
+          <p
+            class="mat-body-small text-muted"
+            i18n="@@event_edit.livestream_live_hint"
+          >
+            Show broadcast wording in the map island while this event is active.
+            Turn this off when the stream ends; keep the video for replays.
+          </p>
+
           <div class="d-flex flex-row gap-2 flex-wrap align-items-start">
             <mat-form-field appearance="outline" class="flex-grow-1">
               <mat-label i18n="@@event_edit.external_media_url">

@@ -1,3 +1,4 @@
+import { ExternalMediaPreferencesService } from "../../services/external-media-preferences.service";
 import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { AdultVerificationDialogComponent } from "../adult-verification-dialog/adult-verification-dialog.component";
 import { inject as injectFeatureTelemetry } from "@angular/core";
@@ -105,6 +106,7 @@ export class SettingsPageComponent implements OnInit {
 
   readonly mapProfiler = injectFeatureTelemetry(MapPerformanceProfilerService);
   readonly appVersion = version;
+  readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
 
   async copyMapDiagnostics(): Promise<void> {
     try {

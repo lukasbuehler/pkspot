@@ -105,7 +105,14 @@ export class EventPageDataService {
       baseBounds,
     );
 
-    const normalized = this._withMinimumSpan(this._normalizeBounds(bounds));
+    const normalizedBounds = this._normalizeBounds(bounds);
+    // Areas and multiple locations provide their own context without a city view.
+    const hasMapContext =
+      !!event.areaPolygon?.length ||
+      event.spotIds.length + event.inlineSpots.length + event.customMarkers.length > 1;
+    const normalized = hasMapContext
+      ? normalizedBounds
+      : this._withMinimumSpan(normalizedBounds);
     // Leave room to pan beyond pins, with extra headroom for the day chips.
     const latitudePadding = (normalized.north - normalized.south) * 0.1;
     const longitudePadding = (normalized.east - normalized.west) * 0.1;
@@ -118,7 +125,7 @@ export class EventPageDataService {
   }
 
   /**
-   * A single Spot or a tight cluster would otherwise fit (and restrict) the
+   * A single location would otherwise fit (and restrict) the
    * map to a few streets. Grow small bounds around their centre to roughly a
    * city view (about 7 km tall) so visitors can see where the event is.
    */

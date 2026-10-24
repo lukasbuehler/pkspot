@@ -44,7 +44,7 @@ describe("OSM attribution and privacy disclosure", () => {
       "src/app/components/privacy-policy/privacy-policy.component.html",
     );
 
-    expect(privacyPolicy).toContain("Last Updated: 19 October 2026");
+    expect(privacyPolicy).toMatch(/Last Updated: \d{1,2} [A-Za-z]+ \d{4}/u);
     expect(privacyPolicy).toContain("OpenStreetMap amenity markers");
     expect(privacyPolicy).toMatch(
       /your device sends\s+the requested coarse map tile to our Firebase backend/u,

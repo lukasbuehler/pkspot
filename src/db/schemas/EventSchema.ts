@@ -638,6 +638,8 @@ export interface EventSchema {
   active_until?: Timestamp;
   /** Optional external event URL (ticketing, organizer site). */
   url?: string;
+  /** Manually controlled broadcast status. Missing means not live; URLs remain for replays. */
+  livestream_live?: boolean;
   /** Public external CTAs shown on the event page. */
   event_links?: EventLinkSchema[];
   /** Public ticket tiers/offers. Transactions happen on linked external sites. */

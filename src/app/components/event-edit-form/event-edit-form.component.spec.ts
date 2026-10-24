@@ -662,6 +662,35 @@ describe("EventEditFormComponent", () => {
     });
   });
 
+  it("loads and saves the livestream checkbox without removing replay media", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const save = vi.fn();
+    component.save.subscribe(save);
+    fixture.componentRef.setInput("event", eventWith("broadcast", {
+      livestream_live: true,
+      media: [{type: "video", src: "https://youtu.be/uG9SCwcHA7k", isInStorage: false}],
+    }));
+    fixture.detectChanges();
+    expect(component.form.controls.livestream_live.value).toBe(true);
+    component.form.controls.livestream_live.setValue(false);
+    component.onSubmit();
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({livestream_live: false,
+      media: [expect.objectContaining({src: "https://youtu.be/uG9SCwcHA7k"})]}));
+  });
+
+  it("adds a YouTube livestream as video media without accepting iframe HTML", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    component.form.patchValue({external_media_url: "https://www.youtube-nocookie.com/embed/uG9SCwcHA7k?si=example"});
+    component.addExternalMediaFromUrl();
+    expect(component.externalMedia()[0]).toMatchObject({type: "video", isInStorage: false});
+    component.form.patchValue({external_media_url: '<iframe src="https://www.youtube.com/embed/uG9SCwcHA7k"></iframe>'});
+    component.addExternalMediaFromUrl();
+    expect(component.externalMedia()).toHaveLength(1);
+    expect(component.form.controls["external_media_url"].hasError("url")).toBe(true);
+  });
+
   it("uses display-sized image URLs for media previews", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

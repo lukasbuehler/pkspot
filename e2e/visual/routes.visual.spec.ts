@@ -42,6 +42,7 @@ interface RouteVisualCase {
     target: string;
   };
   ticketLayout?: "desktop" | "mobile";
+  youtubeFixture?: boolean;
 }
 
 const desktopViewport = { width: 1280, height: 900 };
@@ -50,6 +51,8 @@ const mobileViewport = { width: 390, height: 844 };
 const alainMobileViewport = { width: 390, height: 680 };
 
 const routeVisualCases: RouteVisualCase[] = [
+  { name: "event-youtube-desktop", path: "/events/visual-youtube-event", youtubeFixture: true, viewport: desktopViewport, fixedTime: "2026-10-23T12:00:00.000Z" },
+  { name: "event-youtube-mobile", path: "/events/visual-youtube-event", youtubeFixture: true, viewport: mobileViewport, fixedTime: "2026-10-23T12:00:00.000Z" },
   { name: "finances", path: "/finances", signedIn: true, admin: true, fullPage: true, fixedTime: "2026-10-06T12:00:00.000Z" },
   { name: "finances-alain", path: "/finances", signedIn: true, admin: true, viewport: alainMobileViewport, fullPage: true, fixedTime: "2026-10-06T12:00:00.000Z", assertAlainClearance: { axis: "block", target: "app-finances-page header" } },
   { name: "finances-entry", path: "/finances", signedIn: true, admin: true, viewport: mobileViewport, fullPage: true, fixedTime: "2026-10-06T12:00:00.000Z" },
@@ -677,12 +680,42 @@ const routeVisualCases: RouteVisualCase[] = [
 ];
 
 test.describe("Route visual regression @visual", () => {
+  test("loads YouTube only after consent and resets permissions from Settings", async ({page}) => {
+    const requests: string[] = [];
+    await page.route(/https:\/\/(?:www\.)?(?:youtube(?:-nocookie)?\.com|i\.ytimg\.com)\//, async route => {
+      requests.push(route.request().url());
+      await route.fulfill({contentType: "text/html", body: "<html><body>Deterministic player fixture</body></html>"});
+    });
+    await prepareRoute(page, {name: "youtube-consent", path: "/events/visual-youtube-event", youtubeFixture: true, signedIn: true, viewport: mobileViewport});
+    const player = page.locator("app-youtube-player");
+    await expect(player).toBeVisible();
+    expect(requests).toEqual([]);
+    await player.locator("button").first().click();
+    await expect(player.locator("iframe")).toHaveAttribute("src", "https://www.youtube-nocookie.com/embed/uG9SCwcHA7k?playsinline=1&autoplay=0");
+    await expect.poll(() => requests.length).toBeGreaterThan(0);
+    expect(await page.evaluate(() => localStorage.getItem("pkspot.youtubeEmbeds.v1"))).toBeNull();
+    await page.goto("/de/settings/general");
+    await page.getByRole("button", {name: "Berechtigungen für externe Medien zurücksetzen"}).click();
+    expect(await page.evaluate(() => localStorage.getItem("pkspot.youtubeEmbeds.v1"))).toBe("false");
+    const count = requests.length;
+    await page.goto("/de/events/visual-youtube-event");
+    await expect(player).toBeVisible();
+    await expect(player.locator("iframe")).toHaveCount(0);
+    expect(requests).toHaveLength(count);
+  });
+
   for (const route of routeVisualCases) {
     test(`matches ${route.name} route`, async ({ page }) => {
       test.skip(route.path === "/finances" && !financesFeatureEnabled, "Finance view is disabled in every environment.");
       await prepareRoute(page, route);
 
       await expect(page.locator("mat-snack-bar-container")).toHaveCount(0);
+      if (route.youtubeFixture) {
+        await expect(page.locator("app-youtube-player")).toBeVisible();
+        await expect(page.locator("app-youtube-player iframe, app-youtube-player img")).toHaveCount(0);
+        await expect(page.locator("app-youtube-player .youtube-watch")).toBeVisible();
+      }
+
       if (route.name.startsWith("moderation-duplicates")) {
         await expect(page.locator(".duplicate-group")).toHaveCount(1);
         await expect(page.locator(".duplicate-group")).toContainText("Riverside training walls");
@@ -1348,6 +1381,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     ({
       acceptedVersion,
       plannedSessionFixture,
+      youtubeFixture,
       admin,
       eventIndexFixture,
       invalidEventFixture,
@@ -1365,6 +1399,16 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       (globalThis as typeof globalThis & { __PKSPOT_STORE_SCREENSHOT__?: boolean })
         .__PKSPOT_STORE_SCREENSHOT__ = true;
       localStorage.setItem("acceptedVersion", acceptedVersion);
+      if (youtubeFixture) {
+        (window as typeof window & { __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown }).__PKSPOT_SCREENSHOT_EVENT_INDEX__ = {
+          events: [{id: "visual-youtube-event", slug: "visual-youtube-event", name: "World Championships broadcast test",
+            start: "2026-10-23T10:00:00Z", end: "2026-10-24T18:00:00Z", time_zone: "Europe/Zurich",
+            published: true, publication_state: "published", visibility: "public", kind: "competition",
+            notification_policy: "none", media: [{type: "video", src: "https://www.youtube.com/watch?v=uG9SCwcHA7k", isInStorage: false}],
+          }],
+        };
+      }
+
       (globalThis as typeof globalThis & { __PKSPOT_SCREENSHOT_DUPLICATES__?: unknown }).__PKSPOT_SCREENSHOT_DUPLICATES__ = [{
         id: "visual-duplicates", closestDistanceMeters: 2,
         spots: [{id: "visual-spot-one", label: "Riverside training walls", createdAtMillis: 1750000000000},
@@ -2227,6 +2271,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       }
     },
     {
+      youtubeFixture: route.youtubeFixture === true,
       acceptedVersion: CURRENT_TERMS_VERSION,
       plannedSessionFixture: route.plannedSessionFixture,
       admin: route.admin === true,

@@ -93,6 +93,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     "end",
     "url",
     "event_links",
+    "livestream_live",
     "ticket_options",
     "ticket_options.label_i18n",
     "ticket_options.description_i18n",
@@ -307,6 +308,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     place_names: "object",
     location: "firestore-geopoint",
     url: "string",
+    livestream_live: "bool",
     banner_src: "string",
     banner_fit: "string",
     banner_accent_color: "string",
@@ -384,6 +386,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     locality_string: { kind: "direct", source: "locality_string" },
     location: { kind: "direct", source: "location" },
     url: { kind: "direct", source: "url" },
+    livestream_live: { kind: "direct", source: "livestream_live" },
 
     banner_src: { kind: "direct", source: "banner_src" },
     banner_fit: { kind: "direct", source: "banner_fit" },

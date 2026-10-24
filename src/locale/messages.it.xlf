@@ -1856,6 +1856,12 @@
         <target>Filtri eventi</target>
       </segment>
     </unit>
+    <unit id="map_island.broadcast">
+      <segment state="initial">
+        <source>Watch the broadcast</source>
+        <target>Guarda la diretta</target>
+      </segment>
+    </unit>
     <unit id="map_island.community_open">
       <segment state="initial">
         <source>View</source>
@@ -1917,6 +1923,12 @@
       <segment state="initial">
         <source>Open</source>
         <target>Apri</target>
+      </segment>
+    </unit>
+    <unit id="map_island.watch">
+      <segment state="initial">
+        <source>Watch</source>
+        <target>Guarda</target>
       </segment>
     </unit>
     <unit id="spot.upcoming_events.header">
@@ -6478,12 +6490,6 @@
         <target>Apri sessione</target>
       </segment>
     </unit>
-    <unit id="train.now.saved">
-      <segment state="translated">
-        <source>Saved</source>
-        <target>Salvato</target>
-      </segment>
-    </unit>
     <unit id="train.now.startsAt">
       <segment state="translated">
         <source>Starts at <ph id="0" equiv="time" disp="time"/></source>
@@ -7405,6 +7411,54 @@
       <segment state="translated">
         <source>Train tab</source>
         <target>Scheda Allenamento</target>
+      </segment>
+    </unit>
+    <unit id="youtube.agreement">
+      <segment state="initial">
+        <source> Loading means you agree to YouTube’s Terms of Service. </source>
+        <target> Caricando, accetti i termini di servizio di YouTube. </target>
+      </segment>
+    </unit>
+    <unit id="youtube.always">
+      <segment state="initial">
+        <source> Always allow YouTube on this device </source>
+        <target> Consenti sempre YouTube su questo dispositivo </target>
+      </segment>
+    </unit>
+    <unit id="youtube.consent">
+      <segment state="initial">
+        <source> YouTube/Google may collect device and playback data when loaded. Privacy-enhanced mode is enabled. </source>
+        <target> Al caricamento, YouTube/Google può raccogliere dati sul dispositivo e sulla riproduzione. La modalità di privacy avanzata è attiva. </target>
+      </segment>
+    </unit>
+    <unit id="youtube.load">
+      <segment state="initial">
+        <source> Load this video </source>
+        <target> Carica questo video </target>
+      </segment>
+    </unit>
+    <unit id="youtube.privacy">
+      <segment state="initial">
+        <source>Google Privacy Policy</source>
+        <target>Norme sulla privacy di Google</target>
+      </segment>
+    </unit>
+    <unit id="youtube.settings_agreement">
+      <segment state="initial">
+        <source>By allowing YouTube, you agree to its Terms of Service.</source>
+        <target>Consentendo YouTube, accetti i suoi Termini di servizio.</target>
+      </segment>
+    </unit>
+    <unit id="youtube.terms">
+      <segment state="initial">
+        <source>YouTube Terms</source>
+        <target>Termini di YouTube</target>
+      </segment>
+    </unit>
+    <unit id="youtube.watch">
+      <segment state="initial">
+        <source>Watch on YouTube</source>
+        <target>Guarda su YouTube</target>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -9436,6 +9490,18 @@
         <target> Link dell’evento </target>
       </segment>
     </unit>
+    <unit id="event_edit.livestream_live">
+      <segment state="initial">
+        <source> Livestream is live </source>
+        <target>La trasmissione è in diretta</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.livestream_live_hint">
+      <segment state="initial">
+        <source> Show broadcast wording in the map island while this event is active. Turn this off when the stream ends; keep the video for replays. </source>
+        <target>Mostra l’avviso della trasmissione nell’isola della mappa durante l’evento. Disattiva questa opzione al termine della diretta e conserva il video per rivederlo.</target>
+      </segment>
+    </unit>
     <unit id="event_edit.locality">
       <segment state="initial">
         <source>Locality</source>
@@ -10860,6 +10926,42 @@
       <segment state="initial">
         <source>Events</source>
         <target>Eventi</target>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.description">
+      <segment state="initial">
+        <source>These choices are saved on this device. Loading third-party content connects to its provider and may share device and playback data.</source>
+        <target>Queste scelte vengono salvate su questo dispositivo. Caricare contenuti di terze parti crea una connessione con il fornitore e può condividere dati del dispositivo e della riproduzione.</target>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.other">
+      <segment state="initial">
+        <source>Always allow other external images and videos</source>
+        <target>Consenti sempre altre immagini e video esterni</target>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.reset">
+      <segment state="initial">
+        <source>Reset external media permissions</source>
+        <target>Reimposta le autorizzazioni dei contenuti esterni</target>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.separate">
+      <segment state="initial">
+        <source>YouTube is controlled separately. Individual website permissions can also be granted in the media carousel. Resetting clears all saved and temporary permissions.</source>
+        <target>YouTube viene gestito separatamente. Puoi anche autorizzare singoli siti nel carosello multimediale. Il ripristino cancella tutte le autorizzazioni salvate e temporanee.</target>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.title">
+      <segment state="initial">
+        <source>External media</source>
+        <target>Contenuti multimediali esterni</target>
+      </segment>
+    </unit>
+    <unit id="external_media.settings.youtube">
+      <segment state="initial">
+        <source>Always allow YouTube</source>
+        <target>Consenti sempre YouTube</target>
       </segment>
     </unit>
     <unit id="profile.actions.follow">
@@ -17410,6 +17512,12 @@
       <segment state="initial">
         <source>Spot deleted</source>
         <target>Spot eliminato</target>
+      </segment>
+    </unit>
+    <unit id="3877213706369116643">
+      <segment state="initial">
+        <source>YouTube video player</source>
+        <target>Player video di YouTube</target>
       </segment>
     </unit>
     <unit id="389079921595754695">

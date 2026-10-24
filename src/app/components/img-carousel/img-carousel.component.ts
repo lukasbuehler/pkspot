@@ -41,19 +41,16 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MapsApiService } from "../../services/maps-api.service";
 import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
+import { ExternalMediaPreferencesService } from "../../services/external-media-preferences.service";
+import { YoutubePlayerComponent } from "../youtube-player/youtube-player.component";
 import type { PendingMediaPreview } from "../../services/firebase/firestore/media-upload-status.service";
 
 export type ImgCarouselImageFit = "cover" | "contain";
 
-interface ExternalMediaPreference {
-  allowAll: boolean;
-  allowedDomains: string[];
-  temporaryAllowedDomains?: Record<string, number>;
-}
-
 @Component({
   selector: "app-img-carousel",
   imports: [
+    YoutubePlayerComponent,
     NgOptimizedImage,
     MatProgressSpinnerModule,
     MatButtonModule,
@@ -96,11 +93,12 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   canScrollLeft = signal(false);
   canScrollRight = signal(false);
   videoMuted = signal(true);
-  private readonly externalMediaPreferenceStorageKey =
-    "pkspot.showExternalMedia.v1";
   private readonly temporaryExternalMediaDurationMs = 60 * 60 * 1000;
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  externalMediaPreference = signal(this.readExternalMediaPreference());
+  private readonly mediaPreferences = inject(ExternalMediaPreferencesService);
+  readonly externalMediaPreference = this.mediaPreferences.external;
+  readonly viewerOpen = signal(false);
+  readonly youtubeIds = computed(() => (this.media() ?? []).map((item) => item instanceof ExternalVideo ? item.youtubeId : null));
 
   hasBlockedExternalMedia = computed(() =>
     (this.media() ?? []).some(
@@ -142,6 +140,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   ) {
     effect(() => {
       this.processingMedia();
+      this.media();
+      this.externalMediaPreference();
       this.queuePreviewResize();
     });
   }
@@ -420,27 +420,15 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     if (!domain) {
       return;
     }
-    this.externalMediaPreference.update((preference) => {
-      const temporaryAllowedDomains = {
-        ...(preference.temporaryAllowedDomains ?? {}),
-      };
-
-      if (expiresAt === null) {
-        delete temporaryAllowedDomains[domain];
-      } else {
-        temporaryAllowedDomains[domain] = expiresAt;
-      }
-
-      const next = {
-        ...preference,
-        allowedDomains:
-          expiresAt === null && !preference.allowedDomains.includes(domain)
-            ? [...preference.allowedDomains, domain]
-            : preference.allowedDomains,
-        temporaryAllowedDomains,
-      };
-      this.writeExternalMediaPreference(next);
-      return next;
+    const preference = this.externalMediaPreference();
+    const temporaryAllowedDomains = { ...(preference.temporaryAllowedDomains ?? {}) };
+    if (expiresAt === null) delete temporaryAllowedDomains[domain];
+    else temporaryAllowedDomains[domain] = expiresAt;
+    this.mediaPreferences.setExternal({
+      ...preference,
+      allowedDomains: expiresAt === null && !preference.allowedDomains.includes(domain)
+        ? [...preference.allowedDomains, domain] : preference.allowedDomains,
+      temporaryAllowedDomains,
     });
     this.queuePreviewResize();
   }
@@ -450,8 +438,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       ...this.externalMediaPreference(),
       allowAll: true,
     };
-    this.externalMediaPreference.set(next);
-    this.writeExternalMediaPreference(next);
+    this.mediaPreferences.setExternal(next);
     this.queuePreviewResize();
   }
 
@@ -516,25 +503,6 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       return null;
     }
     return this.getUrlDomain(mediaObj.src);
-  }
-
-  private writeExternalMediaPreference(preference: ExternalMediaPreference): void {
-    if (this.isBrowser) {
-      const now = Date.now();
-      const temporaryAllowedDomains = Object.fromEntries(
-        Object.entries(preference.temporaryAllowedDomains ?? {}).filter(
-          ([, expiresAt]) => expiresAt > now,
-        ),
-      );
-      localStorage.setItem(
-        this.externalMediaPreferenceStorageKey,
-        JSON.stringify({
-          allowAll: preference.allowAll,
-          allowedDomains: preference.allowedDomains,
-          temporaryAllowedDomains,
-        }),
-      );
-    }
   }
 
   getExternalSourceUrl(mediaObj: AnyMedia): string | null {
@@ -674,7 +642,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   getImageAspectRatio(index: number): string {
-    return String(this.imageAspectRatios().get(index) ?? 1);
+    return String(this.youtubeIds()[index] ? 16 / 9 : this.imageAspectRatios().get(index) ?? 1);
   }
 
   getImagePreviewFit(index: number): ImgCarouselImageFit {
@@ -699,6 +667,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     if (previewVideo) {
       this.autoplayIntersectionObserver?.unobserve(previewVideo);
     }
+    this.viewerOpen.set(true);
     const dialogRef = this.dialog.open(SwiperDialogComponent, {
       data: {
         media: this.media(),
@@ -706,7 +675,6 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
         spotId: this.spotId(),
         reportContext: this.reportContext(),
         reportTargetId: this.reportTargetId() ?? this.spotId(),
-        externalMediaPreference: this.externalMediaPreference(),
         initialVideoMuted: this.videoMuted(),
         initialVideoTime:
           previewVideo?.currentTime ?? this.videoCurrentTimes.get(index),
@@ -721,6 +689,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      this.viewerOpen.set(false);
       if (previewVideo && previewVideoParent) {
         previewVideo.removeAttribute("controls");
         previewVideo.classList.remove("swiper-video");
@@ -775,7 +744,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   private isExternalMedia(
     mediaObj: AnyMedia,
   ): mediaObj is ExternalImage | ExternalVideo {
-    return (
+    return !(mediaObj instanceof ExternalVideo && mediaObj.youtubeId) && (
       mediaObj instanceof ExternalImage ||
       mediaObj instanceof ExternalVideo
     ) && mediaObj.userId !== "streetview" &&
@@ -783,41 +752,6 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       !isFirstPartyStorageUrl(mediaObj.src);
   }
 
-  private readExternalMediaPreference(): ExternalMediaPreference {
-    const fallback = { allowAll: false, allowedDomains: [] };
-    if (!this.isBrowser) {
-      return fallback;
-    }
-    const raw = localStorage.getItem(this.externalMediaPreferenceStorageKey);
-    if (raw === "true") {
-      return { allowAll: true, allowedDomains: [] };
-    }
-    if (!raw) {
-      return fallback;
-    }
-    try {
-      const parsed = JSON.parse(raw) as Partial<ExternalMediaPreference>;
-      const now = Date.now();
-      const temporaryAllowedDomains = Object.fromEntries(
-        Object.entries(parsed.temporaryAllowedDomains ?? {}).filter(
-          ([, expiresAt]) =>
-            typeof expiresAt === "number" && expiresAt > now,
-        ),
-      );
-      return {
-        allowAll: parsed.allowAll === true,
-        allowedDomains: Array.isArray(parsed.allowedDomains)
-          ? parsed.allowedDomains.filter(
-              (domain): domain is string =>
-                typeof domain === "string" && domain.length > 0,
-            )
-          : [],
-        temporaryAllowedDomains,
-      };
-    } catch {
-      return fallback;
-    }
-  }
 
   private getUrlDomain(url: string | null): string | null {
     const remoteUrl = this.getRemoteUrl(url);
@@ -886,9 +820,11 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       const aspectRatio = Number(
         item.style.getPropertyValue("--image-aspect-ratio"),
       );
-      const fullWidth = item.classList.contains("external-media-gate-card")
-        ? this.getExternalMediaGateFullWidth(viewportWidth)
-        : this.getPreviewFullWidth(viewportWidth, viewportHeight, aspectRatio);
+      const fullWidth = item.classList.contains("youtube-preview")
+        ? this.getYoutubePreviewWidth(viewportWidth, viewportHeight)
+        : item.classList.contains("external-media-gate-card")
+          ? this.getExternalMediaGateFullWidth(viewportWidth)
+          : this.getPreviewFullWidth(viewportWidth, viewportHeight, aspectRatio);
       const virtualItemLeft = virtualLeft - scrollLeft;
       const virtualItemRight = virtualItemLeft + fullWidth;
       const visualLeft = Math.max(0, virtualItemLeft);
@@ -973,12 +909,14 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       }
 
       widths.push(
-        this.shouldShowExternalMediaGate(mediaObj, index)
+        this.youtubeIds()[index]
+          ? this.getYoutubePreviewWidth(viewportWidth, viewportHeight)
+          : this.shouldShowExternalMediaGate(mediaObj, index)
           ? this.getExternalMediaGateFullWidth(viewportWidth)
           : this.getPreviewFullWidth(
               viewportWidth,
               viewportHeight,
-              this.imageAspectRatios().get(index) ?? 1,
+              Number(this.getImageAspectRatio(index)),
             ),
       );
     }
@@ -1007,6 +945,10 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     };
   }
 
+  private getYoutubePreviewWidth(viewportWidth: number, viewportHeight: number): number {
+    return Math.min(viewportWidth, Math.max(320, (viewportHeight - 36) * 16 / 9));
+  }
+
   private getPreviewFullWidth(
     viewportWidth: number,
     viewportHeight: number,
@@ -1029,7 +971,6 @@ interface SwiperDialogData {
   spotId?: string;
   reportContext?: "spot" | "event" | "media";
   reportTargetId?: string;
-  externalMediaPreference?: ExternalMediaPreference;
   initialVideoMuted?: boolean;
   initialVideoTime?: number;
   reusedVideoElement?: HTMLVideoElement;
@@ -1054,7 +995,9 @@ interface SwiperDialogResult {
             <div class="swiper-slide">
               <div class="swiper-zoom-container">
                 <div class="swiper-img-container">
-                  @if (mediaObj.type === "video") {
+                  @if (youtubeVideoIds()[$index]) {
+                    <app-youtube-player [src]="mediaObj.baseSrc" [active]="activeSlideIndex() === $index" />
+                  } @else if (mediaObj.type === "video") {
                     @if (isReusedVideoMedia(mediaObj)) {
                       <div
                         class="swiper-video-reuse-host"
@@ -1147,6 +1090,7 @@ interface SwiperDialogResult {
     MatButtonModule,
     MatIconButton,
     MatIcon,
+    YoutubePlayerComponent,
     NgOptimizedImage,
   ],
   styles: [
@@ -1256,6 +1200,7 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   });
 
   dialog = inject(MatDialog);
+  private readonly mediaPreferences = inject(ExternalMediaPreferencesService);
 
   constructor(
     public dialogRef: MatDialogRef<SwiperDialogComponent, SwiperDialogResult>,
@@ -1571,10 +1516,14 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   getDialogMedia(): AnyMedia[] {
-    return this.data.media?.filter((m) => this.isDialogMedia(m)) ?? [];
+    return this.dialogMedia();
   }
 
+  readonly dialogMedia = computed(() => this.data.media?.filter((media) => this.isDialogMedia(media)) ?? []);
+  readonly youtubeVideoIds = computed(() => this.dialogMedia().map((media) => media instanceof ExternalVideo ? media.youtubeId : null));
+
   private isBlockedExternalDialogMedia(mediaObj: AnyMedia): boolean {
+    if (mediaObj instanceof ExternalVideo && mediaObj.youtubeId) return false;
     if (
       !(
         (mediaObj instanceof ExternalImage ||
@@ -1590,7 +1539,7 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
     if (!domain) {
       return false;
     }
-    const preference = this.data.externalMediaPreference;
+    const preference = this.mediaPreferences.external();
     const temporaryExpiry = preference?.temporaryAllowedDomains?.[domain];
     return !(
       preference?.allowAll ||

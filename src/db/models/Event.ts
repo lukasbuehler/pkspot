@@ -131,6 +131,7 @@ export class Event {
   readonly logoFit: EventImageFit;
   readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
+  readonly livestreamLive: boolean;
   readonly organizer?: EventOrganizerSchema;
   readonly organizerUser?: UserReferenceSchema;
   readonly organizerName?: string;
@@ -216,6 +217,7 @@ export class Event {
     this.logoFit = data.logo_fit ?? "contain";
     this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
+    this.livestreamLive = data.livestream_live === true;
     this.organizer = data.organizer;
     this.organizerUser = data.organizer_user;
     this.organizerName =
