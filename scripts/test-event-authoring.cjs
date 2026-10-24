@@ -9,6 +9,25 @@ const api = require('../functions/lib/functions/src/eventAuthoringFunctions.js')
 const db = admin.firestore();
 const input = { name: 'Test Jam', startsAt: '2026-11-01T12:00:00Z', endsAt: '2026-11-01T14:00:00Z', timeZone: 'Europe/Zurich' };
 const call = (fn, uid, data) => api[fn].run({auth: uid ? {uid} : undefined, data});
+test('editing a community event preserves RSVP aggregates and legacy missing totals', async () => {
+  const uid = 'community-organizer';
+  await db.doc(`users/${uid}`).set({
+    public_profile_enabled: true,
+    age_policy: { adult_eligibility: 'verified', age_range: { lower: 18 },
+      assurance: { status: 'active', approval_basis: 'tested', client_integrity: 'apple_app_attest_request_bound' } },
+  });
+  const details = {...input, locality: 'Zurich', countryCode: 'CH', visibility: 'public'};
+  const {eventId} = await call('createCommunityEvent', uid, details);
+  const ref = db.doc(`events/${eventId}`);
+  const counts = {going: 3, interested: 2, notgoing: 1, total: 6};
+  await ref.update({rsvp_counts: counts});
+  await call('updateCommunityEvent', uid, {eventId, event: {...details, name: 'Updated Jam'}});
+  assert.deepEqual((await ref.get()).data().rsvp_counts, counts);
+  assert.equal((await ref.get()).data().name, 'Updated Jam');
+  await ref.update({rsvp_counts: admin.firestore.FieldValue.delete()});
+  await call('updateCommunityEvent', uid, {eventId, event: details});
+  assert.equal((await ref.get()).data().rsvp_counts, undefined);
+});
 after(async () => { await admin.app().delete(); });
 test('unverified admin creates formal event; ordinary unverified user cannot', async () => {
   await db.doc('users/author-admin').set({is_admin:true});

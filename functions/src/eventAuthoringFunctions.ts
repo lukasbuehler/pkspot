@@ -509,6 +509,8 @@ export const updateCommunityEvent = onCall(
         throw new HttpsError("permission-denied", "Only the community event organizer can edit it.");
       }
       const replacement = communityEvent(uid, user, event, eventId);
+      // RSVP totals belong to the RSVP trigger, not the organizer's edit.
+      delete replacement.rsvp_counts;
       if (replacement.visibility === "public" && current.visibility !== "public") {
         await requirePublicCommunityCapacity(transaction, uid, eventId);
         await enforceAuthoringRateLimit(transaction, uid, "community");

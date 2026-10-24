@@ -243,6 +243,33 @@ runWithEmulator("private check-in callables", () => {
       .toBe(false);
   }, 90_000);
 
+  it("does not reopen a historical session when one of its visits is deleted", async () => {
+    const client = await authenticatedCallable();
+    const spotId = `historical-${client.uid}`;
+    const nextSpotId = `next-${client.uid}`;
+    await seedSpot(spotId);
+    await seedSpot(nextSpotId);
+    const first = (await client.confirm(request(spotId))).data;
+    const ref = db().doc(`users/${client.uid}/session_records/${first.sessionRecordId}`);
+    const session = (await ref.get()).data()!;
+    const oldMs = Date.now() - 30 * 24 * 60 * 60_000;
+    const old = admin.firestore.Timestamp.fromMillis(oldMs);
+    const visit = {...session["spot_visits"][0], arrived_at: old, arrived_at_raw_ms: oldMs};
+    await ref.update({
+      started_at: old, started_at_raw_ms: oldMs,
+      last_activity_at: old, last_activity_raw_ms: oldMs,
+      spot_visits: [visit, {...visit, check_in_id: "remaining-visit"}],
+    });
+    await client.deleteOne({checkInId: first.checkInId});
+    const remaining = (await ref.get()).data()!;
+    expect(remaining["spot_visits"]).toHaveLength(1);
+    expect(remaining["last_activity_raw_ms"]).toBe(oldMs);
+    expect(remaining["last_activity_at"].toMillis()).toBe(oldMs);
+    expect(remaining["time_updated_raw_ms"]).toBeGreaterThan(oldMs);
+    const next = (await client.confirm(request(nextSpotId))).data;
+    expect(next.sessionRecordId).not.toBe(first.sessionRecordId);
+  }, 90_000);
+
   it("accepts eligible participation and excludes inaccurate or impossible confirmations from activity", async () => {
     const client = await authenticatedCallable();
     const firstSpot = `first-${client.uid}`;

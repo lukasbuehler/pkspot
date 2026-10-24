@@ -263,8 +263,8 @@ export const deleteCheckInForUser = async (uid: string, checkInId: string): Prom
       } else {
         transaction.update(sessionRef, {
           spot_visits: remainingVisits,
-          last_activity_at: now,
-          last_activity_raw_ms: nowMs,
+          // Deletion changes history, not when training last happened. Keep
+          // the activity clock so an old session cannot become reusable.
           time_updated: now,
           time_updated_raw_ms: nowMs,
         });
