@@ -78,7 +78,9 @@
           mat-stroked-button
           href="https://instagram.com/pkspot.app"
           target="_blank"
-          (click)="trackContactChannelClick('instagram', 'about_follow_instagram')"
+          (click)="
+            trackContactChannelClick('instagram', 'about_follow_instagram')
+          "
           i18n
         >
           <img
@@ -163,8 +165,8 @@
         ground.
       </h2>
       <p class="mat-title-medium section-body" i18n>
-        We believe the map should serve the athletes who use it. PK Spot
-        is open source, privacy-first, and built with the community.
+        We believe the map should serve the athletes who use it. PK Spot is open
+        source, privacy-first, and built with the community.
       </p>
 
       <div class="d-flex flex-column gap-4 w-100">
@@ -176,7 +178,13 @@
               — All community spot data is
               <a
                 href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en"
-                (click)="trackOutboundLinkClick('license', 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en', 'CC BY-NC-SA 4.0')"
+                (click)="
+                  trackOutboundLinkClick(
+                    'license',
+                    'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en',
+                    'CC BY-NC-SA 4.0'
+                  )
+                "
                 >CC BY-NC-SA 4.0</a
               >
               licensed. Open, shareable, yours forever.
@@ -191,7 +199,13 @@
               — No black-box algorithms, no hidden tracking.
               <a
                 href="https://github.com/lukasbuehler/pkspot"
-                (click)="trackOutboundLinkClick('github', 'https://github.com/lukasbuehler/pkspot', 'View on GitHub')"
+                (click)="
+                  trackOutboundLinkClick(
+                    'github',
+                    'https://github.com/lukasbuehler/pkspot',
+                    'View on GitHub'
+                  )
+                "
                 >View on GitHub</a
               >.
             </span>
@@ -206,7 +220,12 @@
               networks.
               <a
                 routerLink="/privacy-policy"
-                (click)="trackInternalCtaClick('about_privacy_policy', '/privacy-policy')"
+                (click)="
+                  trackInternalCtaClick(
+                    'about_privacy_policy',
+                    '/privacy-policy'
+                  )
+                "
                 >Privacy Policy</a
               >.
             </span>
@@ -236,7 +255,11 @@
               [href]="partner.url"
               class="partner-link"
               target="_blank"
-              (click)="trackOutboundLinkClick('partner', partner.url, partner.name, { partner_name: partner.name })"
+              (click)="
+                trackOutboundLinkClick('partner', partner.url, partner.name, {
+                  partner_name: partner.name,
+                })
+              "
             >
               <div
                 class="partner-logo position-relative object-fit-contain"
@@ -274,7 +297,9 @@
             <div class="mat-title-medium">{{ member.name }}</div>
             <div class="mat-body-medium team-role" i18n>{{ member.role }}</div>
             @if (member.background) {
-              <div class="mat-body-small team-background" i18n>{{ member.background }}</div>
+              <div class="mat-body-small team-background" i18n>
+                {{ member.background }}
+              </div>
             }
             @if (member.socials && member.socials.length) {
               <div class="team-socials">
@@ -283,13 +308,20 @@
                     [href]="social.url"
                     target="_blank"
                     [attr.aria-label]="social.type"
-                    (click)="trackOutboundLinkClick('crew_social', social.url, social.type, { crew_member: member.name, social_type: social.type })"
+                    (click)="
+                      trackOutboundLinkClick(
+                        'crew_social',
+                        social.url,
+                        social.type,
+                        { crew_member: member.name, social_type: social.type }
+                      )
+                    "
                   >
-                    @if (social.type === 'instagram') {
+                    @if (social.type === "instagram") {
                       <img src="assets/logos/instagram.svg" alt="" />
-                    } @else if (social.type === 'github') {
+                    } @else if (social.type === "github") {
                       <img src="assets/logos/github.svg" alt="" />
-                    } @else if (social.type === 'website') {
+                    } @else if (social.type === "website") {
                       <mat-icon>language</mat-icon>
                     }
                   </a>
@@ -349,14 +381,22 @@
         <a
           href="https://instagram.com/pkspot.app"
           matIconButton
-          (click)="trackContactChannelClick('instagram', 'about_footer_instagram')"
+          (click)="
+            trackContactChannelClick('instagram', 'about_footer_instagram')
+          "
         >
           <img src="assets/logos/instagram.svg" alt="" />
         </a>
         <a
-          href="https://tiktok.com/@parkourspot"
+          href="https://tiktok.com/@pkspot.app"
           matIconButton
-          (click)="trackOutboundLinkClick('social', 'https://tiktok.com/@parkourspot', 'TikTok')"
+          (click)="
+            trackOutboundLinkClick(
+              'social',
+              'https://tiktok.com/@pkspot.app',
+              'TikTok'
+            )
+          "
         >
           <img src="assets/logos/tiktok.svg" alt="" />
         </a>
@@ -370,7 +410,13 @@
         <a
           href="https://github.com/lukasbuehler/pkspot"
           matIconButton
-          (click)="trackOutboundLinkClick('github', 'https://github.com/lukasbuehler/pkspot', 'GitHub')"
+          (click)="
+            trackOutboundLinkClick(
+              'github',
+              'https://github.com/lukasbuehler/pkspot',
+              'GitHub'
+            )
+          "
         >
           <img src="assets/logos/github.svg" alt="" />
         </a>
@@ -395,7 +441,9 @@
         >
         <a
           routerLink="/contact"
-          (click)="trackContactChannelClick('contact_form', 'about_footer_contact')"
+          (click)="
+            trackContactChannelClick('contact_form', 'about_footer_contact')
+          "
           i18n
           >Contact</a
         >
