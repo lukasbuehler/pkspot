@@ -976,7 +976,7 @@ export class TrainPageComponent {
           moment.relationship === "going"
             ? $localize`:@@train.now.going:You're going`
             : moment.relationship === "saved"
-              ? $localize`:@@train.now.saved:Saved`
+              ? $localize`:@@event_rsvp.interested:Interested`
               : null;
         return {
           key: moment.key,
@@ -1029,7 +1029,7 @@ export class TrainPageComponent {
         relationship === "going"
           ? $localize`:@@train.comingUp.going:Going`
           : relationship === "saved"
-            ? $localize`:@@train.now.saved:Saved`
+            ? $localize`:@@event_rsvp.interested:Interested`
             : null,
     };
   }

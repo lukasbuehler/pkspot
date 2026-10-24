@@ -200,6 +200,10 @@ h2 {
   gap: 12px;
 }
 
+.coming-up-cards {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+}
+
 .spot-preview-link {
   display: block;
   min-width: 0;
@@ -264,14 +268,12 @@ h2 {
 
 // Event cards share the Spot preview row layout above.
 .coming-up-cards__item {
-  display: flex;
-  flex-direction: column;
+  // Share card and metadata tracks so wrapped metadata cannot shorten a card.
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
   gap: 6px;
   min-width: 0;
-
-  app-event-card {
-    flex: 1 1 auto;
-  }
 }
 
 // Below the card, aligned with its edge.
