@@ -213,10 +213,7 @@ export {
 export { onUserReportCreate } from "./userReportFunctions";
 
 // sitemap functions
-export {
-  generateSitemapOnSchedule,
-  generateSitemapManual,
-} from "./sitemapFunctions";
+export { generateSitemapOnSchedule } from "./sitemapFunctions";
 
 // social card functions
 // export {

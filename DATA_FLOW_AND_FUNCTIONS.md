@@ -1229,8 +1229,7 @@ Source modules: [`notificationFunctions.ts`](functions/src/notificationFunctions
 | `getOsmAmenityTile` | App Check callable | Cache read + lease transaction; optional Overpass and success/failure cache write. |
 | `cleanupExpiredOsmAmenityCache` | daily schedule | Up to four queries <=300, delete every result. |
 | `resolveMapShortLink` | App Check callable | No Firestore; bounded, allowlisted redirect requests. |
-| `generateSitemapOnSchedule` | daily 03:00 UTC | Full projection/source streams, Storage write, IndexNow. |
-| `generateSitemapManual` | public HTTP request | Same full sitemap work; endpoint itself does not add authorization. |
+| `generateSitemapOnSchedule` | daily 03:00 UTC; run its Scheduler job for an on-demand rebuild | Full projection/source streams, Storage write, IndexNow. |
 
 Source modules: [`weatherFunctions.ts`](functions/src/weatherFunctions.ts),
 [`osmAmenityFunctions.ts`](functions/src/osmAmenityFunctions.ts),

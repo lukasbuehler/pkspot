@@ -1,6 +1,5 @@
 import { spotSitemapImages } from "./sitemapXml";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { getStorage } from "firebase-admin/storage";
 import { once } from "node:events";
@@ -301,7 +300,9 @@ async function _generateAndUploadSitemap(): Promise<{
 }
 
 /**
- * Scheduled function to regenerate sitemap nightly at 3 AM UTC
+ * Scheduled function to regenerate sitemap nightly at 3 AM UTC. To regenerate
+ * on demand, run its Cloud Scheduler job
+ * `firebase-schedule-generateSitemapOnSchedule-europe-west1`.
  */
 export const generateSitemapOnSchedule = onSchedule(
   {
@@ -319,28 +320,5 @@ export const generateSitemapOnSchedule = onSchedule(
         `(${result.staticPageCount} static pages, ${result.spotCount} spots, ${result.userCount} users, ` +
         `${result.communityCount} communities).`
     );
-  }
-);
-
-/**
- * HTTP endpoint to manually trigger sitemap generation (for testing/debugging)
- * Call: https://europe-west1-parkour-base-project.cloudfunctions.net/generateSitemapManual
- */
-export const generateSitemapManual = onRequest(
-  {
-    region: "europe-west1",
-    cors: false,
-    memory: "512MiB",
-    timeoutSeconds: 540,
-  },
-  async (_req, res) => {
-    try {
-      console.log("Manual sitemap generation triggered...");
-      const result = await _generateAndUploadSitemap();
-      res.json(result);
-    } catch (error) {
-      console.error("Error generating sitemap:", error);
-      res.status(500).json({ error: "Failed to generate sitemap" });
-    }
   }
 );

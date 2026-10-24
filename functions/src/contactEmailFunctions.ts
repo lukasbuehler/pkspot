@@ -11,8 +11,9 @@ export const onContactMessageEmailCreate = onDocumentCreated({
   document: "contact_messages/{messageId}",
   region: "europe-west1",
   secrets: [resendKey],
-  // Enable automatic retries only after the delivery policy is approved.
-  retry: false,
+  // Safe to retry: delivered messages are skipped, Resend deduplicates by
+  // idempotency key, and retries stop at the 23-hour boundary below.
+  retry: true,
 }, async (event) => {
   if (!event.data) return;
   const delivery = admin.firestore().doc(`contact_email_delivery/${event.params.messageId}`);
@@ -36,6 +37,13 @@ export const onContactMessageEmailCreate = onDocumentCreated({
     },
     body: JSON.stringify(buildContactEmail(event.params.messageId, event.data.data())),
   });
+  // A rejected request will not succeed on retry; 409 (idempotent request
+  // still in progress) and 429 (rate limit) are transient.
+  if (response.status >= 400 && response.status < 500 && response.status !== 409 && response.status !== 429) {
+    await delivery.set({status: "needs_review", reason: `provider_rejected_${response.status}`}, {merge: true});
+    logger.error("Contact email was rejected by the provider", {messageId: event.params.messageId, status: response.status});
+    return;
+  }
   if (!response.ok) throw new Error(`Contact email provider returned HTTP ${response.status}`);
   await delivery.set({status: "sent", sent_at: admin.firestore.FieldValue.serverTimestamp()}, {merge: true});
 });
