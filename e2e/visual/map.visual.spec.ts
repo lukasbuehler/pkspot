@@ -54,10 +54,18 @@ test.describe("Map Page Visual Regression @visual", () => {
       page.locator("app-bottom-sheet app-spot-preview-card").first(),
     ).toBeInViewport({ ratio: 0.05 });
 
+    await page.addStyleTag({
+      content: "gmp-advanced-marker { visibility: hidden !important; }",
+    });
+
     await expect(page).toHaveScreenshot("map-page-mobile.png", {
       maxDiffPixels: 3_000,
       fullPage: false,
       animations: "disabled",
+      // Live pins, counts and photos change independently of the sheet geometry.
+      mask: [
+        page.locator("app-map-object-panel app-filter-chips-bar, app-map-object-panel app-spot-list"),
+      ],
     });
   });
 

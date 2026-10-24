@@ -199,6 +199,6 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Unfollow|Entfolgen/u);
 
     await page.goBack();
-    await expect(profile).toContainText("No pending follow requests.");
+    await expect(profile).toContainText(/No pending follow requests\.|Keine offenen Folgeanfragen\./u);
   });
 });
