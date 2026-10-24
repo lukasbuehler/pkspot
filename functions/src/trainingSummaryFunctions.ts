@@ -307,7 +307,11 @@ export async function publishSpotRanks(nowMs = Date.now()): Promise<{
     // Re-read a Spot's source documents and participation inside the same
     // transaction as publication. A concurrent withdrawal/deletion retries
     // publication rather than resurrecting its stale rank from the query above.
-    for (const documents of bySpot.values()) {
+    // Spots are independent, so they are published a few at a time to keep
+    // the nightly run well inside its timeout as the number of Spots grows.
+    // A person ranked at several Spots receives concurrent merges into one
+    // rank document; each touches only its own `spots.<id>` field.
+    await forEachConcurrently([...bySpot.values()], PUBLISH_CONCURRENCY, async (documents) => {
       const written = await db().runTransaction(async (transaction) => {
         const [current, settings] = await Promise.all([
           transaction.getAll(...documents.map((document) => document.ref)),
@@ -341,7 +345,7 @@ export async function publishSpotRanks(nowMs = Date.now()): Promise<{
         return written;
       });
       result.written += written;
-    }
+    });
 
     if (final) {
       await deleteInBatches(db().collection(TALLY_COLLECTION).where("month", "==", month));
@@ -349,6 +353,21 @@ export async function publishSpotRanks(nowMs = Date.now()): Promise<{
     }
   }
   return result;
+}
+
+/** Spot transactions in flight at once during nightly publication. */
+const PUBLISH_CONCURRENCY = 16;
+
+async function forEachConcurrently<T>(
+  items: readonly T[],
+  limit: number,
+  run: (item: T) => Promise<void>,
+): Promise<void> {
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) await run(items[next++]);
+  };
+  await Promise.all(Array.from({length: Math.min(limit, items.length)}, worker));
 }
 
 async function deleteInBatches(query: FirebaseFirestore.Query): Promise<void> {

@@ -40,6 +40,20 @@ test('publishes Olympic ranks with tie counts once three people checked in', asy
   assert.deepEqual((await ranksOf(`a-${run}`, month)).spots[spot], { status: 'too_few_people', verified_days: 6 });
 });
 
+test('publishes many Spots concurrently into each person\'s single rank document', async () => {
+  const month = '2091-09';
+  const spots = Array.from({length: 40}, (_, index) => `many-${index}-${run}`);
+  const users = ['many-a', 'many-b', 'many-c'].map((uid) => `${uid}-${run}`);
+  await Promise.all(spots.flatMap((spot) => users.map((uid) => tally(month, spot, uid, 2))));
+  const result = await publishSpotRanks(noonZurich('2091-09-15'));
+  assert.equal(result.written, spots.length * users.length);
+  for (const uid of users) {
+    const ranks = await ranksOf(uid, month);
+    assert.equal(Object.keys(ranks.spots).length, spots.length);
+    for (const spot of spots) assert.equal(ranks.spots[spot].rank, 1);
+  }
+});
+
 test('check-in removal withdraws ranks only on publication and respects the three-account threshold', async () => {
   const month = '2091-06'; const spot = `deleted-${run}`;
   const users = ['delete-a', 'delete-b', 'delete-c'].map(uid => `${uid}-${run}`);
