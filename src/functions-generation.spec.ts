@@ -141,7 +141,7 @@ describe("Cloud Functions generation policy", () => {
     );
 
     expect(communitySource).toMatch(
-      /export const rebuildAllCommunityPages = onDocumentCreated\(\s*\{ document: MANUAL_REBUILD_DOC, timeoutSeconds: 540 \}/u
+      /export const rebuildAllCommunityPages = onDocumentCreated\([\s\S]*?\{ document: MANUAL_REBUILD_DOC, timeoutSeconds: 540, memory: "1GiB" \}/u
     );
     expect(communitySource).toContain('status: "RUNNING"');
     expect(communitySource).toContain('status: "DONE"');

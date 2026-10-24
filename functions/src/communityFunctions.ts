@@ -2386,7 +2386,8 @@ export const patchCommunityPageOnWrite = onDocumentWritten(
 );
 
 export const rebuildAllCommunityPages = onDocumentCreated(
-  { document: MANUAL_REBUILD_DOC, timeoutSeconds: 540 },
+  // Full rebuilds load the Spot inventory; the default 256 MiB cannot hold it.
+  { document: MANUAL_REBUILD_DOC, timeoutSeconds: 540, memory: "1GiB" },
   async (event) => {
     const db = admin.firestore();
     const request = event.data;
