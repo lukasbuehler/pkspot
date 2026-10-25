@@ -1,0 +1,156 @@
+:host {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+// The scroll container is transparent: bars sit above the hour cards, and the
+// cards join into one outlined strip below them.
+.hourly-strip {
+  display: grid;
+  grid-auto-columns: 72px;
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x proximity;
+}
+
+.weather-hour {
+  display: grid;
+  align-content: end;
+  scroll-snap-align: center;
+}
+
+.weather-hour__card {
+  display: grid;
+  grid-template-rows: auto 32px auto auto;
+  grid-auto-rows: auto;
+  justify-items: center;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-left-width: 0;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.weather-hour:first-child .weather-hour__card {
+  border-left-width: 1px;
+  border-radius: 8px 0 0 8px;
+}
+
+.weather-hour:last-child .weather-hour__card {
+  border-radius: 0 8px 8px 0;
+}
+
+.weather-hour:only-child .weather-hour__card {
+  border-radius: 8px;
+}
+
+.weather-hour.highlighted .weather-hour__card {
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.forecast-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 32px;
+
+  &.is-wet {
+    color: var(--mat-sys-primary);
+  }
+
+  &.has-warning {
+    color: var(--mat-sys-error);
+  }
+
+  &.is-night {
+    color: var(--mat-sys-outline);
+  }
+}
+
+.temperature {
+  font-variant-numeric: tabular-nums;
+}
+
+// Bars stand on the top edge of the hour cards, which acts as the baseline.
+.precipitation-bar {
+  position: relative;
+  height: 44px;
+}
+
+.precipitation-bar__chance,
+.precipitation-bar__amount {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 24px;
+  border-radius: 4px 4px 0 0;
+  transform: translateX(-50%);
+}
+
+.precipitation-bar__chance {
+  background: var(--mat-sys-primary-container);
+}
+
+.precipitation-bar__amount {
+  background: var(--mat-sys-primary);
+}
+
+.rain-detail {
+  display: flex;
+  align-items: center;
+  color: var(--mat-sys-primary);
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+.rain-amount {
+  // Dry hours keep an empty line so every card in a wet strip has one height.
+  min-height: 16px;
+  color: var(--mat-sys-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hourly-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.hourly-summary__legend,
+.hourly-summary__legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hourly-summary__legend {
+  gap: 10px;
+}
+
+.swatch {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.swatch--amount {
+  background: var(--mat-sys-primary);
+}
+
+.swatch--chance {
+  background: var(--mat-sys-primary-container);
+}

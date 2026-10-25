@@ -41,7 +41,7 @@ describe("EventQrDialogComponent", () => {
 
     await vi.waitFor(() =>
       expect(fixture.componentInstance.qrDataUrl()).toMatch(
-        /^data:image\/png;base64,/u,
+        /^data:image\/svg\+xml;charset=UTF-8,/u,
       ),
     );
   });

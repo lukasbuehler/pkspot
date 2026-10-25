@@ -155,6 +155,20 @@ describe("WeatherForecastDialogComponent", () => {
     ).toContain("has-warning");
   });
 
+  it("shows precipitation amounts beside the chance of rain", async () => {
+    dialogData.response.forecast![0].precipitationMm = 1.4;
+    dialogData.response.dailyForecast![0].precipitationMm = 6.2;
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector("app-hourly-forecast-strip .precipitation-bar__amount")).not.toBeNull();
+    expect(
+      [...element.querySelectorAll(".weather-hour .rain-amount")].map((label) => label.textContent?.trim()),
+    ).toEqual(["1.4 mm", ""]);
+    expect(element.querySelector(".weather-day .rain-amount")?.textContent?.trim()).toBe("6.2 mm");
+  });
+
   it("shows up to eight days without coloring dry days from chance or UV", async () => {
     dialogData.response.dailyForecast = Array.from(
       { length: 9 },

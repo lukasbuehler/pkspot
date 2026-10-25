@@ -15,6 +15,7 @@ function eventStub(
     name: overrides.id,
     location: { lat: 47, lng: 8 },
     customMarkers: [],
+    communityKeys: [],
     isPast: () => false,
     isLive: () => false,
     isUpcoming: () => true,
@@ -32,6 +33,27 @@ describe("map event map items", () => {
   const now = new Date("2026-05-27T10:00:00Z");
   const storageEventImageUrl =
     "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbadge.png?alt=media";
+
+  it("pins only events listed under the open community", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [
+        eventStub({ id: "lausanne", communityKeys: ["locality:ch:vd:lausanne"] }),
+        eventStub({ id: "merged", communityKeys: ["locality:ch:vd:pully"] }),
+        eventStub({ id: "hamburg", communityKeys: ["country:de"] }),
+        eventStub({ id: "unlisted" }),
+      ],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "all",
+      now,
+      communityKeys: ["locality:ch:vd:lausanne", "locality:ch:vd:pully"],
+    });
+
+    expect(markers.map((marker) => marker.id)).toEqual([
+      "event:lausanne",
+      "event:merged",
+    ]);
+  });
 
   it("builds event markers without duplicating the open event", () => {
     const selectedEvent = eventStub({
@@ -113,6 +135,7 @@ describe("map event map items", () => {
       id: "event-2",
       venueString: "Main Hall",
       localityString: "Zurich",
+      localityLabel: "Zurich",
     });
     const markers = buildVisibleEventMarkers({
       visibleEvents: [event],
@@ -142,6 +165,20 @@ describe("map event map items", () => {
     });
 
     expect(markers[0].imageFit).toBe("cover");
+  });
+
+  it("uses the primary container color when an event has no marker background override", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [eventStub({ id: "event-2" })],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "events",
+      now,
+    });
+
+    expect(markers[0].imageBackgroundColor).toBe(
+      "var(--mat-sys-primary-container)",
+    );
   });
 
   it("preserves the effective event logo background color", () => {

@@ -1,0 +1,35 @@
+<main>
+  <a mat-button routerLink="/moderation"><mat-icon>arrow_back</mat-icon><span i18n>Moderation</span></a>
+  <header><h1 i18n>Possible duplicate Spots</h1>
+    @if (isAdmin()) { <button mat-icon-button [disabled]="loading()" (click)="reload()" aria-label="Refresh" i18n-aria-label><mat-icon>refresh</mat-icon></button> }
+  </header>
+  @if (!auth.initialAuthStateResolved() || loading()) {
+    <mat-spinner diameter="40" />
+  } @else if (!isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else if (failed()) {
+    <p role="alert" i18n>Could not load duplicate Spots. Please try again.</p>
+    <button mat-button (click)="reload()" i18n>Try again</button>
+  } @else {
+    <p i18n>Spots within five metres are grouped once. Open each Spot to compare it before resolving anything.</p>
+    <div class="duplicate-review__grid">
+      @for (group of groups(); track group.id) {
+        <article class="duplicate-group">
+          <div class="duplicate-group__header"><strong>{{ group.spots.length }} <span i18n>nearby Spots</span></strong><span>{{ group.closestDistanceMeters | number: "1.0-1" }} m</span></div>
+          <div class="duplicate-group__spots">
+            @for (spot of group.spots; track spot.id) {
+              <a [routerLink]="['/map/spots', spot.id]">
+                <span class="spot-summary"><strong>{{ spot.label }}</strong>
+                  <small><span i18n>Created</span>: @if (spot.createdAtMillis !== undefined) {
+                    {{ spot.createdAtMillis | systemDate: "medium" }}
+                  } @else { <span i18n>Unknown</span> }</small>
+                </span>
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            }
+          </div>
+        </article>
+      } @empty { <p i18n>No possible duplicates found.</p> }
+    </div>
+  }
+</main>

@@ -1,3 +1,4 @@
+import { AnalyticsService } from "../../analytics.service";
 import { TestBed } from "@angular/core/testing";
 import { BehaviorSubject, of } from "rxjs";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -7,14 +8,17 @@ import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { MediaUploadStatusService } from "./media-upload-status.service";
 
 describe("MediaUploadStatusService", () => {
+  const trackEvent = vi.fn();
   let service: MediaUploadStatusService;
   let collectionSnapshots: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    trackEvent.mockReset();
     collectionSnapshots = vi.fn(() => of([]));
     TestBed.configureTestingModule({
       providers: [
         MediaUploadStatusService,
+        { provide: AnalyticsService, useValue: { trackEvent, reportError: vi.fn() } },
         {
           provide: AuthenticationService,
           useValue: {
@@ -32,6 +36,18 @@ describe("MediaUploadStatusService", () => {
     });
 
     service = TestBed.inject(MediaUploadStatusService);
+  });
+
+  it.each(["published", "failed"])("records a local processing transition to %s only once", (status) => {
+    const statuses = new BehaviorSubject<unknown[]>([]);
+    collectionSnapshots.mockReturnValue(statuses);
+    service.trackLocalUpload({ uploadId: "private-id", targetKind: "spot", type: MediaType.Image, publicUrl: "private-url" });
+    service.watchTarget("spot");
+    const update = [{ id: "status", upload_id: "private-id", status }];
+    statuses.next(update); statuses.next(update);
+    expect(trackEvent.mock.calls.filter(call => call[0] === (status === "published" ? "feature_action_succeeded" : "feature_action_failed"))).toHaveLength(1);
+    expect(JSON.stringify(trackEvent.mock.calls)).not.toContain("private-id");
+    expect(JSON.stringify(trackEvent.mock.calls)).not.toContain("private-url");
   });
 
   it("hides a local processing upload once the spot already contains its published media URL", () => {

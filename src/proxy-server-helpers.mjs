@@ -34,6 +34,8 @@ const STATIC_SSR_PATHS = new Set([
   "/impressum",
 ]);
 
+export { isSensitiveProbePath } from "./request-path-policy.mjs";
+
 export function normalizeClientRegionHeader(value) {
   if (Array.isArray(value)) {
     return normalizeClientRegionHeader(value[0]);

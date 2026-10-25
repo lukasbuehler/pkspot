@@ -49,9 +49,13 @@ describe("Spot creation idempotency UI contracts", () => {
     expect(dialog).toContain("candidate.uniqueFields");
     expect(dialog).toContain("preview.blockers.length > 0");
     expect(dialog).toContain('[disabled]="!canResolve()"');
-    expect(dashboard).toContain("visibleDuplicateSpotGroups()");
-    expect(dashboard).toContain("group.closestDistanceMeters");
-    expect(dashboard).toContain("['/map/spots', spot.id]");
+    const duplicates = read(
+      "src/app/components/moderation-duplicates-page/moderation-duplicates-page.component.html",
+    );
+    expect(dashboard).toContain('routerLink="/moderation/duplicates"');
+    expect(duplicates).toContain("groups()");
+    expect(duplicates).toContain("group.closestDistanceMeters");
+    expect(duplicates).toContain("['/map/spots', spot.id]");
     expect(dashboard).toContain("Diagnostics and maintenance");
   });
 });

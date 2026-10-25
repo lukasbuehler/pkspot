@@ -2,11 +2,14 @@ import type { MediaSchema } from "../../../../db/schemas/Media";
 
 export type MapMarkerColor = "primary" | "secondary" | "tertiary" | "gray";
 export type MapMarkerImageFit = "cover" | "contain";
+export type MapMarkerPresentation = "pin" | "amenity";
 
 export interface MapMarkerSchema {
   id?: string;
   name?: string;
   color?: MapMarkerColor;
+  /** Low-priority map context, rendered without the destination-pin pointer. */
+  presentation?: MapMarkerPresentation;
   location: google.maps.LatLngLiteral;
   icons?: string[];
   /**

@@ -1,3 +1,4 @@
+import { currentPlaceLocalization } from "../../src/scripts/CommunityPlaceNames";
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import {
@@ -603,6 +604,7 @@ const buildSpotPreview = (
     type: spot.type,
     access: spot.access,
     locality: getSpotLocalityString(spot),
+    localityNames: spot.place_names?.locality,
     countryCode: spot.address?.country?.code,
     countryName: getSpotCountryDisplayName(spot),
     imageSrc: getSpotPreviewImage(spot),
@@ -786,6 +788,8 @@ const buildCommunityChildSummary = (
     communityKey: page.communityKey || pageId,
     scope: page.scope,
     displayName: page.displayName,
+    place_localization: currentPlaceLocalization(page),
+    place_name_overrides: page.place_name_overrides,
     preferredSlug: page.preferredSlug,
     canonicalPath:
       page.canonicalPath || buildCommunityLandingPath(page.preferredSlug),
@@ -840,6 +844,7 @@ const buildCommunityEventPreview = (
     logo_background_color: event.logo_background_color,
     venue_string: event.venue_string,
     locality_string: event.locality_string,
+    place_names: event.place_names,
     start: event.start,
     end: event.end,
     url: event.url,
@@ -2381,20 +2386,41 @@ export const patchCommunityPageOnWrite = onDocumentWritten(
 );
 
 export const rebuildAllCommunityPages = onDocumentCreated(
-  { document: MANUAL_REBUILD_DOC },
+  // Full rebuilds load the Spot inventory; the default 256 MiB cannot hold it.
+  { document: MANUAL_REBUILD_DOC, timeoutSeconds: 540, memory: "1GiB" },
   async (event) => {
     const db = admin.firestore();
-    const result = await rebuildAllCommunityPagesForDb(db);
+    const request = event.data;
+    if (!request) return;
 
-    await event.data?.ref.set(
-      {
-        status: "DONE",
-        generated_count: result.generatedCount,
-        completed_at: FieldValue.serverTimestamp(),
-        warnings: result.warnings.length > 0 ? result.warnings : null,
-      },
+    await request.ref.set(
+      { status: "RUNNING", started_at: FieldValue.serverTimestamp() },
       { merge: true }
     );
+
+    try {
+      const result = await rebuildAllCommunityPagesForDb(db);
+
+      await request.ref.set(
+        {
+          status: "DONE",
+          generated_count: result.generatedCount,
+          completed_at: FieldValue.serverTimestamp(),
+          warnings: result.warnings.length > 0 ? result.warnings : null,
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      await request.ref.set(
+        {
+          status: "FAILED",
+          failed_at: FieldValue.serverTimestamp(),
+          error_type: error instanceof Error ? error.name : "UnknownError",
+        },
+        { merge: true }
+      );
+      throw error;
+    }
   }
 );
 

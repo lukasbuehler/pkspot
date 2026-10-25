@@ -1,6 +1,6 @@
 PK Spot v1.1.5 — Zuverlässigkeit & Fehlerbehebungen
 
-• Links aus Google Maps und Apple Karten können direkt in die Kartensuche eingefügt werden.
+• Kartenlinks können direkt in die Kartensuche eingefügt werden.
 • Medienauswahl und Zuschneiden verbessert; Uploads werden nicht mehr so leicht versehentlich verworfen.
 • Die Abfrage der Altersgruppe wird jetzt zuerst erklärt und erscheint nicht mehr beim App-Start.
 • Probleme bei Kontoverifizierung, Benachrichtigungslinks, Event-Zusagen, vergangenen Events, Community-Rankings und Swiss-Jam-Challenges behoben.

@@ -32,6 +32,8 @@ mat-card {
 
 .map-info-panel-title {
   min-width: 0;
+  margin: 0;
+  font: inherit;
 }
 
 .map-info-panel-type-label {
@@ -47,32 +49,22 @@ mat-card {
 }
 
 .collapsible-header-info {
-  opacity: var(--open-progress, 1);
-  max-height: calc(var(--open-progress, 1) * 100px);
+  opacity: var(--sheet-open-progress, var(--open-progress, 1));
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 100px);
   overflow: hidden;
-  transition:
-    opacity 0.2s ease-out,
-    max-height 0.2s ease-out;
   pointer-events: auto;
 
   &[data-collapsed="true"] {
-    opacity: 0;
-    max-height: 0;
     pointer-events: none;
   }
 }
 
 .collapsible {
-  opacity: var(--open-progress, 1);
-  max-height: calc(var(--open-progress, 1) * 64px);
+  opacity: var(--sheet-open-progress, var(--open-progress, 1));
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 64px);
   overflow: hidden;
-  transition:
-    opacity 0.2s ease-out,
-    max-height 0.2s ease-out;
 
   &[data-collapsed="true"] {
-    opacity: 0;
-    max-height: 0;
     pointer-events: none;
   }
 }

@@ -1,8 +1,11 @@
-PK Spot v1.1.5 — Betrouwbaarheid en oplossingen
+PK Spot 1.2: Trainingsupdate
 
-Nieuw:
+Je training heeft nu een eigen plek in PK Spot.
 
-• Plak links van Google Maps en Apple Kaarten rechtstreeks in de kaartzoekfunctie.
-• Mediaselectie en bijsnijden verbeterd, met veiliger afronden van uploads.
-• De vraag naar de leeftijdscategorie wordt nu eerst uitgelegd en verschijnt niet meer bij het opstarten.
-• Problemen opgelost met accountverificatie, meldingslinks, reacties en voorbije evenementen, communityranglijsten en Swiss Jam-challenges.
+• Check in bij Spots en bekijk privéstatistieken zoals je meest bezochte Spots en je trainingstijd.
+• Doe optioneel mee met Local Legend voor een privé maandelijkse ranking bij de Spots waar je traint.
+• Houd een privétrainingslogboek bij met sessiedetails en activiteitengrafieken.
+• Voeg herstelpauzes toe wanneer je die nodig hebt.
+• Soepelere navigatie, kaartbediening en onderpaneel.
+• Verbeteringen aan evenementen, stemmen binnen de community, Spots bewerken, volgen en meldingen.
+• Bugfixes en privacyverbeteringen in de hele app.

@@ -1,44 +1,584 @@
-:host { display: block; }
-.train-page { max-width: 1180px; margin: 0 auto; padding: clamp(20px, 4vw, 48px); color: var(--mat-sys-on-surface); }
-.train-header, .section-heading, .context-bar, .log-prompt { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-h1 { margin: 4px 0 0; font: var(--mat-sys-headline-large); }
-h2 { margin: 3px 0 0; font: var(--mat-sys-headline-small); }
-h3 { margin: 0; font: var(--mat-sys-title-medium); }
-.eyebrow { margin: 0; color: var(--mat-sys-primary); font: var(--mat-sys-label-large); }
-.context-bar { margin: 28px 0 12px; padding: 14px 18px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-low); }
-.context-item { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.context-item div { display: flex; flex-direction: column; min-width: 0; }
-.context-item span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.area-search { max-width: 720px; display: flex; align-items: center; gap: 10px; }
-.area-search app-search-field { flex: 1; min-width: 0; }
-.train-section { margin-top: 38px; }
-.spot-filter-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; min-width: 0; }
-.spot-filter-row app-filter-chips-bar { flex: 1; min-width: 0; }
-.weather-filter-note { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--mat-sys-primary); font: var(--mat-sys-label-medium); }
-.weather-filter-note mat-icon { width: 18px; height: 18px; font-size: 18px; }
-.preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-.spot-preview-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.spot-preview-link { display: block; min-width: 0; color: inherit; text-decoration: none; }
-.spot-preview-link app-spot-preview-card { height: 100%; }
-.community-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
-.community-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 8px 14px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; }
-.community-item a { display: flex; align-items: center; gap: 10px; min-width: 0; color: inherit; text-decoration: none; }
-.log-prompt { margin-top: 40px; padding: 20px; border: 1px solid var(--mat-sys-primary); border-radius: 8px; background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
-.log-prompt .eyebrow { color: inherit; }
-.log-prompt p { margin: 5px 0 0; }
-.prompt-icon { width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); flex: 0 0 auto; }
-.state, .empty { padding: 32px 0; color: var(--mat-sys-on-surface-variant); text-align: center; }
-@media (max-width: 900px) {
-  .preview-grid, .spot-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .community-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+:host {
+  // Material's tonal buttons use the secondary (green) container, which this
+  // app reserves for live state. Tonal actions on this page are highlights.
+  --mat-button-tonal-container-color: var(--mat-sys-primary-container);
+  --mat-button-tonal-label-text-color: var(--mat-sys-on-primary-container);
+  --mat-button-tonal-icon-color: var(--mat-sys-on-primary-container);
+
+  display: block;
 }
-@media (max-width: 600px) {
-  .train-page { padding: 20px 16px 96px; }
-  .train-header, .section-heading, .log-prompt { align-items: flex-start; flex-direction: column; }
-  .context-bar { align-items: stretch; flex-wrap: wrap; }
-  .area-search { align-items: stretch; flex-direction: column; }
-  .spot-filter-row { align-items: stretch; flex-direction: column; }
-  .weather-filter-note { white-space: normal; }
-  .weather { max-width: calc(100vw - 64px); }
-  .preview-grid, .spot-preview-grid, .community-row { grid-template-columns: 1fr; }
+
+.train-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 48px);
+  color: var(--mat-sys-on-surface);
+}
+
+h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-large);
+}
+
+h2 {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+// Header and context -----------------------------------------------------------
+
+.train-header {
+  display: grid;
+  gap: 14px;
+}
+
+.train-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.training-context-button,
+.training-weather-button {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.training-context-button__area,
+.training-weather-button__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Layout: main column with a context rail on wide screens -----------------------
+
+.train-layout {
+  display: grid;
+  gap: 32px;
+  margin-top: 28px;
+}
+
+.train-main,
+.train-rail {
+  display: grid;
+  align-content: start;
+  gap: 32px;
+  min-width: 0;
+}
+
+.train-rail {
+  gap: 16px;
+}
+
+@media (min-width: 1100px) {
+  .train-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+
+  .train-rail {
+    position: sticky;
+    top: 24px;
+  }
+
+  // The rail carries "Log a session" on wide screens.
+  .train-fab {
+    display: none;
+  }
+}
+
+.train-section {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  > a {
+    flex-shrink: 0;
+    margin-inline-end: -12px;
+  }
+}
+
+.section-progress {
+  border-radius: 4px;
+}
+
+// Now and soon: the secondary tonal card marks something you can join now -------
+
+.train-now {
+  display: grid;
+  gap: 12px;
+}
+
+.moment-card {
+  --mat-card-outlined-container-color: var(--mat-sys-secondary-container);
+  --mat-card-outlined-outline-color: var(--mat-sys-secondary);
+  --mat-card-outlined-container-shape: 18px;
+  --mat-button-filled-container-color: var(--mat-sys-secondary);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-secondary);
+  --mat-button-text-label-text-color: var(--mat-sys-on-secondary-container);
+
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.moment-card__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-secondary);
+  background: var(--mat-sys-secondary);
+}
+
+.moment-card__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moment-card__eyebrow,
+.moment-card__detail {
+  margin: 0;
+}
+
+.moment-card__title {
+  overflow-wrap: anywhere;
+}
+
+.moment-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+// Spots ---------------------------------------------------------------------
+
+.spot-filter-row {
+  display: flex;
+  min-width: 0;
+
+  app-filter-chips-bar {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.weather-filter-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--mat-sys-primary);
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.spot-preview-grid,
+.coming-up-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.coming-up-cards {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+}
+
+.spot-preview-link {
+  display: block;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+
+  app-spot-preview-card {
+    height: 100%;
+  }
+}
+
+// Coming up -----------------------------------------------------------------
+
+.coming-up__card,
+.recent-card {
+  overflow: hidden;
+}
+
+.coming-up__list,
+.recent-card mat-nav-list {
+  // Date badges are rounded squares, not Material's circular avatars.
+  --mat-list-list-item-leading-avatar-shape: 12px;
+  --mat-list-list-item-leading-avatar-color: var(--mat-sys-primary-container);
+  --mat-list-list-item-leading-avatar-size: 52px;
+  --mat-list-list-item-two-line-container-height: 76px;
+  --mat-list-list-item-three-line-container-height: 92px;
+
+  padding-block: 4px;
+}
+
+.date-badge {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px;
+  color: var(--mat-sys-on-primary-container);
+  line-height: 1;
+}
+
+.date-badge__month {
+  font: var(--mat-sys-label-small);
+  text-transform: uppercase;
+}
+
+.date-badge__day {
+  font: var(--mat-sys-title-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.date-badge__day--small {
+  font: var(--mat-sys-label-large);
+}
+
+.coming-up__community {
+  color: var(--mat-sys-primary);
+}
+
+.coming-up__relationship {
+  color: var(--mat-sys-primary);
+}
+
+// Event cards share the Spot preview row layout above.
+.coming-up-cards__item {
+  // Share card and metadata tracks so wrapped metadata cannot shorten a card.
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  gap: 6px;
+  min-width: 0;
+}
+
+// Below the card, aligned with its edge.
+.coming-up-cards__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding-inline: 4px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.coming-up-cards__distance {
+  color: var(--mat-sys-on-surface);
+}
+
+// Rail ------------------------------------------------------------------------
+
+.rail-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.rail-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  > a,
+  > button {
+    margin-inline-end: -12px;
+  }
+}
+
+.rail-card__title {
+  font: var(--mat-sys-title-medium);
+}
+
+.rail-card__text {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.conditions-card__now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.conditions-card__temperature {
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-headline-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.rhythm-card__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  > div {
+    display: grid;
+  }
+
+  strong {
+    font: var(--mat-sys-headline-small);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-medium);
+  }
+}
+
+.rhythm-card__ranks {
+  display: grid;
+  gap: 4px;
+}
+
+.rhythm-card__subtitle {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+}
+
+.rank-list {
+  margin-inline: -16px;
+  padding-block: 0;
+
+  --spot-rank-icon-size: 24px;
+}
+
+// Tie details wrap instead of truncating; the row grows with them.
+.rank-list .mat-mdc-list-item:has(.rank-list__detail) {
+  height: auto;
+  padding-block: 8px;
+}
+
+.rank-list__detail {
+  white-space: normal;
+}
+
+.rhythm-card__gold {
+  color: var(--app-rank-gold, #e9b82c);
+}
+
+.rank-list__label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+
+  &.is-legend {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.rhythm-card__note {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.rhythm-card__action {
+  justify-self: stretch;
+}
+
+// Looking back ----------------------------------------------------------------
+
+.looking-back {
+  margin-top: 48px;
+}
+
+.looking-back__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: start;
+  gap: 16px;
+}
+
+.month-card {
+  display: grid;
+  gap: 4px;
+  padding: 16px 20px;
+}
+
+.month-card__title {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-small);
+}
+
+.month-card__headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+
+  strong {
+    font: var(--mat-sys-display-small);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.month-card__delta {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+
+  &.is-up {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.month-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+
+  > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  dt {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-small);
+  }
+
+  dd {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+    font-variant-numeric: tabular-nums;
+
+    mat-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--mat-sys-primary);
+      font-size: 18px;
+    }
+  }
+}
+
+.recent-card {
+  margin-top: 4px;
+}
+
+// Empty states ------------------------------------------------------------------
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 0;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.empty--context > mat-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+// Responsive --------------------------------------------------------------------
+
+@media (max-width: 899.98px) {
+  .looking-back__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 599.98px) {
+  .train-page {
+    padding: 20px 16px 120px;
+  }
+
+  h1 {
+    font: var(--mat-sys-headline-medium);
+  }
+
+  .train-layout {
+    margin-top: 20px;
+  }
+
+  .moment-card {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .moment-card__actions {
+    grid-column: 1 / -1;
+
+    > * { flex: 1 1 auto; }
+  }
+
+  // A swipeable row keeps four Spots to one screen height instead of four.
+  .spot-preview-grid,
+  .coming-up-cards {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 72%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline mandatory;
+    scroll-padding-inline: 16px;
+    margin-inline: -16px;
+    padding: 0 16px 4px;
+  }
+
+  .spot-preview-link,
+  .coming-up-cards__item {
+    scroll-snap-align: start;
+  }
+}
+
+// Alain Mode replaces the bottom navigation with an app-level menu FAB that
+// overlays this corner. Keep the page heading below its tap target.
+@media (max-height: 499.98px),
+  (max-width: 767.98px) and (max-height: 699.98px) {
+  .train-page {
+    padding-block-start: max(
+      80px,
+      calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+    );
+  }
 }

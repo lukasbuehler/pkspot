@@ -3,9 +3,12 @@ import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
 import { trainingFeatureEnabled } from "./features/training-feature";
+import { financesFeatureEnabled } from "./features/finances-feature";
+import { supportShopFeatureEnabled } from "./features/support-shop-feature";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
+  "/shop",
   "/support",
   "/contact",
   "/terms-of-service",
@@ -277,12 +280,12 @@ export const routes: Routes = [
           data: { routeName: "Edit Log Entry" },
         },
         {
-          path: "u/:userID/logs",
+          path: "train/log/:entryId",
           loadComponent: () =>
-            import("./components/public-training-log/public-training-log.component").then(
-              (m) => m.PublicTrainingLogComponent,
+            import("./components/training-session-detail/training-session-detail.component").then(
+              (m) => m.TrainingSessionDetailComponent,
             ),
-          data: { routeName: "Training Log" },
+          data: { routeName: "Training Session" },
         },
       ]
     : []),
@@ -294,6 +297,16 @@ export const routes: Routes = [
       ),
     data: { routeName: "Organization Reviews", discoverable: false },
   },
+  ...(financesFeatureEnabled
+    ? [{
+        path: "finances",
+        loadComponent: () =>
+          import("./components/finances-page/finances-page.component").then(
+            (m) => m.FinancesPageComponent,
+          ),
+        data: { routeName: "Finances", discoverable: false },
+      }]
+    : []),
   {
     path: "organization-admin",
     loadComponent: () =>
@@ -325,6 +338,11 @@ export const routes: Routes = [
         (m) => m.ModerationDashboardPageComponent,
       ),
     data: { routeName: "Moderation" },
+  },
+  {
+    path: "moderation/duplicates",
+    loadComponent: () => import("./components/moderation-duplicates-page/moderation-duplicates-page.component").then(m => m.ModerationDuplicatesPageComponent),
+    data: { routeName: "Duplicate Spots", discoverable: false },
   },
   {
     path: "moderation/reports",
@@ -413,6 +431,11 @@ export const routes: Routes = [
     data: { routeName: "Embedded Event" },
   },
   {
+    path: "embedded/results",
+    loadComponent: () => import("./components/embedding/embedded-results-page/embedded-results-page.component").then(m => m.EmbeddedResultsPageComponent),
+    data: { routeName: "Embedded selection", discoverable: false },
+  },
+  {
     path: "embedded/map",
     loadComponent: () =>
       import("./components/embedding/embedded-map-page/embedded-map-page.component").then(
@@ -442,10 +465,32 @@ export const routes: Routes = [
     data: { routeName: "Create Event" },
   },
   {
-    path: "events/session/new",
-    redirectTo: () => "/events",
+    path: "events/community/new",
+    redirectTo: () => "/events/session/new",
     pathMatch: "full",
-    data: { routeName: "Events", discoverable: false },
+  },
+  // Keep local links from the short-lived Jam/Session experiment working.
+  { path: "events/jam/new", redirectTo: () => "/events/community/new", pathMatch: "full" },
+  ...["events/session/new", "events/session/:sessionId", "events/sessions"].map(path => ({
+    path,
+    loadComponent: () => import("./components/session-planner-page/session-planner-page.component").then(m => m.SessionPlannerPageComponent),
+    data: { routeName: "Sessions", discoverable: false, sessionList: path === "events/sessions" },
+  })),
+  {
+    path: "events/suggest",
+    loadComponent: () =>
+      import("./components/event-suggestion-page/event-suggestion-page.component").then(
+        (m) => m.EventSuggestionPageComponent,
+      ),
+    data: { routeName: "Suggest an Event", discoverable: false },
+  },
+  {
+    path: "events/:slug/edit",
+    loadComponent: () =>
+      import("./components/community-activity-create-page/community-activity-create-page.component").then(
+        (m) => m.CommunityEventCreatePageComponent,
+      ),
+    data: { routeName: "Edit community event", editCommunityEvent: true, discoverable: false },
   },
   {
     path: "event/swissjam25",
@@ -590,6 +635,14 @@ export const routes: Routes = [
       ).then((m) => m.ReportOutcomePageComponent),
     data: { routeName: "Report update" },
   },
+  {
+    path: "reports",
+    loadComponent: () =>
+      import("./components/my-reports-page/my-reports-page.component").then(
+        (m) => m.MyReportsPageComponent,
+      ),
+    data: { routeName: "My reports" },
+  },
 
   // Other
   {
@@ -601,6 +654,50 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "About", acceptanceFree: true },
   },
+  ...(supportShopFeatureEnabled
+    ? [
+        {
+          path: "shop/orders",
+          loadComponent: () =>
+            import("./components/support-orders-page/support-orders-page.component").then(
+              (m) => m.SupportOrdersPageComponent,
+            ),
+          data: { routeName: "Shop order fulfillment", discoverable: false },
+        },
+        {
+          path: "shop/my-orders",
+          loadComponent: () =>
+            import("./components/my-shop-orders-page/my-shop-orders-page.component").then(
+              (m) => m.MyShopOrdersPageComponent,
+            ),
+          data: { routeName: "My shop orders", acceptanceFree: true },
+        },
+        {
+          path: "shop/cart",
+          loadComponent: () =>
+            import("./components/shop-cart-page/shop-cart-page.component").then(
+              (m) => m.ShopCartPageComponent,
+            ),
+          data: { routeName: "My shop cart", acceptanceFree: true },
+        },
+        {
+          path: "shop/item/:itemId",
+          loadComponent: () =>
+            import("./components/shop-item-page/shop-item-page.component").then(
+              (m) => m.ShopItemPageComponent,
+            ),
+          data: { routeName: "Shop item", acceptanceFree: true },
+        },
+        {
+          path: "shop",
+          loadComponent: () =>
+            import("./components/shop-page/shop-page.component").then(
+              (m) => m.ShopPageComponent,
+            ),
+          data: { routeName: "Shop", acceptanceFree: true },
+        },
+      ]
+    : []),
   {
     path: "support",
     loadComponent: () =>

@@ -1,3 +1,4 @@
+import { spotCopy } from "../localization/entity-copy";
 import { DOCUMENT, isPlatformServer } from "@angular/common";
 import { inject, Injectable, LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
@@ -131,6 +132,7 @@ export class StructuredDataService {
   ): Record<string, unknown> {
     return {
       "@type": "BreadcrumbList",
+      name: items.map((item) => item.name).join(" > "),
       itemListElement: items.map((item, index) => ({
         "@type": "ListItem",
         position: index + 1,
@@ -284,7 +286,7 @@ export class StructuredDataService {
     const placeData: SpotStructuredData = {
       "@type": isReviewEligible ? "SportsActivityLocation" : "Place",
       name: spot.name(),
-      description: spot.description() || undefined,
+      description: spotCopy(spot, this.locale).description,
       geo: {
         "@type": "GeoCoordinates",
         latitude: spot.location().lat,
@@ -335,6 +337,7 @@ export class StructuredDataService {
     const address = spot.address();
     if (address) {
       const addressLocality =
+        spotCopy(spot, this.locale).place.locality ||
         getDisplayLocalityName(address) ||
         getDisplaySublocalityName(address) ||
         this.getSpotLocality(spot);
@@ -389,7 +392,7 @@ export class StructuredDataService {
     if (type !== SpotTypes.Other) {
       properties.push({
         "@type": "PropertyValue",
-        name: "Spot type",
+        name: $localize`:@@spot.structured.type:Spot type`,
         value: SpotTypesNames[type],
       });
     }
@@ -397,7 +400,7 @@ export class StructuredDataService {
     if (access !== SpotAccess.Other) {
       properties.push({
         "@type": "PropertyValue",
-        name: "Spot access",
+        name: $localize`:@@spot.structured.access:Spot access`,
         value: SpotAccessNames[access],
       });
     }
@@ -406,6 +409,8 @@ export class StructuredDataService {
   }
 
   private getSpotLocality(spot: Spot | LocalSpot): string | undefined {
+    const translatedLocality = spotCopy(spot, this.locale).place.locality;
+    if (translatedLocality) return translatedLocality;
     const locality = spot.localityString()?.trim();
     if (!locality) {
       return undefined;
@@ -475,7 +480,7 @@ export class StructuredDataService {
           contentUrl: contentUrl,
           url: contentUrl,
           thumbnailUrl: thumbnailUrl,
-          description: `Photo of ${spot.name()} parkour spot`,
+          description: $localize`:@@spot.structured.photo:Photo of ${spot.name()}:NAME:`,
         };
 
         // Add thumbnail if available (for StorageImage)
@@ -557,10 +562,13 @@ export class StructuredDataService {
   ): Record<string, unknown> {
     const listItems = spots.map((spot, index) => {
       if (spot instanceof Spot || spot instanceof LocalSpot) {
+        const item = this.generateSpotPlaceData(spot);
+        // Directory entries identify Spots; review markup belongs on their detail pages.
+        delete item["aggregateRating"];
         return {
           "@type": "ListItem",
           position: index + 1,
-          item: this.generateSpotPlaceData(spot),
+          item,
         };
       } else {
         // SpotPreviewData - create minimal Place data
@@ -607,18 +615,6 @@ export class StructuredDataService {
 
         if (spot.imageSrc) {
           placeItem["image"] = this.normalizeAbsoluteUrl(spot.imageSrc);
-        }
-
-        const reviewCount = this.getSpotPreviewReviewCount(spot);
-        if (isReviewEligible && spot.rating && reviewCount) {
-          placeItem["aggregateRating"] = {
-            "@type": "AggregateRating",
-            ratingValue: spot.rating,
-            bestRating: 5,
-            worstRating: 1,
-            ratingCount: reviewCount,
-            reviewCount: reviewCount,
-          };
         }
 
         return {
@@ -699,13 +695,6 @@ export class StructuredDataService {
       return undefined;
     }
     return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
-  }
-
-  private getSpotPreviewReviewCount(spot: SpotPreviewData): number | undefined {
-    return (
-      this.getPositiveInteger(spot.numReviews) ??
-      this.getPositiveInteger(spot.num_reviews)
-    );
   }
 
   private getPositiveInteger(value: unknown): number | undefined {

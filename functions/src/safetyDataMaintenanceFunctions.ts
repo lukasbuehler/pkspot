@@ -166,7 +166,10 @@ export const migrateSpotReportsToPublicWarnings = onCall(async (request) => {
       continue;
     }
     const data = report.data();
-    if (data["status"] === "resolved" || data["status"] === "dismissed") {
+    if (
+      data["status"] === "resolved" || data["status"] === "dismissed" ||
+      data["status"] === "withdrawn" || data["status"] === "superseded"
+    ) {
       continue;
     }
 

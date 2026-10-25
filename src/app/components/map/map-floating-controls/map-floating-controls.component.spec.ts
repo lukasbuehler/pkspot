@@ -47,6 +47,40 @@ describe("MapFloatingControlsComponent", () => {
     expect(actions).toEqual(["north", "style", "location"]);
   });
 
+  it("keeps Locate-me available while location is off", () => {
+    fixture.componentRef.setInput("showControls", true);
+    fixture.componentRef.setInput("locationEnabled", false);
+    fixture.componentRef.setInput("geolocationIcon", "location_disabled");
+    fixture.detectChanges();
+
+    const locationButton = fixture.debugElement.query(
+      By.css(".map-location-control"),
+    );
+    expect(locationButton.classes["map-location-control--disabled"]).toBe(true);
+    expect(locationButton.nativeElement.disabled).toBe(false);
+    expect(fixture.componentInstance.geolocationTooltip()).toBe("Location is off");
+  });
+
+  it("keeps the plus menu stable when opening the sheet removes the Spot action", async () => {
+    fixture.componentRef.setInput("showControls", true);
+    fixture.componentRef.setInput("showCreateSpot", true);
+    fixture.componentRef.setInput("showCreateEvent", true);
+    await fixture.whenStable();
+    const launcher = fixture.nativeElement.querySelector("#mapCreateFabMenu .fab-menu__launcher") as HTMLButtonElement;
+    expect(launcher.textContent?.trim()).toBe("add");
+    fixture.componentRef.setInput("showCreateSpot", false);
+    await fixture.whenStable();
+    expect(launcher.textContent?.trim()).toBe("add");
+    launcher.click();
+    await fixture.whenStable();
+    expect(launcher.getAttribute("aria-expanded")).toBe("true");
+    expect(fixture.nativeElement.querySelectorAll("#mapCreateFabMenu .fab-menu__action")).toHaveLength(1);
+    launcher.click();
+    fixture.componentRef.setInput("showCreateSpot", true);
+    await fixture.whenStable();
+    expect(launcher.textContent?.trim()).toBe("add");
+  });
+
   it("offers all configured creation actions from the FAB menu", async () => {
     const actions: string[] = [];
     fixture.componentInstance.createSpot.subscribe(() => actions.push("spot"));
@@ -81,4 +115,15 @@ describe("MapFloatingControlsComponent", () => {
     expect(fabMenu.actions()).toHaveLength(4);
     expect(fabMenu.alignment()).toBe("start");
   });
+  it("offers pending drafts even when creating a Spot is unavailable", () => {
+    fixture.componentRef.setInput("showControls", true);
+    fixture.componentRef.setInput("draftCount", 2);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.createActions().map(action => action.id)).toEqual(["drafts"]);
+    const listener = vi.fn();
+    fixture.componentInstance.reviewDrafts.subscribe(listener);
+    fixture.componentInstance.onCreateAction("drafts");
+    expect(listener).toHaveBeenCalled();
+  });
+
 });

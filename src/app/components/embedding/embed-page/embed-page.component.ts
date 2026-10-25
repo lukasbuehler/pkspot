@@ -1,3 +1,6 @@
+import { SpotPickerComponent } from "../../spot-picker/spot-picker.component";
+import { EntityReferenceAutocompleteComponent, EntityReferenceOption } from "../../entity-reference-autocomplete/entity-reference-autocomplete.component";
+import { embedSelectionQuery } from "../../../shared/embed-selection";
 import {
   Component,
   computed,
@@ -50,6 +53,7 @@ import {
 @Component({
   selector: "app-embed-page",
   imports: [
+    SpotPickerComponent, EntityReferenceAutocompleteComponent,
     MatSlideToggleModule,
     FormsModule,
     MatButtonModule,
@@ -114,8 +118,10 @@ export class EmbedPageComponent {
   });
 
   defaultEmbedType: EmbedType = defaultEmbedTypeValue;
-  embedTypes: EmbedType[] = ["event", "event-map"]; // "map",
+  embedTypes: EmbedType[] = ["spot", "community", "event", "event-map", "map"];
   embedTypeName: Record<EmbedType, string> = {
+    spot: $localize`Spots`,
+    community: $localize`Community`,
     map: $localize`Map`,
     event: $localize`Event info`,
     "event-map": $localize`Event map`,
@@ -128,6 +134,11 @@ export class EmbedPageComponent {
   );
   embedTypeSelectorLabel = "Embed type";
 
+  spotIds = signal<string[]>([]);
+  communityId = signal("");
+  communitySlug = signal("");
+  showSelectionMap = signal(true);
+
   tab = signal<EmbedType>(this.defaultEmbedType);
 
   effectiveEmbedLanguage = computed<SupportedEmbedLanguage>(() => {
@@ -135,9 +146,10 @@ export class EmbedPageComponent {
     return language === "auto" ? normalizeEmbedLanguage(this._locale) : language;
   });
 
-  embedCreditText = computed(() =>
-    embedCreditTextForLanguage(this.effectiveEmbedLanguage()),
-  );
+  embedCreditText = computed(() => {
+    if (this.tab() === "event" || this.tab() === "event-map") return embedCreditTextForLanguage(this.effectiveEmbedLanguage());
+    return { iframeTitle: $localize`PK Spot embedded content`, interactiveLabel: this.embedTypeName[this.tab()], dataByLabel: $localize`Data by` };
+  });
 
   unsafeIframeUrl = computed<string>(() => {
     const baseUrl = `${this.baseHref}`;
@@ -149,13 +161,21 @@ export class EmbedPageComponent {
       baseUrl + (language === "auto" ? "" : "/" + language) + "/embedded/";
 
     switch (tab) {
+      case "spot":
+        if (!this.spotIds().length) return "";
+        url += "results?" + embedSelectionQuery(this.spotIds().map(id => ({ kind: "spot", id })), this.showSelectionMap());
+        break;
+      case "community":
+        if (!this.communitySlug()) return "";
+        url += "results?" + embedSelectionQuery([{ kind: "community", id: this.communitySlug() }], false);
+        break;
       case "map":
-        url += "map/";
+        url += "map?" + new URLSearchParams({ showSatelliteToggle: String(this.showSatelliteToggle()), showGeolocation: String(this.showGeolocation()) });
         break;
       case "event":
         if (!eventId) return "";
         url += "events/";
-        url += eventId;
+        url += encodeURIComponent(eventId);
         url += this.showEventHeader()
           ? "?showHeader=true"
           : "?showHeader=false";
@@ -163,7 +183,7 @@ export class EmbedPageComponent {
       case "event-map":
         if (!eventId) return "";
         url += "events/";
-        url += eventId;
+        url += encodeURIComponent(eventId);
         url += "/map";
         url += this.showEventHeader()
           ? "?showHeader=true"
@@ -223,6 +243,7 @@ export class EmbedPageComponent {
         eventId: this.eventId(),
         embedType: this.tab(),
         language: this.embedLanguage(),
+        spotIds: this.spotIds(), communityId: this.communityId(), communitySlug: this.communitySlug(), showMap: this.showSelectionMap(),
       });
 
       if (this._queryParamsMatch(queryParams)) {
@@ -244,7 +265,7 @@ export class EmbedPageComponent {
   }
 
   onEmbedTypeChange(value: string | null): void {
-    if (value === "map" || value === "event" || value === "event-map") {
+    if (value === "map" || value === "event" || value === "event-map" || value === "spot" || value === "community") {
       this.tab.set(value);
       this._analytics.trackEvent("embed_option_changed", {
         ...this.embedAnalyticsProperties(),
@@ -252,6 +273,11 @@ export class EmbedPageComponent {
         value,
       });
     }
+  }
+
+  onCommunitySelection(option: EntityReferenceOption | null): void {
+    this.communityId.set(option?.id ?? "");
+    this.communitySlug.set(option?.communityPreview?.slug ?? "");
   }
 
   onEventSelectionChange(value: string): void {
@@ -329,6 +355,10 @@ export class EmbedPageComponent {
     this.tab.set(readEmbedPageType(paramMap) ?? this.defaultEmbedType);
     this.eventId.set(readEmbedPageEventId(paramMap) ?? "");
 
+    this.spotIds.set((paramMap.get("spotIds") ?? "").split(",").filter(id => /^[\w:.-]{1,160}$/.test(id)).slice(0, 10));
+    this.communityId.set(paramMap.get("communityId") ?? "");
+    this.communitySlug.set(paramMap.get("communitySlug") ?? "");
+    this.showSelectionMap.set(paramMap.get("showMap") !== "false");
     const language = readEmbedPageLanguage(paramMap);
     this.embedLanguage.set(language ?? "auto");
 

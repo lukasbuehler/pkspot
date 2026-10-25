@@ -16,7 +16,7 @@
   [title]="community().displayName"
   [gmpClickable]="true"
   [options]="markerOptions()"
-  (gmpClick)="markerClick.emit(community().communityKey)"
+  (appNativeMarkerClick)="markerClick.emit(community().communityKey)"
   (markerInitialized)="centerMarkerAnchor($event)"
   [zIndex]="zIndex()"
 ></map-advanced-marker>

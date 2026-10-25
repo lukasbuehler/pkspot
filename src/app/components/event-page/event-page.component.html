@@ -22,7 +22,7 @@
         <a
           mat-button
           routerLink="/events"
-          aria-label="Back to all events"
+          aria-label="Back to all events" i18n-aria-label
           matTooltip="Back to all events"
           i18n-matTooltip="@@event_page.back_to_events"
         >
@@ -51,7 +51,7 @@
               [href]="url"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open event website"
+              aria-label="Open event website" i18n-aria-label
               matTooltip="Open event website"
               i18n-matTooltip="@@event_info.open_website"
               (click)="trackWebsiteClick()"
@@ -63,13 +63,27 @@
             mat-icon-button
             class="event-nav-action"
             type="button"
-            aria-label="Share event"
+            aria-label="Share event" i18n-aria-label
             matTooltip="Share event"
             i18n-matTooltip="@@event_info.share"
-            (click)="shareEvent()"
+            [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareEvent()"
           >
             <mat-icon>share</mat-icon>
           </button>
+          @if (event.published) {
+            <button
+              mat-icon-button
+              class="event-nav-action"
+              type="button"
+              aria-label="Report event" i18n-aria-label
+              matTooltip="Report event"
+              i18n-aria-label
+              i18n-matTooltip
+              (click)="openEventReport()"
+            >
+              <mat-icon>flag</mat-icon>
+            </button>
+          }
           <app-event-live-update-organizer-menu
             [event]="event"
             [canEdit]="canEditEvent()"
@@ -139,13 +153,29 @@
         </aside>
       }
 
+      @if (isReportingEvent()) {
+        <section class="event-report-panel" aria-label="Report this event" i18n-aria-label>
+          <div class="event-report-panel__heading">
+            <div>
+              <h2 class="mat-title-large" i18n>Report this event</h2>
+              <p class="mat-body-medium" i18n>Reports are private and go directly to the PK Spot safety team.</p>
+            </div>
+            <button mat-button type="button" (click)="closeEventReport()" i18n>Close</button>
+          </div>
+          <app-safety-case-form
+            [preset]="eventReportPreset()"
+            (submitted)="onEventReportSubmitted()"
+          />
+        </section>
+      }
+
       <header class="event-heading pb-3">
         <div class="event-heading-main">
           <div class="event-title-block">
             <h1 class="mat-heading-medium">{{ event.name }}</h1>
 
             <app-event-summary-meta [event]="event"></app-event-summary-meta>
-
+            <p class="mat-body-medium">{{ localizedCopy()?.heading }}</p>
             @if (organizerName()) {
               <div class="event-organizer">
                 <span
@@ -178,25 +208,20 @@
         </div>
       </header>
 
-      @if (event.lifecycleStatus !== "cancelled" && event.isLive(now())) {
-        <app-event-now-next-card
-          class="event-now-next"
-          [event]="event"
-          [now]="now()"
-          (itemSelected)="focusProgramItem($event)"
-        />
-      }
-
       @if (hasHeroMedia()) {
         <section class="event-hero">
           <app-event-hero-media [event]="event"></app-event-hero-media>
         </section>
       }
 
+      @if (descriptionLanguageLabel()) {
+        <p class="mat-body-small">{{ descriptionLanguageLabel() }}</p>
+      }
       @if (description()) {
         <section class="event-section">
           <p
             id="event-description"
+            [attr.lang]="event.descriptionLocale || null"
             class="event-description"
             [class.event-description--collapsed]="
               hasLongDescription() && !isEventDescriptionExpanded()
@@ -312,7 +337,7 @@
             <span i18n>Directions</span>
           </button>
         }
-        <button mat-stroked-button type="button" (click)="shareEvent()">
+        <button mat-stroked-button type="button" [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareEvent()">
           <mat-icon>share</mat-icon>
           <span i18n="@@event_info.share_button">Share</span>
         </button>
@@ -397,18 +422,17 @@
                   Event map
                 </h4>
                 <p class="map-preview-title">
-                  {{ event.venueString }}, {{ event.localityString }}
+                  {{ event.venueString }}, {{ event.localityLabel }}
                 </p>
               </div>
               <a
                 matButton="filled"
                 [routerLink]="mapRoute()"
-                aria-label="Open event map"
-                matTooltip="Open event map"
-                i18n-matTooltip="@@event_info.open_map"
+                [attr.aria-label]="openMapLabel()"
+                [matTooltip]="openMapLabel()"
               >
                 <mat-icon>open_in_full</mat-icon>
-                <span i18n="@@event_info.open_map">Open full map</span>
+                <span>{{ openMapLabel() }}</span>
               </a>
             </div>
 
@@ -425,6 +449,7 @@
                 id="eventInfoMap"
                 [showGeolocation]="false"
                 [fitToBounds]="mapPreviewBounds()"
+                [fitBoundsPadding]="{ top: 100, right: 40, bottom: 40, left: 40 }"
                 [boundRestriction]="mapPreviewBounds()!"
                 [polygons]="areaPolygon() ? [areaPolygon()!] : []"
                 [minZoom]="3"
@@ -451,6 +476,8 @@
                 color="primary"
                 style="position: absolute; right: 16px; bottom: 32px"
                 [routerLink]="mapRoute()"
+                [attr.aria-label]="openMapLabel()"
+                [matTooltip]="openMapLabel()"
               >
                 <mat-icon>open_in_full</mat-icon>
               </a>
@@ -464,15 +491,14 @@
                   Event map
                 </span>
                 <p class="map-preview-title">
-                  {{ event.venueString }}, {{ event.localityString }}
+                  {{ event.venueString }}, {{ event.localityLabel }}
                 </p>
               </div>
               <a
                 mat-icon-button
                 [routerLink]="mapRoute()"
-                aria-label="Open event map"
-                matTooltip="Open event map"
-                i18n-matTooltip="@@event_info.open_map"
+                [attr.aria-label]="openMapLabel()"
+                [matTooltip]="openMapLabel()"
               >
                 <mat-icon>open_in_full</mat-icon>
               </a>
@@ -768,6 +794,13 @@
             </article>
           }
         </section>
+      }
+
+      @if (event.placeNames) {
+        <footer class="event-attribution mat-body-small">
+          <span i18n="@@community.placeNames.attribution">Place names:</span>
+          <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a>
+        </footer>
       }
     </article>
   </main>

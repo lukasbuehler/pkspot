@@ -1,6 +1,16 @@
 import { UserReferenceSchema } from "./UserSchema";
+import type { MediaSafetySeverity } from "./MediaModerationSchema";
 
-export type ReportModerationStatus = "open" | "resolved" | "dismissed";
+/**
+ * `superseded` is retained only for records produced by the temporary legacy
+ * bridge. It never appears in a reporter's report history.
+ */
+export type ReportModerationStatus =
+  | "open"
+  | "resolved"
+  | "dismissed"
+  | "withdrawn"
+  | "superseded";
 
 /**
  * Private snapshot used for moderation follow-up. Authenticated reporter
@@ -15,7 +25,7 @@ export interface ModerationReporterSchema {
 }
 
 export interface MediaReportSubmissionSchema {
-  channel: "callable" | "direct" | "scanner";
+  channel: "callable" | "direct" | "legacy_bridge" | "scanner";
   authenticated: boolean;
   app_check: boolean;
   app_id?: string;
@@ -25,17 +35,16 @@ export interface MediaReportSubmissionSchema {
   origin?: string;
   contact_email_verified?: boolean;
   metadata_expires_at?: unknown;
+  /** Marks a report that may drive moderation and public projections. */
+  canonical?: boolean;
+  accepted_at?: unknown;
 }
 
 export interface MediaSafetyScanSchema {
   provider: string;
   provider_version: string;
   decision: "allow" | "block" | "needs_review" | "reportable_match";
-  severity:
-    | "none"
-    | "explicit_non_child"
-    | "possible_child_safety"
-    | "known_csam_match";
+  severity: MediaSafetySeverity;
   reason?: string;
   labels?: Record<string, string>;
   thresholds?: Record<string, string>;
@@ -62,7 +71,13 @@ export interface MediaReportSchema {
   spotId?: string;
   context?: "spot" | "event" | "media";
   targetId?: string;
+  /** Server-derived identity used to serialize an authenticated user's report. */
+  target_key?: string;
   reason: string;
+  /** Canonical reasons. `reason` remains for released moderation clients. */
+  reasons?: string[];
+  /** Private reference to the media selected as the duplicate target. */
+  duplicate_media?: { type: string; src: string };
   comment: string;
   // Guest safety/legal reports may only have an optional contact email.
   // Authenticated identities are replaced with server-authoritative values.
@@ -79,6 +94,10 @@ export interface MediaReportSchema {
   /** Locale/language code of the reporter (e.g., 'de-CH', 'en', 'fr') */
   locale?: string;
   status?: ReportModerationStatus;
+  updated_at?: unknown;
+  withdrawn_at?: unknown;
+  superseded_at?: unknown;
+  superseded_into?: string;
   resolvedAt?: unknown;
   resolvedBy?: UserReferenceSchema;
   resolutionNote?: string;

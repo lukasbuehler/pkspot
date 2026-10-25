@@ -1,11 +1,19 @@
+import { ageVerificationProviders } from "./age-verification";
 export const environment = {
   name: "CI",
   production: false,
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
-    training: false,
+    finances: false,
+    ageVerification: { ...ageVerificationProviders },
+    shareCards: false,
+    // Training is live in the shipped environments. Keep it enabled in CI so
+    // route builds and visual coverage exercise the same route table.
+    plannedSessions: false,
+    training: true,
     checkIns: false,
+    supportShop: false,
     continuousEventCalendar: true,
     mapPerformanceProfiling: false,
     streetView: {
@@ -36,7 +44,7 @@ export const environment = {
       apiKey: "set by CI/CD runner in prepare-ci-environment.mjs",
     },
     typesense: {
-      host: "g5re3ouiqm0j8bc9p-1.a1.typesense.net",
+      host: "search.pkspot.app",
       apiKey: "7yxCDDLoGisH1vDtl2ZBfIglrr3OXsVk",
     },
     posthog: {

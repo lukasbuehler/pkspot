@@ -41,7 +41,7 @@ describe("backend data-flow documentation", () => {
 
     expect(documentation).toContain("SsrAppCheckTokenMinter.mintToken(appId)");
     expect(documentation).toContain("FirebaseAdminAppCheckTokenMinter");
-    expect(documentation).toContain("Future Cloudflare Workers + static assets adapter");
+    expect(documentation).toContain("Cloudflare Workers + static assets adapter");
     expect(documentation).toContain("0 Firestore reads and 0 Firestore writes");
   });
 });

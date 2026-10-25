@@ -12,6 +12,9 @@
   <app-event-calendar-thumbnail [event]="event()" [muted]="isPast()" />
   <span class="event-copy">
     <span class="event-name">{{ event().name }}</span>
+    @if (communityLabel(); as label) {
+      <span class="listing-badge community">{{ label }}</span>
+    }
     @if (
       event().rsvpCounts.going > 0 || event().rsvpCounts.interested > 0
     ) {

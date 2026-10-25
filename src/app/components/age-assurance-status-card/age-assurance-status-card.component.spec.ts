@@ -1,3 +1,4 @@
+import { provideRouter } from "@angular/router";
 import { signal, type WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
@@ -14,6 +15,7 @@ describe("AgeAssuranceStatusCardComponent", () => {
   let fixture: ComponentFixture<AgeAssuranceStatusCardComponent>;
   let checkState: WritableSignal<AgeAssuranceCheckState>;
   let ageAssurance: {
+    isProviderEnabled: ReturnType<typeof vi.fn>;
     checkState: typeof checkState;
     hasVerifiedAdultEligibility: ReturnType<typeof vi.fn>;
     adultEvidenceStrength: ReturnType<typeof vi.fn>;
@@ -27,6 +29,7 @@ describe("AgeAssuranceStatusCardComponent", () => {
     checkState = signal<AgeAssuranceCheckState>({ status: "idle" });
     platform = "android";
     ageAssurance = {
+      isProviderEnabled: vi.fn(() => true),
       checkState,
       hasVerifiedAdultEligibility: vi.fn(() => false),
       adultEvidenceStrength: vi.fn(() => "unknown"),
@@ -42,6 +45,7 @@ describe("AgeAssuranceStatusCardComponent", () => {
     await TestBed.configureTestingModule({
       imports: [AgeAssuranceStatusCardComponent],
       providers: [
+        provideRouter([]),
         { provide: AgeAssuranceService, useValue: ageAssurance },
         {
           provide: PlatformService,
@@ -59,6 +63,13 @@ describe("AgeAssuranceStatusCardComponent", () => {
     fixture = TestBed.createComponent(AgeAssuranceStatusCardComponent);
     await fixture.whenStable();
   }
+
+  it("groups age status and the appeal link independently of profile settings", async () => {
+    await createComponent();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector("h4")?.textContent).toContain("Age verification");
+    expect(element.querySelector('a[href="/contact"]')?.textContent).toContain("Report an incorrect age-assurance decision");
+  });
 
   it("explains how to recover when Google Play is not sharing", async () => {
     await createComponent();
@@ -104,7 +115,7 @@ describe("AgeAssuranceStatusCardComponent", () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? "";
     expect(text).toContain("not independently checked");
-    expect(text).toContain("cannot unlock a public profile");
+    expect(text).toContain("does not confirm adult eligibility");
     expect(text).not.toContain("Adult eligibility is active");
   });
 

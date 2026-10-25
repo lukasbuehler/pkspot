@@ -1,7 +1,9 @@
+.settings-box {
+  border-radius: 18px;
+}
+
 .settings-page-container {
-  height: 100%;
-  overflow-y: scroll;
-  padding-bottom: 100px;
+  min-height: 100%;
 }
 
 .settings-page-content {
@@ -127,7 +129,7 @@ button.menuButton.selected {
   align-items: flex-start;
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
+  border-radius: 18px;
   color: var(--mat-sys-on-surface-variant);
   display: flex;
   gap: 12px;
@@ -157,17 +159,20 @@ button.menuButton.selected {
   }
 }
 
-#saveSpeedDial {
-  position: absolute;
-  z-index: 2;
-  right: 50px;
-
-  @media (max-width: 959px) {
-    // small screen
-    bottom: calc(110px);
+@media (max-width: 767.98px) {
+  div.menu {
+    flex-direction: row !important;
+    overflow-x: auto;
+    margin-bottom: 1.5rem !important;
+    border-radius: 12px;
   }
-  @media (min-width: 960px) {
-    // desktop (large screen)
-    bottom: calc(30px);
+  button.menuButton {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  button.menuButton.selected {
+    border-left: 0;
+    border-bottom: 2px solid var(--mat-sys-primary);
+    padding-left: 18px;
   }
 }

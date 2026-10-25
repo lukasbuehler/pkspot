@@ -1,0 +1,10 @@
+# Copy to .dev.vars for LOCAL testing. Never commit actual secrets.
+# Use a dedicated search-only key restricted to spots_v2/events_v1/communities_v1.
+TYPESENSE_ORIGIN=https://search.pkspot.app
+TYPESENSE_SEARCH_KEY=
+FIRESTORE_PROJECT_ID=
+# At least 32 random characters, used to hash network identifiers for quotas.
+QUOTA_SECRET=
+# Analytics is opt-in. Leave unset until the MCP privacy disclosure is approved.
+POSTHOG_API_KEY=
+POSTHOG_HOST=https://eu.i.posthog.com

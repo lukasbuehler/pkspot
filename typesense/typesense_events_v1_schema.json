@@ -12,9 +12,12 @@
       "facet": true,
       "optional": true
     },
+    { "name": "localized_search_names", "type": "string[]", "optional": true },
+    { "name": "place_names", "type": "object", "index": false, "optional": true },
     { "name": "location", "type": "geopoint", "optional": true },
     { "name": "has_location", "type": "bool", "facet": true, "optional": true },
     { "name": "url", "type": "string", "optional": true, "index": false },
+    { "name": "livestream_live", "type": "bool", "optional": true, "index": false },
 
     {
       "name": "banner_src",
@@ -171,6 +174,30 @@
       "type": "string[]",
       "facet": true,
       "optional": true
+    },
+    {
+      "name": "listing_tier",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "country_code",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "region_keys",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "community_broadcast",
+      "type": "string",
+      "optional": true,
+      "index": false
     },
     {
       "name": "lifecycle_status",

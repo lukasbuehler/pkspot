@@ -1,3 +1,4 @@
+import { youtubeVideoId } from "../utils/youtube-video";
 import { signal, WritableSignal } from "@angular/core";
 import {
   MediaSchema,
@@ -140,6 +141,7 @@ export class ExternalImage extends Media {
 }
 
 export class ExternalVideo extends Media {
+  readonly youtubeId = youtubeVideoId(this.baseSrc);
   constructor(
     src: string,
     userId?: string,

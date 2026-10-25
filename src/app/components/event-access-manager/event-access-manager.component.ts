@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -48,6 +50,8 @@ interface EventAccessRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventAccessManagerComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _events = inject(EventsService);
   private readonly _users = inject(UsersService);
   private _loadVersion = 0;
@@ -91,6 +95,7 @@ export class EventAccessManagerComponent {
       this.selectedUserId.set("");
       await this._reload(this.event());
     } catch (error) {
+      this.featureTelemetry.failure("event-access-manager", "addGrant", error);
       console.error("EventAccessManager: failed to add access", error);
       this.error.set(
         $localize`:@@event_access.error.save:Access could not be saved.`,
@@ -108,6 +113,7 @@ export class EventAccessManagerComponent {
       await this._events.setEventAccess(this.event(), row.grant.user_id, role);
       await this._reload(this.event());
     } catch (error) {
+      this.featureTelemetry.failure("event-access-manager", "changeRole", error);
       console.error("EventAccessManager: failed to update access", error);
       this.error.set(
         $localize`:@@event_access.error.save:Access could not be saved.`,
@@ -125,6 +131,7 @@ export class EventAccessManagerComponent {
       await this._events.removeEventAccess(this.event(), row.grant.user_id);
       await this._reload(this.event());
     } catch (error) {
+      this.featureTelemetry.failure("event-access-manager", "removeGrant", error);
       console.error("EventAccessManager: failed to remove access", error);
       this.error.set(
         $localize`:@@event_access.error.remove:Access could not be removed.`,
@@ -151,6 +158,7 @@ export class EventAccessManagerComponent {
       );
       if (version === this._loadVersion) this.rows.set(users);
     } catch (error) {
+      this.featureTelemetry.failure("event-access-manager", "_reload", error);
       if (version !== this._loadVersion) return;
       console.error("EventAccessManager: failed to load access", error);
       this.error.set(

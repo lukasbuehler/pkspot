@@ -11,7 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocalSpot } from "../../../db/models/Spot";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
-import { SpotSchema } from "../../../db/schemas/SpotSchema";
+import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AnalyticsService } from "../../services/analytics.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
@@ -68,41 +68,7 @@ const seriesServiceStub = () => ({
   getSeriesByIds: vi.fn(async () => ({})),
 });
 
-describe("EventInfoPageComponent", () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: WeatherService,
-          useValue: {
-            isEventForecastAvailable: vi.fn(() => false),
-            getEventForecastForTileAt: vi.fn(),
-          },
-        },
-        { provide: MatDialog, useValue: { open: vi.fn() } },
-      ],
-    });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    TestBed.resetTestingModule();
-  });
-
-  it("keeps ownership claim requests hidden until rollout verification", () => {
-    const template = readFileSync(
-      join(
-        process.cwd(),
-        "src/app/components/event-page/event-page.component.html",
-      ),
-      "utf8",
-    );
-
-    expect(template).not.toContain("canRequestOwnership");
-    expect(template).not.toContain("ownershipClaimRequested");
-  });
-
-  it("exposes dummy event info as text and structured data for crawlers", () => {
+const setupEventComponent = () => {
     const structuredDataService = {
       addStructuredData: vi.fn(),
       removeStructuredData: vi.fn(),
@@ -159,6 +125,82 @@ describe("EventInfoPageComponent", () => {
     const component = TestBed.runInInjectionContext(
       () => new EventInfoPageComponent(),
     );
+    return { component, structuredDataService, metaTagService };
+};
+
+describe("EventInfoPageComponent", () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: WeatherService,
+          useValue: {
+            isEventForecastAvailable: vi.fn(() => false),
+            getEventForecastForTileAt: vi.fn(),
+          },
+        },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    TestBed.resetTestingModule();
+  });
+
+  it("keeps ownership claim requests hidden until rollout verification", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/event-page/event-page.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(template).not.toContain("canRequestOwnership");
+    expect(template).not.toContain("ownershipClaimRequested");
+  });
+
+  it("opens a single canonical Spot on the main map, even before previews load", () => {
+    const { component } = setupEventComponent();
+    component.event.set(buildEvent("jam", "Jam", { spot_ids: ["venue"] }));
+    expect(component.mapRoute()).toEqual(["/map/spots", "venue"]);
+    component.openMapForSpot("venue" as SpotId);
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(["/map/spots", "venue"]);
+  });
+
+  it.each([
+    { spot_ids: ["venue", "second"] },
+    { spot_ids: ["venue"], inline_spots: [{ id: "extra", name: "Extra location", location: { lat: 47, lng: 8 } }] },
+    { spot_ids: ["venue"], custom_markers: [{ id: "meeting", name: "Meeting point", location: { lat: 47, lng: 8 } }] },
+    { inline_spots: [{ id: "local", name: "Local venue", location: { lat: 47, lng: 8 } }] },
+    {},
+  ])("retains the event map when there is no sole canonical Spot: %j", (locations) => {
+    const { component } = setupEventComponent();
+    component.event.set(buildEvent("jam", "Jam", locations));
+    expect(component.mapRoute()).toEqual(["/events", "jam", "map"]);
+  });
+
+  it("requests forecasts for legacy outdoor events but not indoor events", async () => {
+    const { component, structuredDataService, metaTagService } = setupEventComponent();
+    const weather = TestBed.inject(WeatherService);
+    vi.mocked(weather.isEventForecastAvailable).mockReturnValue(true);
+    vi.mocked(weather.getEventForecastForTileAt).mockImplementation(() => new Promise(() => {}));
+    component.isBrowser.set(true);
+    const location_raw = { lat: 47.4, lng: 8.5 };
+    component.event.set(buildEvent("indoor", "Indoor", { is_outdoor: false, location_raw }));
+    flushSignalEffects();
+    await flushPromises();
+    expect(weather.getEventForecastForTileAt).not.toHaveBeenCalled();
+    component.event.set(buildEvent("outdoor", "Outdoor", { location_raw }));
+    flushSignalEffects();
+    await flushPromises();
+    expect(weather.getEventForecastForTileAt).toHaveBeenCalledOnce();
+  });
+
+  it("exposes dummy event info as text and structured data for crawlers", () => {
+    const { component, structuredDataService, metaTagService } = setupEventComponent();
     const event = buildEvent("dummy-city-jam", "Dummy City Jam", {
       description: "A dummy event page for crawler-readable parkour jam info.",
       organizer_name: "Independent Jam Crew",
@@ -178,7 +220,7 @@ describe("EventInfoPageComponent", () => {
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "Dummy City Jam",
-        description: "A dummy event page for crawler-readable parkour jam info.",
+        description: expect.stringContaining("Parkour event in Dummy City"),
       }),
       "/events/dummy-city-jam",
     );
@@ -187,11 +229,11 @@ describe("EventInfoPageComponent", () => {
       expect.objectContaining({
         "@type": "Event",
         name: "Dummy City Jam",
-        description: "A dummy event page for crawler-readable parkour jam info.",
+        description: expect.stringContaining("Parkour event in Dummy City"),
         location: expect.objectContaining({
           name: "Dummy Training Hall",
           address: expect.objectContaining({
-            addressLocality: "Dummy City, Switzerland",
+            addressLocality: "Dummy City",
           }),
         }),
         url: "https://pkspot.app/en/events/dummy-city-jam",
@@ -362,12 +404,12 @@ describe("EventInfoPageComponent", () => {
   });
 
   it.each([
-    { platform: "server", shouldRedirect: false, loadFails: false },
-    { platform: "browser", shouldRedirect: true, loadFails: false },
-    { platform: "browser", shouldRedirect: false, loadFails: true },
+    { platform: "server", loadFails: false },
+    { platform: "browser", loadFails: false },
+    { platform: "browser", loadFails: true },
   ])(
     "handles a missing or failed event load on $platform",
-    async ({ platform, shouldRedirect, loadFails }) => {
+    async ({ platform, loadFails }) => {
       const router = { navigate: vi.fn() };
       const eventsService = {
         getEventBySlugOrId: vi.fn().mockResolvedValue(null),
@@ -438,13 +480,9 @@ describe("EventInfoPageComponent", () => {
       component.ngOnInit();
       await flushPromises();
 
-      if (shouldRedirect) {
-        expect(router.navigate).toHaveBeenCalledWith(["/events"]);
-      } else {
-        expect(router.navigate).not.toHaveBeenCalled();
-        expect(component.isLoadingEvent()).toBe(!loadFails);
-        expect(component.eventLoadFailed()).toBe(loadFails);
-      }
+      expect(router.navigate).not.toHaveBeenCalled();
+      expect(component.isLoadingEvent()).toBe(false);
+      expect(component.eventLoadFailed()).toBe(true);
     },
   );
 
@@ -665,7 +703,7 @@ describe("EventInfoPageComponent", () => {
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "Swiss Jam 2026",
-        description: expect.stringContaining("Event in Zurich, Switzerland"),
+        description: expect.stringContaining("Parkour event in Zurich"),
       }),
       "/events/swissjam26",
     );
@@ -709,7 +747,7 @@ describe("EventInfoPageComponent", () => {
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "WPF Camp",
-        description: expect.stringContaining("Event in Zurich, Switzerland"),
+        description: expect.stringContaining("Parkour event in Zurich"),
       }),
       "/events/wpf-camp",
     );

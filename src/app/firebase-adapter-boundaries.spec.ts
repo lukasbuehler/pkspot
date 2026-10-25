@@ -192,4 +192,25 @@ describe("Firebase adapter boundaries", () => {
       "createFirebaseAdminAppCheckTokenMinter",
     );
   });
+
+  it("keeps the Cloudflare SSR provider independent from Firebase Admin", () => {
+    const cloudflareBootstrap = readFileSync(
+      resolve(repoRoot, "src/main.cloudflare.ts"),
+      "utf8",
+    );
+    const cloudflareProvider = readFileSync(
+      resolve(
+        repoRoot,
+        "src/app/services/firebase/firebase-cloudflare.providers.ts",
+      ),
+      "utf8",
+    );
+
+    expect(cloudflareBootstrap).toContain("app.config.cloudflare");
+    expect(cloudflareProvider).toContain(
+      "FirebaseAppCheckTokenBrokerMinter",
+    );
+    expect(cloudflareBootstrap).not.toContain("app.config.server");
+    expect(cloudflareProvider).not.toContain("firebase-admin");
+  });
 });

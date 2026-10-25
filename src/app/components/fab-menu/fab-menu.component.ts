@@ -19,11 +19,14 @@ export interface FabMenuAction {
   icon: string;
   label: string;
   ariaLabel?: string;
+  image?: string;
+  outlineIcon?: boolean;
   disabled?: boolean;
 }
 
 export type FabMenuAlignment = "start" | "end";
 export type FabMenuColorSet = "primary" | "secondary" | "tertiary";
+export type FabMenuLayout = "vertical" | "column-wrap";
 
 const DEFAULT_CLOSE_LABEL = $localize`:@@fab_menu.close:Close menu`;
 
@@ -49,18 +52,34 @@ export class FabMenuComponent {
   readonly actions = input.required<readonly FabMenuAction[]>();
   readonly launcherLabel = input.required<string>();
   readonly launcherIcon = input("add");
+  // Dynamic menus can retain a stable launcher as available actions change.
+  readonly collapseSingleAction = input(true);
   readonly closeLabel = input(DEFAULT_CLOSE_LABEL);
   readonly alignment = input<FabMenuAlignment>("end");
+  readonly direction = input<"up" | "down">("up");
+  readonly layout = input<FabMenuLayout>("vertical");
   readonly colorSet = input<FabMenuColorSet>("primary");
 
   readonly actionSelected = output<string>();
 
   readonly isOpen = signal(false);
   readonly menuId = `${this.hostId}Actions`;
-  readonly isMenu = computed(() => this.actions().length >= 2);
-  readonly directAction = computed(() =>
-    this.actions().length === 1 ? this.actions()[0] : undefined,
+  readonly isMenu = computed(
+    () => this.actions().length > 0 &&
+      (!this.collapseSingleAction() || this.actions().length >= 2),
   );
+  readonly directAction = computed(() =>
+    this.collapseSingleAction() && this.actions().length === 1
+      ? this.actions()[0]
+      : undefined,
+  );
+  readonly actionAnimationDelays = computed(() => {
+    const actions = this.actions();
+
+    return actions.map((_, index) =>
+      (this.direction() === "down" ? index : actions.length - index - 1) * 45,
+    );
+  });
 
   toggle(): void {
     if (!this.isMenu()) return;

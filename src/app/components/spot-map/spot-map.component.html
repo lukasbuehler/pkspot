@@ -25,6 +25,8 @@
   (communityMarkerClick)="onCommunityMarkerClick($event)"
   (circleOverlayClick)="onCircleOverlayClick($event)"
   [selectedMarker]="selectedMarker()"
+  [allowLocationSelection]="allowLocationSelection() && isClickable()"
+  (createSpotAt)="createSpot($event)"
   [isEditing]="isEditing()"
   [showGeolocation]="showGeolocation()"
   [boundRestriction]="boundRestriction()"

@@ -63,6 +63,7 @@ beenhere
 add_photo_alternate
 reviews
 history
+shopping_cart
 read_more
 outlined_flag
 link_off
@@ -211,6 +212,7 @@ playground_2
 garage
 calendar_month
 handshake
+volunteer_activism
 calendar_add_on
 camping
 cancel
@@ -251,3 +253,8 @@ emergency
 rate_review
 restore
 error
+shopping_bag
+remove
+group
+military_tech
+insights

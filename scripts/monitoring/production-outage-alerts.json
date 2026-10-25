@@ -1,0 +1,52 @@
+[
+  {
+    "name": "projects/parkour-base-project/alertPolicies/1585310550030443193",
+    "displayName": "PK Spot Functions: sustained service outage",
+    "enabled": true,
+    "combiner": "OR",
+    "severity": "CRITICAL",
+    "conditions": [
+      {
+        "displayName": "At least 80% server failures with 10 requests in 10 minutes, sustained for 5 minutes",
+        "name": "projects/parkour-base-project/alertPolicies/1585310550030443193/conditions/12544446071309426172",
+        "conditionPrometheusQueryLanguage": {
+          "query": "(sum by (project_id,service_name,location) (increase(run_googleapis_com:request_count{monitored_resource=\"cloud_run_revision\",service_name!=\"pkspot\",service_name!=\"getosmamenitytile\",response_code_class=\"5xx\"}[10m])) / sum by (project_id,service_name,location) (increase(run_googleapis_com:request_count{monitored_resource=\"cloud_run_revision\",service_name!=\"pkspot\",service_name!=\"getosmamenitytile\",response_code_class!=\"4xx\",response_code!=\"204\"}[10m])) >= 0.8) and (sum by (project_id,service_name,location) (increase(run_googleapis_com:request_count{monitored_resource=\"cloud_run_revision\",service_name!=\"pkspot\",service_name!=\"getosmamenitytile\",response_code_class!=\"4xx\",response_code!=\"204\"}[10m])) >= 10)",
+          "duration": "300s",
+          "evaluationInterval": "60s"
+        }
+      }
+    ],
+    "documentation": {
+      "content": "Email only for sustained near-total service failure: at least 80% HTTP 5xx among non-4xx/non-204 requests, with at least 10 such requests in the rolling 10-minute window, sustained for 5 minutes. Grouped by service and region. Isolated errors and 401/403/404 responses stay in logs. Overpass amenity service is excluded from this outage policy. Low-traffic, no-traffic and isolated scheduled-job failures may not trigger; use the external backend canary and log review for those cases.",
+      "mimeType": "text/markdown"
+    },
+    "notificationChannels": [
+      "projects/parkour-base-project/notificationChannels/15842608873405629712"
+    ]
+  },
+  {
+    "name": "projects/parkour-base-project/alertPolicies/8018883029497630405",
+    "displayName": "PK Spot App Hosting: sustained service outage",
+    "enabled": true,
+    "combiner": "OR",
+    "severity": "CRITICAL",
+    "conditions": [
+      {
+        "displayName": "At least 80% server failures with 10 requests in 10 minutes, sustained for 5 minutes",
+        "name": "projects/parkour-base-project/alertPolicies/8018883029497630405/conditions/12544446071309424769",
+        "conditionPrometheusQueryLanguage": {
+          "query": "(sum by (project_id,service_name,location) (increase(run_googleapis_com:request_count{monitored_resource=\"cloud_run_revision\",service_name=\"pkspot\",location=\"europe-west4\",response_code_class=\"5xx\"}[10m])) / sum by (project_id,service_name,location) (increase(run_googleapis_com:request_count{monitored_resource=\"cloud_run_revision\",service_name=\"pkspot\",location=\"europe-west4\",response_code_class!=\"4xx\",response_code!=\"204\"}[10m])) >= 0.8) and (sum by (project_id,service_name,location) (increase(run_googleapis_com:request_count{monitored_resource=\"cloud_run_revision\",service_name=\"pkspot\",location=\"europe-west4\",response_code_class!=\"4xx\",response_code!=\"204\"}[10m])) >= 10)",
+          "duration": "300s",
+          "evaluationInterval": "60s"
+        }
+      }
+    ],
+    "documentation": {
+      "content": "Email only for sustained near-total service failure: at least 80% HTTP 5xx among non-4xx/non-204 requests, with at least 10 such requests in the rolling 10-minute window, sustained for 5 minutes. Grouped by service and region. Isolated errors and 401/403/404 responses stay in logs. Overpass amenity service is excluded from this outage policy. Low-traffic, no-traffic and isolated scheduled-job failures may not trigger; use the external backend canary and log review for those cases.",
+      "mimeType": "text/markdown"
+    },
+    "notificationChannels": [
+      "projects/parkour-base-project/notificationChannels/15842608873405629712"
+    ]
+  }
+]

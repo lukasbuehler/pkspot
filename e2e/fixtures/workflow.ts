@@ -21,7 +21,7 @@ export const workflowLocale = "de";
 
 export const workflowViewports: WorkflowViewport[] = [
   { name: "desktop", width: 1280, height: 900, shell: "rail" },
-  { name: "tablet", width: 800, height: 900, shell: "toolbar" },
+  { name: "tablet", width: 800, height: 900, shell: "rail" },
   { name: "mobile tall", width: 390, height: 844, shell: "toolbar" },
   {
     name: "mobile short portrait",
@@ -35,7 +35,7 @@ export const workflowViewports: WorkflowViewport[] = [
     name: "desktop just above short-height threshold",
     width: 1024,
     height: 501,
-    shell: "rail",
+    shell: "toolbar",
   },
   {
     name: "mobile just above compact portrait threshold",
@@ -103,10 +103,10 @@ export async function expectShell(
 }
 
 export async function openCompactMenu(page: Page): Promise<void> {
-  await page.locator("#alainMenuButton").click();
-  await expect(
-    page.locator(".cdk-overlay-container .mat-mdc-menu-panel"),
-  ).toBeVisible();
+  const menu = page.locator("#alainMenuButton");
+  await menu.locator(".fab-menu__launcher").click();
+  await expect(menu.locator(".fab-menu__launcher")).toHaveAttribute("aria-expanded", "true");
+  await expect(menu.locator(".fab-menu__actions")).toBeVisible();
 }
 
 export async function expectSelectedQuickFilter(

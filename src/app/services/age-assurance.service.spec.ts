@@ -1,7 +1,9 @@
-import { PLATFORM_ID } from "@angular/core";
+import { environment } from "../../environments/environment.default";
+import { ONEID_APPROVAL_BASIS } from "../../db/utils/external-age-policy";
+import { PLATFORM_ID, LOCALE_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Capacitor } from "@capacitor/core";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { AgeAssuranceService } from "./age-assurance.service";
@@ -31,6 +33,8 @@ const nativeState = vi.hoisted(() => ({
   } as PlatformAgeSignal,
   getAgeSignal: vi.fn(),
   getBoundAgeSignal: vi.fn(),
+  getAppleAttestKey: vi.fn(),
+  getBoundAppleAgeSignal: vi.fn(),
   openPlayStoreListing: vi.fn(),
 }));
 
@@ -41,6 +45,8 @@ vi.mock("@capacitor/core", () => ({
   },
   registerPlugin: vi.fn(() => ({
     getAgeSignal: nativeState.getAgeSignal,
+    getAppleAttestKey: nativeState.getAppleAttestKey,
+    getBoundAppleAgeSignal: nativeState.getBoundAppleAgeSignal,
     getBoundAgeSignal: nativeState.getBoundAgeSignal,
     openPlayStoreListing: nativeState.openPlayStoreListing,
   })),
@@ -52,7 +58,11 @@ describe("AgeAssuranceService", () => {
   };
   let authUser: { uid: string | null };
 
+  const originalProviders = { ...environment.features.ageVerification };
+  afterEach(() => Object.assign(environment.features.ageVerification, originalProviders));
+
   beforeEach(() => {
+    Object.assign(environment.features.ageVerification, { google_play: true, apple: true, oneid: true });
     vi.clearAllMocks();
     nativeState.isNative = true;
     nativeState.platform = "android";
@@ -69,12 +79,16 @@ describe("AgeAssuranceService", () => {
       signal: nativeState.ageSignal,
       integrityToken: "integrity-token",
     });
+    nativeState.getAppleAttestKey.mockResolvedValue({ keyId: "apple-key" });
+    nativeState.getBoundAppleAgeSignal.mockImplementation(async () => ({
+      signal: await nativeState.getAgeSignal(), keyId: "apple-key", payload: "bound-payload", proof: "proof",
+    }));
     nativeState.openPlayStoreListing.mockResolvedValue(undefined);
     functionsAdapter = {
       callAuthenticatedAppChecked: vi
         .fn()
         .mockImplementation((name: string) =>
-          name === "beginAgeAssuranceV3"
+          (name === "beginAgeAssuranceV3" || name === "beginAppleAgeAssurance")
             ? Promise.resolve({
                 challenge_id: "challenge-1",
                 challenge_nonce: "nonce-1",
@@ -103,6 +117,65 @@ describe("AgeAssuranceService", () => {
         { provide: PLATFORM_ID, useValue: "browser" },
       ],
     });
+  });
+
+  it("blocks disabled OneID even when invoked directly", async () => {
+    environment.features.ageVerification.oneid = false;
+    const service = TestBed.inject(AgeAssuranceService);
+    expect(await service.externalVerificationAvailability()).toEqual({ providers: [] });
+    expect(await service.externalVerificationStatus()).toBe("idle");
+    await expect(service.beginOneIdAgeVerification()).rejects.toThrow("disabled");
+    await service.openOneIdBrowser("https://example.com");
+    expect(functionsAdapter.callAuthenticatedAppChecked).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"] as const)("blocks disabled %s native verification", async (platform) => {
+    nativeState.platform = platform;
+    environment.features.ageVerification[platform === "android" ? "google_play" : "apple"] = false;
+    const service = TestBed.inject(AgeAssuranceService);
+    await service.syncNativeAgePolicyForCurrentUser();
+    await service.recheckNativeAgePolicyForCurrentUser();
+    expect(functionsAdapter.callAuthenticatedAppChecked).not.toHaveBeenCalled();
+    expect(nativeState.getAppleAttestKey).not.toHaveBeenCalled();
+    expect(nativeState.getBoundAgeSignal).not.toHaveBeenCalled();
+    expect(nativeState.getAgeSignal).not.toHaveBeenCalled();
+  });
+
+  it("accepts only the reviewed OneID policy in the client", () => {
+    const policy = {
+      source: "oneid_age_check", adult_eligibility: "verified", age_range: {lower: 18},
+      assurance: {status: "active", client_integrity: "server_to_server_oidc",
+        approval_basis: ONEID_APPROVAL_BASIS,
+        method: {provider: "oneid", category: "external_verification", provider_method: "age_check"}},
+    };
+    Object.assign(authUser, {data: {data: {age_policy: policy}}});
+    const service = TestBed.inject(AgeAssuranceService);
+    expect(service.hasVerifiedAdultEligibility()).toBe(true);
+    policy.assurance.approval_basis = "oneid:financial_attribute:age_check:server_to_server_oidc:v1";
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
+    policy.assurance.approval_basis = ONEID_APPROVAL_BASIS;
+    policy.assurance.method.provider_method = "unapproved";
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
+  });
+
+  it("sends the current UI locale with the verification attempt", async () => {
+    TestBed.overrideProvider(LOCALE_ID, {useValue: "de"});
+    functionsAdapter.callAuthenticatedAppChecked.mockResolvedValue({});
+    await TestBed.inject(AgeAssuranceService).beginOneIdAgeVerification();
+    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
+      "beginExternalAgeVerification", {provider: "oneid", locale: "de"});
+  });
+
+  it("times out a lost external response without retrying the start", async () => {
+    vi.useFakeTimers();
+    try {
+      functionsAdapter.callAuthenticatedAppChecked.mockReturnValue(new Promise(() => {}));
+      const pending = TestBed.inject(AgeAssuranceService).beginOneIdAgeVerification();
+      const rejected = expect(pending).rejects.toMatchObject({code: "deadline-exceeded"});
+      await vi.advanceTimersByTimeAsync(20_000);
+      await rejected;
+      expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledOnce();
+    } finally { vi.useRealTimers(); }
   });
 
   it("syncs native age policy through the Functions adapter", async () => {
@@ -182,13 +255,8 @@ describe("AgeAssuranceService", () => {
 
     expect(nativeState.getAgeSignal).toHaveBeenCalledOnce();
     expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
-      "updateAgePolicyV2",
-      expect.objectContaining({
-        signal: expect.objectContaining({
-          platform: "ios",
-          source: "ios_declared_age_range",
-        }),
-      }),
+      "finishAppleAgeAssurance",
+      { key_id: "apple-key", payload: "bound-payload", proof: "proof" },
     );
   });
 
@@ -333,7 +401,7 @@ describe("AgeAssuranceService", () => {
   it("uses the server-confirmed result for immediate adult eligibility", async () => {
     functionsAdapter.callAuthenticatedAppChecked.mockImplementation(
       (name: string) =>
-        name === "beginAgeAssuranceV3"
+        (name === "beginAgeAssuranceV3" || name === "beginAppleAgeAssurance")
           ? Promise.resolve({
               challenge_id: "challenge-1",
               challenge_nonce: "nonce-1",
@@ -404,7 +472,9 @@ describe("AgeAssuranceService", () => {
           assurance: {
             status: "active",
             client_integrity: "play_integrity_request_bound",
+            approval_basis: "google_play:platform_age_signal:tier_c:request_bound:v1",
           },
+          age_range: { lower: 18 },
         },
       },
     };

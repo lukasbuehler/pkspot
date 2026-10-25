@@ -42,20 +42,6 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid)/followers/$(userId));
     }
 
-    function canReadLogEntry(userId, entryData) {
-      return (request.auth != null && request.auth.uid == userId)
-        || entryData.visibility == 'public'
-        || (
-          request.auth.uid != null
-          && entryData.visibility == 'followers'
-          && exists(/databases/$(database)/documents/users/$(request.auth.uid)/following/$(userId))
-        )
-        || (
-          entryData.visibility == 'friends'
-          && isMutualFriend(userId)
-        );
-    }
-
     function validLogEntry(userId) {
       return request.resource.data.keys().hasAll([
           'owner_id',
@@ -73,12 +59,7 @@ service cloud.firestore {
         && request.resource.data.owner_id == userId
         && request.resource.data.note is string
         && request.resource.data.note.size() <= 10000
-        && request.resource.data.visibility in [
-          'private',
-          'friends',
-          'followers',
-          'public'
-        ]
+        && request.resource.data.visibility == 'private'
         && request.resource.data.session_record_ids is list
         && request.resource.data.session_record_ids.size() > 0
         && request.resource.data.session_record_ids.size() <= 20
@@ -87,6 +68,53 @@ service cloud.firestore {
           == request.resource.data.session_record_ids.size()
         && request.resource.data.activity_at is timestamp
         && request.resource.data.activity_at_raw_ms is number
+        && request.resource.data.time_created is timestamp
+        && request.resource.data.time_created_raw_ms is number
+        && request.resource.data.time_updated is timestamp
+        && request.resource.data.time_updated_raw_ms is number;
+    }
+
+    function validRecoveryPause(userId) {
+      return request.resource.data.keys().hasAll([
+          'owner_id',
+          'started_on',
+          'reason',
+          'time_created',
+          'time_created_raw_ms',
+          'time_updated',
+          'time_updated_raw_ms'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'owner_id',
+          'started_on',
+          'ended_on',
+          'reason',
+          'note',
+          'time_created',
+          'time_created_raw_ms',
+          'time_updated',
+          'time_updated_raw_ms'
+        ])
+        && request.resource.data.owner_id == userId
+        && request.resource.data.started_on is string
+        && request.resource.data.started_on.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && (!('ended_on' in request.resource.data)
+          || (
+            request.resource.data.ended_on is string
+            && request.resource.data.ended_on.matches('^\\d{4}-\\d{2}-\\d{2}$')
+            && request.resource.data.ended_on >= request.resource.data.started_on
+          ))
+        && request.resource.data.reason in [
+          'injury',
+          'illness',
+          'personal_break',
+          'other'
+        ]
+        && (!('note' in request.resource.data)
+          || (
+            request.resource.data.note is string
+            && request.resource.data.note.size() <= 500
+          ))
         && request.resource.data.time_created is timestamp
         && request.resource.data.time_created_raw_ms is number
         && request.resource.data.time_updated is timestamp
@@ -102,6 +130,40 @@ service cloud.firestore {
           'review_organization_id' in resource.data
           && isOrganizationReviewer(resource.data.review_organization_id)
         );
+    }
+
+    function isOpenCommunityVote(spotId, editId) {
+      let edit = get(/databases/$(database)/documents/spots/$(spotId)/edits/$(editId)).data;
+      return edit.type == 'UPDATE'
+        && edit.approved == false
+        && edit.visibility == 'public'
+        && edit.processing_status in [
+          'VOTING_OPEN',
+          // Kept for public edits created before the community-voting rename.
+          'VOTING_FORCED_TEST',
+          'BLOCKED_ICONIC_SPOT',
+          'BLOCKED_VERIFIED_SPOT'
+        ];
+    }
+
+    function validSpotEditVote() {
+      return request.resource.data.keys().hasOnly([
+          'value',
+          'vote',
+          'user',
+          'timestamp',
+          'timestamp_raw_ms'
+        ])
+        && (
+          (request.resource.data.value == 1 && request.resource.data.vote == 'yes')
+          || (request.resource.data.value == -1 && request.resource.data.vote == 'no')
+        )
+        && request.resource.data.user is map
+        && request.resource.data.user.uid is string
+        && (!('timestamp' in request.resource.data)
+          || request.resource.data.timestamp is timestamp)
+        && (!('timestamp_raw_ms' in request.resource.data)
+          || request.resource.data.timestamp_raw_ms is number);
     }
 
     function requiresOrganizationReview(spotId) {
@@ -131,7 +193,11 @@ service cloud.firestore {
         'has_location',
         'has_venue_spot',
         'venue_spot_count',
-        'rsvp_counts'
+        'rsvp_counts',
+        // Localized place names are copied from place_names by Functions.
+        'place_key',
+        'place_names',
+        'localized_search_names'
       ];
     }
 
@@ -145,7 +211,14 @@ service cloud.firestore {
         'is_sponsored',
         'promo_starts_at',
         'promo_region',
-        'promo_radius_m'
+        'promo_radius_m',
+        // Community authoring is server-mediated so tier, organizer identity,
+        // region derivation, and one-time broadcast consent cannot be forged.
+        'listing_tier',
+        'country_code',
+        'region_keys',
+        'community_broadcast',
+        'organizer_user'
       ];
     }
 
@@ -446,10 +519,10 @@ service cloud.firestore {
         && validEventTiming(eventData);
     }
 
-    // Temporary rollout switch. While true, old app versions may still list
-    // /events directly, so new writes must remain globally public.
+    // Supported clients (1.1.4+) list event_discovery. Canonical enumeration
+    // remains admin-only so private and unlisted events cannot leak via list.
     function legacyEventListCompatibilityEnabled() {
-      return true;
+      return false;
     }
 
     function eventIsLegacyListCompatible(eventData) {
@@ -460,17 +533,6 @@ service cloud.firestore {
             eventData.discoverability is map
             && eventData.discoverability.audience == 'global'
           )
-        );
-    }
-
-    function eventOwnerMayBeAssignedByViewer(owner) {
-      return (
-          owner.type == 'user'
-          && owner.user_id == request.auth.uid
-        )
-        || (
-          owner.type == 'organization'
-          && isOrganizationManager(owner.organization_id)
         );
     }
 
@@ -783,8 +845,23 @@ service cloud.firestore {
             && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) is number
             && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) >= 18
             && request.resource.data.get('age_policy', {}).get('assurance', {}).get('status', '') == 'active'
-            && request.resource.data.get('age_policy', {}).get('assurance', {}).get('client_integrity', '') == 'play_integrity_request_bound'
             && request.resource.data.get('age_policy', {}).get('assurance', {}).get('approval_basis', '') is string
+            && (
+              request.resource.data.get('age_policy', {}).get('assurance', {}).get('client_integrity', '') in ['play_integrity_request_bound', 'apple_app_attest_request_bound']
+              || (
+                request.resource.data.get('age_policy', {}).get('source', '') == 'oneid_age_check'
+                && request.resource.data.get('age_policy', {}).get('assurance', {}).get('client_integrity', '') == 'server_to_server_oidc'
+                && request.resource.data.get('age_policy', {}).get('assurance', {}).get('method', {}).get('provider', '') == 'oneid'
+                && (
+                  (request.resource.data.get('age_policy', {}).get('assurance', {}).get('approval_basis', '') == 'oneid:financial_attribute:age_check:server_to_server_oidc:v2'
+                   && request.resource.data.get('age_policy', {}).get('assurance', {}).get('method', {}).get('category', '') == 'financial_attribute'
+                   && request.resource.data.get('age_policy', {}).get('assurance', {}).get('method', {}).get('provider_method', '') == 'age_check')
+                  || (request.resource.data.get('age_policy', {}).get('assurance', {}).get('approval_basis', '') == 'oneid:provider_threshold:server_to_server_oidc:v3'
+                   && request.resource.data.get('age_policy', {}).get('assurance', {}).get('method', {}).get('category', '') == 'external_verification'
+                   && request.resource.data.get('age_policy', {}).get('assurance', {}).get('method', {}).get('provider_method', '') in ['age_check', 'age_verification', 'age_assure'])
+                )
+              )
+            )
           )
         )
         && (
@@ -1067,6 +1144,13 @@ service cloud.firestore {
         ));
     }
 
+    match /spot_activity_public/{spotId} {
+      // Activity is deliberately a one-document, non-realtime public summary.
+      // Source contributions and exact counts remain server-only.
+      allow get: if true;
+      allow list, write: if false;
+    }
+
     match /spots/{spotId}
     {
       // all the spots are visible to everyone, authenticated or not
@@ -1161,7 +1245,9 @@ service cloud.firestore {
           allow create, update: if request.auth.uid != null 
             && agePolicyAllowsPublicParticipation()
             && request.auth.uid == userId
-            && request.auth.uid == request.resource.data.user.uid;
+            && request.auth.uid == request.resource.data.user.uid
+            && validSpotEditVote()
+            && isOpenCommunityVote(spotId, editId);
           allow delete: if isAdmin();
         }
       }
@@ -1233,6 +1319,12 @@ service cloud.firestore {
     // Materialized community landing pages and slug aliases are public read-only
     // data used by SSR and crawlers. Knowledge changes go through community
     // edits; admin clients may still request merge patches directly.
+    // Public GeoNames labels only. Source coordinates and enrichment jobs are private.
+    match /place_names/{key} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
     match /community_pages/{communityKey} {
       allow read: if true;
       allow update: if isAdmin() && onlyCommunityMergeRequestChanged();
@@ -1296,6 +1388,18 @@ service cloud.firestore {
       }
     }
     
+    // Server-only planned meetings. Public links use a redacted callable;
+    // no client (including an older app) may enumerate these documents.
+    match /planned_sessions/{sessionId}/{document=**} {
+      allow read, write: if false;
+    }
+    match /users/{uid}/session_plans/{sessionId} {
+      allow read, write: if false;
+    }
+    match /planned_session_limits/{uid} {
+      allow read, write: if false;
+    }
+
     match /users/{userId} 
     {
       // Released clients still read this legacy profile document. The
@@ -1432,15 +1536,56 @@ service cloud.firestore {
       }
 
       match /session_records/{sessionRecordId} {
-        allow read, delete: if request.auth.uid != null
-          && request.auth.uid == userId;
-        allow create, update: if request.auth.uid != null
+        // Nearby check-in sessions are server-owned so direct Firestore writes
+        // cannot bypass participation, proximity, or aggregate safeguards.
+        function isClientManagedSession(session) {
+          // Session records predate the explicit source field and were manual.
+          return !('source' in session) || session.source == 'manual';
+        }
+
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow create: if request.auth.uid != null
           && request.auth.uid == userId
-          && request.resource.data.owner_id == userId;
+          && request.resource.data.owner_id == userId
+          && request.resource.data.source == 'manual';
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && isClientManagedSession(resource.data)
+          && isClientManagedSession(request.resource.data)
+          && request.resource.data.owner_id == resource.data.owner_id;
+        allow delete: if request.auth.uid != null
+          && request.auth.uid == userId
+          && isClientManagedSession(resource.data);
+      }
+
+      // Private training summaries are derived on the server from the
+      // person's own session records. Only the owner can read them.
+      match /training_months/{monthId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /training_spots/{spotId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /training_ranks/{monthId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // Local Legend participation (opt-in). Written only by Functions, which
+      // also add or remove the person's comparison tallies.
+      match /training_settings/{settingId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
       }
 
       match /log_entries/{logEntryId} {
-        allow get, list: if canReadLogEntry(userId, resource.data);
+        // Historical audience fields never grant access. Owners retain their
+        // entries without a migration; the current client saves them as private.
+        allow get, list: if request.auth != null && request.auth.uid == userId;
         allow create: if request.auth.uid != null
           && request.auth.uid == userId
           && validLogEntry(userId);
@@ -1451,6 +1596,24 @@ service cloud.firestore {
           && request.resource.data.time_created_raw_ms
             == resource.data.time_created_raw_ms
           && validLogEntry(userId);
+        allow delete: if request.auth.uid != null
+          && request.auth.uid == userId;
+      }
+
+      // Recovery pauses are a private training-history aid. They are not
+      // safety reports, public profile activity, or notification sources.
+      match /recovery_pauses/{pauseId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow create: if request.auth.uid != null
+          && request.auth.uid == userId
+          && validRecoveryPause(userId);
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && request.resource.data.owner_id == resource.data.owner_id
+          && request.resource.data.time_created == resource.data.time_created
+          && request.resource.data.time_created_raw_ms
+            == resource.data.time_created_raw_ms
+          && validRecoveryPause(userId);
         allow delete: if request.auth.uid != null
           && request.auth.uid == userId;
       }
@@ -1597,6 +1760,7 @@ service cloud.firestore {
           isAdmin()
           || (
             eventCanEdit(eventId, resource.data)
+            && resource.data.get('listing_tier', 'formal') != 'community'
             && request.resource.data.owner == resource.data.owner
             && (
               eventCanManage(resource.data)
@@ -1823,6 +1987,65 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Payments, supporter credits, shipping addresses, and webhook receipts are
+    // server-owned. The support-order admin screen uses App Check-protected
+    // callables that additionally verify the signed-in administrator.
+    // Private bookkeeping. Access is enforced independently of the admin UI.
+    match /finance_years/{year} {
+      function validYear() {
+        return year.matches('20[2-9][0-9]|2100');
+      }
+      function validRates(rates) {
+        return rates == null || (
+          rates is map
+          && rates.keys().hasOnly(['year', 'start', 'end', 'observations', 'eur_per_chf', 'usd_per_chf', 'source'])
+          && rates.year == int(year)
+          && rates.start is string && rates.start.matches(year + '-[0-9]{2}-[0-9]{2}')
+          && rates.end is string && rates.end.matches(year + '-[0-9]{2}-[0-9]{2}')
+          && rates.start <= rates.end
+          && rates.observations is int && rates.observations > 0 && rates.observations <= 366
+          && rates.eur_per_chf is number && rates.eur_per_chf > 0 && rates.eur_per_chf < 100
+          && rates.usd_per_chf is number && rates.usd_per_chf > 0 && rates.usd_per_chf < 100
+          && rates.source == 'ECB'
+        );
+      }
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && validYear()
+        && request.resource.data.keys().hasOnly(['notes', 'rates'])
+        && request.resource.data.notes is string && request.resource.data.notes.size() <= 5000
+        && validRates(request.resource.data.rates);
+      allow delete: if false;
+
+      match /entries/{entryId} {
+        allow read, delete: if isAdmin();
+        allow create, update: if isAdmin() && validYear()
+          && request.resource.data.keys().hasOnly(['date', 'description', 'partner', 'kind', 'category', 'status', 'amount_chf_cents', 'notes'])
+          && request.resource.data.date is string
+          && request.resource.data.date.matches(year + '-[0-9]{2}-[0-9]{2}')
+          && request.resource.data.description is string
+          && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 200
+          && request.resource.data.partner is string && request.resource.data.partner.size() <= 120
+          && request.resource.data.notes is string && request.resource.data.notes.size() <= 3000
+          && request.resource.data.kind in ['income', 'expense', 'founder', 'in_kind']
+          && request.resource.data.category in ['infrastructure', 'distribution', 'administration', 'marketing', 'merchandise', 'salaries', 'community', 'partnership', 'reimbursement', 'sales', 'founder']
+          && request.resource.data.status in ['pending', 'settled']
+          && ((request.resource.data.kind == 'in_kind' && request.resource.data.amount_chf_cents == null)
+            || (request.resource.data.amount_chf_cents is int && request.resource.data.amount_chf_cents >= 0 && request.resource.data.amount_chf_cents <= 100000000000));
+      }
+    }
+
+    match /support_orders/{orderId} {
+      allow read, write: if false;
+    }
+
+    match /support_shop_checkouts/{checkoutId} {
+      allow read, write: if false;
+    }
+
+    match /support_shop_webhook_events/{eventId} {
+      allow read, write: if false;
+    }
+
     match /moderation_actions/{actionId} {
       allow read: if isAdmin();
       allow write: if false;
@@ -1836,6 +2059,12 @@ service cloud.firestore {
     match /spot_creation_metrics_hourly/{hour} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    // Server-only verified-day tallies used to tell each person their own
+    // private Spot rank. No client may read or write them.
+    match /spot_legend_tallies/{tallyId} {
+      allow read, write: if false;
     }
 
     match /maintenance/{maintenanceId} {
@@ -1932,6 +2161,13 @@ service cloud.firestore {
       }
     }
     // Collection Group Queries
+    match /{path=**}/live_update_subscribers/{subscriberId} {
+      // My Events discovers legacy subscriptions across events. Authorize only
+      // owner-filtered lists; document reads and writes retain the event rules.
+      allow list: if request.auth != null
+        && resource.data.user_id == request.auth.uid;
+    }
+
     match /{path=**}/reports/{reportId} {
       allow read, update, delete: if isAdmin();
     }

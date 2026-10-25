@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import {
@@ -52,6 +54,8 @@ const dateTimeLocal = (date: Date): string => {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventOperationsDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly liveUpdates = inject(EventLiveUpdatesService);
   private readonly snackbar = inject(MatSnackBar);
   private readonly dialogRef = inject<MatDialogRef<EventOperationsDialogComponent, boolean>>(
@@ -164,6 +168,7 @@ export class EventOperationsDialogComponent {
       });
       this.dialogRef.close(true);
     } catch (error) {
+      this.featureTelemetry.failure("event-operations-dialog", "apply", error);
       console.error("Could not apply event operation", error);
       this.snackbar.open(
         error instanceof Error ? error.message : $localize`Could not apply the event operation.`,

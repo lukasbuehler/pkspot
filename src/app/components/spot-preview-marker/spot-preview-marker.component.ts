@@ -74,6 +74,7 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
               [number]="markerNumber()"
               [isRating]="true"
               [color]="markerColor()"
+              [reported]="!!spot().isReported"
               [size]="0.82"
               [title]="spotName()"
             ></app-marker>
@@ -257,7 +258,7 @@ export class SpotPreviewMarkerComponent {
   });
 
   markerColor = computed(() => {
-    return this.color();
+    return this.spot().isReported ? "gray" : this.color();
   });
 
   hasMedia = computed(() => {
@@ -273,6 +274,7 @@ export class SpotPreviewMarkerComponent {
   markerIcons = computed<string[] | null>(() => {
     const spot = this.spot();
 
+    if (spot.isReported) return ["warning"];
     if ("isIconic" in spot && spot.isIconic) {
       return ["stars"];
     }
@@ -313,6 +315,7 @@ export class SpotPreviewMarkerComponent {
     const priority =
       spot instanceof Spot || spot instanceof LocalSpot
         ? getSpotMarkerPriority({
+            recent_activity_min_30d: spot.recent_activity_min_30d,
             rating: spot.rating,
             access: spot.access(),
             isIconic: spot.isIconic,
@@ -320,6 +323,7 @@ export class SpotPreviewMarkerComponent {
             hasMedia: spot.userMedia().some((media) => !media.isReported),
           })
         : getSpotMarkerPriority({
+            recent_activity_min_30d: spot.recent_activity_min_30d,
             rating: spot.rating,
             access: spot.access,
             isIconic: spot.isIconic,

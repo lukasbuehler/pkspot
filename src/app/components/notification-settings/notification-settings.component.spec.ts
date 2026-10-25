@@ -131,10 +131,11 @@ describe("NotificationSettingsComponent", () => {
     await fixture.whenStable();
   });
 
-  it("renders Material tables for notification types and communities", () => {
+  it("renders readable preference rows and the community matrix", () => {
     const tables = fixture.nativeElement.querySelectorAll("table[mat-table]");
 
-    expect(tables).toHaveLength(2);
+    expect(tables).toHaveLength(1);
+    expect(fixture.nativeElement.querySelectorAll(".preference-row")).toHaveLength(component.notificationRows.length);
     expect(fixture.nativeElement.textContent).toContain("Follow activity");
     expect(fixture.nativeElement.textContent).toContain("Switzerland");
   });

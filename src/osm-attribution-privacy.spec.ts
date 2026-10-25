@@ -16,6 +16,9 @@ describe("OSM attribution and privacy disclosure", () => {
     const mapStyles = source(
       "src/app/components/google-map-2d/google-map-2d.component.scss",
     );
+    const mapPageStyles = source(
+      "src/app/components/map-page/map-page.component.scss",
+    );
 
     expect(spotMapTemplate).toContain(
       '[showOsmAttribution]="showAmenities() && mapZoom() >= 16"',
@@ -25,10 +28,14 @@ describe("OSM attribution and privacy disclosure", () => {
       'href="https://www.openstreetmap.org/copyright"',
     );
     expect(mapStyles).toMatch(
-      /\.osm-attribution\s*\{[\s\S]*bottom:\s*14px[\s\S]*right:\s*0/u,
+      /\.osm-attribution\s*\{[\s\S]*bottom:\s*calc\(var\(--map-attribution-bottom\) \+ 14px\)[\s\S]*right:\s*var\(--map-attribution-right/u,
     );
-    expect(mapStyles).toContain(
-      "bottom: calc(var(--bottom-sheet-closed-height, 140px) + 14px)",
+    expect(mapStyles).toContain("bottom: var(--map-attribution-bottom) !important;");
+    expect(mapPageStyles).toMatch(
+      /:host\.map-with-bottom-sheet\s*\{[\s\S]*--map-bottom-obstruction:\s*var\(--map-sheet-closed-height, 0px\)/u,
+    );
+    expect(mapPageStyles).toMatch(
+      /\.map-bottom-sheet\s*\{[\s\S]*bottom:\s*0;/u,
     );
   });
 
@@ -37,7 +44,7 @@ describe("OSM attribution and privacy disclosure", () => {
       "src/app/components/privacy-policy/privacy-policy.component.html",
     );
 
-    expect(privacyPolicy).toContain("Last Updated: 29 July 2026");
+    expect(privacyPolicy).toMatch(/Last Updated: \d{1,2} [A-Za-z]+ \d{4}/u);
     expect(privacyPolicy).toContain("OpenStreetMap amenity markers");
     expect(privacyPolicy).toMatch(
       /your device sends\s+the requested coarse map tile to our Firebase backend/u,

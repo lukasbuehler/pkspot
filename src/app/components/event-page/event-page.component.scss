@@ -86,6 +86,12 @@
   margin-bottom: 3rem;
 }
 
+@media (min-width: 800px) {
+  .event-hero {
+    height: clamp(280px, 42vh, 420px);
+  }
+}
+
 .event-hero app-event-hero-media {
   display: block;
   inline-size: 100%;
@@ -356,6 +362,26 @@ a.featured-participant-name {
   border-radius: 18px;
 }
 
+.event-report-panel {
+  margin-block: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.event-report-panel__heading {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.event-report-panel__heading h2,
+.event-report-panel__heading p {
+  margin: 0;
+}
+
 .event-cancellation-notice__icon {
   display: grid;
   flex: 0 0 40px;
@@ -392,7 +418,17 @@ a.featured-participant-name {
     grid-template-columns: 1fr;
   }
 }
-.event-now-next {
-  display: block;
-  margin-bottom: 1rem;
+
+// Data-source attribution belongs at the end of the page, not in the header.
+.event-attribution {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35em;
+  margin-block: 32px 8px;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: inherit;
+  }
 }

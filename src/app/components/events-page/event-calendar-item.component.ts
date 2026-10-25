@@ -66,6 +66,11 @@ export class EventCalendarItemComponent {
           });
     return eventDiscoveryAccessibleLabel(event, date);
   });
+  readonly communityLabel = computed(() =>
+    this.event().listingTier === "community"
+      ? $localize`Community event`
+      : null,
+  );
 
   trackClick(): void {
     const event = this.event();

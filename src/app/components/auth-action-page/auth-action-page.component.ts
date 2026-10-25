@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -54,6 +56,8 @@ interface ActionState {
   ],
 })
 export class AuthActionPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _authService = inject(AuthenticationService);
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
@@ -169,6 +173,7 @@ export class AuthActionPageComponent implements OnInit {
 
       this.setEmailVerifiedState();
     } catch (error: unknown) {
+      this.featureTelemetry.failure("auth-action-page", "handleVerifyEmail", error);
       const code = this.getErrorCode(error);
       if (
         (code === "auth/invalid-action-code" ||
@@ -208,6 +213,7 @@ export class AuthActionPageComponent implements OnInit {
         message: $localize`Enter a new password for ${this.passwordResetEmail}`,
       });
     } catch (error: unknown) {
+      this.featureTelemetry.failure("auth-action-page", "handleResetPassword", error);
       const code = this.getErrorCode(error);
       this.reportActionError("validate_password_reset", code);
       console.error("Password reset code verification failed", { code });
@@ -244,6 +250,7 @@ export class AuthActionPageComponent implements OnInit {
         message: $localize`Your password has been successfully reset. You can now sign in with your new password.`,
       });
     } catch (error: unknown) {
+      this.featureTelemetry.failure("auth-action-page", "submitNewPassword", error);
       const code = this.getErrorCode(error);
       this.reportActionError("confirm_password_reset", code);
       console.error("Password reset failed", { code });
@@ -272,6 +279,7 @@ export class AuthActionPageComponent implements OnInit {
         message: $localize`Your email address has been successfully recovered. You may want to change your password if you didn't make this change.`,
       });
     } catch (error: unknown) {
+      this.featureTelemetry.failure("auth-action-page", "handleRecoverEmail", error);
       const code = this.getErrorCode(error);
       this.reportActionError("recover_email", code);
       console.error("Email recovery failed", { code });

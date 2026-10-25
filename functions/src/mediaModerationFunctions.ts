@@ -13,6 +13,9 @@ import * as ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import nodeModule = require("module");
 import { googleAPIKey } from "./secrets";
 import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
+import { withMediaReleaseLock } from "./mediaReviewState";
+import { classifySafeSearch } from "../../src/db/utils/media-safety";
+import type { MediaSafetySeverity } from "../../src/db/schemas/MediaModerationSchema";
 
 const sharp = nodeModule.createRequire(__filename)(
   "sharp"
@@ -25,11 +28,6 @@ type MediaSafetyDecision =
   | "block"
   | "needs_review"
   | "reportable_match";
-type MediaSafetySeverity =
-  | "none"
-  | "explicit_non_child"
-  | "possible_child_safety"
-  | "known_csam_match";
 
 interface MediaSafetyProviderResult {
   provider: string;
@@ -124,6 +122,7 @@ const RUN_INTAKE_BACKFILL_DOC =
 const RUN_MEDIA_REVIEW_RECONCILIATION_DOC =
   `${MAINTENANCE_COLLECTION}/run-reconcile-published-media-reviews`;
 const INTAKE_FINAL_STATUSES = new Set([
+  "dismissed",
   "approved",
   "blocked",
   "needs_review",
@@ -300,9 +299,6 @@ const validateVideoAndExtractFrames = async (
   }
 };
 
-const isBlockedLikelihood = (value: string | undefined): boolean =>
-  value === "LIKELY" || value === "VERY_LIKELY";
-
 const mergeSafetyResults = (
   results: MediaSafetyProviderResult[]
 ): MediaSafetyProviderResult => {
@@ -326,20 +322,22 @@ class GoogleVisionSafeSearchProvider implements MediaSafetyProvider {
     if (emulatorDecision) return emulatorDecision;
 
     const labels = await this.detectSafeSearch(bytes);
-    const shouldBlock =
-      isBlockedLikelihood(labels["adult"]) ||
-      isBlockedLikelihood(labels["racy"]) ||
-      isBlockedLikelihood(labels["violence"]);
+    const severity = classifySafeSearch(labels);
+    const shouldBlock = severity !== "none";
 
     return {
       provider: "google_vision_safe_search",
       provider_version: "v1",
       decision: shouldBlock ? "block" : "allow",
-      severity: shouldBlock ? "explicit_non_child" : "none",
+      severity,
       ...(shouldBlock
         ? {
             reason:
-              "Vision SafeSearch returned likely explicit or violent content.",
+              severity === "suggestive"
+                ? "Vision SafeSearch flagged potentially suggestive content."
+                : severity === "adult_content"
+                  ? "Vision SafeSearch flagged potentially adult content."
+                  : "Vision SafeSearch flagged potentially violent content.",
           }
         : {}),
       labels,
@@ -799,39 +797,139 @@ export const markMediaUploadSafe = onCall<MarkMediaUploadSafeRequest>(
       throw new HttpsError("invalid-argument", "Invalid media review id.");
     }
 
-    const reviewRefForAction = reviewRef(reviewId);
-    const review = await reviewRefForAction.get();
-    if (!review.exists) {
-      throw new HttpsError("not-found", "Media review not found.");
-    }
+    return withMediaReleaseLock(reviewId, async (review) => {
+      const reviewRefForAction = review.ref;
+      if (!review.exists) {
+        throw new HttpsError("not-found", "Media review not found.");
+      }
 
-    const reviewData = review.data() ?? {};
-    if (isRestrictedSafetyResult(reviewData["scan_result"])) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Reportable-match media cannot be manually released."
-      );
-    }
-    if (reviewData["status"] === "approved") {
-      return {
-        ok: true,
-        approved_url: reviewData["approved_url"],
-        already_approved: true,
-      };
-    }
-
-    if (reviewData["source"] === "audit") {
-      const auditedPath = reviewData["audited_path"];
-      if (typeof auditedPath !== "string") {
+      const reviewData = review.data() ?? {};
+      if (isRestrictedSafetyResult(reviewData["scan_result"])) {
         throw new HttpsError(
           "failed-precondition",
-          "Audited media path is missing."
+          "Reportable-match media cannot be manually released."
         );
       }
-      const approvedUrl = publicUrlFor(DEFAULT_STORAGE_BUCKET, auditedPath);
+      if (reviewData["status"] === "approved") {
+        return {
+          ok: true,
+          approved_url: reviewData["approved_url"],
+          already_approved: true,
+        };
+      }
+
+      if (reviewData["source"] === "audit") {
+        const auditedPath = reviewData["audited_path"];
+        if (typeof auditedPath !== "string") {
+          throw new HttpsError(
+            "failed-precondition",
+            "Audited media path is missing."
+          );
+        }
+        const approvedUrl = publicUrlFor(DEFAULT_STORAGE_BUCKET, auditedPath);
+        await reviewRefForAction.update({
+          status: "approved",
+          approved_path: auditedPath,
+          approved_url: approvedUrl,
+          failure_reason: FieldValue.delete(),
+          manual_review: {
+            decision: "safe",
+            reviewed_by: adminUid,
+            reviewed_at: now(),
+          },
+          completed_at: now(),
+        });
+        await resolveScannerReport(reviewId, adminUid);
+        await recordManualApproval(review, adminUid, auditedPath);
+        return { ok: true, approved_url: approvedUrl };
+      }
+
+      const intakePath = reviewData["intake_path"];
+      if (typeof intakePath !== "string") {
+        throw new HttpsError(
+          "failed-precondition",
+          "Quarantined intake path is missing."
+        );
+      }
+
+      const parsedPath = parseIntakePath(intakePath);
+      if (!parsedPath || parsedPath.uploadId !== reviewId) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Quarantined intake path does not match the review."
+        );
+      }
+
+      const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
+      const sourceFile = bucket.file(intakePath);
+      let sourceMetadata;
+      try {
+        [sourceMetadata] = await sourceFile.getMetadata();
+      } catch {
+        throw new HttpsError("not-found", "Quarantined media file is missing.");
+      }
+
+      let intake: IntakeMetadata;
+      try {
+        intake = parseIntakeMetadata(intakePath, sourceMetadata.metadata);
+      } catch (error) {
+        throw new HttpsError(
+          "failed-precondition",
+          error instanceof Error ? error.message : "Invalid intake metadata."
+        );
+      }
+
+      const contentType = sourceMetadata.contentType;
+      const kind = contentKind(contentType);
+      if (!kind) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Quarantined media type is unsupported."
+        );
+      }
+
+      const [bytes] = await sourceFile.download();
+      if (kind === "image") {
+        await validateImage(bytes);
+      } else {
+        await validateVideoAndExtractFrames(bytes, parsedPath.filename);
+      }
+
+      const approvedPath = destinationPathFor(intake, parsedPath.filename);
+      const approvedUrl = publicUrlFor(bucket.name, approvedPath);
+      const approvedFile = bucket.file(approvedPath);
+      const [approvedExists] = await approvedFile.exists();
+      if (approvedExists) {
+        const [approvedMetadata] = await approvedFile.getMetadata();
+        if (approvedMetadata.metadata?.["upload_id"] !== intake.uploadId) {
+          throw new HttpsError(
+            "already-exists",
+            "The release destination belongs to another upload."
+          );
+        }
+      } else {
+        await approvedFile.save(bytes, {
+          resumable: false,
+          metadata: {
+            contentType,
+            cacheControl: intake.cacheControl,
+            metadata: {
+              uid: intake.uid,
+              upload_id: intake.uploadId,
+              moderated: "true",
+            },
+          },
+        });
+      }
+
+      if (!(await approvalSideEffectExists(intake, approvedUrl))) {
+        await applyApprovalSideEffects(intake, approvedUrl, kind);
+      }
+
       await reviewRefForAction.update({
         status: "approved",
-        approved_path: auditedPath,
+        sha256: reviewData["sha256"] ?? sha256(bytes),
+        approved_path: approvedPath,
         approved_url: approvedUrl,
         failure_reason: FieldValue.delete(),
         manual_review: {
@@ -841,118 +939,19 @@ export const markMediaUploadSafe = onCall<MarkMediaUploadSafeRequest>(
         },
         completed_at: now(),
       });
-      await resolveScannerReport(reviewId, adminUid);
-      await recordManualApproval(review, adminUid, auditedPath);
-      return { ok: true, approved_url: approvedUrl };
-    }
-
-    const intakePath = reviewData["intake_path"];
-    if (typeof intakePath !== "string") {
-      throw new HttpsError(
-        "failed-precondition",
-        "Quarantined intake path is missing."
-      );
-    }
-
-    const parsedPath = parseIntakePath(intakePath);
-    if (!parsedPath || parsedPath.uploadId !== reviewId) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Quarantined intake path does not match the review."
-      );
-    }
-
-    const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
-    const sourceFile = bucket.file(intakePath);
-    let sourceMetadata;
-    try {
-      [sourceMetadata] = await sourceFile.getMetadata();
-    } catch {
-      throw new HttpsError("not-found", "Quarantined media file is missing.");
-    }
-
-    let intake: IntakeMetadata;
-    try {
-      intake = parseIntakeMetadata(intakePath, sourceMetadata.metadata);
-    } catch (error) {
-      throw new HttpsError(
-        "failed-precondition",
-        error instanceof Error ? error.message : "Invalid intake metadata."
-      );
-    }
-
-    const contentType = sourceMetadata.contentType;
-    const kind = contentKind(contentType);
-    if (!kind) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Quarantined media type is unsupported."
-      );
-    }
-
-    const [bytes] = await sourceFile.download();
-    if (kind === "image") {
-      await validateImage(bytes);
-    } else {
-      await validateVideoAndExtractFrames(bytes, parsedPath.filename);
-    }
-
-    const approvedPath = destinationPathFor(intake, parsedPath.filename);
-    const approvedUrl = publicUrlFor(bucket.name, approvedPath);
-    const approvedFile = bucket.file(approvedPath);
-    const [approvedExists] = await approvedFile.exists();
-    if (approvedExists) {
-      const [approvedMetadata] = await approvedFile.getMetadata();
-      if (approvedMetadata.metadata?.["upload_id"] !== intake.uploadId) {
-        throw new HttpsError(
-          "already-exists",
-          "The release destination belongs to another upload."
-        );
-      }
-    } else {
-      await approvedFile.save(bytes, {
-        resumable: false,
-        metadata: {
-          contentType,
-          cacheControl: intake.cacheControl,
-          metadata: {
-            uid: intake.uid,
-            upload_id: intake.uploadId,
-            moderated: "true",
-          },
-        },
+      await writeUploadStatus(intake.uploadId, "published", {
+        uid: intake.uid,
+        targetKind: intake.targetKind,
+        targetId: intake.targetId,
+        mediaType: kind,
+        publicUrl: approvedUrl,
       });
-    }
+      await resolveScannerReport(reviewId, adminUid);
+      await recordManualApproval(review, adminUid, approvedPath);
+      await sourceFile.delete().catch(() => undefined);
 
-    if (!(await approvalSideEffectExists(intake, approvedUrl))) {
-      await applyApprovalSideEffects(intake, approvedUrl, kind);
-    }
-
-    await reviewRefForAction.update({
-      status: "approved",
-      sha256: reviewData["sha256"] ?? sha256(bytes),
-      approved_path: approvedPath,
-      approved_url: approvedUrl,
-      failure_reason: FieldValue.delete(),
-      manual_review: {
-        decision: "safe",
-        reviewed_by: adminUid,
-        reviewed_at: now(),
-      },
-      completed_at: now(),
+      return { ok: true, approved_url: approvedUrl };
     });
-    await writeUploadStatus(intake.uploadId, "published", {
-      uid: intake.uid,
-      targetKind: intake.targetKind,
-      targetId: intake.targetId,
-      mediaType: kind,
-      publicUrl: approvedUrl,
-    });
-    await resolveScannerReport(reviewId, adminUid);
-    await recordManualApproval(review, adminUid, approvedPath);
-    await sourceFile.delete().catch(() => undefined);
-
-    return { ok: true, approved_url: approvedUrl };
   }
 );
 
@@ -974,12 +973,15 @@ const processIntakeObject = async (params: {
 
   const review = reviewRef(parsedPath.uploadId);
   const sourceFile = params.bucket.file(params.filePath);
-  if (params.skipFinalReview) {
+  {
     const existingReview = await review.get();
     const existingStatus = existingReview.data()?.["status"];
     if (
-      typeof existingStatus === "string" &&
-      INTAKE_FINAL_STATUSES.has(existingStatus)
+      existingReview.data()?.["manual_review"] ||
+      existingReview.data()?.["incident_path"] ||
+      existingReview.data()?.["release_in_progress"] ||
+      (params.skipFinalReview && typeof existingStatus === "string" &&
+        INTAKE_FINAL_STATUSES.has(existingStatus))
     ) {
       return {
         outcome: "skipped",
@@ -1087,6 +1089,7 @@ const processIntakeObject = async (params: {
           status,
           sha256: hash,
           scan_result: scanResult,
+          ...(incidentPath ? { incident_path: incidentPath } : {}),
           completed_at: now(),
         },
         { merge: true }
@@ -1482,8 +1485,20 @@ export const runMediaModerationAudit = onDocumentCreated(
         }
 
         try {
+          const review = auditReviewRef(file.name);
+          const previous = (await review.get()).data();
+          if (previous?.["incident_path"] || previous?.["release_in_progress"]) {
+            summary.skipped++;
+            continue;
+          }
           const [bytes] = await file.download();
           const hash = sha256(bytes);
+          // A profile path may later contain a different image. Only retain a
+          // manual decision for the exact bytes that were reviewed.
+          if (previous?.["manual_review"] && previous["sha256"] === hash) {
+            summary.skipped++;
+            continue;
+          }
           const kind = contentKind(contentType);
           if (!kind) {
             summary.skipped++;
@@ -1514,7 +1529,6 @@ export const runMediaModerationAudit = onDocumentCreated(
           const metadataUid = metadata.metadata?.["uid"];
           const uid =
             typeof metadataUid === "string" ? metadataUid : undefined;
-          const review = auditReviewRef(file.name);
           const publicUrl = publicUrlFor(bucket.name, file.name);
 
           summary.scanned++;
@@ -1556,6 +1570,7 @@ export const runMediaModerationAudit = onDocumentCreated(
             hash,
             scanResult
           );
+          if (incidentPath) await review.update({ incident_path: incidentPath });
           await writeScannerMediaReport({
             review,
             source: "audit",

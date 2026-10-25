@@ -1,3 +1,5 @@
+import { Capacitor, registerPlugin } from "@capacitor/core";
+import { readStreetViewPanorama, streetViewCamera, StreetViewPanorama } from "../../scripts/StreetViewHelpers";
 import {
   Injectable,
   signal,
@@ -15,6 +17,8 @@ import {
   of,
   take,
   firstValueFrom,
+  filter,
+  timeout,
 } from "rxjs";
 import { ExternalImage } from "../../db/models/Media";
 import { ConsentAwareService } from "./consent-aware.service";
@@ -23,6 +27,11 @@ import {
   reportInvalidMapCoordinate,
 } from "../shared/map-coordinate-utils";
 import { FirebaseAppCheckService } from "./firebase/app-check.service";
+import { AppSettingsService, type MapsAppPreference } from "./app-settings.service";
+
+const MapsLauncher = registerPlugin<{
+  open(options: { lat: number; lng: number; directions: boolean }): Promise<void>;
+}>("MapsLauncher");
 
 interface LocationAndZoom {
   location: google.maps.LatLngLiteral;
@@ -82,6 +91,7 @@ export function attachGoogleMapsAppCheck(
 })
 export class MapsApiService extends ConsentAwareService {
   private _analytics = inject(AnalyticsService);
+  private _appSettings = inject(AppSettingsService);
   private _appCheck = inject(FirebaseAppCheckService);
   private _isApiLoaded: WritableSignal<boolean> = signal(false);
   public isApiLoaded: Signal<boolean> = this._isApiLoaded;
@@ -106,10 +116,45 @@ export class MapsApiService extends ConsentAwareService {
    * Maps spot/location cache key -> whether a panorama is available.
    */
   private streetViewMetadataCache = new Map<string, boolean>();
+  // Session-only metadata: use the same panorama for distance, bearing and image.
+  private streetViewPanoramas = new Map<string, StreetViewPanorama>();
   /**
    * Dedupes concurrent metadata checks for the same location.
    */
   private streetViewMetadataInFlight = new Map<string, Promise<boolean>>();
+  private readonly localityNames = new Map<string, Promise<string | null>>();
+
+  /** City/town label only, never a street address. Cache for this app session. */
+  getLocalityName(location: google.maps.LatLngLiteral): Promise<string | null> {
+    if (!this.hasConsent() || !isFiniteLatLngLiteral(location)) return Promise.resolve(null);
+    const key = `${location.lat},${location.lng}`;
+    const cached = this.localityNames.get(key);
+    if (cached) return cached;
+    const lookup = (async () => {
+      try {
+        this.loadGoogleMapsApi();
+        if (!this.isApiLoaded()) {
+          await firstValueFrom(this.isLoading$.pipe(filter(loading => !loading), take(1), timeout(10_000)));
+        }
+        if (!this.isApiLoaded()) return null;
+        const { Geocoder } = await google.maps.importLibrary("geocoding") as google.maps.GeocodingLibrary;
+        const { results } = await new Geocoder().geocode({ location });
+        const components = results.flatMap(result => result.address_components);
+        for (const type of ["locality", "postal_town", "administrative_area_level_2"]) {
+          const name = components.find(component => component.types.includes(type))?.long_name;
+          if (name) return name;
+        }
+        return null;
+      } catch {
+        // An optional label must not block training recommendations.
+        this.localityNames.delete(key);
+        return null;
+      }
+    })();
+    if (this.localityNames.size >= 50) this.localityNames.clear();
+    this.localityNames.set(key, lookup);
+    return lookup;
+  }
 
   constructor() {
     super();
@@ -266,114 +311,97 @@ export class MapsApiService extends ConsentAwareService {
     return Promise.resolve(mapStyle as "roadmap" | "satellite");
   }
 
-  isMacOSOriOS(): boolean {
-    if (typeof window === "undefined") return false; // abort if not in browser
-
-    const appleDevices = [
-      "iPad Simulator",
-      "iPhone Simulator",
-      "iPod Simulator",
-      "iPad",
-      "iPhone",
-      "iPod",
-      "Mac",
-    ];
-    return RegExp(`/${appleDevices.join("|")}/`).test(navigator.userAgent);
-  }
-
-  openLatLngInMaps(
+  /**
+   * Shows a location in the user's maps app. `mapsType` forces a provider;
+   * otherwise the "Maps app" setting decides (see MapsAppPreference).
+   */
+  async openLatLngInMaps(
     location: google.maps.LatLngLiteral,
     mapsType?: "google" | "apple",
   ) {
+    await this._openInMaps(location, false, mapsType);
+  }
+
+  async openDirectionsInMaps(location: google.maps.LatLngLiteral) {
+    await this._openInMaps(location, true);
+  }
+
+  private async _openInMaps(
+    location: google.maps.LatLngLiteral,
+    directions: boolean,
+    forced?: Exclude<MapsAppPreference, "automatic">,
+  ): Promise<void> {
     if (typeof window === "undefined") return; // abort if not in browser
 
-    if (this.isMacOSOriOS() || mapsType === "apple") {
-      this._openLatLngInAppleMaps(location);
-    } else {
-      this._openLatLngInGoogleMaps(location);
+    const preference = forced ?? this._appSettings.mapsApp();
+    if (preference === "automatic") {
+      // The iOS app hands off to the default navigation app (Apple Maps
+      // through MapKit when none is set). Browsers and Android use Google
+      // Maps, which opens its app when installed.
+      if (
+        Capacitor.getPlatform() === "ios" &&
+        (await this.openInDefaultIosMaps(location, directions))
+      ) {
+        return;
+      }
+      this._openWebMaps(
+        Capacitor.getPlatform() === "ios" ? "apple" : "google",
+        location,
+        directions,
+      );
+      return;
+    }
+    this._openWebMaps(preference, location, directions);
+  }
+
+  private async openInDefaultIosMaps(
+    location: google.maps.LatLngLiteral,
+    directions: boolean,
+  ): Promise<boolean> {
+    if (Capacitor.getPlatform() !== "ios") return false;
+    try {
+      // Native completion tells us whether the OS handled the navigation scheme.
+      // Older binaries without this bridge keep the ordinary Apple Maps link.
+      await MapsLauncher.open({ ...location, directions });
+      this._analytics.trackEvent(directions ? "get_directions" : "open_maps", {
+        platform: "system",
+      });
+      return true;
+    } catch {
+      return false;
     }
   }
 
-  private _openLatLngInAppleMaps(location: google.maps.LatLngLiteral) {
-    console.debug("opening in apple maps");
-    const url = `https://maps.apple.com/?address=${location.lat},${location.lng}`;
+  private _openWebMaps(
+    provider: Exclude<MapsAppPreference, "automatic">,
+    location: google.maps.LatLngLiteral,
+    directions: boolean,
+  ): void {
+    const { lat, lng } = location;
+    const url = directions
+      ? {
+          google: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+          apple: `https://maps.apple.com/?daddr=${lat},${lng}`,
+          osm: `https://www.openstreetmap.org/directions?to=${lat},${lng}`,
+        }[provider]
+      : {
+          google: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+          apple: `https://maps.apple.com/?ll=${lat},${lng}&q=${lat},${lng}`,
+          osm: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}`,
+        }[provider];
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
-      "open_in_maps",
+      directions ? "directions" : "open_in_maps",
       "referral",
     );
 
-    this._analytics.trackEvent("open_maps", {
-      platform: "apple",
-      location: location,
+    this._analytics.trackEvent(directions ? "get_directions" : "open_maps", {
+      platform: provider,
+      location,
       url: taggedUrl || url,
     });
 
-    if (taggedUrl) window.open(taggedUrl);
-  }
-
-  private _openLatLngInGoogleMaps(location: google.maps.LatLngLiteral) {
-    console.debug("opening in google maps");
-    const url = `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`;
-    const taggedUrl = this._analytics.addUtmToUrl(
-      url,
-      "open_in_maps",
-      "referral",
-    );
-
-    this._analytics.trackEvent("open_maps", {
-      platform: "google",
-      location: location,
-      url: taggedUrl || url,
-    });
-
-    if (taggedUrl) window.open(taggedUrl);
-  }
-
-  openDirectionsInMaps(location: google.maps.LatLngLiteral) {
-    if (typeof window === "undefined") return; // abort if not in browser
-
-    if (this.isMacOSOriOS()) {
-      this._openDirectionsInAppleMaps(location);
-    } else {
-      this._openDirectionsInGoogleMaps(location);
-    }
-  }
-
-  private _openDirectionsInAppleMaps(location: google.maps.LatLngLiteral) {
-    if (typeof window === "undefined") return; // abort if not in browser
-    const url = `https://maps.apple.com/?daddr=${location.lat},${location.lng}`;
-    const taggedUrl = this._analytics.addUtmToUrl(
-      url,
-      "directions",
-      "referral",
-    );
-
-    this._analytics.trackEvent("get_directions", {
-      platform: "apple",
-      location: location,
-      url: taggedUrl || url,
-    });
-
-    if (taggedUrl) window.open(taggedUrl);
-  }
-
-  private _openDirectionsInGoogleMaps(location: google.maps.LatLngLiteral) {
-    if (typeof window === "undefined") return; // abort if not in browser
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`;
-    const taggedUrl = this._analytics.addUtmToUrl(
-      url,
-      "directions",
-      "referral",
-    );
-
-    this._analytics.trackEvent("get_directions", {
-      platform: "google",
-      location: location,
-      url: taggedUrl || url,
-    });
-
-    if (taggedUrl) window.open(taggedUrl);
+    window.open(taggedUrl || url);
   }
 
   async autocompletePlaceSearch(
@@ -501,24 +529,7 @@ export class MapsApiService extends ConsentAwareService {
     type: string = "point_of_interest",
     radius: number = 200,
   ): Promise<google.maps.places.Place | null> {
-    console.log("Searching for Google Place at location:", location);
-    return Promise.reject(new Error("Not implemented"));
-
-    // Use consent-aware execution for Places API calls
-    return this.executeWithConsent(async () => {
-      const request: google.maps.places.SearchNearbyRequest = {
-        fields: ["displayName", "location", "businessStatus"],
-        locationRestriction: {
-          center: location,
-          radius: radius,
-        },
-        includedPrimaryTypes: [type],
-        maxResultCount: 1,
-      };
-
-      const { places } = await google.maps.places.Place.searchNearby(request);
-      return places.length > 0 ? places[0] : null;
-    });
+    throw new Error("Google Place lookup by location is not implemented.");
   }
 
   getPhotoURLOfGooglePlace(
@@ -581,7 +592,7 @@ export class MapsApiService extends ConsentAwareService {
       }
     }
 
-    const url = this._makeStreetViewImageUrl(location, imageWidth, imageHeight);
+    const url = this._makeStreetViewImageUrl(location, imageWidth, imageHeight, metadataCacheKey);
 
     if (spotId) {
       //   console.debug(
@@ -644,23 +655,25 @@ export class MapsApiService extends ConsentAwareService {
   private _makeStreetViewMetadataUrl(
     location: google.maps.LatLngLiteral,
   ): string {
-    return `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
-      location.lat
-    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-      environment.keys.firebaseConfig.apiKey
-    }`;
+    return `https://maps.googleapis.com/maps/api/streetview/metadata?location=${location.lat},${location.lng}&source=outdoor&key=${environment.keys.firebaseConfig.apiKey}`;
   }
 
   private _makeStreetViewImageUrl(
     location: google.maps.LatLngLiteral,
     imageWidth: number,
     imageHeight: number,
+    metadataCacheKey: string,
   ): string {
-    return `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
-      location.lat
-    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-      environment.keys.firebaseConfig.apiKey
-    }`;
+    const panorama = this.streetViewPanoramas.get(metadataCacheKey);
+    const camera = panorama ? streetViewCamera(panorama, location) : { fov: 110, pitch: 0, heading: undefined };
+    const params = new URLSearchParams({
+      size: `${imageWidth}x${imageHeight}`, location: `${location.lat},${location.lng}`,
+      fov: camera.fov.toFixed(2), pitch: String(camera.pitch),
+      return_error_code: "true", source: "outdoor", key: environment.keys.firebaseConfig.apiKey,
+    });
+    if (panorama) params.set("pano", panorama.pano_id);
+    if (camera.heading !== undefined) params.set("heading", camera.heading.toFixed(2));
+    return `https://maps.googleapis.com/maps/api/streetview?${params}`;
   }
 
   async hasStreetViewPanoramaForLocation(
@@ -700,6 +713,8 @@ export class MapsApiService extends ConsentAwareService {
             : "UNKNOWN";
 
       if (status === "OK") {
+        const panorama = readStreetViewPanorama(data);
+        if (panorama) this.streetViewPanoramas.set(cacheKey, panorama);
         this._setStreetViewMetadataAvailability(cacheKey, true);
         return true;
       }
@@ -742,6 +757,7 @@ export class MapsApiService extends ConsentAwareService {
     }
 
     this.streetViewMetadataCache.set(cacheKey, value);
+    if (!value) this.streetViewPanoramas.delete(cacheKey);
   }
 
   // Instance method instead of static to access consent checking
@@ -782,7 +798,7 @@ export class MapsApiService extends ConsentAwareService {
     }
 
     return new ExternalImage(
-      this._makeStreetViewImageUrl(location, 400, 400),
+      this._makeStreetViewImageUrl(location, 400, 400, this._getStreetViewMetadataCacheKey(spotId ?? location)),
       "streetview",
     );
   }
@@ -837,8 +853,6 @@ export class MapsApiService extends ConsentAwareService {
     type?: string,
     maxResults: number = 5,
   ): Promise<google.maps.places.Place[]> {
-    console.log("Fetching nearby places by distance:", location, type);
-
     // Early return if API not loaded
     if (!this._isApiLoaded()) {
       console.warn("Google Maps API not loaded yet");

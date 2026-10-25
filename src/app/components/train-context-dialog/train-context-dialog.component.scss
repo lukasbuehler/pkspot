@@ -1,0 +1,85 @@
+.context-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 16px 0 24px;
+
+  h2 {
+    margin: 2px 0 0;
+    padding: 0;
+  }
+}
+
+.context-dialog__eyebrow {
+  margin: 0;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+}
+
+mat-dialog-content {
+  display: grid;
+  gap: 16px;
+  min-width: min(440px, calc(100vw - 72px));
+  padding-top: 16px;
+}
+
+.context-dialog__intro {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.context-dialog__divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+
+  span {
+    height: 1px;
+    background: var(--mat-sys-outline-variant);
+  }
+
+  em { font-style: normal; }
+}
+
+.weather-summary {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+
+  > mat-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 13px;
+    color: var(--mat-sys-on-primary-container);
+    background: var(--mat-sys-primary-container);
+  }
+
+  div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); }
+}
+
+@media (max-width: 599.98px) {
+  mat-dialog-content { min-width: 0; }
+
+  .weather-summary {
+    grid-template-columns: 40px minmax(0, 1fr);
+
+    button { grid-column: 2; justify-self: start; }
+  }
+}

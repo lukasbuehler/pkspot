@@ -1,6 +1,6 @@
 PK Spot v1.1.5 — Fiabilidad y correcciones
 
-• Pega enlaces de Google Maps y Apple Maps directamente en la búsqueda del mapa.
+• Pega enlaces de mapas directamente en la búsqueda del mapa.
 • Mejoramos la selección y el recorte de contenido, con una finalización de subida más segura.
 • La solicitud del rango de edad ahora se explica primero y ya no aparece al iniciar.
 • Corregimos la verificación de cuentas, enlaces de notificaciones, respuestas y Eventos pasados, clasificaciones de comunidades y retos de Swiss Jam.

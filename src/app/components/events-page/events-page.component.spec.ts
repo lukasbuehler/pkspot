@@ -20,6 +20,8 @@ import { EventsPageComponent } from "./events-page.component";
 import { MyEventContextService } from "../../services/my-event-context.service";
 import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
+import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
@@ -29,7 +31,13 @@ const EMPTY_RESULT: EventDiscoverySearchResult = {
   items: [],
   found: 0,
   page: 1,
-  facets: { categories: [], series: [], communities: [] },
+  facets: {
+    categories: [],
+    series: [],
+    communities: [],
+    listingTiers: [],
+    regions: [],
+  },
   invalidItems: [],
   invalidItemCount: 0,
 };
@@ -53,6 +61,9 @@ const INVALID_EVENT_PREVIEW: EventSearchPreview = {
   communityKeys: ["country:ch"],
   seriesIds: [],
   eventCategories: ["jam"],
+  listingTier: "formal",
+  regionKeys: [],
+  communityBroadcast: "none",
   rsvpCounts: { going: 2, interested: 1, notgoing: 0, total: 3 },
   seriesRoles: [],
   qualifiesToKeys: [],
@@ -113,6 +124,7 @@ interface TestContext {
 function createComponent(options?: {
   queryParams?: Record<string, string>;
   admin?: boolean;
+  adult?: boolean;
   signedIn?: boolean;
   drafts?: PkEvent[];
   searchResult?: EventDiscoverySearchResult;
@@ -157,6 +169,18 @@ function createComponent(options?: {
           options?.signedIn ? { uid: "signed-in", data: null } : null,
           options?.admin,
         ),
+      },
+      {
+        provide: AgeAssuranceService,
+        useValue: {
+          hasVerifiedAdultEligibility: vi.fn().mockReturnValue(
+            options?.adult ?? options?.admin === true,
+          ),
+        },
+      },
+      {
+        provide: OrganizationsService,
+        useValue: { getManagerOrganizations: vi.fn().mockResolvedValue([]) },
       },
       {
         provide: AnalyticsService,
@@ -212,6 +236,25 @@ describe("EventsPageComponent", () => {
     globalThis.localStorage?.removeItem("eventsDiscoveryView");
   });
 
+  it("keeps error-state derivations readable and recovers after retry", async () => {
+    const { component, searchService } = createComponent({ platform: "server" });
+    const failure = new Error("Typesense request failed with HTTP 403.");
+    searchService.searchEventDiscovery.mockRejectedValue(failure);
+    await flushResources();
+
+    expect(component.discoveryResource.error()).toBe(failure);
+    expect(component.discoveryResource.isLoading()).toBe(false);
+    expect(component.events()).toEqual([]);
+    expect(() => component.categoryFilterOptions()).not.toThrow();
+    expect(() => component.facetSeriesIds()).not.toThrow();
+
+    searchService.searchEventDiscovery.mockResolvedValue(EMPTY_RESULT);
+    component.retry();
+    await flushResources();
+    expect(component.discoveryResource.error()).toBeUndefined();
+    expect(component.discoveryResult()).toEqual(EMPTY_RESULT);
+  });
+
   it("offers the event notification migration for future personal events", () => {
     const event = buildEvent("future-event", "Future Event", {
       published: true,
@@ -239,7 +282,8 @@ describe("EventsPageComponent", () => {
     expect(notificationMigration.maybePrompt).not.toHaveBeenCalled();
   });
 
-  it("defaults to the list until the user explicitly chooses a view", () => {
+  it("defaults to list even when a previous visit remembered calendar", () => {
+    globalThis.localStorage?.setItem("eventsDiscoveryView", "calendar");
     const { component } = createComponent();
 
     component.containerWidth.set(1200);
@@ -250,9 +294,7 @@ describe("EventsPageComponent", () => {
 
     component.onViewChange("calendar");
     expect(component.view()).toBe("calendar");
-    expect(globalThis.localStorage?.getItem("eventsDiscoveryView")).toBe(
-      "calendar",
-    );
+
   });
 
   it("keeps calendar links without an explicit view backward compatible", () => {
@@ -268,7 +310,7 @@ describe("EventsPageComponent", () => {
     expect(component.selectedDay()).toBe("2026-08-14");
   });
 
-  it("lets URL state override the remembered view and restores filters", () => {
+  it("honors explicit URL views and restores filters", () => {
     globalThis.localStorage?.setItem("eventsDiscoveryView", "list");
     const { component, queryParams } = createComponent({
       queryParams: {
@@ -279,6 +321,8 @@ describe("EventsPageComponent", () => {
         area: "country:ch",
         category: "jam,competition,unknown",
         series: "parkour-earth,swissjam",
+        tier: "formal,community,unknown",
+        region: "europe,north-america,unknown",
         when: "past",
       },
     });
@@ -293,17 +337,27 @@ describe("EventsPageComponent", () => {
       "parkour-earth",
       "swissjam",
     ]);
+    expect(component.selectedListingTiers()).toEqual(["formal", "community"]);
+    expect(component.selectedRegions()).toEqual(["europe", "north-america"]);
     expect(component.period()).toBe("past");
 
     queryParams.next(convertToParamMap({ view: "list", when: "upcoming" }));
     expect(component.view()).toBe("list");
     expect(component.query()).toBe("");
     expect(component.selectedCategories()).toEqual([]);
+    expect(component.selectedListingTiers()).toEqual([]);
+    expect(component.selectedRegions()).toEqual([]);
   });
 
   it("uses Typesense for public results and never requests public Firestore events", async () => {
     const { component, searchService, eventsService } = createComponent({
-      queryParams: { view: "list", area: "region:zh", category: "jam" },
+      queryParams: {
+        view: "list",
+        area: "region:zh",
+        category: "jam",
+        tier: "community",
+        region: "europe",
+      },
     });
     await flushResources();
 
@@ -311,6 +365,8 @@ describe("EventsPageComponent", () => {
       expect.objectContaining({
         areaKeys: ["region:zh"],
         categories: ["jam"],
+        listingTiers: ["community"],
+        regionKeys: ["europe"],
         sort: "upcoming",
         page: 1,
         perPage: 24,
@@ -341,13 +397,13 @@ describe("EventsPageComponent", () => {
     expect(component.calendar().monthKey).toBe("2026-08");
   });
 
-  it("updates filter counts from the continuous calendar result", async () => {
+  it("keeps unfiltered counts when the continuous calendar results change", async () => {
     const { component } = createComponent({
       queryParams: { view: "calendar", month: "2026-08" },
       searchResult: {
         ...EMPTY_RESULT,
         facets: {
-          categories: [{ value: "jam", count: 1 }],
+          categories: [{ value: "jam", count: 1 }, { value: "competition", count: 4 }],
           series: [{ value: "parkour-earth", count: 1 }],
           communities: [],
         },
@@ -364,18 +420,96 @@ describe("EventsPageComponent", () => {
       },
     });
 
-    expect(component.categoryFilterOptions()).toEqual([
+    expect(component.categoryFilterOptions()).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "competition", count: 4 }),
-    ]);
+      expect.objectContaining({ id: "jam", count: 1 }),
+    ]));
     expect(component.seriesFilterOptions()).toEqual([
-      expect.objectContaining({ id: "parkour-earth", count: 3 }),
+      expect.objectContaining({ id: "parkour-earth", count: 1 }),
     ]);
+  });
+
+  it("hides unused filters but retains available alternatives with zero filtered results", async () => {
+    const available = {
+      ...EMPTY_RESULT,
+      facets: {
+        ...EMPTY_RESULT.facets,
+        categories: [{ value: "jam", count: 2 }, { value: "camp", count: 1 }],
+        series: [{ value: "series-a", count: 2 }, { value: "series-b", count: 1 }],
+        listingTiers: [{ value: "formal", count: 3 }],
+        regions: [{ value: "europe", count: 3 }],
+      },
+    };
+    const { component, searchService } = createComponent({
+      // A filtered deep link must work without visiting the unfiltered page first.
+      queryParams: { view: "calendar", month: "2026-08", category: "jam" },
+    });
+    searchService.searchEventDiscovery.mockResolvedValue(available);
+    await flushResources();
+    component.onContinuousCalendarResult(EMPTY_RESULT);
+
+    expect(component.categoryFilterOptions().map(option => [option.id, option.count]))
+      .toEqual([["jam", 2], ["camp", 1]]);
+    expect(component.seriesFilterOptions().map(option => [option.id, option.count])).toEqual([["series-a", 2], ["series-b", 1]]);
+    expect(component.listingTierFilterOptions().map(option => [option.id, option.count])).toEqual([["formal", 3]]);
+    expect(component.regionFilterOptions().map(option => [option.id, option.count])).toEqual([["europe", 3]]);
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledWith({
+      query: "", areaKeys: [], perPage: 1, abortSignal: expect.any(AbortSignal),
+    });
+    expect(component.selectedCategories()).toEqual(["jam"]);
+    const baselineCalls = searchService.searchEventDiscovery.mock.calls.length;
+    component.toggleCategory("camp");
+    await flushResources();
+    expect(component.categoryFilterOptions().map(option => [option.id, option.count])).toEqual([["jam", 2], ["camp", 1]]);
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledTimes(baselineCalls);
+
+    // Changing the search scope should drop choices that no longer have events.
+    searchService.searchEventDiscovery.mockResolvedValue(EMPTY_RESULT);
+    component.selectedCategories.set([]);
+    component.query.set("no matching events");
+    await flushResources();
+    expect(component.categoryFilterOptions()).toEqual([]);
+    expect(component.seriesFilterOptions()).toEqual([]);
+    expect(component.listingTierFilterOptions()).toEqual([]);
+    expect(component.regionFilterOptions()).toEqual([]);
+  });
+
+  it("loads list availability for the whole period, not the selected chips or page", async () => {
+    const { component, searchService } = createComponent({
+      queryParams: { view: "list", when: "past", category: "jam", area: "country:ch", q: "parkour" },
+    });
+    await flushResources();
+    const availability = searchService.searchEventDiscovery.mock.calls
+      .map(([request]) => request).find(request => request.perPage === 1);
+    expect(availability).toEqual({
+      query: "parkour", areaKeys: ["country:ch"], perPage: 1,
+      endsBeforeSeconds: expect.any(Number), abortSignal: expect.any(AbortSignal),
+    });
+    const calls = searchService.searchEventDiscovery.mock.calls.length;
+    component.resultLimit.set(48);
+    await flushResources();
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledTimes(calls + 1);
+    expect(searchService.searchEventDiscovery.mock.calls.filter(([request]) => request.perPage === 1)).toHaveLength(1);
+  });
+
+  it("keeps an unavailable selected filter removable", async () => {
+    const { component } = createComponent();
+    component.selectedCategories.set(["camp"]);
+    component.selectedSeriesIds.set(["removed-series"]);
+    component.selectedListingTiers.set(["community"]);
+    component.selectedRegions.set(["europe"]);
+    await flushResources();
+    expect(component.categoryFilterOptions().map(option => option.id)).toEqual(["camp"]);
+    expect(component.seriesFilterOptions().map(option => option.id)).toEqual(["removed-series"]);
+    expect(component.listingTierFilterOptions().map(option => option.id)).toEqual(["community"]);
+    expect(component.regionFilterOptions().map(option => option.id)).toEqual(["europe"]);
   });
 
   it("keeps authorized drafts in a separate Firestore request", async () => {
     const draft = buildEvent("draft-jam", "Draft Jam");
     const { component, eventsService } = createComponent({
       admin: true,
+      adult: false,
       signedIn: true,
       drafts: [draft],
     });
@@ -388,14 +522,31 @@ describe("EventsPageComponent", () => {
     expect(component.drafts()).toEqual([draft]);
     expect(component.createActions().map((action) => action.id)).toEqual([
       "event",
+      "session",
+      "suggest",
     ]);
   });
 
-  it("does not offer event or session creation to non-admin users", async () => {
+  it("keeps community authoring reachable while adult eligibility is pending", async () => {
     const { component } = createComponent({ signedIn: true });
     await flushResources();
 
-    expect(component.createActions()).toEqual([]);
+    expect(component.createActions().map((action) => action.id)).toEqual([
+      "session",
+      "suggest",
+    ]);
+  });
+
+  it("routes FAB selections to their matching authoring flows", () => {
+    const { component, router } = createComponent({ signedIn: true });
+
+    component.onCreateAction("community");
+    component.onCreateAction("suggest");
+
+    expect(router.navigate).toHaveBeenNthCalledWith(1, [
+      "/events/session/new",
+    ]);
+    expect(router.navigate).toHaveBeenNthCalledWith(2, ["/events/suggest"]);
   });
 
   it("opens invalid event previews for admins only", async () => {
@@ -497,6 +648,14 @@ describe("EventsPageComponent", () => {
       replaceUrl: false,
     });
 
+    component.toggleRegion("europe");
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: expect.anything(),
+      queryParams: { region: "europe" },
+      queryParamsHandling: "merge",
+      replaceUrl: false,
+    });
+
     component.changeMonth(1);
     expect(router.navigate).toHaveBeenLastCalledWith([], {
       relativeTo: expect.anything(),
@@ -514,6 +673,7 @@ describe("EventsPageComponent", () => {
       queryParams: { day: "2026-08-14" },
       queryParamsHandling: "merge",
       replaceUrl: false,
+      scroll: "manual",
     });
 
     component.onPeriodChange("upcoming");
@@ -603,6 +763,9 @@ describe("EventsPageComponent", () => {
     });
     await flushResources();
 
+    // Read the lazy linked signal as the rendered calendar would.
+    expect(component.discoveryResult()).toBe(initialResult);
+
     let resolveRefresh!: (result: EventDiscoverySearchResult) => void;
     searchService.searchAllEventDiscovery.mockReturnValueOnce(
       new Promise((resolve) => {
@@ -628,6 +791,22 @@ describe("EventsPageComponent", () => {
 
     expect(component.discoveryResource.isLoading()).toBe(false);
     expect(component.discoveryResult()).toBe(refreshedResult);
+  });
+
+  it("accepts continuous-calendar selections beyond the anchor month", async () => {
+    const { component, queryParams, router } = createComponent({
+      queryParams: { view: "calendar", month: "2026-08", day: "2026-08-01" },
+    });
+    await flushResources();
+    router.navigate.mockClear();
+    queryParams.next(convertToParamMap({
+      view: "calendar", month: "2026-08", day: "2026-09-19",
+    }));
+    await flushResources();
+
+    expect(component.selectedDay()).toBe("2026-09-19");
+    expect(component.month()).toBe("2026-08");
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it("does not reload calendar results when only the selected day changes", async () => {

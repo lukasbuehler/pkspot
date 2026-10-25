@@ -28,6 +28,8 @@ export interface PresetFilterChip {
   urlParam: string;
   label: string;
   icon?: string;
+  imageSrc?: string;
+  imageBackground?: string;
 }
 
 export type FilterChipsBarAppearance = "glass" | "solid";
@@ -47,6 +49,10 @@ export type FilterChipsBarSelectionRole = "primary" | "secondary";
 export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   /** Currently selected filter value (matches urlParam) */
   selectedFilter = input("");
+
+  /** When supplied, selection is controlled as a multi-select by the caller. */
+  selectedFilters = input<readonly string[] | null>(null);
+  filterToggled = output<string>();
 
   /** Whether to show the saved spots chip */
   showSavedChip = input(false);
@@ -236,6 +242,11 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
     if (this._suppressNextChipClick) {
       event?.preventDefault();
       event?.stopPropagation();
+      return;
+    }
+
+    if (this.selectedFilters() !== null) {
+      this.filterToggled.emit(value);
       return;
     }
 

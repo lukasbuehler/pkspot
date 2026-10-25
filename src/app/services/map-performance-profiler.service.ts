@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from "@angular/common";
-import { Inject, Injectable, PLATFORM_ID } from "@angular/core";
-import { Capacitor } from "@capacitor/core";
+import { Inject, Injectable, PLATFORM_ID, signal } from "@angular/core";
+import { mapDiagnosticsSnapshot, observeMapGestures } from "./map-diagnostics";
 import { environment } from "../../environments/environment.default";
 
 export type MapProfilePayload = Record<string, unknown>;
@@ -55,6 +55,7 @@ interface WindowWithMapProfile extends Window {
 }
 
 const PROFILE_STORAGE_KEY = "pkspotMapProfile";
+const PROFILE_PREVIOUS_STORAGE_KEY = "pkspotMapProfilePrevious";
 const PROFILE_VERBOSE_STORAGE_KEY = "pkspotMapProfileVerbose";
 const PROFILE_BREADCRUMB_STORAGE_KEY = "pkspotMapProfileBreadcrumbs";
 const MAX_STORED_EVENTS = 1_000;
@@ -71,6 +72,49 @@ export class MapPerformanceProfilerService {
   private readonly _isBrowser: boolean;
   private _breadcrumbs: MapProfileEvent[] = [];
   private _enabled = false;
+  readonly available = this._isAvailable;
+  private readonly _enabledSignal = signal(false);
+  readonly enabled = this._enabledSignal.asReadonly();
+  private _previousBreadcrumbs: MapProfileEvent[] = [];
+  private readonly _maps = new Set<google.maps.Map>();
+  private _sampleTimer: ReturnType<typeof setInterval> | null = null;
+
+  registerMap(map: google.maps.Map): () => void {
+    if (!this._isBrowser || !this._isAvailable) return () => {};
+    this._maps.add(map);
+    const stop = observeMapGestures(map.getDiv(), (type, payload) => {
+      if (!this._enabled) return;
+      this.record(`map-health:${type}`, { ...payload, ...mapDiagnosticsSnapshot(map) });
+    });
+    const listeners = ["idle", "tilesloaded", "dragstart", "dragend", "zoom_changed"].map(type =>
+      map.addListener(type, () => {
+        if (!this._enabled) return;
+        this.recordThrottled(`map-health:${type}`, { zoom: map.getZoom(), tilt: map.getTilt(), heading: map.getHeading() }, 500);
+      }),
+    );
+    return () => { stop(); listeners.forEach(listener => listener.remove()); this._maps.delete(map); };
+  }
+
+  setEnabled(enabled: boolean): void {
+    if (enabled) this.enable();
+    else this.disable();
+  }
+
+  exportCapture(): string {
+    this._persistBreadcrumbs();
+    // Do not use _stringifyPayload: its array limit would truncate the capture.
+    return JSON.stringify({ previous: this._previousBreadcrumbs,
+      current: this._breadcrumbs }, null, 2);
+  }
+
+  private _sampleMaps(): void {
+    if (!this._enabled) return;
+    for (const map of this._maps) {
+      try { this.record("map-health:sample", mapDiagnosticsSnapshot(map)); }
+      catch { this.record("map-health:sample-unavailable"); }
+    }
+  }
+
   private _events: MapProfileEvent[] = [];
   private _frameGaps: number[] = [];
   private _frameLoopId: number | null = null;
@@ -89,6 +133,15 @@ export class MapPerformanceProfilerService {
 
     this._dumpPreviousBreadcrumbs();
     this._installConsoleApi();
+    window.addEventListener("pagehide", () => {
+      if (this._enabled) this._persistBreadcrumbs();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!this._enabled) return;
+      this.record("map-health:visibility", { state: document.visibilityState });
+      this._sampleMaps();
+      this._persistBreadcrumbs();
+    });
 
     if (this._shouldAutoEnable()) {
       this.enable({
@@ -101,7 +154,10 @@ export class MapPerformanceProfilerService {
   enable(options: MapProfileEnableOptions = {}): void {
     if (!this._isBrowser || !this._isAvailable) return;
 
+    if (this._enabled) return;
     this._enabled = true;
+    this._enabledSignal.set(true);
+    this._sampleTimer = setInterval(() => this._sampleMaps(), 2_000);
     this._verbose = !!options.verbose;
     localStorage.setItem(PROFILE_STORAGE_KEY, "1");
     localStorage.setItem(PROFILE_VERBOSE_STORAGE_KEY, this._verbose ? "1" : "0");
@@ -118,6 +174,9 @@ export class MapPerformanceProfilerService {
 
     this.record("profiler:disabled", {});
     this._enabled = false;
+    this._enabledSignal.set(false);
+    if (this._sampleTimer !== null) clearInterval(this._sampleTimer);
+    this._sampleTimer = null;
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     this._stopFrameLoop();
     this._stopLongTaskObserver();
@@ -134,7 +193,7 @@ export class MapPerformanceProfilerService {
   }
 
   record(label: string, payload: MapProfilePayload = {}): MapProfileEvent | null {
-    if (!this._isBrowser || !this._isAvailable) return null;
+    if (!this._isBrowser || !this._isAvailable || !this._enabled) return null;
 
     const event = this._createEvent(label, payload);
     this._storeBreadcrumb(event);
@@ -157,7 +216,7 @@ export class MapPerformanceProfilerService {
     payload: MapProfilePayload = {},
     intervalMs = 1_000,
   ): MapProfileEvent | null {
-    if (!this._isBrowser || !this._isAvailable) return null;
+    if (!this._isBrowser || !this._isAvailable || !this._enabled) return null;
 
     const now = performance.now();
     const lastTimestamp = this._throttledEventTimestamps.get(label) ?? 0;
@@ -220,6 +279,8 @@ export class MapPerformanceProfilerService {
 
   clearBreadcrumbs(): void {
     this._breadcrumbs = [];
+    this._previousBreadcrumbs = [];
+    localStorage.removeItem(PROFILE_PREVIOUS_STORAGE_KEY);
     localStorage.removeItem(PROFILE_BREADCRUMB_STORAGE_KEY);
     console.info("[MapProfile] breadcrumbs-cleared");
   }
@@ -271,6 +332,7 @@ export class MapPerformanceProfilerService {
   }
 
   private _observeConsoleMessage(args: unknown[]): boolean {
+    if (!this._enabled) return false;
     const message = args.map((arg) => String(arg)).join(" ");
     if (
       !message.includes(
@@ -318,7 +380,8 @@ export class MapPerformanceProfilerService {
     }
 
     const now = performance.now();
-    if (now - this._lastBreadcrumbPersistTimestamp < BREADCRUMB_PERSIST_INTERVAL_MS) {
+    const urgent = /webgl-context|invalid-camera|suspicious-camera|recreate-native-map|watchdog/.test(event.label);
+    if (!urgent && now - this._lastBreadcrumbPersistTimestamp < BREADCRUMB_PERSIST_INTERVAL_MS) {
       return;
     }
 
@@ -339,6 +402,10 @@ export class MapPerformanceProfilerService {
 
   private _dumpPreviousBreadcrumbs(): void {
     const previous = this._loadStoredBreadcrumbs();
+    this._previousBreadcrumbs = previous.length ? previous : this._loadStoredBreadcrumbs(PROFILE_PREVIOUS_STORAGE_KEY);
+    try {
+      localStorage.setItem(PROFILE_PREVIOUS_STORAGE_KEY, JSON.stringify(this._previousBreadcrumbs));
+    } catch { /* Best-effort local diagnostics. */ }
     if (previous.length > 0) {
       console.info(
         `[MapProfile] previous-breadcrumbs ${this._stringifyPayload(previous)}`,
@@ -358,6 +425,8 @@ export class MapPerformanceProfilerService {
     if (this._verbose) return true;
 
     return (
+      label.startsWith("map-health:") ||
+      label.startsWith("google-map-2d:webgl-") ||
       label === "frames" ||
       label === "frame-gap" ||
       label === "long-task" ||
@@ -371,9 +440,9 @@ export class MapPerformanceProfilerService {
     );
   }
 
-  private _loadStoredBreadcrumbs(): MapProfileEvent[] {
+  private _loadStoredBreadcrumbs(key = PROFILE_BREADCRUMB_STORAGE_KEY): MapProfileEvent[] {
     try {
-      const raw = localStorage.getItem(PROFILE_BREADCRUMB_STORAGE_KEY);
+      const raw = localStorage.getItem(key);
       if (!raw) return [];
 
       const parsed: unknown = JSON.parse(raw);
@@ -475,16 +544,7 @@ export class MapPerformanceProfilerService {
     const params = new URLSearchParams(window.location.search);
     return (
       params.get("mapProfile") === "1" ||
-      localStorage.getItem(PROFILE_STORAGE_KEY) === "1" ||
-      this._isAndroidDevelopmentBuild()
-    );
-  }
-
-  private _isAndroidDevelopmentBuild(): boolean {
-    return (
-      !environment.production &&
-      Capacitor.isNativePlatform() &&
-      Capacitor.getPlatform() === "android"
+      localStorage.getItem(PROFILE_STORAGE_KEY) === "1"
     );
   }
 
@@ -630,7 +690,10 @@ export class MapPerformanceProfilerService {
     };
   }
 
+  private _webGlSnapshot: MapProfilePayload | null = null;
+
   private _getWebGlSnapshot(): MapProfilePayload {
+    if (this._webGlSnapshot) return this._webGlSnapshot;
     const canvas = document.createElement("canvas");
     const gl =
       canvas.getContext("webgl2") ??
@@ -646,7 +709,7 @@ export class MapPerformanceProfilerService {
     const renderingContext = gl as WebGLRenderingContext;
     const debugInfo = renderingContext.getExtension("WEBGL_debug_renderer_info");
 
-    return {
+    this._webGlSnapshot = {
       available: true,
       renderer: debugInfo
         ? renderingContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
@@ -659,5 +722,7 @@ export class MapPerformanceProfilerService {
         typeof WebGL2RenderingContext !== "undefined" &&
         gl instanceof WebGL2RenderingContext,
     };
+    renderingContext.getExtension("WEBGL_lose_context")?.loseContext();
+    return this._webGlSnapshot;
   }
 }

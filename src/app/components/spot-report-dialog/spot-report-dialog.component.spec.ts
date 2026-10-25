@@ -7,6 +7,7 @@ import {
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
@@ -14,9 +15,11 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from "@angular/material/dialog";
-import { MatRadioModule } from "@angular/material/radio";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatSelectModule } from "@angular/material/select";
+import { MatInputModule } from "@angular/material/input";
 import { By } from "@angular/platform-browser";
-import { SpotReportSchema } from "../../../db/schemas/SpotReportSchema";
 import { AnalyticsService } from "../../services/analytics.service";
 import { SpotReportsService } from "../../services/firebase/firestore/spot-reports.service";
 import { EntityReferenceOption } from "../entity-reference-autocomplete/entity-reference-autocomplete.component";
@@ -37,24 +40,23 @@ class EntityReferenceAutocompleteStub {
 
 describe("SpotReportDialogComponent", () => {
   let fixture: ComponentFixture<SpotReportDialogComponent>;
-  const dialogRef = { close: vi.fn() };
-  const spotReports = { addSpotReport: vi.fn() };
-  const report = {
-    spot: { id: "reported-id", name: "Reported Spot" },
-    reason: "duplicate",
-    user: { uid: "reporter-id" },
-  } as SpotReportSchema;
+  const dialogRef = { close: vi.fn(), disableClose: false };
+  const spotReports = {
+    getOwnSpotReport: vi.fn().mockResolvedValue(null),
+    submitSpotReport: vi.fn(),
+    withdrawOwnSpotReport: vi.fn(),
+  };
+  const data = {spotId: "reported-id", spotName: "Reported Spot"};
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    delete report.duplicateOf;
     TestBed.configureTestingModule({
       imports: [SpotReportDialogComponent],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: report },
-        { provide: MatDialogRef, useValue: dialogRef },
-        { provide: SpotReportsService, useValue: spotReports },
-        { provide: AnalyticsService, useValue: { trackEvent: vi.fn() } },
+        {provide: MAT_DIALOG_DATA, useValue: data},
+        {provide: MatDialogRef, useValue: dialogRef},
+        {provide: SpotReportsService, useValue: spotReports},
+        {provide: AnalyticsService, useValue: {trackEvent: vi.fn()}},
       ],
     });
     TestBed.overrideComponent(SpotReportDialogComponent, {
@@ -62,10 +64,14 @@ describe("SpotReportDialogComponent", () => {
         imports: [
           FormsModule,
           MatButtonModule,
+          MatCheckboxModule,
           MatDialogActions,
           MatDialogContent,
           MatDialogTitle,
-          MatRadioModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatSelectModule,
+          MatProgressSpinnerModule,
           EntityReferenceAutocompleteStub,
         ],
       },
@@ -75,7 +81,21 @@ describe("SpotReportDialogComponent", () => {
     await fixture.whenStable();
   });
 
+  it("keeps the title and fields mounted behind the loading spinner", () => {
+    const title = fixture.nativeElement.querySelector("h2").textContent;
+    const textarea = fixture.nativeElement.querySelector("textarea");
+    fixture.componentInstance.loading.set(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector("mat-spinner")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector("textarea")).toBe(textarea);
+    expect(fixture.nativeElement.querySelector(".report-fields").hasAttribute("inert")).toBe(true);
+    expect(fixture.nativeElement.querySelector("h2").textContent).toBe(title);
+  });
+
   it("uses the Spot autocomplete and excludes the reported Spot", () => {
+    const component = fixture.componentInstance;
+    component.toggleReason("duplicate", true);
+    fixture.detectChanges();
     const autocomplete = fixture.debugElement.query(
       By.directive(EntityReferenceAutocompleteStub),
     ).componentInstance as EntityReferenceAutocompleteStub;
@@ -84,13 +104,14 @@ describe("SpotReportDialogComponent", () => {
     expect(autocomplete.excludedIds()).toEqual(["reported-id"]);
   });
 
-  it("stores the canonical selected Spot reference and requires it", async () => {
+  it("submits multiple reasons with the canonical duplicate reference", async () => {
     const component = fixture.componentInstance;
+    component.toggleReason("duplicate", true);
+    component.toggleReason("private", true);
+    fixture.detectChanges();
     const autocomplete = fixture.debugElement.query(
       By.directive(EntityReferenceAutocompleteStub),
     ).componentInstance as EntityReferenceAutocompleteStub;
-    expect(component.canSubmit()).toBe(false);
-
     autocomplete.selectionChange.emit({
       id: "duplicate-slug",
       label: "Duplicate Spot",
@@ -104,29 +125,52 @@ describe("SpotReportDialogComponent", () => {
         isIconic: false,
       },
     });
-    spotReports.addSpotReport.mockResolvedValue("report-id");
+    spotReports.submitSpotReport.mockResolvedValue({reportId: "report-id", created: true});
 
-    expect(report.duplicateOf).toEqual({
-      id: "duplicate-id",
-      name: "Duplicate Spot",
-    });
     expect(component.canSubmit()).toBe(true);
     await component.submitReport();
 
-    expect(spotReports.addSpotReport).toHaveBeenCalledWith(report);
-    expect(dialogRef.close).toHaveBeenCalledWith({
-      report,
-      reportId: "report-id",
+    expect(spotReports.submitSpotReport).toHaveBeenCalledWith({
+      spotId: "reported-id",
+      reasons: ["duplicate", "private"],
+      comment: "",
+      comment_locale: "en",
+      duplicateOf: {id: "duplicate-id", name: "Duplicate Spot"},
     });
+    expect(dialogRef.close).toHaveBeenCalledWith({reportId: "report-id", created: true});
   });
 
-  it("clears an obsolete duplicate reference when another reason is chosen", () => {
+  it("loads an existing report before allowing edits or withdrawal", async () => {
+    const report = {id: "existing", kind: "spot", status: "open", reasons: ["torn down"], comment: "Removed", comment_locale: "de"} as const;
+    spotReports.getOwnSpotReport.mockResolvedValueOnce(report);
     const component = fixture.componentInstance;
-    report.duplicateOf = { id: "duplicate-id", name: "Duplicate Spot" };
+    const loading = component.loadReport();
+    expect(component.canSubmit()).toBe(false);
+    await loading;
+    fixture.detectChanges();
+    expect(component.isEditing).toBe(true);
+    expect(component.comment()).toBe("Removed");
+    expect(component.commentLocale()).toBe("de");
+    expect(fixture.nativeElement.textContent).toContain("Edit report");
+    spotReports.withdrawOwnSpotReport.mockResolvedValueOnce({withdrawn: true});
+    await component.withdrawReport();
+    expect(spotReports.withdrawOwnSpotReport).toHaveBeenCalledWith("reported-id", "existing");
+  });
 
-    component.onReasonChange("private");
+  it("blocks submission after a failed lookup instead of silently creating a report", async () => {
+    spotReports.getOwnSpotReport.mockRejectedValueOnce(new Error("offline"));
+    const component = fixture.componentInstance;
+    await component.loadReport();
+    component.selectedReasons.set(["private"]);
+    expect(component.loadError()).toBe(true);
+    expect(component.canSubmit()).toBe(false);
+  });
 
-    expect(report.duplicateOf).toBeUndefined();
-    expect(component.duplicateSpotId()).toBe("");
+  it("requires details for Other", () => {
+    const component = fixture.componentInstance;
+    component.toggleReason("other", true);
+    expect(component.canSubmit()).toBe(false);
+    component.comment.set("The obstacle was replaced.");
+    expect(component.canSubmit()).toBe(true);
   });
 });

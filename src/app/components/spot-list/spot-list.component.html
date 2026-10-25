@@ -46,7 +46,7 @@
     </a>
     } @else {
     <a
-      [attr.href]="getSpotPathForPreview(spot)"
+      [attr.href]="getSpotPathForPreview(spot) | appHref"
       (click)="onSpotLinkClick($event, spot, $index)"
     >
       <app-spot-preview-card
@@ -97,7 +97,7 @@
       </app-spot-preview-card> </a
     >} @else {
     <a
-      [attr.href]="getSpotPathForSpotObj(spot)"
+      [attr.href]="getSpotPathForSpotObj(spot) | appHref"
       (click)="onSpotLinkClick($event, spot, $index)"
     >
       <app-spot-preview-card

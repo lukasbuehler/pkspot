@@ -1,3 +1,6 @@
+import { PLATFORM_ID, RESPONSE_INIT } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
+import { handleSpotResolutionError } from "./spot-resolution-error";
 import { inject } from "@angular/core";
 import { ResolveFn, ActivatedRouteSnapshot } from "@angular/router";
 import { LOCALE_ID } from "@angular/core";
@@ -29,6 +32,8 @@ export type ContentType =
 export interface RouteContentData {
   contentType: ContentType;
   spot?: Spot;
+  /** The resolver already handled this request; SSR must not fetch it again. */
+  spotLoadFailed?: boolean;
   challenge?: SpotChallenge;
   event?: any; // TODO: Replace with proper Event type
   user?: any; // TODO: Replace with proper User type
@@ -50,6 +55,8 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
   const consentService = inject(ConsentService);
   const metaTagService = inject(MetaTagService);
   const locale = inject(LOCALE_ID);
+  const response = inject(RESPONSE_INIT, { optional: true });
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   // Determine content type from route path
   const contentType = determineContentType(route);
@@ -66,6 +73,8 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
         consentService,
         metaTagService,
         locale,
+        response,
+        isBrowser,
       });
 
     case "event":
@@ -157,7 +166,12 @@ async function resolveSpotContent(
     console.warn(
       "Content resolver: User consent required for Firestore access"
     );
-    services.metaTagService.setDefaultMapMetaTags("/map");
+    // Crawlers render without consent. Keep the server-rendered Spot head
+    // instead of replacing its canonical with the map's; the map page sets
+    // Spot metadata itself once it loads the Spot.
+    if (!services.isBrowser) {
+      services.metaTagService.setDefaultMapMetaTags("/map");
+    }
     return result;
   }
 
@@ -202,8 +216,15 @@ async function resolveSpotContent(
 
     return result;
   } catch (error) {
-    console.error("Error resolving spot content:", error);
-    services.metaTagService.setDefaultMapMetaTags("/map");
+    result.spotLoadFailed = true;
+    handleSpotResolutionError(error, services.response);
+    // Only the server decides that a Spot is missing. A failed browser load
+    // (for example a crawler renderer dropping the Firestore connection) must
+    // not turn a valid server-rendered page into a noindexed map page.
+    if (!services.isBrowser) {
+      services.metaTagService.setDefaultMapMetaTags("/map");
+      services.metaTagService.setRobotsContent("noindex,nofollow");
+    }
     return result;
   }
 }

@@ -10,6 +10,7 @@ import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 
 const eventBoundsColorFallback = "rgb(184 196 255)";
 const eventAreaColorFallback = "rgb(0 54 186)";
+const eventMarkerBackgroundFallback = "var(--mat-sys-primary-container)";
 
 export interface EventMapMarker extends MapPointMarker {
   previewEvent?: PkEvent;
@@ -21,6 +22,12 @@ export interface VisibleEventMarkerParams {
   pendingEventRef: string | null;
   mode: MapObjectMode;
   now: Date;
+  /**
+   * Keys of the open community (including communities merged into it). When
+   * set, only events listed under one of them get pins, matching the events
+   * the community panel shows.
+   */
+  communityKeys?: readonly string[] | null;
 }
 
 export function buildVisibleEventMarkers({
@@ -29,8 +36,10 @@ export function buildVisibleEventMarkers({
   pendingEventRef,
   mode,
   now,
+  communityKeys,
 }: VisibleEventMarkerParams): EventMapMarker[] {
   const selectedEventId = selectedEvent?.id ?? null;
+  const community = communityKeys?.length ? new Set(communityKeys) : null;
 
   const eventMarkers = visibleEvents
     .filter((event) => {
@@ -42,6 +51,9 @@ export function buildVisibleEventMarkers({
         return false;
       }
       if (event.isPast(now)) return false;
+      if (community && !event.communityKeys.some((key) => community.has(key))) {
+        return false;
+      }
       return Boolean(event.location);
     })
     .flatMap((event): EventMapMarker[] => {
@@ -49,7 +61,7 @@ export function buildVisibleEventMarkers({
       if (!location) return [];
       const routeId = event.slug ?? event.id;
       const status = event.status(now);
-      const description = [event.venueString, event.localityString]
+      const description = [event.venueString, event.localityLabel]
         .filter(Boolean)
         .join(", ");
       return [
@@ -61,7 +73,9 @@ export function buildVisibleEventMarkers({
           icons: [status === "live" ? "stars" : "event"],
           imageSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
           imageFit: event.effectiveBadgeLogoFit(),
-          imageBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
+          imageBackgroundColor:
+            event.effectiveBadgeLogoBackgroundColor() ??
+            eventMarkerBackgroundFallback,
           color: status === "live" ? "secondary" : "primary",
           type: "event",
           forceFullMarker: true,

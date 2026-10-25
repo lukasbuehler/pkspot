@@ -11,18 +11,30 @@
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
+		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
+		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
+		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
+		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		80A610012F1F000100000001 /* AgeAssurancePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610002F1F000100000001 /* AgeAssurancePlugin.swift */; };
 		80A610032F1F000100000003 /* GooglePlacePhotoPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */; };
 		80A610052F1F000100000005 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 80A610042F1F000100000004 /* GooglePlaces */; };
 		80A610082F1F000100000008 /* AppViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610072F1F000100000007 /* AppViewController.swift */; };
 		80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */; };
-		80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */; };
+		1C0E1EAB842E497A8CE718C7 /* MapsLauncherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BE37009FDCD4FFB975AF910 /* MapsLauncherPlugin.swift */; };
 		80A6100B2F1F00010000000B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 80A6100D2F1F00010000000D /* FirebaseMessaging */; };
-		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
-		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
-		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
-		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */; };
 		80D508C62F01488800B544DF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 80D508C52F01488800B544DF /* GoogleService-Info.plist */; };
+		81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */; };
+		91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */; };
+		E1AD2D077D8B4EF4A014ACF6 /* PK Spot Maps Share.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 309B16800A844DE7B90494BC /* PK Spot Maps Share.appex */; };
+		13D5651AFF86474B86382CB1 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9A2533BA2E4317A9A35043 /* ShareViewController.swift */; };
+		C03F9ABE436647389C935972 /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D69964BC07433187C079A0 /* SharedMapStore.swift */; };
+		9A186E26D222439786C8C01B /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D69964BC07433187C079A0 /* SharedMapStore.swift */; };
+		8AB065E9E40D41C98EC53FC7 /* MapSharePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F2B92710C44183A2B5746C /* MapSharePlugin.swift */; };
+		8E374E82E3B3401C8DEDEFCA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 60ADB72367A6435B8259CC80 /* Localizable.xcstrings */; };
+		698E9D6C9CE449CEA79728C4 /* MapLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16720110C814C25BC06D07F /* MapLinkResolver.swift */; };
+		426AD8FAF64D4D29A5734DCA /* NearbySpotSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A885C828903466381B207F3 /* NearbySpotSearch.swift */; };
+		637E5F3EAB4B4D3A90F9CFCD /* MapLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16720110C814C25BC06D07F /* MapLinkResolver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,19 +42,29 @@
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* PK Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PK Spot.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		80A610002F1F000100000001 /* AgeAssurancePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeAssurancePlugin.swift; sourceTree = "<group>"; };
-		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
-		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
-		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
-		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		80A610002F1F000100000001 /* AgeAssurancePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeAssurancePlugin.swift; sourceTree = "<group>"; };
+		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
+		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
+		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
+		7BE37009FDCD4FFB975AF910 /* MapsLauncherPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsLauncherPlugin.swift; sourceTree = "<group>"; };
+		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
 		80CC6AE32F12A0470084B21F /* PK Spot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PK Spot.entitlements"; sourceTree = "<group>"; };
 		80D508C52F01488800B544DF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreReviewPlugin.swift; sourceTree = "<group>"; };
+		91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewPlugin.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		309B16800A844DE7B90494BC /* PK Spot Maps Share.appex */ = {isa = PBXFileReference; name = "PK Spot Maps Share.appex"; path = "PK Spot Maps Share.appex"; sourceTree = BUILT_PRODUCTS_DIR; fileEncoding = undefined; lastKnownFileType = undefined; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; };
+		6E9A2533BA2E4317A9A35043 /* ShareViewController.swift */ = {isa = PBXFileReference; name = "ShareViewController.swift"; path = "MapShareExtension/ShareViewController.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		42D69964BC07433187C079A0 /* SharedMapStore.swift */ = {isa = PBXFileReference; name = "SharedMapStore.swift"; path = "MapShareExtension/SharedMapStore.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		30F2B92710C44183A2B5746C /* MapSharePlugin.swift */ = {isa = PBXFileReference; name = "MapSharePlugin.swift"; path = "App/MapSharePlugin.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		60ADB72367A6435B8259CC80 /* Localizable.xcstrings */ = {isa = PBXFileReference; name = "Localizable.xcstrings"; path = "MapShareExtension/Localizable.xcstrings"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = text.json.xcstrings; explicitFileType = undefined; includeInIndex = 0; };
+		C16720110C814C25BC06D07F /* MapLinkResolver.swift */ = {isa = PBXFileReference; name = "MapLinkResolver.swift"; path = "MapShareExtension/MapLinkResolver.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		1A885C828903466381B207F3 /* NearbySpotSearch.swift */ = {isa = PBXFileReference; name = "NearbySpotSearch.swift"; path = "MapShareExtension/NearbySpotSearch.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +78,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3368E3D1962B4A72B83EEC73 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -66,6 +95,13 @@
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
+				B1FD80AD72974F73B9653D7A /* MapShareExtension */,
+				6E9A2533BA2E4317A9A35043 /* ShareViewController.swift */,
+				42D69964BC07433187C079A0 /* SharedMapStore.swift */,
+				30F2B92710C44183A2B5746C /* MapSharePlugin.swift */,
+				60ADB72367A6435B8259CC80 /* Localizable.xcstrings */,
+				C16720110C814C25BC06D07F /* MapLinkResolver.swift */,
+				1A885C828903466381B207F3 /* NearbySpotSearch.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -73,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* PK Spot.app */,
+				309B16800A844DE7B90494BC /* PK Spot Maps Share.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,7 +122,10 @@
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				80A610072F1F000100000007 /* AppViewController.swift */,
 				80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */,
+				7BE37009FDCD4FFB975AF910 /* MapsLauncherPlugin.swift */,
 				80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */,
+				81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */,
+				91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */,
 				80A610002F1F000100000001 /* AgeAssurancePlugin.swift */,
 				80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
@@ -98,6 +138,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		B1FD80AD72974F73B9653D7A /* MapShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = MapShareExtension;
+			path = MapShareExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -108,6 +156,7 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				F28D1622960E490DACAF71FA /* Copy Files */,
 			);
 			buildRules = (
 			);
@@ -122,6 +171,23 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* PK Spot.app */;
 			productType = "com.apple.product-type.application";
+		};
+		0206FFDCB6FC411E8F840A4A /* "PK Spot Maps Share" */ = {
+			isa = PBXNativeTarget;
+			name = "PK Spot Maps Share";
+			productName = "PK Spot Maps Share";
+			productReference = 309B16800A844DE7B90494BC;
+			productType = "com.apple.product-type.app-extension";
+			buildConfigurationList = F3AA97446CBB4397A921440A;
+			buildPhases = (
+				B9650E14C2C4464AA449C42D /* Sources */,
+				3368E3D1962B4A72B83EEC73 /* Frameworks */,
+				62DA78422C8C4D5184E26202 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
 		};
 /* End PBXNativeTarget section */
 
@@ -162,6 +228,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* PK Spot */,
+				0206FFDCB6FC411E8F840A4A /* "PK Spot Maps Share" */,
 			);
 		};
 /* End PBXProject section */
@@ -181,6 +248,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		62DA78422C8C4D5184E26202 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E374E82E3B3401C8DEDEFCA /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -191,9 +266,26 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				80A610082F1F000100000008 /* AppViewController.swift in Sources */,
 				80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */,
+				1C0E1EAB842E497A8CE718C7 /* MapsLauncherPlugin.swift in Sources */,
 				80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */,
+				81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */,
+				91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */,
 				80A610012F1F000100000001 /* AgeAssurancePlugin.swift in Sources */,
 				80A610032F1F000100000003 /* GooglePlacePhotoPlugin.swift in Sources */,
+				9A186E26D222439786C8C01B /* SharedMapStore.swift in Sources */,
+				8AB065E9E40D41C98EC53FC7 /* MapSharePlugin.swift in Sources */,
+				637E5F3EAB4B4D3A90F9CFCD /* MapLinkResolver.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B9650E14C2C4464AA449C42D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13D5651AFF86474B86382CB1 /* ShareViewController.swift in Sources */,
+				C03F9ABE436647389C935972 /* SharedMapStore.swift in Sources */,
+				698E9D6C9CE449CEA79728C4 /* MapLinkResolver.swift in Sources */,
+				426AD8FAF64D4D29A5734DCA /* NearbySpotSearch.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,7 +428,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PK Spot.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "PK Spot";
@@ -346,7 +438,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.2;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -364,7 +456,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PK Spot.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "PK Spot";
@@ -374,7 +466,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -383,6 +475,58 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		DE887F4B66234CB0AB88E55F /* Debug */ = {
+			name = Debug;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = MapShareExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_NAME = "PK Spot Maps Share";
+				SKIP_INSTALL = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.pkspot.app.mapshare";
+				CODE_SIGN_ENTITLEMENTS = MapShareExtension/MapShareExtension.entitlements;
+				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
+				CODE_SIGN_STYLE = Automatic;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CURRENT_PROJECT_VERSION = 19;
+				MARKETING_VERSION = 1.2;
+				GENERATE_INFOPLIST_FILE = NO;
+				PRODUCT_MODULE_NAME = PKSpotMapsShare;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+		};
+		EBA4D14D61CE4FFB9E37E141 /* Release */ = {
+			name = Release;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = MapShareExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_NAME = "PK Spot Maps Share";
+				SKIP_INSTALL = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.pkspot.app.mapshare";
+				CODE_SIGN_ENTITLEMENTS = MapShareExtension/MapShareExtension.entitlements;
+				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
+				CODE_SIGN_STYLE = Automatic;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CURRENT_PROJECT_VERSION = 19;
+				MARKETING_VERSION = 1.2;
+				GENERATE_INFOPLIST_FILE = NO;
+				PRODUCT_MODULE_NAME = PKSpotMapsShare;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
 		};
 /* End XCBuildConfiguration section */
 
@@ -405,17 +549,25 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		F3AA97446CBB4397A921440A /* Build configuration list for PBXNativeTarget "PK Spot Maps Share" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE887F4B66234CB0AB88E55F /* Debug */,
+				EBA4D14D61CE4FFB9E37E141 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		80A6100C2F1F00010000000C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.7.0;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "CapApp-SPM";
 		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
 		80A610062F1F000100000006 /* XCRemoteSwiftPackageReference "ios-places-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googlemaps/ios-places-sdk";
@@ -424,14 +576,15 @@
 				version = 10.14.0;
 			};
 		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "CapApp-SPM";
+		80A6100C2F1F00010000000C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		4D22ABE82AF431CB00220026 /* CapApp-SPM */ = {
@@ -450,6 +603,20 @@
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F28D1622960E490DACAF71FA /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1AD2D077D8B4EF4A014ACF6 /* PK Spot Maps Share.appex in Copy Files */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			name = "Copy Files";
+			dstPath = "";
+			dstSubfolderSpec = 13;
+		};
+/* End PBXCopyFilesBuildPhase section */
 	};
 	rootObject = 504EC2FC1FED79650016851F /* Project object */;
 }

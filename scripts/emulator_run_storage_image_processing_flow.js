@@ -70,6 +70,8 @@ async function createAdminCallables(uid) {
   connectFunctionsEmulator(functions, "127.0.0.1", 5001);
   return {
     markSafe: httpsCallable(functions, "markMediaUploadSafe"),
+    markFalsePositive: httpsCallable(functions, "markMediaUploadFalsePositive"),
+    createIncident: httpsCallable(functions, "createSafetyIncident"),
     getPreview: httpsCallable(functions, "getModerationMediaPreview"),
     updateIncident: httpsCallable(functions, "updateSafetyIncident"),
   };
@@ -613,6 +615,19 @@ async function main() {
   assert.equal(intakeBackfillSummary.exists, true);
   assert.equal(intakeBackfillSummary.data().scan_failed, 0);
 
+  console.log("Creating a quarantined profile upload before its replacement...");
+  const oldProfileId = `false-positive-profile-${suffix}`;
+  const oldProfileIntake = `media_intake/${uid}/${oldProfileId}/${oldProfileId}.jpg`;
+  await bucket.upload(ORIGINAL_IMAGE, {
+    destination: oldProfileIntake, resumable: false,
+    metadata: { contentType: "image/jpeg", metadata: {
+      uid, upload_id: oldProfileId, destination_folder: "profile_pictures",
+      destination_filename: uid, target_kind: "profile", emulator_safety_result: "block",
+    } },
+  });
+  await waitForReviewStatus(oldProfileId, "needs_review");
+  await waitForMediaReport(`media_upload_reviews/${oldProfileId}`);
+
   console.log("Checking extensionless profile picture derivatives and archiving...");
   const profilePath = `profile_pictures/${uid}`;
   await bucket.upload(ORIGINAL_IMAGE, {
@@ -633,6 +648,84 @@ async function main() {
     customMetadata,
     PROFILE_CACHE_CONTROL
   );
+
+  console.log("Checking false-positive dismissal preserves the replacement profile picture...");
+  const profileUrl = `https://example.test/current-profile/${uid}`;
+  await db.doc(`users/${uid}`).set({ profile_picture: profileUrl }, { merge: true });
+  const protectedPaths = [...profileDerivativePaths, `${ARCHIVE_PREFIX}/${profilePath}`];
+  const beforeObjects = await Promise.all(protectedPaths.map(async (p) => {
+    const [bytes] = await bucket.file(p).download();
+    const [metadata] = await bucket.file(p).getMetadata();
+    return { bytes, generation: metadata.generation };
+  }));
+  await Promise.all([
+    callables.markFalsePositive({ review_id: oldProfileId }),
+    callables.markFalsePositive({ review_id: oldProfileId }),
+  ]);
+  const dismissed = await waitForReviewStatus(oldProfileId, "dismissed");
+  assert.equal(dismissed.data().manual_review.decision, "false_positive");
+  assert.equal(dismissed.data().approved_url, undefined);
+  assert.equal((await db.doc(`users/${uid}`).get()).data().profile_picture, profileUrl);
+  assert.equal((await db.doc(`media_upload_status/${oldProfileId}`).get()).data().status, "failed");
+  assert.equal((await db.doc(`reports/scanner_${oldProfileId}`).get()).data().status, "dismissed");
+  assert.equal((await db.collection("moderation_actions").where("source_path", "==", dismissed.ref.path).get()).size, 1);
+  await waitForFile(oldProfileIntake);
+  await assertFileMissing(profilePath);
+  for (let i = 0; i < protectedPaths.length; i++) {
+    const [bytes] = await bucket.file(protectedPaths[i]).download();
+    const [metadata] = await bucket.file(protectedPaths[i]).getMetadata();
+    assert.deepEqual(bytes, beforeObjects[i].bytes);
+    assert.equal(metadata.generation, beforeObjects[i].generation);
+  }
+  await assertCallableRejected(() => callables.markSafe({ review_id: oldProfileId }), "functions/failed-precondition");
+  await assertCallableRejected(() => callables.markFalsePositive({ review_id: blockedUploadId }), "functions/failed-precondition");
+
+  console.log("Checking incident escalation is idempotent and holds quarantined media...");
+  const escalateId = `escalate-${suffix}`;
+  const escalatePath = `media_intake/${uid}/${escalateId}/${escalateId}.jpg`;
+  await bucket.upload(ORIGINAL_IMAGE, {
+    destination: escalatePath, resumable: false,
+    metadata: { contentType: "image/jpeg", metadata: {
+      uid, upload_id: escalateId, destination_folder: "spot_pictures",
+      destination_filename: escalateId, target_kind: "post", emulator_safety_result: "block",
+    } },
+  });
+  await waitForReviewStatus(escalateId, "needs_review");
+  await waitForMediaReport(`media_upload_reviews/${escalateId}`);
+  const escalations = await Promise.all([
+    callables.createIncident({ report_path: `reports/scanner_${escalateId}` }),
+    callables.createIncident({ report_path: `reports/scanner_${escalateId}` }),
+  ]);
+  const incidentPath = escalations[0].data.incident_path;
+  assert.equal(escalations[1].data.incident_path, incidentPath);
+  const incidentData = (await db.doc(incidentPath).get()).data();
+  assert.equal(incidentData.classification, "undetermined");
+  assert.equal(incidentData.reporting_status, "not_assessed");
+  assert.equal(incidentData.storage_path, escalatePath);
+  assert.ok(incidentData.sha256);
+  assert.equal((await db.doc(incidentPath).collection("events").get()).size, 1);
+  assert.equal((await db.doc(`media_upload_reviews/${escalateId}`).get()).data().incident_path, incidentPath);
+  await assertCallableRejected(() => callables.markSafe({ review_id: escalateId }), "functions/failed-precondition");
+  await assertCallableRejected(() => callables.markFalsePositive({ review_id: escalateId }), "functions/failed-precondition");
+  await assertCallableRejected(() => callables.getPreview({ review_id: escalateId }), "functions/failed-precondition");
+  await assertCallableRejected(() => callables.getPreview({ report_path: `reports/scanner_${escalateId}` }), "functions/failed-precondition");
+  await waitForFile(escalatePath);
+  await assertFileMissing(`spot_pictures/${escalateId}.jpg`);
+
+  const manualDecisionBackfill = db.doc("maintenance/run-process-media-intake-backfill");
+  await manualDecisionBackfill.set({ requestedAt: admin.firestore.FieldValue.serverTimestamp() });
+  await waitForDeletedDoc(manualDecisionBackfill);
+  assert.equal((await dismissed.ref.get()).data().status, "dismissed");
+  assert.equal((await db.doc(`media_upload_reviews/${escalateId}`).get()).data().incident_path, incidentPath);
+  await assertFileMissing(profilePath);
+  await assertFileMissing(`spot_pictures/${escalateId}.jpg`);
+
+  // Older clients cannot dismiss while a release holds the review, or bypass admin access.
+  await db.doc(`media_upload_reviews/locked-${suffix}`).set({ status: "needs_review", release_in_progress: true });
+  await assertCallableRejected(() => callables.markFalsePositive({ review_id: `locked-${suffix}` }), "functions/failed-precondition");
+  await db.doc("users/media-moderation-admin").update({ is_admin: false });
+  await assertCallableRejected(() => callables.markFalsePositive({ review_id: oldProfileId }), "functions/permission-denied");
+  await db.doc("users/media-moderation-admin").update({ is_admin: true });
 
   console.log("Checking maintenance backfill creates missing derivatives for spot and profile images...");
   const missingDerivative = derivativePaths[1];

@@ -10,6 +10,7 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { SearchService } from "../../services/search.service";
 import { EventEditFormComponent } from "./event-edit-form.component";
 import { EventTimeZoneService } from "../../services/event-time-zone.service";
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 
 const baseEvent = {
   name: "Editable Event",
@@ -80,6 +81,12 @@ describe("EventEditFormComponent", () => {
             resolve: vi.fn().mockResolvedValue("Europe/Zurich"),
           },
         },
+        {
+          provide: SpotSelectionDataService,
+          useValue: {
+            resolve: vi.fn(),
+          },
+        },
       ],
     })
       .overrideProvider(MatDialog, {
@@ -125,6 +132,58 @@ describe("EventEditFormComponent", () => {
 
     expect(component.areaPath()).toEqual(drawnArea);
     expect(component.areaTouched()).toBe(true);
+  });
+
+  it("starts a new formal event with an editable local description", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+
+    expect(Object.values(component.descriptionLocaleMap ?? {})).toEqual([
+      { text: "", provider: "user" },
+    ]);
+  });
+
+  it("updates custom marker and temporary Spot geometry from the Event Map", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+
+    component.addCustomMarker();
+    const markerId = component.customMarkers()[0].id;
+    component.onCustomMarkerMapLocationChange({
+      id: markerId,
+      location: { lat: 47.38, lng: 8.54 },
+    });
+
+    component.addInlineSpot();
+    const spotKey = component.inlineSpots()[0].key;
+    component.onInlineSpotMapLocationChange({
+      id: spotKey,
+      location: { lat: 47.39, lng: 8.55 },
+    });
+    component.onInlineSpotAreaChange({
+      id: spotKey,
+      areaPath: [
+        { lat: 47.4, lng: 8.5 },
+        { lat: 47.4, lng: 8.6 },
+        { lat: 47.3, lng: 8.6 },
+      ],
+    });
+
+    expect(component.customMarkers()[0]).toMatchObject({
+      lat: 47.38,
+      lng: 8.54,
+    });
+    expect(component.inlineSpots()[0]).toMatchObject({
+      lat: 47.39,
+      lng: 8.55,
+      bounds: [
+        { lat: 47.4, lng: 8.5 },
+        { lat: 47.4, lng: 8.6 },
+        { lat: 47.3, lng: 8.6 },
+      ],
+    });
   });
 
   it("searches published communities and links the selected community key", async () => {
@@ -603,6 +662,35 @@ describe("EventEditFormComponent", () => {
     });
   });
 
+  it("loads and saves the livestream checkbox without removing replay media", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const save = vi.fn();
+    component.save.subscribe(save);
+    fixture.componentRef.setInput("event", eventWith("broadcast", {
+      livestream_live: true,
+      media: [{type: "video", src: "https://youtu.be/uG9SCwcHA7k", isInStorage: false}],
+    }));
+    fixture.detectChanges();
+    expect(component.form.controls.livestream_live.value).toBe(true);
+    component.form.controls.livestream_live.setValue(false);
+    component.onSubmit();
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({livestream_live: false,
+      media: [expect.objectContaining({src: "https://youtu.be/uG9SCwcHA7k"})]}));
+  });
+
+  it("adds a YouTube livestream as video media without accepting iframe HTML", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    component.form.patchValue({external_media_url: "https://www.youtube-nocookie.com/embed/uG9SCwcHA7k?si=example"});
+    component.addExternalMediaFromUrl();
+    expect(component.externalMedia()[0]).toMatchObject({type: "video", isInStorage: false});
+    component.form.patchValue({external_media_url: '<iframe src="https://www.youtube.com/embed/uG9SCwcHA7k"></iframe>'});
+    component.addExternalMediaFromUrl();
+    expect(component.externalMedia()).toHaveLength(1);
+    expect(component.form.controls["external_media_url"].hasError("url")).toBe(true);
+  });
+
   it("uses display-sized image URLs for media previews", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;
@@ -909,6 +997,19 @@ describe("EventEditFormComponent", () => {
         organizer_name: "Independent Jam Crew",
       }),
     );
+  });
+
+  it("defaults to outdoor and preserves an indoor choice when editing and saving", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    expect(component.form.controls.is_outdoor.value).toBe(true);
+    fixture.componentRef.setInput("event", eventWith("indoor", { is_outdoor: false }));
+    fixture.detectChanges();
+    expect(component.form.controls.is_outdoor.value).toBe(false);
+    const saved = vi.fn();
+    component.save.subscribe(saved);
+    component.onSubmit();
+    expect(saved).toHaveBeenCalledWith(expect.objectContaining({ is_outdoor: false }));
   });
 
   it("loads and serializes the event categories", async () => {

@@ -237,6 +237,42 @@ describe("SpotMapDataManager filters", () => {
     expect(spotEditsService.createSpotUpdateEdit).not.toHaveBeenCalled();
   });
 
+  it("sends complete coordinates when a pin moves along one axis only", async () => {
+    const spotEditsService = {
+      createSpotUpdateEdit: vi.fn().mockResolvedValue("edit-id"),
+    };
+    const authService = {
+      isSignedIn: true,
+      user: {
+        uid: "live-auth-uid",
+        email: "live@example.test",
+        data: new User("live-auth-uid", { display_name: "Live User" }),
+      },
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SpotEditsService, spotEditsService],
+          [AuthenticationService, authService],
+        ])
+      )
+    );
+    const original = makeSpot("spot-1", SpotTypes.Park);
+    const moved = original.clone();
+    // A purely horizontal drag keeps the latitude identical.
+    const { lat, lng } = original.location();
+    moved.location.set({ lat, lng: lng + 0.001 });
+
+    await manager.saveSpot(moved, original);
+
+    const diff = spotEditsService.createSpotUpdateEdit.mock.calls[0][1];
+    expect(diff.location).toBeInstanceOf(GeoPoint);
+    expect(diff.location.latitude).toBe(lat);
+    expect(diff.location.longitude).toBeCloseTo(lng + 0.001);
+    expect(diff.location_raw).toEqual({ lat, lng: lng + 0.001 });
+  });
+
   it("loads the profile before saving when auth state has no hydrated user data", async () => {
     const spotEditsService = {
       createSpotUpdateEdit: vi.fn().mockResolvedValue("edit-id"),

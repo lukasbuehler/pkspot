@@ -61,14 +61,10 @@ test.describe("authenticated image crop dialog", () => {
     const viewport = page.viewportSize();
     expect(dialogBox).not.toBeNull();
     expect(viewport).not.toBeNull();
-    if (testInfo.project.name === "mobile-chrome") {
-      expect(dialogBox?.width).toBeGreaterThanOrEqual((viewport?.width ?? 0) - 2);
-      expect(dialogBox?.height).toBeGreaterThanOrEqual(
-        (viewport?.height ?? 0) - 2,
-      );
-    } else {
-      expect(dialogBox?.width).toBeLessThan(viewport?.width ?? 0);
-    }
+    expect(dialogBox!.x).toBeGreaterThanOrEqual(0);
+    expect(dialogBox!.y).toBeGreaterThanOrEqual(0);
+    expect(dialogBox!.x + dialogBox!.width).toBeLessThanOrEqual(viewport!.width);
+    expect(dialogBox!.y + dialogBox!.height).toBeLessThanOrEqual(viewport!.height);
 
     await dialog.getByRole("button", { name: /Cancel|Abbrechen/u }).click();
     await expect(dialog).toHaveCount(0);

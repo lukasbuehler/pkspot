@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { of } from "rxjs";
 import { firstValueFrom } from "rxjs";
@@ -118,7 +118,7 @@ describe("SpotsService", () => {
 
       await expect(
         service.getSpotById("nonexistent" as SpotId, "en")
-      ).rejects.toThrow("Error! This Spot does not exist.");
+      ).rejects.toThrow("Spot nonexistent does not exist.");
     });
 
     it("should reject a placeholder spot document before it can render at 0,0", async () => {
@@ -196,7 +196,7 @@ describe("SpotsService", () => {
       const spot$ = service.getSpotById$("nonexistent" as SpotId, "en");
 
       await expect(firstValueFrom(spot$)).rejects.toThrow(
-        "Error! This Spot does not exist."
+        "Spot nonexistent does not exist."
       );
     });
 
@@ -210,6 +210,64 @@ describe("SpotsService", () => {
       await expect(firstValueFrom(spot$)).rejects.toThrow(
         "Spot spot-placeholder does not have a usable location yet."
       );
+    });
+  });
+
+  describe("local screenshot linked-place fixture", () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    const linkedSpot = () => ({
+      id: "spot-linked",
+      name: { en: "Linked Spot" },
+      location_raw: { lat: 51.505, lng: -0.113 },
+      external_references: {
+        google_maps_place_id: "google-place-id",
+        website_url: "https://example.test",
+      },
+    });
+
+    it.each([
+      ["localhost", true, true, undefined],
+      ["127.0.0.1", true, true, undefined],
+      ["localhost", false, true, "google-place-id"],
+      ["localhost", true, false, "google-place-id"],
+      ["pkspot.app", true, true, "google-place-id"],
+    ])("guards the fixture on %s (capture=%s, exclude=%s)", async (hostname, capture, exclude, expected) => {
+      vi.stubGlobal("window", { location: { hostname } });
+      vi.stubGlobal("__PKSPOT_STORE_SCREENSHOT__", capture);
+      vi.stubGlobal("__PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__", exclude);
+      const data = linkedSpot();
+      mockFirestoreAdapter.getDocument.mockResolvedValue(data);
+
+      const spot = await service.getSpotById(data.id as SpotId, "en");
+
+      expect(spot.googlePlaceId()).toBe(expected);
+      expect(spot.name()).toBe("Linked Spot");
+      expect(spot.location()).toEqual(data.location_raw);
+      expect(data.external_references).toEqual({
+        google_maps_place_id: "google-place-id",
+        website_url: "https://example.test",
+      });
+      expect(mockFirestoreAdapter.updateDocument).not.toHaveBeenCalled();
+      expect(mockFirestoreAdapter.setDocument).not.toHaveBeenCalled();
+    });
+
+    it("also excludes linked places from streamed, slug and map-tile reads", async () => {
+      vi.stubGlobal("window", { location: { hostname: "localhost" } });
+      vi.stubGlobal("__PKSPOT_STORE_SCREENSHOT__", true);
+      vi.stubGlobal("__PKSPOT_SCREENSHOT_EXCLUDE_LINKED_GOOGLE_PLACES__", true);
+      const data = linkedSpot();
+      mockFirestoreAdapter.documentSnapshots.mockReturnValue(of(data, data));
+      mockFirestoreAdapter.getCollection.mockResolvedValue([data]);
+
+      const spot = await firstValueFrom(service.getSpotById$(data.id as SpotId, "en"));
+      const bySlug = await service.getSpotBySlug("linked-spot", "en");
+      const tiles = await firstValueFrom(service.getSpotsForTiles([{ x: 1, y: 1 }], "en"));
+
+      expect(spot.googlePlaceId()).toBeUndefined();
+      expect(bySlug?.googlePlaceId()).toBeUndefined();
+      expect(tiles[0].googlePlaceId()).toBeUndefined();
+      expect(data.external_references.google_maps_place_id).toBe("google-place-id");
     });
   });
 

@@ -1,8 +1,10 @@
+import type { PlaceLabelNames } from "../../scripts/LocalizedPlaceLabels";
 import type { GeoPoint, Timestamp } from "firebase/firestore";
 import type { LocaleMap } from "../models/Interfaces";
 import type { MediaSchema } from "./Media";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import { EventRSVPCountsSchema } from "./EventRSVPSchema";
+import type { UserReferenceSchema } from "./UserSchema";
 
 export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
@@ -42,6 +44,28 @@ export const EVENT_KINDS = [
   "other",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
+
+/** Missing legacy values intentionally read as `formal`. */
+export const EVENT_LISTING_TIERS = ["formal", "community"] as const;
+export type EventListingTier = (typeof EVENT_LISTING_TIERS)[number];
+
+/** Stable first-release regional discovery vocabulary. */
+export const EVENT_REGION_KEYS = [
+  "africa",
+  "asia",
+  "europe",
+  "north-america",
+  "south-america",
+  "oceania",
+] as const;
+export type EventRegionKey = (typeof EVENT_REGION_KEYS)[number];
+
+export const EVENT_COMMUNITY_BROADCAST_MODES = [
+  "none",
+  "on_publish",
+] as const;
+export type EventCommunityBroadcastMode =
+  (typeof EVENT_COMMUNITY_BROADCAST_MODES)[number];
 
 export const EVENT_SCHEDULE_MODES = [
   "single",
@@ -168,7 +192,7 @@ export interface EventBoundsSchema {
 }
 
 export interface EventAreaPolygonSchema {
-  points: Array<{ lat: number; lng: number }>;
+  points: { lat: number; lng: number }[];
   /**
    * Optional display/editor label for this cutout. Legacy documents may still
    * include an unlabeled outer mask ring as the first entry; current clients
@@ -249,6 +273,8 @@ export interface EventCardPreviewSchema {
   logo_background_color?: string;
   venue_string?: string;
   locality_string?: string;
+  /** Localized town names copied from the event, when known. */
+  place_names?: PlaceLabelNames;
   start: Timestamp | { seconds: number; nanoseconds: number };
   end: Timestamp | { seconds: number; nanoseconds: number };
   url?: string;
@@ -264,6 +290,9 @@ export interface EventCardPreviewSchema {
   event_categories?: EventCategory[];
   series_ids?: string[];
   rsvp_counts?: EventRSVPCountsSchema;
+  listing_tier?: EventListingTier;
+  country_code?: string;
+  region_keys?: EventRegionKey[];
 }
 
 export interface EventOrganizerSchema {
@@ -544,9 +573,9 @@ export interface EventSchema {
   slug?: string;
 
   /**
-   * Banner image for event-page header and calendar card. Optional —
-   * free-tier user-created events won't have one. Components should fall
-   * back gracefully when missing.
+   * Cover image for organization Event headers and cards. The stored field
+   * name is retained for compatibility; Community events never accept uploads.
+   * Components must fall back gracefully when it is absent.
    */
   banner_src?: string;
   /**
@@ -575,15 +604,25 @@ export interface EventSchema {
    */
   media?: MediaSchema[];
 
-  /** Organizer responsible for the event. User organizers can be added later. */
+  /** Organizer responsible for the event. */
   organizer?: EventOrganizerSchema;
+  /** Public user snapshot for a community organizer, server authored only. */
+  organizer_user?: UserReferenceSchema;
   /** Plain-text organizer for events without a PK Spot organization. */
   organizer_name?: string;
   /** Featured people, groups, and acts visible on the event page. */
   featured_participants?: EventFeaturedParticipantSchema[];
 
+  /** False for indoor events. Missing values preserve legacy outdoor forecasts. */
+  is_outdoor?: boolean;
   venue_string?: string;
   locality_string?: string;
+  /** Server-owned `place_names` key for this location; changes when the town does. */
+  place_key?: string;
+  /** Server-owned localized town and region names for cards and SSR. */
+  place_names?: PlaceLabelNames;
+  /** Server-owned original and localized place names that search matches. */
+  localized_search_names?: string[];
   /** Preferred event pin location. Bounds are optional; this is the anchor. */
   location?: GeoPoint;
   /** Plain lat/lng mirror for admin UI and non-Firestore consumers. */
@@ -599,6 +638,8 @@ export interface EventSchema {
   active_until?: Timestamp;
   /** Optional external event URL (ticketing, organizer site). */
   url?: string;
+  /** Manually controlled broadcast status. Missing means not live; URLs remain for replays. */
+  livestream_live?: boolean;
   /** Public external CTAs shown on the event page. */
   event_links?: EventLinkSchema[];
   /** Public ticket tiers/offers. Transactions happen on linked external sites. */
@@ -606,6 +647,14 @@ export interface EventSchema {
 
   /** Top-level browse/filter categories for the attendable event itself. */
   event_categories?: EventCategory[];
+  /** Formal is the implicit legacy tier. */
+  listing_tier?: EventListingTier;
+  /** ISO 3166-1 alpha-2 country selected for regional discovery. */
+  country_code?: string;
+  /** Server-derived continent keys; locationless legacy events omit them. */
+  region_keys?: EventRegionKey[];
+  /** One-time community follower broadcast choice at first publication. */
+  community_broadcast?: EventCommunityBroadcastMode;
   /** IANA time zone used to group and render program items by local event day. */
   time_zone?: string;
   /** Event-owned schedule/program data, including alternate plans. */

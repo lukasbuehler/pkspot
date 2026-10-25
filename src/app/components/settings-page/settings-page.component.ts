@@ -1,3 +1,8 @@
+import { ExternalMediaPreferencesService } from "../../services/external-media-preferences.service";
+import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
+import { AdultVerificationDialogComponent } from "../adult-verification-dialog/adult-verification-dialog.component";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   OnInit,
@@ -27,6 +32,7 @@ import { MatBadge } from "@angular/material/badge";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { MatDialog } from "@angular/material/dialog";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AppSettingsService } from "../../services/app-settings.service";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
@@ -39,6 +45,8 @@ import { UiLanguageService } from "../../services/ui-language.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
 import { version } from "../../../../package.json";
+import { Capacitor } from "@capacitor/core";
+import { APP_LINKS } from "../../shared/app-links";
 import crew from "../../../assets/data/crew.json";
 import { AnalyticsService } from "../../services/analytics.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
@@ -57,12 +65,16 @@ import type {
 } from "../../weather/weather-temperature";
 import { AgeAssuranceStatusCardComponent } from "../age-assurance-status-card/age-assurance-status-card.component";
 import { NotificationSettingsComponent } from "../notification-settings/notification-settings.component";
+import { LocationAccessService } from "../../services/location-access.service";
+import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 
+import { LocalLegendSettingsComponent } from "../local-legend-settings/local-legend-settings.component";
 @Component({
   selector: "app-settings-page",
   templateUrl: "./settings-page.component.html",
   styleUrls: ["./settings-page.component.scss"],
   imports: [
+    LocalLegendSettingsComponent,
     MatButtonModule,
     MatIcon,
     MatBadge,
@@ -90,7 +102,24 @@ import { NotificationSettingsComponent } from "../notification-settings/notifica
   host: { ngSkipHydration: "true" },
 })
 export class SettingsPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
+  readonly mapProfiler = injectFeatureTelemetry(MapPerformanceProfilerService);
   readonly appVersion = version;
+  readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
+
+  async copyMapDiagnostics(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.mapProfiler.exportCapture());
+      this._snackbar.open("Map diagnostics copied", undefined, { duration: 3000 });
+    } catch {
+      this._snackbar.open("Could not copy diagnostics. Please try again.", undefined, { duration: 5000 });
+    }
+  }
+
+  readonly reviewPlatform = Capacitor.getPlatform();
+  readonly appleReviewUrl = `${APP_LINKS.appleAppStoreUrl}?action=write-review`;
+  readonly googleReviewUrl = APP_LINKS.googlePlayStoreUrl;
   readonly crew = crew;
   readonly appCheckStatus = this._appCheckService.status;
   readonly publicProfilePrivacyLabel =
@@ -114,6 +143,8 @@ export class SettingsPageComponent implements OnInit {
     private _analytics: AnalyticsService,
     private _usersService: UsersService,
     private _appCheckService: FirebaseAppCheckService,
+    private _dialog: MatDialog,
+    public locationAccess: LocationAccessService,
   ) {}
   languageCodes = languageCodes;
 
@@ -184,6 +215,27 @@ export class SettingsPageComponent implements OnInit {
     }
 
     return $localize`:@@settings.app_check.detail.default:App Check status is shown here for release testing.`;
+  }
+
+  locationAccessLabel(): string {
+    switch (this.locationAccess.mode()) {
+      case "on":
+        return $localize`:@@locationAccess.status.on:On while using the app`;
+      case "temporary":
+        return $localize`:@@locationAccess.status.temporary:On temporarily`;
+      default:
+        return $localize`:@@locationAccess.status.off:Off`;
+    }
+  }
+
+  manageLocationAccess(): void {
+    this._dialog.open(LocationAccessDialogComponent, {
+      maxWidth: "min(420px, 92vw)",
+    });
+  }
+
+  async disableLocationAccess(): Promise<void> {
+    await this.locationAccess.disable();
   }
 
   speedDialButtonConfig: SpeedDialFabButtonConfig = {
@@ -273,9 +325,14 @@ export class SettingsPageComponent implements OnInit {
       $localize`Manage your profile and account settings.`
     );
 
+    let resumeVerification = this.route.snapshot.queryParamMap.get("oneid") === "return";
     this.emailAddress = this.authService?.user?.email || "";
     this.authService.authState$.subscribe((user) => {
       this.emailAddress = user?.email;
+      if (user?.uid && resumeVerification) {
+        resumeVerification = false;
+        this._dialog.open(AdultVerificationDialogComponent);
+      }
       this.syncProfileAccessSettings();
       if (!user || !user.uid) {
         this.router.navigate(["/account"]);
@@ -627,6 +684,7 @@ export class SettingsPageComponent implements OnInit {
           try {
             console.error("Re-auth error details:", JSON.stringify(err));
           } catch (e) {
+      this.featureTelemetry.failure("settings-page", "deleteAccount", e);
             console.error("Could not stringify error");
           }
 

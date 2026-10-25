@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   inject,
@@ -59,6 +61,8 @@ const ACTIVITY_PAGE_SIZE = 25;
   styleUrl: "./activity-page.component.scss",
 })
 export class ActivityPageComponent implements OnInit, OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _spotEditsService = inject(SpotEditsService);
   private _spotsService = inject(SpotsService);
   private _authService = inject(AuthenticationService);
@@ -142,6 +146,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
         items.length > 0 ? this._getTimestampMs(items[0].edit) : Date.now();
       this._startRealtimeListener(latestTimestamp);
     } catch (error) {
+      this.featureTelemetry.failure("activity-page", "initialLoad", error);
       console.error("Error loading activity feed:", error);
     } finally {
       this.isLoading$.next(false);
@@ -168,6 +173,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
       const currentItems = this.items$.value;
       this.items$.next(this._sortFeedItems([...currentItems, ...newItems]));
     } catch (error) {
+      this.featureTelemetry.failure("activity-page", "loadMore", error);
       console.error("Error loading more activities:", error);
     } finally {
       this.isLoading$.next(false);
@@ -256,6 +262,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
           formattedTimestamp: this._getJsDate(item.edit),
         };
       } catch (err) {
+      this.featureTelemetry.failure("activity-page", "_enrichEditsWithSpotData", err);
         console.error(`Could not load spot ${item.spotId}`, err);
         return {
           editId: (item.edit as SpotEditSchema & { id?: string }).id,

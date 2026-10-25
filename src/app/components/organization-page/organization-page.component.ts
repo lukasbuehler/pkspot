@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -46,6 +48,8 @@ import { EventCardComponent } from "../event-card/event-card.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _route = inject(ActivatedRoute);
   private readonly _destroyRef = inject(DestroyRef);
   private readonly _authService = inject(AuthenticationService);
@@ -150,6 +154,7 @@ export class OrganizationPageComponent implements OnInit {
       this.managedSpots.set(managedSpots);
       this.usedSpots.set(usedSpots);
     } catch (error) {
+      this.featureTelemetry.failure("organization-page", "loadOrganization", error);
       console.error("Failed to load organization page", error);
       this.errorMessage.set($localize`Could not load this organization.`);
     } finally {

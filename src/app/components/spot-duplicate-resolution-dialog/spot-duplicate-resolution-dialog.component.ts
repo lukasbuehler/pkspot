@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -59,6 +61,8 @@ export interface SpotDuplicateResolutionDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotDuplicateResolutionDialogComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _data = inject<SpotDuplicateResolutionDialogData>(MAT_DIALOG_DATA);
   private readonly _dialogRef = inject(MatDialogRef<SpotDuplicateResolutionDialogComponent>);
   private readonly _reports = inject(ModerationReportsService);
@@ -115,6 +119,7 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
       this.previewData.set(preview);
       this.canonicalSpotId.set("");
     } catch (error) {
+      this.featureTelemetry.failure("spot-duplicate-resolution-dialog", "loadPreview", error);
       if (requestGeneration !== this._previewRequestGeneration) return;
       this.previewData.set(null);
       this.errorMessage.set(
@@ -158,6 +163,7 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
       });
       this._dialogRef.close(result);
     } catch (error) {
+      this.featureTelemetry.failure("spot-duplicate-resolution-dialog", "resolve", error);
       this.errorMessage.set(
         error instanceof Error ? error.message : $localize`Resolution failed`,
       );

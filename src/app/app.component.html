@@ -1,18 +1,14 @@
-<!-- DEV MODE warning banner - only shows in non-production builds -->
-@if(isDevMode) {
-<!-- <div class="dev-mode-banner">⚠️ DEV MODE - This is NOT a production build</div> -->
-} @if(!isEmbedded()) {
+@if(!isEmbedded()) {
 <!-- is not embedded  -->
 <app-nav-rail-container>
-  @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
-  'desktop' && !alainMode) {
-  <app-nav-rail class="mat-elevation-z3">
+  @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'rail') {
+  <app-nav-rail #desktopNavigationRail class="mat-elevation-z3">
     <a
       routerLink="/"
       class="text-decoration-none text-center text-light text-wrap p-2 logo"
     >
       <img
-        ngSrc="assets/logos/pkspot/pkspot_logo_stacked_dark.png"
+        ngSrc="assets/logos/pkspot/pkspot_logo_stacked_dark.webp"
         alt="PK Spot"
         class="mw-100"
         width="74"
@@ -20,11 +16,10 @@
         priority
       />
     </a>
-    @for (button of navbarConfig(); track $index) { @if(button.spacerBefore) {
-    <div class="spacer"></div>
-    } @if(button.link) {
+    @for (button of desktopLeadingNavbarButtons(); track button.id) { @if(button.link) {
     <a
       [routerLink]="button.link"
+      data-desktop-leading-navigation
       tabindex="-1"
       routerLinkActive="active"
       #desktopButtonRla="routerLinkActive"
@@ -39,6 +34,7 @@
     </a>
     } @else if(button.function) {
     <app-mat3-nav-button
+      data-desktop-leading-navigation
       (click)="button.function()"
       [icon]="button.icon"
       [image]="button.image ?? ''"
@@ -48,69 +44,66 @@
     ></app-mat3-nav-button>
     } }
 
-    <!-- terms  -->
-    <span
-      class="mat-body-small d-flex align-items-center flex-row mb-0 pb-1"
-      style="
-        justify-content: space-evenly;
-        width: 100%;
-        font-size: 10px;
-        color: lightgray;
-      "
-    >
-      <a routerLink="/terms-of-service" i18n="@@terms.short">Terms</a>
-      <a routerLink="/privacy-policy" i18n="@@policy.short">Policy</a>
-    </span>
-    <a
-      routerLink="/impressum"
-      class="mat-body-small mb-0 pb-1"
-      style="font-size: 10px; color: lightgray"
-      >Impressum</a
-    >
-    <span class="mat-body-small mb-0" style="font-size: 10px; color: lightgray"
-      >©2026 PK Spot
-    </span>
-  </app-nav-rail>
-  } }
-  <app-nav-rail-content class="flex-col">
-    <!-- This is where the pages content gets displayed -->
-    <div class="main-content flex-grow-1" cdkScrollable>
-      <router-outlet></router-outlet>
-    </div>
+    @if (hasNavbarOverflow()) {
+    <app-mat3-nav-button
+      data-desktop-leading-navigation
+      [icon]="'more_vert'"
+      [label]="moreNavigationLabel"
+      [active]="overflowNavigationActive()"
+      [menu]="desktopMoreMenu"
+    ></app-mat3-nav-button>
+    }
 
-    @if(alainMode) {
-    <!-- Alain Mode: Menu button (shows in any view mode when alainMode is true) -->
-    <button
-      mat-fab
-      #mainMenuTrigger="matMenuTrigger"
-      [matMenuTriggerFor]="mainMenu"
-      (click)="mainMenuTrigger.openMenu()"
-      id="alainMenuButton"
-      [class.native-platform]="isNativePlatform"
-      color="primary"
+    <div #desktopNavigationFooter class="nav-rail__footer">
+    @for (button of desktopTrailingNavbarButtons(); track button.id) {
+    @if(button.link) {
+    <a
+      [routerLink]="button.link"
+      data-desktop-trailing-navigation
+      [attr.data-navigation-id]="button.id"
+      tabindex="-1"
+      routerLinkActive="active"
+      #desktopButtonRla="routerLinkActive"
     >
-      <mat-icon>menu</mat-icon>
-    </button>
-    <mat-menu #mainMenu="matMenu">
-      @for(button of navbarConfig(); track $index) { @if(button.link) {
-      <a [routerLink]="button.link">
-        <button mat-menu-item>
-          @if(button.image) {
-          <img
-            [ngSrc]="button.image"
-            width="24"
-            height="24"
-            alt=""
-            class="rounded-circle"
-            style="margin-right: 12px"
-          />
-          } @else {
-          <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
-            button.icon
-          }}</mat-icon>
-          }
-          <span>{{ button.name }}</span>
-        </button>
+      <app-mat3-nav-button
+        [icon]="button.icon"
+        [label]="button.name"
+        [image]="button.image ?? ''"
+        [active]="desktopButtonRla.isActive || !!button.active"
+        [liveIndicator]="!!button.liveIndicator"
+      ></app-mat3-nav-button>
+    </a>
+    } @else if(button.function) {
+    <app-mat3-nav-button
+      data-desktop-trailing-navigation
+      [attr.data-navigation-id]="button.id"
+      (click)="button.function()"
+      [icon]="button.icon"
+      [image]="button.image ?? ''"
+      [label]="button.name"
+      [active]="!!button.active"
+      [liveIndicator]="!!button.liveIndicator"
+    ></app-mat3-nav-button>
+    } }
+
+    <mat-menu #desktopMoreMenu="matMenu">
+      @for(button of overflowNavbarButtons(); track button.id) { @if(button.link) {
+      <a mat-menu-item [routerLink]="button.link">
+        @if(button.image) {
+        <img
+          [ngSrc]="button.image"
+          width="24"
+          height="24"
+          alt=""
+          class="rounded-circle"
+          style="margin-right: 12px"
+        />
+        } @else {
+        <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+          button.icon
+        }}</mat-icon>
+        }
+        <span>{{ button.name }}</span>
       </a>
       } @else if(button.function) {
       <button mat-menu-item (click)="button.function()">
@@ -132,15 +125,45 @@
       </button>
       } }
     </mat-menu>
+
+    <!-- terms  -->
+    <!-- Wraps instead of overflowing when translated labels are longer. -->
+    <span class="rail-legal">
+      <a routerLink="/terms-of-service" i18n="@@terms.short">Terms</a>
+      <a routerLink="/privacy-policy" i18n="@@policy.short">Policy</a>
+      <a routerLink="/impressum">Impressum</a>
+      <span>©2026 PK Spot</span>
+    </span>
+    </div>
+  </app-nav-rail>
+  } }
+  <app-nav-rail-content class="flex-col">
+    <!-- This is where the pages content gets displayed -->
+    <div class="main-content flex-grow-1" cdkScrollable>
+      <router-outlet></router-outlet>
+    </div>
+
+    @if(alainMode()) {
+    <!-- Alain Mode: Menu button (shows in any view mode when alainMode is true) -->
+    <app-fab-menu
+      id="alainMenuButton"
+      [class.native-platform]="isNativePlatform"
+      [actions]="navigationFabActions()"
+      [launcherLabel]="navigationMenuLabel"
+      launcherIcon="menu"
+      alignment="start"
+      direction="down"
+      layout="column-wrap"
+      (actionSelected)="onNavigationFabAction($event)"
+    />
     } @else {
-    <!-- Bottom navigation bar (only when NOT in alainMode and mobile/tablet) -->
-    @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
-    'mobile' || responsive.viewMode() === 'tablet') {
+    <!-- Bottom navigation is a floating compact-phone affordance. -->
+    @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'bottom') {
     <mat-toolbar
-      class="mat-elevation-z0"
+      class="floating-bottom-navigation mat-elevation-z2"
       [class.native-platform]="isNativePlatform"
     >
-      @for (button of navbarConfig(); track $index) { @if(button.link) {
+      @for (button of mobileLeadingNavbarButtons(); track button.id) { @if(button.link) {
       <a
         [routerLink]="button.link"
         tabindex="-1"
@@ -165,6 +188,81 @@
         [liveIndicator]="!!button.liveIndicator"
       ></app-mat3-nav-button>
       } }
+      @if (hasNavbarOverflow()) {
+      <app-mat3-nav-button
+        class="mobile-more-button"
+        [icon]="'more_horiz'"
+        [label]="moreNavigationLabel"
+        [active]="overflowNavigationActive()"
+        [menu]="mobileOverflowMenu"
+      ></app-mat3-nav-button>
+      }
+      @for (button of mobileTrailingNavbarButtons(); track button.id) { @if(button.link) {
+      <a
+        class="mobile-trailing-nav-button"
+        [routerLink]="button.link"
+        tabindex="-1"
+        routerLinkActive="active"
+        #mobileButtonRla="routerLinkActive"
+      >
+        <app-mat3-nav-button
+          [icon]="button.icon"
+          [label]="button.name"
+          [image]="button.image ?? ''"
+          [active]="mobileButtonRla.isActive || !!button.active"
+          [liveIndicator]="!!button.liveIndicator"
+        ></app-mat3-nav-button>
+      </a>
+      } @else if(button.function) {
+      <app-mat3-nav-button
+        class="mobile-trailing-nav-button"
+        (click)="button.function()"
+        [icon]="button.icon"
+        [image]="button.image ?? ''"
+        [label]="button.name"
+        [active]="!!button.active"
+        [liveIndicator]="!!button.liveIndicator"
+      ></app-mat3-nav-button>
+      } }
+      <mat-menu #mobileOverflowMenu="matMenu">
+        @for(button of overflowNavbarButtons(); track button.id) { @if(button.link) {
+        <a mat-menu-item [routerLink]="button.link">
+          @if(button.image) {
+          <img
+            [ngSrc]="button.image"
+            width="24"
+            height="24"
+            alt=""
+            class="rounded-circle"
+            style="margin-right: 12px"
+          />
+          } @else {
+          <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+            button.icon
+          }}</mat-icon>
+          }
+          <span>{{ button.name }}</span>
+        </a>
+        } @else if(button.function) {
+        <button mat-menu-item (click)="button.function()">
+          @if(button.image) {
+          <img
+            [ngSrc]="button.image"
+            width="24"
+            height="24"
+            alt=""
+            class="rounded-circle"
+            style="margin-right: 12px"
+          />
+          } @else {
+          <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+            button.icon
+          }}</mat-icon>
+          }
+          <span>{{ button.name }}</span>
+        </button>
+        } }
+      </mat-menu>
     </mat-toolbar>
     } } }
 
@@ -173,17 +271,17 @@
     checkInService.currentProximitySpot(); as spot) {
     <div
       class="check-in-chip-container d-flex justify-content-center w-100 p-2 overflow-hidden"
-      [style.bottom]="!responsive.isDesktop() ? '80px' : 'auto'"
-      [style.top]="!responsive.isDesktop() ? 'auto' : '10px'"
-      style="position: absolute; z-index: 1000; pointer-events: none"
+      [style.bottom]="usesNavigationRail() ? 'auto' : 'var(--navigation-bottom-clearance, 0px)'"
+      [style.top]="usesNavigationRail() ? '10px' : 'auto'"
+      style="position: fixed; z-index: 1000; pointer-events: none"
       [@slideVertical]="{
         value: '*',
-        params: { startPos: !responsive.isDesktop() ? '100%' : '-100%' }
+        params: { startPos: usesNavigationRail() ? '-100%' : '100%' }
       }"
     >
       <div
         class="check-in-chip mat-elevation-z4 d-flex align-items-center gap-3 p-2 rounded-pill overflow-hidden"
-        (click)="spotCheckIn(spot.id)"
+        (click)="spotCheckIn(spot.id, spot.name)"
       >
         @if(spot.imageSrc) {
         <div
@@ -194,7 +292,7 @@
         </div>
         } @else {
         <div class="ps-2 d-flex align-items-center">
-          <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
+          <mat-icon class="flex-shrink-0" style="color: var(--mat-sys-secondary)">beenhere</mat-icon>
         </div>
         }
 
@@ -208,10 +306,13 @@
             matButton="filled"
             color="accent"
             style="height: 32px; line-height: 32px"
-            i18n="@@checkin.check_in"
-            (click)="spotCheckIn(spot.id)"
+            [disabled]="checkInPending()"
+            [showProgress]="checkInPending()"
+            [attr.aria-busy]="checkInPending()"
+            (click)="$event.stopPropagation(); spotCheckIn(spot.id, spot.name)"
           >
-            Check In
+            <span i18n="@@checkin.check_in">Check In</span>
+            <mat-spinner progressIndicator diameter="18" class="check-in-spinner" />
           </button>
           <button
             mat-icon-button
@@ -230,17 +331,8 @@
     <!-- Terms and Privacy -->
 
     @defer (when responsive.isInitialized()) { @if((!policyAccepted || !userId)
-    && (responsive.viewMode() === 'mobile' || responsive.viewMode() ===
-    'tablet') && !isNativePlatform) {
-    <div
-      class="terms-footer mat-body-small justify-content-around align-items-center flex-row mb-0 pb-1 gap-3 px-5"
-      style="
-        background-color: #1f1f23;
-        font-size: 10px;
-        color: gray;
-        display: flex;
-      "
-    >
+    && navigationLayout() === 'bottom' && !isNativePlatform) {
+    <div class="terms-footer">
       <a routerLink="/terms-of-service" i18n="@@terms.short">Terms</a>
       <a routerLink="/privacy-policy" i18n="@@policy.short">Policy</a>
       <a routerLink="/support" i18n>Support</a>

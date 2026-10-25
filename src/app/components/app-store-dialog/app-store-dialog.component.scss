@@ -1,0 +1,18 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.store-links {
+  display: grid;
+  gap: 12px;
+  margin-block: 20px;
+}
+
+.pwa-note {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  overflow-wrap: anywhere;
+}

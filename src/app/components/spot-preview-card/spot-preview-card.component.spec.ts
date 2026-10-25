@@ -1,3 +1,4 @@
+import { LOCALE_ID } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
@@ -6,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { MapsApiService } from "../../services/maps-api.service";
+import { SpotActivityService } from "../../services/firebase/firestore/spot-activity.service";
 import { StorageService } from "../../services/firebase/storage.service";
 import { SpotPreviewCardComponent } from "./spot-preview-card.component";
 
@@ -32,10 +34,25 @@ describe("SpotPreviewCardComponent", () => {
         provideNoopAnimations(),
         { provide: MapsApiService, useValue: mapsApiService },
         { provide: StorageService, useValue: {} },
+        { provide: SpotActivityService, useValue: {displayMin: (_id: string, value: number | null) => value ?? null} },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SpotPreviewCardComponent);
+  });
+
+  it("shows one paid icon for commercial access while preserving fee indicators for public access", () => {
+    const spot = { id: "paid" as SpotId, name: "Paid Spot", locality: "Zurich", imageSrc: "", access: "commercial", amenities: { entry_fee: true } };
+    fixture.componentRef.setInput("spotData", spot);
+    fixture.detectChanges();
+    const paidIcons = () => fixture.debugElement.queryAll(By.css("mat-icon"))
+      .filter(icon => icon.nativeElement.textContent.trim() === "paid");
+    expect(paidIcons()).toHaveLength(1);
+    expect(fixture.componentInstance.spotAmenitiesArray().some(amenity => amenity.icon === "paid")).toBe(false);
+    fixture.componentRef.setInput("spotData", { ...spot, access: "public" });
+    fixture.detectChanges();
+    expect(paidIcons()).toHaveLength(1);
+    expect(fixture.componentInstance.spotAmenitiesArray().some(amenity => amenity.icon === "paid")).toBe(true);
   });
 
   it("uses the shared card border unless borders are disabled", () => {
@@ -126,5 +143,36 @@ describe("SpotPreviewCardComponent", () => {
 
     const badge = fixture.debugElement.query(By.css(".reported-chip"));
     expect(badge.nativeElement.textContent).toContain("Reported");
+  });
+});
+
+describe("SpotPreviewCardComponent in German", () => {
+  it("shows the town and country in the app language from server-copied names", async () => {
+    await TestBed.configureTestingModule({
+      imports: [SpotPreviewCardComponent],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        { provide: LOCALE_ID, useValue: "de" },
+        { provide: MapsApiService, useValue: mapsApiService },
+        { provide: StorageService, useValue: {} },
+        { provide: SpotActivityService, useValue: { displayMin: () => null } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(SpotPreviewCardComponent);
+    fixture.componentRef.setInput("spotData", {
+      id: "liege" as SpotId,
+      name: "Steps",
+      locality: "Liège, BE",
+      localityNames: { de: "Lüttich", fr: "Liège" },
+      countryCode: "BE",
+      countryName: "Belgium",
+      imageSrc: "",
+      isIconic: false,
+    } satisfies SpotPreviewData);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayLocality()).toBe("Lüttich");
+    expect(fixture.componentInstance.countryTooltip()).toBe("Belgien");
   });
 });

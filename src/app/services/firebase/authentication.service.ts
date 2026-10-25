@@ -53,6 +53,7 @@ import {
 import { Browser } from "@capacitor/browser";
 import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
 import { FIREBASE_APP } from "./firebase-client.providers";
+import { RestoreCredentialsService } from "../restore-credentials.service";
 
 interface AuthServiceUser {
   uid?: string;
@@ -124,6 +125,7 @@ export class AuthenticationService extends ConsentAwareService {
 
   private _platformId = inject(PLATFORM_ID);
   private readonly _firebaseApp = inject(FIREBASE_APP);
+  private readonly _restoreCredentials = inject(RestoreCredentialsService);
   private readonly _beforeSignOutHandlers = new Set<
     (userId: string) => Promise<void>
   >();
@@ -377,10 +379,10 @@ export class AuthenticationService extends ConsentAwareService {
             this._handleAuthStateChange(change.user);
           }
         );
-        // Also check current user immediately
-        FirebaseAuthentication.getCurrentUser().then((result) => {
-          this._handleAuthStateChange(result.user);
-        }).catch((error) => {
+        // Also check current user immediately. When Android has no session,
+        // Restore Credentials gets one silent chance before signed-out UI is
+        // rendered.
+        this._resolveInitialNativeAuthState().catch((error) => {
           console.error("Failed to read native auth state:", error);
           this.initialAuthStateResolved.set(true);
           this._setAuthorizationStateResolved(true);
@@ -411,6 +413,18 @@ export class AuthenticationService extends ConsentAwareService {
   }
 
   private _currentFirebaseUser: FirebaseUser | null = null;
+
+  private async _resolveInitialNativeAuthState(): Promise<void> {
+    const current = await FirebaseAuthentication.getCurrentUser();
+    if (current.user) {
+      this._handleAuthStateChange(current.user);
+      return;
+    }
+
+    await this._restoreCredentials.restoreSignedOutSession();
+    const restored = await FirebaseAuthentication.getCurrentUser();
+    this._handleAuthStateChange(restored.user);
+  }
 
   private _defaultUserSettings: PrivateUserDataSchema["settings"] = {
     maps: "googlemaps",
@@ -610,6 +624,9 @@ export class AuthenticationService extends ConsentAwareService {
       email,
       password,
     });
+    if (result.user) {
+      await this._restoreCredentials.provisionAfterUserAction(result.user.uid);
+    }
     return result;
   }
 
@@ -840,6 +857,7 @@ export class AuthenticationService extends ConsentAwareService {
       // user does not exist
       console.error(error);
     }
+    await this._restoreCredentials.provisionAfterUserAction(uid);
   }
 
   // ============================================
@@ -961,6 +979,7 @@ export class AuthenticationService extends ConsentAwareService {
       // user does not exist
       console.error(error);
     }
+    await this._restoreCredentials.provisionAfterUserAction(uid);
   }
 
   // ============================================
@@ -988,7 +1007,7 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     if (this._isNative) {
-      return this._logUserOutNative();
+      return this._logUserOutNative(userId ?? "");
     }
     return this._logUserOutWeb();
   }
@@ -997,7 +1016,10 @@ export class AuthenticationService extends ConsentAwareService {
     return signOut(this.auth);
   }
 
-  private async _logUserOutNative(): Promise<void> {
+  private async _logUserOutNative(userId: string): Promise<void> {
+    if (userId) {
+      await this._restoreCredentials.clearForSignedOutUser(userId);
+    }
     await FirebaseAuthentication.signOut();
   }
 
@@ -1191,6 +1213,7 @@ export class AuthenticationService extends ConsentAwareService {
           () => FirebaseAuthentication.updateProfile({ displayName }),
           () => FirebaseAuthentication.sendEmailVerification(),
         );
+        await this._restoreCredentials.provisionAfterUserAction(result.user.uid);
       });
     } catch (error) {
       throw this._accountCreationError(
@@ -1495,6 +1518,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     // Delete Firebase Auth account first (while still authenticated)
     if (this._isNative) {
+      await this._restoreCredentials.clearForSignedOutUser(userId);
       await this._deleteAccountNative();
     } else {
       await this._deleteAccountWeb();

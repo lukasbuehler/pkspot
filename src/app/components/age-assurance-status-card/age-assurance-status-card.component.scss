@@ -7,10 +7,10 @@
   align-items: flex-start;
   gap: 14px;
   padding: 16px;
-  border: 1px solid var(--mat-sys-primary);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 18px;
-  color: var(--mat-sys-on-primary-container);
-  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container-low);
 }
 
 .age-assurance-card__icon {
@@ -54,7 +54,7 @@
 
 .age-assurance-card__instructions {
   margin-top: 8px !important;
-  color: var(--mat-sys-on-primary-container);
+  color: var(--mat-sys-on-surface);
 }
 
 .age-assurance-card__error {

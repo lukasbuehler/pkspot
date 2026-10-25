@@ -14,6 +14,7 @@ import { MatIcon } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { AnalyticsService } from "../../services/analytics.service";
 import { ConsentService } from "../../services/consent.service";
+import { WHATS_NEW_RELEASE, WHATS_NEW_STORAGE_KEY } from "../../services/whats-new";
 
 @Component({
   selector: "app-welcome-dialog",
@@ -38,6 +39,8 @@ export class WelcomeDialogComponent {
   agreeAndContinue(): void {
     // store the accepted version of the terms of service in browser local storage
     localStorage.setItem("acceptedVersion", this.data.version);
+    // A new user has just seen everything; skip this release's "what's new".
+    localStorage.setItem(WHATS_NEW_STORAGE_KEY, WHATS_NEW_RELEASE);
 
     // Grant consent through the consent service
     this._consentService.grantConsent();

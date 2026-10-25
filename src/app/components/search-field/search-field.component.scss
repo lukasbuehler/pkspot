@@ -39,6 +39,18 @@
   }
 }
 
+// Outlined fields (dialogs, forms) draw their own rounded outline. Clipping
+// to the glass shape would cut off the outline's corners.
+.spot-search-field.spot-search-field--outline {
+  --mat-form-field-outlined-container-shape: 16px;
+  overflow: visible;
+
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    overflow: visible;
+    background: transparent !important;
+  }
+}
+
 html.map-glass-blur-enabled .spot-search-field {
   ::ng-deep .mat-mdc-text-field-wrapper {
     backdrop-filter: blur(10px) !important;
@@ -65,6 +77,23 @@ mat-icon.typeOrAccesIcon {
 
 ::ng-deep .mat-mdc-autocomplete-panel {
   border-radius: 16px !important;
+}
+
+// Show more results than Material's 256px default while staying above the
+// on-screen keyboard.
+::ng-deep .mat-mdc-autocomplete-panel.spot-search-results {
+  max-height: min(560px, calc(100dvh - var(--keyboard-offset, 0px) - 140px)) !important;
+}
+
+.community-result-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
 }
 
 ::ng-deep .spot-autocomplete-panel {

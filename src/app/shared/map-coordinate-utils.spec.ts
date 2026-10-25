@@ -72,7 +72,7 @@ describe("map coordinate validation", () => {
     }
 
     expect(warnings[0]).toContain("[MapCoordinateGuard] Invalid test center");
-    expect(warnings[0]).toContain('"lng":"Infinity"');
+    expect(warnings[0]).toContain("coordinate details omitted");
     expect(warnings[0]).toContain("Error: [MapCoordinateGuard]");
   });
 });

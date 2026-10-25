@@ -69,6 +69,8 @@ export interface OsmAmenityTileResponse {
   stale: boolean;
   amenities: OsmAmenityRecord[];
   attribution: typeof OSM_ATTRIBUTION;
+  status?: "unavailable";
+  retryAfterSeconds?: number;
 }
 
 export interface OsmAmenityCacheDocument {
@@ -118,7 +120,7 @@ type LeaseResult =
     }
   | { kind: "acquired"; document?: OsmAmenityCacheDocument };
 
-class OverpassResponseError extends Error {
+export class OverpassResponseError extends Error {
   constructor(
     readonly status: number,
     readonly responseBytes: number,
@@ -138,6 +140,7 @@ export const getOsmAmenityTile = onCall(
     request: CallableRequest<unknown>,
   ): Promise<OsmAmenityTileResponse> => {
     const tile = parseOsmAmenityTileRequest(request.data);
+    const acceptsUnavailable = isRecord(request.data) && request.data["acceptUnavailable"] === true;
     const firestore = admin.firestore();
     const cacheRef = firestore
       .collection(OSM_AMENITY_CACHE_COLLECTION)
@@ -173,10 +176,10 @@ export const getOsmAmenityTile = onCall(
         });
         return cacheDocumentToResponse(lease.document, true);
       }
-      throw unavailableDuringBackoff(lease.retryAfterMs, nowMs);
+      return unavailableAmenityResponse(tile, lease.retryAfterMs, nowMs, acceptsUnavailable);
     }
     if (lease.kind === "wait") {
-      return waitForColdCacheFill(cacheRef, nowMs);
+      return waitForColdCacheFill(cacheRef, tile, nowMs, acceptsUnavailable);
     }
 
     const refreshStartedAt = Date.now();
@@ -197,12 +200,13 @@ export const getOsmAmenityTile = onCall(
       });
       return cacheDocumentToResponse(document, false);
     } catch (error) {
+      if (!isExpectedOverpassFailure(error)) throw error;
       const failureDocument = await recordOsmAmenityCacheFailure(
         cacheRef,
         tile,
         Date.now(),
       );
-      logger.warn("Overpass amenity refresh failed", {
+      logger.info("Overpass amenity refresh unavailable", {
         cacheStatus: lease.document ? "stale-fallback" : "cold-failure",
         upstreamDurationMs: Date.now() - refreshStartedAt,
         upstreamStatus:
@@ -212,12 +216,9 @@ export const getOsmAmenityTile = onCall(
       if (inspectCacheDocument(failureDocument, Date.now()).staleUsable) {
         return cacheDocumentToResponse(failureDocument, true);
       }
-      if (error instanceof HttpsError) {
-        throw error;
-      }
-      throw new HttpsError(
-        "unavailable",
-        "Amenity data is temporarily unavailable.",
+      return unavailableAmenityResponse(
+        tile, timestampToMillis(failureDocument.retry_after) ?? Date.now() + 60_000,
+        Date.now(), acceptsUnavailable,
       );
     }
   },
@@ -468,6 +469,7 @@ async function fetchOverpassAmenityTile(
       );
       return { ...result, endpoint: endpoint.id };
     } catch (error) {
+      if (!isExpectedOverpassFailure(error)) throw error;
       lastError = error;
       if (error instanceof OverpassResponseError) {
         await recordOverpassResponseBytes(
@@ -476,7 +478,7 @@ async function fetchOverpassAmenityTile(
           error.responseBytes,
         );
       }
-      logger.warn("Overpass endpoint attempt failed", {
+      logger.info("Overpass endpoint unavailable", {
         upstreamEndpoint: endpoint.id,
         upstreamDurationMs: Date.now() - attemptStartedAt,
         upstreamStatus:
@@ -579,7 +581,9 @@ async function recordOverpassResponseBytes(
 
 async function waitForColdCacheFill(
   cacheRef: FirebaseFirestore.DocumentReference,
+  tile: OsmAmenityTileRequest,
   startedAtMs: number,
+  acceptsUnavailable: boolean,
 ): Promise<OsmAmenityTileResponse> {
   while (Date.now() - startedAtMs < OSM_COLD_WAIT_MS) {
     await delay(500 + Math.floor(Math.random() * 250));
@@ -592,10 +596,10 @@ async function waitForColdCacheFill(
       return cacheDocumentToResponse(cache.document, false);
     }
     if (cache.retryAfterMs && cache.retryAfterMs > Date.now()) {
-      throw unavailableDuringBackoff(cache.retryAfterMs, Date.now());
+      return unavailableAmenityResponse(tile, cache.retryAfterMs, Date.now(), acceptsUnavailable);
     }
   }
-  throw new HttpsError("unavailable", "Amenity data is still being refreshed.");
+  return unavailableAmenityResponse(tile, Date.now() + 30_000, Date.now(), acceptsUnavailable);
 }
 
 function cacheDocumentToResponse(
@@ -660,17 +664,29 @@ function normalizeOverpassElement(
   };
 }
 
-function unavailableDuringBackoff(
+/** Provider outages are expected; Firestore, validation and programming errors are not. */
+export function isExpectedOverpassFailure(error: unknown): boolean {
+  return error instanceof OverpassResponseError && (error.status >= 500 || error.status === 429) ||
+    (error instanceof Error || error instanceof DOMException) && error.name === "AbortError" ||
+    error instanceof TypeError && error.message === "fetch failed";
+}
+
+export function unavailableAmenityResponse(
+  tile: OsmAmenityTileRequest,
   retryAfterMs: number,
   nowMs: number,
-): HttpsError {
-  return new HttpsError(
-    "unavailable",
-    "Amenity data is temporarily unavailable.",
-    {
-      retryAfterSeconds: Math.max(1, Math.ceil((retryAfterMs - nowMs) / 1000)),
-    },
-  );
+  acceptsUnavailable: boolean,
+): OsmAmenityTileResponse {
+  const retryAfterSeconds = Math.max(1, Math.ceil((retryAfterMs - nowMs) / 1000));
+  // Released clients cache successful empty tiles indefinitely. Preserve their
+  // retry-on-error behavior until they understand the additive unavailable state.
+  if (!acceptsUnavailable) {
+    throw new HttpsError("unavailable", "Amenity data is temporarily unavailable.", {retryAfterSeconds});
+  }
+  return {
+    tile, fetchedAt: new Date(nowMs).toISOString(), stale: true,
+    amenities: [], attribution: OSM_ATTRIBUTION, status: "unavailable", retryAfterSeconds,
+  };
 }
 
 function tileYToLatitude(y: number, tileCount: number): number {

@@ -54,6 +54,12 @@ export function isMonthKey(value: string): boolean {
   return year >= 1970 && year <= 2200 && month >= 1 && month <= 12;
 }
 
+export function isDayKey(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(value) || !isMonthKey(value.slice(0, 7))) return false;
+  const date = new Date(`${value}T12:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 export function shiftMonthKey(monthKey: string, offset: number): string {
   const [year, month] = parseMonthKey(monthKey);
   const shifted = new Date(Date.UTC(year, month - 1 + offset, 1, 12));

@@ -33,7 +33,7 @@
 </div>
 
 @if(authService.isSignedIn) {
-<button mat-fab #createFab id="createFab" (click)="createPost()">
+<button mat-fab class="app-page-fab" #createFab id="createFab" (click)="createPost()">
   <mat-icon aria-label="Button with pen to create a post">create</mat-icon>
 </button>
 }

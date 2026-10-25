@@ -25,10 +25,12 @@ import {
 } from "../event-display/event-display.helpers";
 import { AnalyticsService } from "../../services/analytics.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
 @Component({
   selector: "app-event-card",
   imports: [
+    AppHrefPipe,
     NgOptimizedImage,
     NgTemplateOutlet,
     MatCardModule,
@@ -61,7 +63,7 @@ export class EventCardComponent {
   readonly status = computed<EventStatus>(() => this.event().status());
   readonly dateRange = computed(() => {
     const event = this.event();
-    return eventScheduleLabel(event, this._dateTime, "long");
+    return eventScheduleLabel(event, this._dateTime, "long", false);
   });
   readonly route = computed(() => [
     "/events",

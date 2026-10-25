@@ -82,12 +82,9 @@
     </p>
   </aside>
 
-  <button matButton="filled" type="submit" [disabled]="submitting()">
-    @if (submitting()) {
-      <mat-progress-spinner mode="indeterminate" diameter="20" />
-    } @else {
-      <mat-icon>send</mat-icon>
-    }
+  <button matButton="filled" type="submit" [disabled]="submitting()" [showProgress]="submitting()">
+    <mat-icon>send</mat-icon>
     <span i18n>Submit securely</span>
+    <mat-progress-spinner progressIndicator mode="indeterminate" diameter="20" />
   </button>
 </form>

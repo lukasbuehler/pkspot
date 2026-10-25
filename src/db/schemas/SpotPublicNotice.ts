@@ -34,6 +34,9 @@ export const publicSpotNoticeTypeForReportReason = (
   if (reason.includes("access")) {
     return "access_concern";
   }
+  if (reason.includes("private")) {
+    return "access_concern";
+  }
   if (reason.includes("duplicate")) {
     return "duplicate";
   }

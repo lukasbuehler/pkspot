@@ -1,52 +1,60 @@
-@if(media() && media().length > 0) {
-<div class="media-preview-grid" cdkDropListGroup>
-  @for(mediaSrc of mediaSources(); track $index) {
-  <div
-    class="grid-drop-list"
-    cdkDropList
-    cdkDropListOrientation="horizontal"
-    [cdkDropListData]="$index"
-    (cdkDropListDropped)="drop($event)"
-  >
-    <div
-      cdkDrag
-      class="drag-element"
-      [class.is-reported]="media()[$index].isReported"
-    >
-      <div class="tile-image">
-        <!-- mediaSrc is safe and is a non-empty string -->
-        <img
-          class="tile-image rounded"
-          [ngSrc]="mediaSrc"
-          fill
-          referrerpolicy="no-referrer"
-          (error)="useOriginalFallback($index, media()[$index])"
-        />
-        @if(media()[$index].isReported) {
-        <div class="reported-overlay">
-          <mat-icon>visibility_off</mat-icon>
+@if (media().length > 0 || processingMedia().length > 0) {
+  <div class="media-preview-grid" cdkDropListGroup>
+    @for (preview of mediaPreviews(); track preview.media) {
+      <div
+        class="grid-drop-list"
+        cdkDropList
+        cdkDropListOrientation="horizontal"
+        [cdkDropListData]="$index"
+        (cdkDropListDropped)="drop($event)"
+      >
+        <div cdkDrag class="drag-element" [class.is-reported]="preview.media.isReported">
+          <div class="tile-image">
+            @if (preview.src && !preview.failed) {
+              <img
+                class="tile-image rounded"
+                [ngSrc]="preview.src"
+                sizes="33vw"
+                alt=""
+                fill
+                referrerpolicy="no-referrer"
+                (error)="onImageError(preview.media)"
+                (load)="onImageLoad(preview.media)"
+              />
+            }
+            @if (preview.loading) {
+              <div class="processing-overlay">
+                <mat-spinner diameter="34" />
+              </div>
+            }
+            @if (preview.media.isReported) {
+              <div class="reported-overlay">
+                <mat-icon>visibility_off</mat-icon>
+              </div>
+            }
+          </div>
+          <button
+            class="br-fab"
+            color="warn"
+            mat-icon-button
+            aria-label="Report media"
+            (click)="reportMedia($index)"
+          >
+            <mat-icon>flag</mat-icon>
+          </button>
         </div>
-        }
       </div>
-      <!-- <button
-        class="bl-fab"
-        mat-icon-button
-        aria-label="icon button with a trash icon"
-        (click)="editMedia(index)"
-      >
-        <mat-icon>edit</mat-icon>
-      </button> -->
-      <button
-        class="br-fab"
-        color="warn"
-        mat-icon-button
-        aria-label="Report media"
-        (click)="reportMedia($index)"
-      >
-        <mat-icon>flag</mat-icon>
-      </button>
-    </div>
+    }
+    @for (upload of processingMedia(); track upload.uploadId) {
+      <div class="drag-element processing-tile" aria-busy="true">
+        @if (upload.previewSrc && upload.type === 'image') {
+          <img class="pending-preview" [src]="upload.previewSrc" alt="" />
+        }
+        <div class="processing-overlay">
+          <mat-spinner diameter="34" />
+          <span i18n="@@media.processing.status">Processing</span>
+        </div>
+      </div>
+    }
   </div>
-  }
-</div>
 }

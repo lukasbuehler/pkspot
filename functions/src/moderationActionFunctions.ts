@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
+import { refreshSpotReportProjection } from "./reportLifecycleHelpers";
 
 type ModerationActionType =
   | "close_report"
@@ -204,24 +205,24 @@ const _writeAction = async (
 const _clearSpotWarningIfNoActiveReports = async (
   spotRef: admin.firestore.DocumentReference,
 ): Promise<void> => {
-  const reportsSnapshot = await spotRef.collection("reports").get();
-  const hasActiveReports = reportsSnapshot.docs.some((doc) => {
-    const status = doc.data()["status"];
-    return status !== "resolved" && status !== "dismissed";
-  });
+  await refreshSpotReportProjection(spotRef.id);
+};
 
-  if (hasActiveReports) {
-    return;
+const _resolveSourceReport = async (
+  source: ModerationSource,
+  status: "resolved" | "dismissed",
+  createdBy: { uid: string; email?: string; display_name?: string },
+  note?: string,
+): Promise<void> => {
+  await source.sourceRef.update({
+    status,
+    resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
+    resolvedBy: {uid: createdBy.uid},
+    resolutionNote: note || admin.firestore.FieldValue.delete(),
+  });
+  if (source.sourceType === "spot_report" && source.spotId) {
+    await refreshSpotReportProjection(source.spotId);
   }
-
-  await spotRef.update({
-    is_reported: admin.firestore.FieldValue.delete(),
-    report_reason: admin.firestore.FieldValue.delete(),
-    isReported: admin.firestore.FieldValue.delete(),
-    reportReason: admin.firestore.FieldValue.delete(),
-    latest_report_at: admin.firestore.FieldValue.delete(),
-    public_notice: admin.firestore.FieldValue.delete(),
-  });
 };
 
 const _mediaSrc = (source: ModerationSource): string | undefined => {
@@ -400,7 +401,7 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
 
     if (actionType === "delete_media") {
       await _deleteTargetMedia(source);
-      await source.sourceRef.delete();
+      await _resolveSourceReport(source, "resolved", createdBy, note);
       await _writeAction(source, actionType, createdBy, note);
       return { ok: true };
     }
@@ -415,7 +416,7 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
       } else if (source.sourceType === "media_report") {
         await _updateTargetMediaFlag(source, true);
       }
-      await source.sourceRef.delete();
+      await _resolveSourceReport(source, "resolved", createdBy, note);
       await _writeAction(source, actionType, createdBy, note);
       return { ok: true };
     }
@@ -450,20 +451,20 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
           source: "moderator",
         },
       });
-      await source.sourceRef.delete();
+      await _resolveSourceReport(source, "resolved", createdBy, note);
       await _writeAction(source, actionType, createdBy, note);
       return { ok: true };
     }
 
     if (actionType === "close_report") {
       if (source.sourceType === "spot_report" && source.targetRef) {
-        await source.sourceRef.delete();
+        await _resolveSourceReport(source, "dismissed", createdBy, note);
         await _clearSpotWarningIfNoActiveReports(source.targetRef);
       } else if (source.sourceType === "media_report") {
         if (source.targetData && _hasTargetMedia(source)) {
           await _updateTargetMediaFlag(source, false);
         }
-        await source.sourceRef.delete();
+        await _resolveSourceReport(source, "dismissed", createdBy, note);
       } else {
         await source.sourceRef.delete();
       }

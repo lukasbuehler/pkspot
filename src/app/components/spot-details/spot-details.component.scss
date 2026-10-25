@@ -74,12 +74,25 @@ form {
 
 .spot-title-text {
   min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .spot-kind-label {
   border-color: currentColor !important;
   color: inherit;
   flex-shrink: 0;
+}
+
+.spot-loading-header-reserve {
+  display: block;
+  width: 44%;
+  height: 1lh;
+  min-height: 24px; // Match the metadata row's Material icons.
+  margin-bottom: 4px;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-variant);
+  opacity: 0.7;
 }
 
 .spot-event-grid {
@@ -120,26 +133,16 @@ form {
 }
 
 .spot-loading-media {
-  display: flex;
-  flex-direction: row;
+  display: block;
   overflow: hidden;
-  min-height: 150px;
-  max-height: 410px;
-  height: 26vh;
-  margin-left: -16px;
-  margin-right: -16px;
-  padding-left: 32px;
-  padding-right: 32px;
-
-  img {
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    border-radius: 20px;
-    object-fit: cover;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: var(--mat-sys-surface-container-high);
-  }
+  width: auto;
+  min-width: 112px;
+  max-width: min(76%, 420px);
+  height: clamp(150px, 26vh, 410px);
+  aspect-ratio: auto 5 / 4;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-high);
+  object-fit: cover;
 }
 
 .spot-button-row button:not(:last-of-type) {
@@ -192,19 +195,6 @@ app-img-carousel {
   flex-basis: 0;
 }
 
-.report-info {
-  margin-left: -16px;
-  margin-right: -16px;
-  padding: 16px;
-  display: flex;
-  justify-content: center;
-  background-color: var(--mat-sys-error-container);
-  margin-bottom: 10px;
-
-  > * {
-    color: var(--mat-sys-on-error-container);
-  }
-}
 
 div.hist-grid-container {
   display: grid;
@@ -318,20 +308,15 @@ div.google-img-container {
 .collapsible-header-info {
   // Use CSS custom property for smooth continuous animation
   // --open-progress: 0 = hidden, 1 = fully visible
-  opacity: var(--open-progress, 1);
-  max-height: calc(var(--open-progress, 1) * 100px);
+  opacity: var(--sheet-open-progress, var(--open-progress, 1));
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 100px);
   overflow: hidden;
-  transition:
-    opacity 0.2s ease-out,
-    max-height 0.2s ease-out;
 
   // When fully collapsed, prevent interaction
   pointer-events: auto;
 
   // Hide completely when progress is very low to avoid tiny sliver
   &[data-collapsed="true"] {
-    opacity: 0;
-    max-height: 0;
     pointer-events: none;
   }
 }
@@ -377,4 +362,43 @@ div.google-img-container {
   object-fit: contain;
   background: var(--mat-sys-surface);
   flex-shrink: 0;
+}
+
+.reporter-report-state {
+  align-items: center;
+  background: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-primary-container);
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+
+  mat-icon {
+    background: var(--mat-sys-primary);
+    border-radius: 13px;
+    color: var(--mat-sys-on-primary);
+    padding: 8px;
+  }
+
+  div {
+    flex: 1;
+  }
+}
+
+
+// Keep the preview title compact until the full Spot metadata is available.
+.spot-title-text.spot-loading-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Only missing title text receives a skeleton.
+.spot-loading-title {
+  display: inline-block;
+  width: min(14ch, 65%);
+  height: 1lh;
+  border-radius: 4px;
+  background: var(--mat-sys-surface-variant);
 }

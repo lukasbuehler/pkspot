@@ -267,6 +267,22 @@ export function eventProgramLocationVisits(
   });
 }
 
+/** Keep other days as map context without stacking two markers at one location. */
+export function eventProgramMapLocationVisits(
+  occurrences: readonly EventProgramOccurrence[],
+  day: string,
+  now = new Date(),
+): EventProgramLocationVisit[] {
+  const selected = eventProgramLocationVisits(occurrences, day, now);
+  if (!day) return selected;
+  const selectedKeys = new Set(selected.map((visit) => visit.key));
+  return [
+    ...selected,
+    ...eventProgramLocationVisits(occurrences, "", now)
+      .filter((visit) => !selectedKeys.has(visit.key)),
+  ];
+}
+
 export function eventProgramSpotVisits(
   occurrences: readonly EventProgramOccurrence[],
   day: string,

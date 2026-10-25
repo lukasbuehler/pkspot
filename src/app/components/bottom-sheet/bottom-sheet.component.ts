@@ -43,7 +43,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.bottomSheet.nativeElement,
       this.currentOffset,
       0,
-      this.getAlwaysVisible(this.bottomSheet.nativeElement)
+      this.getAlwaysVisible(this.bottomSheet.nativeElement),
     );
   }
 
@@ -57,7 +57,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.bottomSheet.nativeElement,
       this.currentOffset,
       alwaysVisible,
-      alwaysVisible
+      alwaysVisible,
     );
   }
 
@@ -72,7 +72,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   /**
    * Height of the visible portion when the sheet is closed.
    * This controls how much of the sheet "peeks" above the bottom.
-   * Default: 140px
+   * Default: 90px
    */
   closedHeight = input<number>(90);
 
@@ -83,13 +83,18 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       this.hostEl.nativeElement.style.setProperty(
         "--bottom-sheet-closed-height",
-        `${this.closedHeight()}px`
+        `${this.closedHeight()}px`,
       );
     });
   }
 
   private readonly animationDurationMs = 500;
+  // The ease-out opening looks finished well before it ends. A touch within
+  // this distance of the top completes it, so the content scrolls at once.
+  private readonly openSnapDistance = 48;
   private readonly minDragDistance = 10;
+  // WebKit can report fractional offsets or negative rubber-band overscroll.
+  private readonly scrollEdgeTolerance = 1;
   // Velocity threshold in pixels per millisecond for flick gestures
   private readonly flickVelocityThreshold = 0.5;
 
@@ -110,7 +115,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private destroyListeners: (() => void)[] = [];
   private activePointerId: number | null = null;
   private activeTouchId: number | null = null;
-  private lastEmittedProgress = Number.NaN;
+  private lastEmittedProgressBand = -1;
   private lastIsAtTop: boolean | null = null;
   // Track current offset internally to avoid reading offsetTop (layout thrashing)
   private currentOffset = 0;
@@ -121,6 +126,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private lastRecordedHeight = 0;
   private mutationObserver: MutationObserver | null = null;
   private layoutRecalculationFrameId: number | null = null;
+  private animationFrameId: number | null = null;
+  private animationTarget: number | null = null;
 
   // ─── Shared drag helpers ───────────────────────────────────────────
 
@@ -153,7 +160,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       // Sheet is closed or partially open - shift by the delta
       const newOffset = Math.max(
         0,
-        Math.min(this.currentOffset + offsetDelta, newAlwaysVisible)
+        Math.min(this.currentOffset + offsetDelta, newAlwaysVisible),
       );
       this.currentOffset = newOffset;
       sheetEl.style.transform = `translateY(${newOffset}px)`;
@@ -167,7 +174,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
   private checkScrollableUp(
     target: HTMLElement | null,
-    sheetEl: HTMLElement
+    sheetEl: HTMLElement,
   ): boolean {
     // Use tracked offset instead of reading offsetTop
     if (this.currentOffset !== 0) return false;
@@ -177,7 +184,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       if (
         el.clientHeight !== 0 &&
         el.scrollHeight > el.clientHeight + 2 &&
-        el.scrollTop !== 0
+        el.scrollTop > this.scrollEdgeTolerance
       ) {
         return true;
       }
@@ -191,7 +198,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
    */
   private checkScrollableDown(
     target: HTMLElement | null,
-    sheetEl: HTMLElement
+    sheetEl: HTMLElement,
   ): boolean {
     if (this.currentOffset !== 0) return false;
     let el = target;
@@ -218,7 +225,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private calculateTargetOffset(
     velocity: number,
     currentOffset: number,
-    alwaysVisible: number
+    alwaysVisible: number,
   ): { targetOffset: number; overflowY: "scroll" | "hidden" } {
     const middlePoint = alwaysVisible / 2;
 
@@ -242,8 +249,9 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     sheetEl: HTMLElement,
     fromOffset: number,
     targetOffset: number,
-    alwaysVisible: number
+    alwaysVisible: number,
   ): void {
+    this.cancelAnimation();
     if (this.contentElement) {
       this.contentElement.style.overflowY =
         targetOffset === 0 ? "scroll" : "hidden";
@@ -251,16 +259,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
     const distance = targetOffset - fromOffset;
     let start = 0;
+    this.animationTarget = targetOffset;
 
     const step = (timestamp: number) => {
       if (!start) start = timestamp;
-      const timeProgress = timestamp - start;
+      const timeProgress = Math.min(timestamp - start, this.animationDurationMs);
 
       const current = this.easeOutCubic(
         timeProgress,
         fromOffset,
         distance,
-        this.animationDurationMs
+        this.animationDurationMs,
       );
 
       this.currentOffset = current;
@@ -268,20 +277,41 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.emitSheetState(current, alwaysVisible);
 
       if (timeProgress < this.animationDurationMs) {
-        window.requestAnimationFrame(step);
+        this.animationFrameId = window.requestAnimationFrame(step);
       } else {
+        this.animationFrameId = null;
+        this.animationTarget = null;
         this.currentOffset = targetOffset;
         sheetEl.style.transform = `translateY(${targetOffset}px)`;
         this.syncContentOverflow();
         this.emitSheetState(targetOffset, alwaysVisible);
       }
     };
-    window.requestAnimationFrame(step);
+    this.animationFrameId = window.requestAnimationFrame(step);
+  }
+
+  private cancelAnimation(): void {
+    if (this.animationFrameId !== null) {
+      window.cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    this.animationTarget = null;
+  }
+
+  /** Completes an opening that has nearly reached the top. */
+  private finishNearlyOpen(sheetEl: HTMLElement): void {
+    if (this.animationTarget !== 0 || this.currentOffset > this.openSnapDistance) return;
+    this.cancelAnimation();
+    this.currentOffset = 0;
+    sheetEl.style.transform = "translateY(0px)";
+    this.syncContentOverflow();
+    this.emitSheetState(0, this.getAlwaysVisible(sheetEl));
   }
 
   private syncContentOverflow(): void {
     if (!this.contentElement) return;
-    this.contentElement.style.overflowY = this.currentOffset === 0 ? "scroll" : "hidden";
+    this.contentElement.style.overflowY =
+      this.currentOffset === 0 ? "scroll" : "hidden";
   }
 
   // ─── Lifecycle ─────────────────────────────────────────────────────
@@ -300,7 +330,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.renderer.setStyle(
         this.handleRegion.nativeElement,
         "touch-action",
-        "none"
+        "none",
       );
     }
 
@@ -313,9 +343,13 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.contentElement.style.overflowY = "hidden";
       this.addListener(this.contentElement, "scroll", () => {
         if (!this.contentElement) return;
-        this.isContentAtTop.set(this.contentElement.scrollTop === 0);
+        this.isContentAtTop.set(
+          this.contentElement.scrollTop <= this.scrollEdgeTolerance,
+        );
       });
-      this.isContentAtTop.set(this.contentElement.scrollTop === 0);
+      this.isContentAtTop.set(
+        this.contentElement.scrollTop <= this.scrollEdgeTolerance,
+      );
     }
 
     // Defer height calculation to next microtask to ensure layout is fully computed
@@ -378,11 +412,15 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       let hasPointerCapture = false;
       const isScrollableUp = this.checkScrollableUp(
         event.target as HTMLElement,
-        sheetEl
+        sheetEl,
       );
 
-      const shiftY = event.clientY - this.currentOffset;
+      let shiftY = event.clientY - this.currentOffset;
       const initialY = event.clientY;
+      const initialX = event.clientX;
+      const isHorizontalScrollTarget =
+        event.target instanceof Element &&
+        event.target.closest(this.horizontalScrollSelector) !== null;
       const startTime = performance.now();
       const startY = event.pageY;
       let hasDragged = false;
@@ -396,8 +434,19 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         const pageY = moveEvent.pageY;
 
         if (!hasDragged) {
+          const deltaX = Math.abs(moveEvent.clientX - initialX);
+          const deltaY = Math.abs(moveEvent.clientY - initialY);
+          if (isHorizontalScrollTarget && deltaX > this.minDragDistance && deltaX > deltaY) {
+            removePointerMove();
+            removePointerUp();
+            removePointerCancel();
+            this.activePointerId = null;
+            return;
+          }
           if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
 
+          this.cancelAnimation();
+          shiftY = initialY - this.currentOffset;
           hasDragged = true;
           if (!hasPointerCapture) {
             try {
@@ -459,7 +508,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         const { targetOffset, overflowY } = this.calculateTargetOffset(
           velocity,
           offset,
-          alwaysVisible
+          alwaysVisible,
         );
         this.contentElement!.style.overflowY = overflowY;
         this.animateToPosition(sheetEl, offset, targetOffset, alwaysVisible);
@@ -469,17 +518,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       const removePointerMove = this.renderer.listen(
         "document",
         "pointermove",
-        moveAt
+        moveAt,
       );
       const removePointerUp = this.renderer.listen(
         "document",
         "pointerup",
-        stopDrag
+        stopDrag,
       );
       const removePointerCancel = this.renderer.listen(
         "document",
         "pointercancel",
-        stopDrag
+        stopDrag,
       );
     };
 
@@ -505,7 +554,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         (event) => {
           event.stopPropagation();
           handlePointerDown(event as PointerEvent);
-        }
+        },
       );
     }
 
@@ -539,7 +588,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           const target = event.target as HTMLElement | null;
           if (target) {
             const interactiveElement = target.closest(
-              "button, a, [data-no-expand], mat-icon-button, [mat-button], [mat-flat-button], [mat-stroked-button], [mat-icon-button]"
+              "button, a, [data-no-expand], mat-icon-button, [mat-button], [mat-flat-button], [mat-stroked-button], [mat-icon-button]",
             );
             if (interactiveElement) {
               // Let the button/link click through without expanding
@@ -561,8 +610,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     let startY = 0;
     let hasDragged = false;
     let isHorizontalScrollTarget = false;
-    let isScrollableUp = false;
-    let isScrollableDown = false;
+    let wasScrolling = false;
+    let dragStartY = 0;
     let alwaysVisible = 0;
     let removeTouchMove: (() => void) | null = null;
     let removeTouchEnd: (() => void) | null = null;
@@ -570,10 +619,26 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     // Track original touch target to dispatch touchcancel when drag starts
     let originalTarget: HTMLElement | null = null;
     let originalTouch: Touch | null = null;
+    // The gesture began on the content of the fully open sheet. iOS hands
+    // such a gesture to the content's own scroller from the first move, so
+    // every move is non-cancelable. That scroller is clipped at the top
+    // (overscroll-behavior: none) and the content-can-scroll checks below
+    // leave real scrolling native, so a pull-down there moves nothing else
+    // and the sheet may follow the finger, as it did in 1.1.5.
+    let startedInOpenContent = false;
+    // Cancelling a move also cancels native scrolling for the rest of the
+    // gesture. At the top of open content the first move is reserved for the
+    // sheet before its direction is clear, and a finger that rests for a
+    // moment often starts with a small downward jitter. If the gesture then
+    // turns into a scroll, the content is scrolled here instead of freezing.
+    let nativeScrollCancelled = false;
+    let manualScrollVelocity = 0;
+    let lastMoveTime = 0;
 
     const handleTouchStart = (event: TouchEvent) => {
       if (this.activeTouchId !== null) return;
       if (!this.contentElement) return;
+      this.cancelScrollInertia();
 
       const touch = event.touches[0];
       if (!touch) return;
@@ -582,21 +647,27 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       if (target && this.isDragExcludedTarget(target)) return;
       if (target && !sheetEl.contains(target)) return;
 
+      this.finishNearlyOpen(sheetEl);
       this.activeTouchId = touch.identifier;
       originalTarget = target;
       originalTouch = touch;
-      lastY = touch.pageY;
+      startedInOpenContent =
+        this.currentOffset === 0 && !!target && this.contentElement.contains(target);
+      lastY = touch.clientY;
       initialX = touch.clientX;
       initialY = touch.clientY;
       startTime = performance.now();
-      startY = touch.pageY;
+      startY = touch.clientY;
+      dragStartY = touch.clientY;
+      wasScrolling = false;
+      nativeScrollCancelled = false;
+      manualScrollVelocity = 0;
+      lastMoveTime = startTime;
       shiftY = touch.clientY - this.currentOffset;
       hasDragged = false;
       isHorizontalScrollTarget =
         target?.closest(this.horizontalScrollSelector) !== null;
       alwaysVisible = this.getAlwaysVisible(sheetEl);
-      isScrollableUp = this.checkScrollableUp(target, sheetEl);
-      isScrollableDown = this.checkScrollableDown(target, sheetEl);
 
       // Prevent content scrolling during drag if sheet is not fully open.
       this.syncContentOverflow();
@@ -607,19 +678,19 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         document.documentElement,
         "touchmove",
         handleTouchMove,
-        { passive: false }
+        { passive: false },
       );
       removeTouchEnd = this.addTouchListener(
         document.documentElement,
         "touchend",
         handleTouchEnd,
-        { passive: true }
+        { passive: true },
       );
       removeTouchCancel = this.addTouchListener(
         document.documentElement,
         "touchcancel",
         handleTouchEnd,
-        { passive: true }
+        { passive: true },
       );
     };
 
@@ -627,20 +698,25 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       const touch = this.findTouch(event.changedTouches, this.activeTouchId);
       if (!touch) return;
 
-      const pageY = touch.pageY;
+      const pageY = touch.clientY;
       const absDeltaX = Math.abs(touch.clientX - initialX);
       const absDeltaY = Math.abs(touch.clientY - initialY);
+      const deltaY = pageY - lastY;
+      lastY = pageY;
+      const now = performance.now();
+      const moveDuration = Math.max(now - lastMoveTime, 1);
+      lastMoveTime = now;
 
       if (!hasDragged) {
         if (
+          !wasScrolling &&
           isHorizontalScrollTarget &&
-          absDeltaX > this.minDragDistance &&
           absDeltaX > absDeltaY
         ) {
           this.cleanupTouchListeners(
             removeTouchMove,
             removeTouchEnd,
-            removeTouchCancel
+            removeTouchCancel,
           );
           this.syncContentOverflow();
           this.activeTouchId = null;
@@ -649,28 +725,54 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        if (absDeltaY <= this.minDragDistance) return;
-
-        // If sheet is fully open and content is scrollable, allow native scroll
-        // pageY > initialY means swiping down (scrolling up in content)
-        // pageY < initialY means swiping up (scrolling down in content)
+        // Keep observing native scrolling: a finger can reach the top during
+        // this press. Use current offsets and direction, not the touchstart state.
         if (this.currentOffset === 0) {
-          if (
-            (isScrollableUp && pageY > initialY) ||
-            (isScrollableDown && pageY < initialY)
-          ) {
-            this.cleanupTouchListeners(
-              removeTouchMove,
-              removeTouchEnd,
-              removeTouchCancel
-            );
-            this.activeTouchId = null;
-            originalTarget = null;
-            originalTouch = null;
+          if (deltaY === 0) return;
+          const canScroll =
+            (deltaY > 0 && this.checkScrollableUp(originalTarget, sheetEl)) ||
+            (deltaY < 0 && this.checkScrollableDown(originalTarget, sheetEl));
+          if (canScroll) {
+            wasScrolling = true;
+            if (nativeScrollCancelled && event.cancelable) {
+              event.preventDefault();
+              const scroller = this.findScroller(originalTarget, sheetEl, deltaY < 0);
+              if (scroller) {
+                scroller.scrollTop -= deltaY;
+                manualScrollVelocity =
+                  0.8 * (-deltaY / moveDuration) + 0.2 * manualScrollVelocity;
+              }
+            }
             return;
+          }
+          if (wasScrolling) {
+            // Only a deliberate downward pull at the top can close the sheet.
+            // Rebase at the boundary so prior scrolling adds no jump or velocity.
+            if (deltaY <= 0 || this.checkScrollableUp(originalTarget, sheetEl)) {
+              return;
+            }
+            dragStartY = pageY;
+            startY = pageY;
+            startTime = performance.now();
+            wasScrolling = false;
           }
         }
 
+        // Chromium decides native scroll ownership on the first move, before
+        // our visual drag threshold, so reserve sheet gestures immediately.
+        // A move we cannot cancel is skipped, not treated as lost: WebKit
+        // dispatches the first move of a fast flick as non-cancelable and the
+        // rest as cancelable, while Chromium keeps every later move of a
+        // natively scrolled gesture non-cancelable, so the sheet never claims it.
+        if (!event.cancelable && !startedInOpenContent) return;
+        if (event.cancelable) {
+          event.preventDefault();
+          nativeScrollCancelled = true;
+        }
+        if (Math.abs(pageY - dragStartY) <= this.minDragDistance) return;
+
+        this.cancelAnimation();
+        shiftY = dragStartY - this.currentOffset;
         hasDragged = true;
 
         // Cancel the touch on the original target (e.g., button) so it releases
@@ -682,14 +784,13 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         }
       }
 
-      event.preventDefault();
-
-      if (pageY - shiftY >= 0 && isScrollableUp) {
-        this.contentElement!.style.overflowY = "scroll";
+      // Never move the sheet alongside a gesture the browser may be using to
+      // move something else; see startedInOpenContent for the safe exception.
+      if (!event.cancelable && !startedInOpenContent) {
+        handleTouchEnd(event);
         return;
       }
-
-      lastY = pageY;
+      if (event.cancelable) event.preventDefault();
 
       let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
       this.currentOffset = newTop;
@@ -705,10 +806,15 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.cleanupTouchListeners(
         removeTouchMove,
         removeTouchEnd,
-        removeTouchCancel
+        removeTouchCancel,
       );
 
       if (!hasDragged) {
+        // Finish a manually scrolled gesture with a short momentum glide.
+        if (nativeScrollCancelled && wasScrolling && event.type === "touchend") {
+          const scroller = this.findScroller(originalTarget, sheetEl, manualScrollVelocity > 0);
+          if (scroller) this.startScrollInertia(scroller, manualScrollVelocity);
+        }
         this.syncContentOverflow();
         this.activeTouchId = null;
         originalTarget = null;
@@ -718,17 +824,18 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
       // Calculate velocity based on total distance and time
       const endTime = performance.now();
-      const endY = touch.pageY;
+      const endY = touch.clientY;
       const deltaTime = endTime - startTime;
       const deltaY = endY - startY;
       // Velocity in px/ms (positive = down, negative = up)
-      const velocity = deltaTime > 0 ? deltaY / deltaTime : 0;
+      const velocity =
+        event.type === "touchend" && deltaTime > 0 ? deltaY / deltaTime : 0;
 
       const offset = this.currentOffset;
       const { targetOffset, overflowY } = this.calculateTargetOffset(
         velocity,
         offset,
-        alwaysVisible
+        alwaysVisible,
       );
       this.contentElement!.style.overflowY = overflowY;
       this.animateToPosition(sheetEl, offset, targetOffset, alwaysVisible);
@@ -736,6 +843,11 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       originalTarget = null;
       originalTouch = null;
     };
+
+    this.destroyListeners.push(() => {
+      this.cleanupTouchListeners(removeTouchMove, removeTouchEnd, removeTouchCancel);
+      this.activeTouchId = null;
+    });
 
     this.addTouchListener(sheetEl, "touchstart", handleTouchStart, {
       passive: true,
@@ -749,8 +861,57 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           event.stopPropagation();
           handleTouchStart(event);
         },
-        { passive: true }
+        { passive: true },
       );
+    }
+  }
+
+  /** The innermost scroller under the target that can still scroll that way. */
+  private findScroller(
+    target: HTMLElement | null,
+    sheetEl: HTMLElement,
+    down: boolean,
+  ): HTMLElement | null {
+    let el = target;
+    while (el && el !== sheetEl) {
+      if (el.clientHeight !== 0 && el.scrollHeight > el.clientHeight + 2) {
+        const canMove = down
+          ? el.scrollTop < el.scrollHeight - el.clientHeight - 2
+          : el.scrollTop > this.scrollEdgeTolerance;
+        if (canMove) return el;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  private scrollInertiaFrameId: number | null = null;
+
+  /** Decelerates a manual scroll; velocity is in scrollTop pixels per ms. */
+  private startScrollInertia(scroller: HTMLElement, velocity: number): void {
+    this.cancelScrollInertia();
+    if (Math.abs(velocity) < 0.05) return;
+    let last = 0;
+    const step = (time: number) => {
+      const elapsed = last ? Math.min(time - last, 32) : 16;
+      last = time;
+      const before = scroller.scrollTop;
+      scroller.scrollTop = before + velocity * elapsed;
+      velocity *= Math.pow(0.95, elapsed / 16);
+      // Stop when slow or when an edge stops the scroller.
+      if (Math.abs(velocity) < 0.02 || scroller.scrollTop === before) {
+        this.scrollInertiaFrameId = null;
+        return;
+      }
+      this.scrollInertiaFrameId = window.requestAnimationFrame(step);
+    };
+    this.scrollInertiaFrameId = window.requestAnimationFrame(step);
+  }
+
+  private cancelScrollInertia(): void {
+    if (this.scrollInertiaFrameId !== null) {
+      window.cancelAnimationFrame(this.scrollInertiaFrameId);
+      this.scrollInertiaFrameId = null;
     }
   }
 
@@ -767,7 +928,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private cleanupTouchListeners(
     removeTouchMove: (() => void) | null,
     removeTouchEnd: (() => void) | null,
-    removeTouchCancel: (() => void) | null
+    removeTouchCancel: (() => void) | null,
   ): void {
     removeTouchMove?.();
     removeTouchEnd?.();
@@ -778,7 +939,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     target: HTMLElement,
     eventName: string,
     handler: (event: TouchEvent) => void,
-    options: AddEventListenerOptions
+    options: AddEventListenerOptions,
   ): () => void {
     target.addEventListener(eventName, handler as EventListener, options);
     const remove = () =>
@@ -820,6 +981,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.cancelAnimation();
+    this.cancelScrollInertia();
     this.destroyListeners.forEach((fn) => fn());
     this.destroyListeners = [];
     if (this.resizeObserver) {
@@ -890,7 +1053,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private addListener(
     target: HTMLElement,
     eventName: string,
-    handler: (event: Event) => void
+    handler: (event: Event) => void,
   ) {
     const remove = this.renderer.listen(target, eventName, handler);
     this.destroyListeners.push(remove);
@@ -910,15 +1073,45 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         ? 1 - Math.min(Math.max(clampedTop / alwaysVisibleHeight, 0), 1)
         : 0;
 
-    const isTerminalProgress = progress <= 0.001 || progress >= 0.999;
+    // Panels follow this every frame without waiting for change detection,
+    // which lags behind fast flicks on slower web views (notably iOS).
+    (this.hostEl.nativeElement as HTMLElement).style.setProperty(
+      "--sheet-open-progress",
+      String(progress),
+    );
 
-    if (
-      Number.isNaN(this.lastEmittedProgress) ||
-      Math.abs(progress - this.lastEmittedProgress) > 0.01 ||
-      isTerminalProgress
-    ) {
-      this.lastEmittedProgress = progress;
+    // Until the sheet is fully open, vertical gestures belong to the sheet.
+    // Content links and buttons allow pan-y for scrolling the open sheet;
+    // pan-x on the sheet keeps the browser from starting a native vertical
+    // pan on them meanwhile, while horizontal rows such as chips still
+    // scroll. Fully open, the content scrolls natively again.
+    // While opening, release native vertical panning already: the browser
+    // reads touch-action when a touch starts, and touchstart then snaps the
+    // nearly open sheet to the top (see finishNearlyOpen).
+    const touchAction = atTop || this.animationTarget === 0 ? "" : "pan-x";
+    const sheetEl = this.bottomSheet?.nativeElement;
+    if (sheetEl && sheetEl.style.touchAction !== touchAction) {
+      sheetEl.style.touchAction = touchAction;
+    }
+
+    // Report progress only when it crosses a threshold a parent acts on.
+    // Every report re-renders the parent (the map page is large), and doing
+    // that each frame made the sheet's own animation drop frames. Visuals
+    // that follow the sheet continuously read --sheet-open-progress instead.
+    const band = BottomSheetComponent.progressBand(progress);
+    if (band !== this.lastEmittedProgressBand) {
+      this.lastEmittedProgressBand = band;
       this.openProgressChange.emit(progress);
     }
+  }
+
+  /** Closed, peeking, collapsing headers (< 0.1), mostly open, nearly and fully open. */
+  private static progressBand(progress: number): number {
+    if (progress <= 0.001) return 0;
+    if (progress < 0.05) return 1;
+    if (progress < 0.1) return 2;
+    if (progress <= 0.95) return 3;
+    if (progress < 0.999) return 4;
+    return 5;
   }
 }

@@ -53,6 +53,10 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ["src/test-setup.ts"],
     include: testFileGlobs,
     exclude: ["node_modules/**", ...generatedOutputGlobs],
+    // Process isolation avoids Node 26 worker-thread exits after Angular tests.
+    pool: "forks",
+    // Let jsdom own localStorage/sessionStorage, not Node's server-side globals.
+    execArgv: ["--no-experimental-webstorage"],
     maxWorkers: maxTestWorkers,
     reporters: ["default"],
     deps: {

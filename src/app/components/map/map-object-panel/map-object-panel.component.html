@@ -61,8 +61,8 @@
       @if (allModeEvents().length > 0) {
         <section class="object-panel-section px-3">
           <div
-            class="peek-title pt-1"
-            [class.peek-title--hidden]="hidePeekTitles()"
+            class="peek-title"
+            [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
           >
             <h2 class="mat-title-medium m-0" i18n="@@map.all_events_heading">
               Events
@@ -77,8 +77,8 @@
       }
       <section class="object-panel-section px-3">
         <div
-          class="peek-title pt-1"
-          [class.peek-title--hidden]="hidePeekTitles()"
+          class="peek-title"
+          [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
         >
           <h2 class="mat-title-medium m-0" i18n="@@map.all_spots_heading">
             Spots
@@ -110,11 +110,11 @@
       @if (allModeCommunities().length > 0) {
         <section class="object-panel-section px-3">
           <div
-            class="peek-title pt-1"
-            [class.peek-title--hidden]="hidePeekTitles()"
+            class="peek-title"
+            [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
           >
             <h2
-              class="mat-title-medium mb-2"
+              class="mat-title-medium m-0"
               i18n="@@map.all_communities_heading"
             >
               Communities

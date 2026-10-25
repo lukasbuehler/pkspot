@@ -1,5 +1,5 @@
+import { spotSitemapImages } from "./sitemapXml";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { getStorage } from "firebase-admin/storage";
 import { once } from "node:events";
@@ -10,6 +10,7 @@ import {
 } from "./indexNow";
 import {
   STATIC_PAGES,
+  staticPageImages,
   SUPPORTED_LOCALES,
   buildCommunitySitemapEntry,
   buildEventSitemapEntry,
@@ -107,7 +108,13 @@ async function _generateAndUploadSitemap(): Promise<{
 
     for (const page of STATIC_PAGES) {
       await writer.append(
-        generateUrlWithHreflang(page.path, now, page.changefreq, page.priority)
+        generateUrlWithHreflang(
+          page.path,
+          now,
+          page.changefreq,
+          page.priority,
+          staticPageImages(page.path)
+        )
       );
       indexNowUrls.push(...buildLocalizedIndexNowUrls(page.path));
     }
@@ -115,7 +122,7 @@ async function _generateAndUploadSitemap(): Promise<{
     console.log("Streaming spots from Firestore...");
     const spotsStream = db
       .collection("spots")
-      .select("slug", "time_updated")
+      .select("slug", "time_updated", "media")
       .stream();
 
     for await (const doc of spotsStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
@@ -133,7 +140,8 @@ async function _generateAndUploadSitemap(): Promise<{
           entry.path,
           entry.lastmod,
           entry.changefreq,
-          entry.priority
+          entry.priority,
+          spotSitemapImages(data)
         )
       );
       indexNowUrls.push(...buildLocalizedIndexNowUrls(entry.path));
@@ -206,6 +214,8 @@ async function _generateAndUploadSitemap(): Promise<{
       .select(
         "slug",
         "published",
+        "visibility",
+        "publication_state",
         "time_updated",
         "start"
       )
@@ -290,7 +300,9 @@ async function _generateAndUploadSitemap(): Promise<{
 }
 
 /**
- * Scheduled function to regenerate sitemap nightly at 3 AM UTC
+ * Scheduled function to regenerate sitemap nightly at 3 AM UTC. To regenerate
+ * on demand, run its Cloud Scheduler job
+ * `firebase-schedule-generateSitemapOnSchedule-europe-west1`.
  */
 export const generateSitemapOnSchedule = onSchedule(
   {
@@ -308,28 +320,5 @@ export const generateSitemapOnSchedule = onSchedule(
         `(${result.staticPageCount} static pages, ${result.spotCount} spots, ${result.userCount} users, ` +
         `${result.communityCount} communities).`
     );
-  }
-);
-
-/**
- * HTTP endpoint to manually trigger sitemap generation (for testing/debugging)
- * Call: https://europe-west1-parkour-base-project.cloudfunctions.net/generateSitemapManual
- */
-export const generateSitemapManual = onRequest(
-  {
-    region: "europe-west1",
-    cors: false,
-    memory: "512MiB",
-    timeoutSeconds: 540,
-  },
-  async (_req, res) => {
-    try {
-      console.log("Manual sitemap generation triggered...");
-      const result = await _generateAndUploadSitemap();
-      res.json(result);
-    } catch (error) {
-      console.error("Error generating sitemap:", error);
-      res.status(500).json({ error: "Failed to generate sitemap" });
-    }
   }
 );

@@ -1,5 +1,13 @@
+import { CheckInFlowService } from "../../services/check-in-flow.service";
+import { mapCentre, relevantMapCommunities, type CountryEvidence } from "./visible-communities";
+import {NativeMapShareService} from "../../services/native-map-share.service";
+import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
+import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
+  DestroyRef,
   ViewChild,
   AfterViewInit,
   OnInit,
@@ -10,9 +18,11 @@ import {
   signal,
   WritableSignal,
   PendingTasks,
+  RESPONSE_INIT,
   inject,
   effect,
   computed,
+  linkedSignal,
   NgZone,
   Injector,
   ChangeDetectionStrategy,
@@ -22,6 +32,8 @@ import {
 import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import { SpotLoadError } from "../../../db/models/SpotLoadError";
+import { handleSpotResolutionError } from "../../resolvers/spot-resolution-error";
 import { SpotMapDataManager } from "../spot-map/SpotMapDataManager";
 import {
   SpotFilterMode,
@@ -72,11 +84,11 @@ import {
   NgTemplateOutlet,
 } from "@angular/common";
 import { StorageService } from "../../services/firebase/storage.service";
-import { GlobalVariables } from "../../../scripts/global";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
+import { LocationAccessService } from "../../services/location-access.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
@@ -102,13 +114,18 @@ import {
   MatSidenavModule,
 } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
+import {
+  getMapPanelLayout,
+  type MapPanelLayout,
+} from "../../features/navigation-layout";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MatDialog } from "@angular/material/dialog";
+import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
-import {
+import type {
   CustomFilterDialogComponent,
   CustomFilterParams,
 } from "../custom-filter-dialog/custom-filter-dialog.component";
@@ -226,6 +243,11 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
 
 @Component({
   selector: "app-map-page",
+  host: {
+    "[class.map-with-bottom-sheet]": "usesMapBottomSheet()",
+    "[class.map-with-overlay-panel]": "usesOverlayMapDrawer() && sidenavOpen()",
+    "[style.--map-sheet-closed-height.px]": "mapSheetClosedHeight()",
+  },
   templateUrl: "./map-page.component.html",
   styleUrls: ["./map-page.component.scss"],
   animations: [
@@ -267,6 +289,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     ]),
   ],
   imports: [
+    ResizeObserverDirective,
     SpotMapComponent,
     MatButtonModule,
     MatIconModule,
@@ -291,6 +314,8 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _eventPromoDismissalsStorageKey =
     "pkspot.eventPromoDismissals.v1";
   private _searchSelectionRequestId = 0;
@@ -304,8 +329,25 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Signal to track when the map is ready for interaction */
   mapReady = signal<boolean>(false);
+  readonly nativeMapShare = inject(NativeMapShareService);
+  private readonly sharedMapEffect = effect(() => {
+    const selection = this.nativeMapShare.pending();
+    if (!selection || !this.mapReady()) return;
+    untracked(() => {
+      this.nativeMapShare.consume();
+      if (selection.spotId) {
+        void this.openSpotOrGooglePlace({type: "spot", id: selection.spotId});
+      } else if (selection.create && selection.location) {
+        this.spotMap?.focusPoint(selection.location, 18);
+        this.spotMap?.createSpot(selection.location, selection.draftName);
+      } else {
+        void this.openSpotOrGooglePlace({type: "map-link", id: selection.provider, mapLink: selection});
+      }
+    });
+  });
 
   pendingTasks = inject(PendingTasks);
+  private readonly serverResponse = inject(RESPONSE_INIT, { optional: true });
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
   private readonly injector = inject(Injector);
@@ -376,6 +418,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     signal(null);
 
   geolocationService = inject(GeolocationService);
+  readonly locationAccess = inject(LocationAccessService);
   checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
   proximityCheckInSpot = computed(() =>
@@ -383,6 +426,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   );
 
   geolocationIcon = computed(() => {
+    if (!this.locationAccess.enabled()) return "location_disabled";
     if (this.geolocationService.error()) return "location_disabled";
     if (this.geolocationService.currentLocation()) return "my_location";
     return "location_searching";
@@ -434,7 +478,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.spotMapData.updatePreviewFromSpot(spot);
   }
 
-  alainMode: boolean = false;
+  readonly alainMode = this.responsiveService.alainMode;
 
   isServer: boolean;
 
@@ -442,24 +486,81 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   bottomSheetOpen = signal<boolean>(false);
   bottomSheetProgress = signal<number>(0);
 
-  // Start closed to prevent flash - will open when desktop is confirmed
+  /** The map panel follows the shell navigation decision, not a second set of breakpoints. */
+  readonly mapPanelLayout = computed<MapPanelLayout>(() =>
+    getMapPanelLayout({
+      width: this.responsiveService.viewportWidth(),
+      height: this.responsiveService.viewportHeight(),
+    }),
+  );
+  readonly usesMapBottomSheet = computed(
+    () => this.mapPanelLayout() === "bottom-sheet",
+  );
+  readonly usesMapDrawer = computed(
+    () => this.mapPanelLayout() !== "bottom-sheet",
+  );
+  readonly usesOverlayMapDrawer = computed(
+    () => this.mapPanelLayout() === "drawer-overlay",
+  );
+  // CSS resolves navigation and safe-area clearance; the observer keeps the
+  // sheet gesture geometry and map controls in the same coordinate space.
+  readonly mapSheetClosedHeight = signal(178);
+
+  // Start closed to prevent flash. The drawer opens when its layout is ready.
   sidenavOpen = signal<boolean>(false);
   sidebarContentIsScrolling = signal<boolean>(false);
-  compactSidenavRange = signal<boolean>(false);
-  compactTabletSidenavOpen = computed(
-    () => this.sidenavOpen() && this.compactSidenavRange(),
+  readonly overlayMapDrawerOpen = computed(
+    () => this.sidenavOpen() && this.usesOverlayMapDrawer(),
   );
   mapSidenavMode = computed<"over" | "side">(() =>
-    this.compactSidenavRange() ? "over" : "side",
+    this.usesOverlayMapDrawer() ? "over" : "side",
   );
 
   // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
   // Default to expected fallback (32 chip + 100 padding)
   chipsSpacerHeight = signal<number>(132);
 
+  /**
+   * Becomes true the first time the bottom sheet opens and stays true, so
+   * the full list is rendered once instead of growing (layout and image
+   * decoding) at the start of every opening animation.
+   */
+  private readonly _bottomSheetHasOpened = linkedSignal<boolean, boolean>({
+    source: () => this.bottomSheetProgress() > 0,
+    computation: (opened, previous) => opened || (previous?.value ?? false),
+  });
+
+  /**
+   * Renders the full list once the page has settled, so the first opening
+   * of the sheet does not start by laying out and decoding six more cards.
+   */
+  private readonly _fullSpotListPrerendered = signal(false);
+
+  private _schedulePrerenderOfFullSpotList(destroyRef: DestroyRef): void {
+    afterNextRender(() => {
+      let idleId: number | undefined;
+      const timer = setTimeout(() => {
+        const prerender = () => this._fullSpotListPrerendered.set(true);
+        // Safari has no requestIdleCallback; the delay alone keeps this
+        // clear of the initial map load there.
+        idleId = window.requestIdleCallback?.(prerender, { timeout: 2000 });
+        if (idleId === undefined) prerender();
+      }, 3000);
+      destroyRef.onDestroy(() => {
+        clearTimeout(timer);
+        if (idleId !== undefined) window.cancelIdleCallback?.(idleId);
+      });
+    });
+  }
+
   spotListLimit = computed(() => {
-    // If mobile and bottom sheet is "closed" (progress < 0.2), limit the list
-    if (this.responsiveService.isMobile() && this.bottomSheetProgress() <= 0) {
+    // Keep the compact bottom-sheet preview short until the page has settled
+    // or the sheet first opens.
+    if (
+      this.usesMapBottomSheet() &&
+      !this._bottomSheetHasOpened() &&
+      !this._fullSpotListPrerendered()
+    ) {
       return 2;
     }
     if (this.mapObjectMode() === "all") {
@@ -530,11 +631,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sidenavOpen.update((open) => !open);
   }
 
-  private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
   private _locationSubscription?: SubscriptionLike;
+  /** Set once ngOnInit has applied the requested route's selection. */
+  private _initialRouteApplied = false;
   private _breakpointSubscription?: Subscription;
-  private _compactSidenavBreakpointSubscription?: Subscription;
   private _consentSubscription?: Subscription;
   private _authStateSubscription?: Subscription;
   private _privateDataSubscription?: Subscription;
@@ -571,6 +672,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * only when the user actually opens a community.
    */
   private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
+  private _mapCommunityCandidates: CommunitySearchPreview[] = [];
+  /** The Spot nearest to the map centre from the last viewport search. */
+  private _nearestSpotEvidence: CountryEvidence | undefined;
   private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
@@ -915,7 +1019,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       pendingEventRef: this.pendingEventPreview()?.idOrSlug ?? null,
       mode: this.mapObjectMode(),
       now,
+      communityKeys: this._openCommunityKeys(),
     });
+  });
+
+  private readonly _openCommunityKeys = computed<string[] | null>(() => {
+    const selected = this.selectedCommunityLanding();
+    if (selected) {
+      return [selected.communityKey, ...(selected.merged_community_keys ?? [])];
+    }
+    const pending = this.pendingCommunityLanding();
+    return pending ? [pending.communityKey] : null;
   });
 
   private _communityPinIcon(community: CommunitySearchPreview): string {
@@ -1027,7 +1141,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   visibleIslandContent = computed<MapIslandContent | null>(() => {
     if (
-      this.responsiveService.isMobile() &&
+      this.usesMapBottomSheet() &&
       (this.bottomSheetOpen() || this.bottomSheetProgress() > 0.05)
     ) {
       return null;
@@ -1689,6 +1803,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resetPanelContentToTop();
   }
 
+  /** Whether the current URL names a Spot, community, or event panel. */
+  private _locationTargetsMapEntity(): boolean {
+    const path = (this._location.path() || "").split("?")[0].split("#")[0];
+    return (
+      !!parseMapSpotRouteState(path).spotIdOrSlug ||
+      /^\/map\/(?:communities|events)\/[^/]+/u.test(path)
+    );
+  }
+
   goBackToPreviousPanel(): void {
     this._location.back();
   }
@@ -1975,14 +2098,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     public appSettings: AppSettingsService,
     private _mapProfiler: MapPerformanceProfilerService,
   ) {
-    this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
-      (value) => {
-        this.alainMode = value;
-      },
-    );
-
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+    this._schedulePrerenderOfFullSpotList(inject(DestroyRef));
 
     if (isPlatformBrowser(this.platformId)) {
       const denseMapPerformanceMode =
@@ -2003,14 +2121,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         denseMapPerformanceVariant: this._denseMapPerformanceVariant(),
       });
       this._loadEventPromoDismissals();
-      const compactSidenavQuery =
-        "(min-width: 600px) and (max-width: 767.98px)";
-      this.compactSidenavRange.set(
-        this.breakpointObserver.isMatched(compactSidenavQuery),
-      );
-      this._compactSidenavBreakpointSubscription = this.breakpointObserver
-        .observe(compactSidenavQuery)
-        .subscribe((state) => this.compactSidenavRange.set(state.matches));
     }
 
     // Communities are admin-curated and small enough for the SEO list to load
@@ -2047,19 +2157,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             // Communities does not make country rows pop in after the fact.
             includeCountryCommunities: true,
             viewportZoom: viewport.zoom,
+            nearestSpotTo: mapCentre(viewport),
           })
           .then((result) => {
             if (requestVersion !== this._mapObjectSearchVersion) return;
+            this._mapCommunityCandidates = result.communities;
+            this._nearestSpotEvidence = result.nearestSpot;
             const visibleCommunities = this._mergeVisibleCommunities(
               result.communities,
               viewport,
             );
             const counts = {
               ...result.counts,
-              communities: Math.max(
-                result.counts.communities,
-                visibleCommunities.length,
-              ),
+              communities: visibleCommunities.length,
             };
 
             this._baseMapObjectCounts.set(counts);
@@ -2341,10 +2451,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this._focusCommunityPreviewOnMap(community);
     });
 
-    // Effect to update meta tags when spot/challenge changes (for client-side navigation)
+    // Keep client navigation metadata aligned with the selected map entity.
     effect(() => {
       const spot = this.selectedSpot();
       const challenge = this.selectedChallenge();
+      const community = this.selectedCommunityLanding();
 
       if (challenge && challenge instanceof SpotChallenge) {
         const spotPathSegment = challenge.spot.slug ?? challenge.spot.id;
@@ -2358,7 +2469,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             ? buildSpotCanonicalPath(spot.slug ?? spot.id)
             : undefined;
         this.metaTagService.setSpotMetaTags(spot, canonicalPath);
-      } else if (!this.isServer) {
+      } else if (community) {
+        this.metaTagService.setCommunityLandingMetaTags(
+          community.title, community.description, community.imageUrl, community.canonicalPath,
+        );
+      } else if (!this.isServer && !this._locationTargetsMapEntity()) {
+        // While a Spot, community, or event URL is still loading, keep its
+        // server-rendered metadata so crawlers never see the map canonical.
         this.metaTagService.setDefaultMapMetaTags("/map");
       }
     });
@@ -2442,58 +2559,33 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     });
 
-    // Open sidenav by default on desktop once responsive detection is confirmed
+    // Open a drawer by default only when this map presentation has one.
     effect(() => {
       const isInitialized = this.responsiveService.isInitialized();
-      const isNotMobile = this.responsiveService.isNotMobile();
-      if (isInitialized && isNotMobile) {
+      const usesMapDrawer = this.usesMapDrawer();
+      if (isInitialized && usesMapDrawer) {
         this.sidenavOpen.set(true);
       }
     });
 
     effect(() => {
       this.responsiveService.isInitialized();
-      this.responsiveService.isNotMobile();
       this.sidenavOpen();
-      this.compactSidenavRange();
+      this.usesMapDrawer();
+      this.usesOverlayMapDrawer();
       this.mapSidenavMode();
       this._scheduleDrawerContentMarginRefresh();
       this._schedulePanelScrollListenerAttachment();
     });
 
-    // Effect to peek bottom sheet when proximity spot is detected
-    effect(() => {
-      const spot = this.checkInService.currentProximitySpot();
-      const isMobile = this.responsiveService.isMobile();
-      const isSheetOpen = this.bottomSheetOpen();
-      const progress = this.bottomSheetProgress();
-
-      // If we have a spot, we are on mobile, and the sheet is fully closed (progress <= 0),
-      // we don't necessarily need to "open" it (maximize), but we should ensure the user knows it's there.
-      // The bottom sheet by default "peeks" at closedHeight.
-      // So if content is added to sidebarContent, it should be visible in the peek area.
-      // We might want to ensure we don't accidentally hide it if we have logic that hides the sheet?
-      // But currently the sheet is always present.
-      // We could optionally bounce it or something, but just showing the content is a good start.
-
-      // If the user is on the map and a spot is detected, maybe we want to make sure the bottom sheet isn't obscured?
-      // But standard behavior is enough.
-
-      // Optional: If we want to force open it slightly more or something?
-      // For now, let's rely on the template update.
-    });
   }
 
   setVisibleSpots(spots: Spot[]) {
     this._recordMapProfile("visible-spots-change", {
       count: spots?.length ?? 0,
     });
-    if (!spots || spots.length === 0) {
-      this.visibleSpots = [];
-      return;
-    }
-
-    this.visibleSpots = spots;
+    this.visibleSpots = spots ?? [];
+    this._refreshVisibleCommunitiesFromLoadedList();
   }
 
   // Initialization ///////////////////////////////////////////////////////////
@@ -2526,21 +2618,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const visibleCommunities = this._mergeVisibleCommunities(
-      this._visibleMapCommunities(),
+      this._mapCommunityCandidates,
       viewport,
     );
-    if (visibleCommunities.length === 0) {
-      return;
-    }
-
     this._visibleMapCommunities.set(visibleCommunities);
     this._baseMapObjectCounts.update((counts) => ({
       ...counts,
-      communities: Math.max(counts.communities, visibleCommunities.length),
+      communities: visibleCommunities.length,
     }));
     this.mapObjectCounts.update((counts) => ({
       ...counts,
-      communities: Math.max(counts.communities, visibleCommunities.length),
+      communities: visibleCommunities.length,
     }));
   }
 
@@ -2564,7 +2652,27 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    return [...visibleByKey.values()];
+    const { north, south, east, west } = viewport.bbox;
+    const spotEvidence = this.visibleSpots.flatMap((spot) => {
+      const { lat, lng } = spot.location();
+      const countryCode = spot.address()?.country?.code;
+      const inView = lat >= south && lat <= north &&
+        (west <= east ? lng >= west && lng <= east : lng >= west || lng <= east);
+      return inView && countryCode ? [{ countryCode, lat, lng }] : [];
+    });
+    const nearest = this._nearestSpotEvidence;
+    if (nearest) {
+      spotEvidence.push(nearest);
+      // The viewport search only returns countries whose Spot spread overlaps
+      // the view, which can miss the country around the centre (Ghent, far
+      // from most Belgian Spots), so take it from the loaded list.
+      const code = nearest.countryCode.toUpperCase();
+      const country = this._promotableCommunities().find((community) =>
+        community.scope === "country" && community.countryCode?.toUpperCase() === code);
+      const key = country && (country.communityKey || country.id || country.slug);
+      if (key && !visibleByKey.has(key)) visibleByKey.set(key, country);
+    }
+    return relevantMapCommunities([...visibleByKey.values()], viewport, spotEvidence);
   }
 
   private _visibleCommunitiesFromLoadedList(
@@ -2737,15 +2845,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     void this.pendingTasks.run(async () => {
-      await this._loadEventFromRouteIfPresent(this.router.url);
-      await this._handleURLParamsChange(
-        routeState.spotIdOrSlug,
-        routeState.showChallenges,
-        routeState.challengeId,
-        routeState.showEditHistory,
-        contentData?.spot || null,
-        contentData?.challenge || null,
-      );
+      try {
+        await this._loadEventFromRouteIfPresent(this.router.url);
+        // A resolver failure already set the HTTP status. Retrying it here
+        // used to escape PendingTasks and turn an ordinary 404 into a 500.
+        if (this.isServer && contentData?.spotLoadFailed) return;
+        await this._handleURLParamsChange(
+          routeState.spotIdOrSlug,
+          routeState.showChallenges,
+          routeState.challengeId,
+          routeState.showEditHistory,
+          contentData?.spot || null,
+          contentData?.challenge || null,
+        );
+      } finally {
+        this._initialRouteApplied = true;
+      }
     });
 
     const queryIndex = this.router.url.indexOf("?");
@@ -2943,14 +3058,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           false,
         );
-        const spotId = await this._getSpotIdFromSlugOrId(spotIdOrSlug);
-        if (!spotId) {
-          console.warn("Could not get spot id from slug or id.");
-          return;
+        try {
+          const spotId = await this._getSpotIdFromSlugOrId(spotIdOrSlug);
+          if (!spotId) {
+            this.pendingSpotPreview.set(null);
+            return;
+          }
+          await this.loadSpotById(spotId as SpotId, false, pendingPreview);
+        } catch (error) {
+          handleSpotResolutionError(error, this.serverResponse);
         }
-
-        // open the spot
-        await this.loadSpotById(spotId as SpotId, false, pendingPreview);
       }
     } else {
       this._routeChallengeId = null;
@@ -3008,10 +3125,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (value.type === "event") {
-      // Search dispatched an event hit. The preview panel's route guard
-      // loads the full document — we just navigate by slug/id.
+      // Search opens the same full event page as markers and event cards.
       const slugOrId = value.event?.slug ?? value.event?.id ?? value.id;
-      this.openEventPath(slugOrId, null);
+      await this.router.navigate(["/events", slugOrId]);
       return;
     }
 
@@ -3059,6 +3175,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.openGooglePlaceById(place.place_id, requestId);
       return true;
     } catch (error) {
+      this.featureTelemetry.failure("map-page", "openGooglePlaceByQuery", error);
       if (requestId !== this._searchSelectionRequestId) return true;
       console.error("Failed to find the place from a pasted Maps link", error);
       return false;
@@ -3137,7 +3254,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Retry only when we have a pending preview from an in-app selection.
     // Direct URL loads should fail quickly for invalid IDs instead of holding
     // SSR/browser navigation open for the full retry window.
-    let lastError: any;
+    let lastError: unknown;
     const maxAttempts = preview ? 60 : 1;
     const delayMs = 500;
 
@@ -3170,7 +3287,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // All attempts failed
-    console.error("Failed to load spot after retries:", lastError);
+    if (!(lastError instanceof SpotLoadError)) {
+      console.error("Failed to load Spot after retries:", { spotId }, lastError);
+    }
     if (requestVersion === this._spotLoadRequestVersion) {
       this.pendingSpotPreview.set(null);
     }
@@ -3645,6 +3764,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  /**
+   * A filter chosen while a community is open applies to the current map area,
+   * so the community panel closes first. Deep links that combine a community
+   * with a filter go through `filterChipChanged` directly and keep both.
+   */
+  onFilterChipSelected(selectedChip: string): void {
+    if (selectedChip) this.closeCommunityPanel();
+    this.filterChipChanged(selectedChip);
+  }
+
+  onEventFilterChipSelected(selectedChip: string): void {
+    if (selectedChip) this.closeCommunityPanel();
+    this.eventFilterChanged(selectedChip);
+  }
+
   filterChipChanged(selectedChip: string) {
     this._analytics.trackEvent("map_spot_filter_changed", {
       filter: selectedChip || null,
@@ -3763,9 +3897,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedSpot.set(null);
     }
 
-    // Generic filter search
-    console.log(`Searching for ${selectedChip} spots in bounds:`, bounds);
-
     this._searchService
       .searchSpotsInBoundsWithFilter(
         bounds,
@@ -3775,7 +3906,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       )
       .then((result) => {
         const hits = result.hits || [];
-        console.log(`Found ${selectedChip} spots:`, hits);
 
         const previews: SpotPreviewData[] = hits
           .filter((h: any) => !!h)
@@ -3810,7 +3940,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Opens the custom filter dialog and applies the selected filters.
    */
-  openCustomFilterDialog(): void {
+  readonly openCustomFilterDialog = createLazyDialogOpener(
+    async () =>
+      (await import("../custom-filter-dialog/custom-filter-dialog.component")).CustomFilterDialogComponent,
+    (component) => this._showCustomFilterDialog(component),
+    inject(DestroyRef),
+  );
+
+  private _showCustomFilterDialog(
+    dialogComponent: typeof CustomFilterDialogComponent,
+  ): void {
     this._analytics.trackEvent("map_custom_filter_opened", {
       selected_filter: this.selectedFilter() || null,
       has_existing_custom_filter: !!this.customFilterParams(),
@@ -3823,7 +3962,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const editableState = this._getEditableFilterParams();
-    const dialogRef = this._dialog.open(CustomFilterDialogComponent, {
+    const dialogRef = this._dialog.open(dialogComponent, {
       width: "400px",
       maxWidth: "90vw",
       maxHeight: "90vh",
@@ -3846,6 +3985,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.customFilterParams.set(null);
         this.filterChipChanged("");
         return;
+      }
+
+      // Like a filter chip, a changed filter applies to the current area and
+      // closes an open community. Confirming unchanged filters keeps it open.
+      if (!this._areFilterParamsEqual(result, editableState.params)) {
+        this.closeCommunityPanel();
       }
 
       const matchingPreset = this._getMatchingPresetFilter(result);
@@ -3885,8 +4030,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.selectedSpot.set(null);
       }
 
-      console.log("Searching with custom filter:", result);
-
       this._searchService
         .searchSpotsWithCustomFilter(
           bounds,
@@ -3896,7 +4039,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         )
         .then((searchResult) => {
           const hits = searchResult.hits || [];
-          console.log("Found custom filter spots:", hits);
 
           const previews: SpotPreviewData[] = hits
             .filter((h: any) => !!h)
@@ -3914,6 +4056,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateMapURL() {
+    // Browser history reflects interactive selection. During SSR a missing Spot
+    // must retain its requested URL and 404, not become a redirect to /map.
+    if (this.isServer) return;
+    // Until the requested Spot, event, or community is applied, an empty
+    // selection only means "still loading". Rewriting the URL to /map here
+    // also made crawlers record the map's canonical for Spot pages.
+    if (!this._initialRouteApplied) return;
     // Only update URL if we're currently on the map page
     // This prevents interfering with navigation away from the map
     if (!this.router.url.startsWith("/map")) {
@@ -4284,7 +4433,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       has_current_location: !!this.geolocationService.currentLocation(),
       had_error: !!this.geolocationService.error(),
     });
+    if (!this.locationAccess.enabled()) {
+      this._dialog
+        .open(LocationAccessDialogComponent, {maxWidth: "min(420px, 92vw)"})
+        .afterClosed()
+        .subscribe((enabled) => {
+          if (enabled) this.spotMap?.focusOnGeolocation();
+        });
+      return;
+    }
     this.spotMap?.focusOnGeolocation();
+  }
+
+  async openSharedDrafts(): Promise<void> {
+    const {SharedMapDraftsDialogComponent} = await import("../shared-map-drafts-dialog/shared-map-drafts-dialog.component");
+    this._dialog.open(SharedMapDraftsDialogComponent, {width: "560px", maxHeight: "80dvh"});
   }
 
   onCreateSpot(): void {
@@ -4338,8 +4501,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if ("location" in spot && typeof spot.location === "function") {
-      const location = spot.location();
-      return `local-${location.lat}_${location.lng}`;
+    return "local";
     }
 
     return null;
@@ -4353,7 +4515,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.appSettings.debugMode()) return;
 
     console.debug("[MapDebug][MapPage]", event, {
-      ...payload,
+      detailKeys: Object.keys(payload).sort(),
       selectedSpot: this._getSelectedSpotKey(this.selectedSpot()),
       selectedCommunity: this.selectedCommunityLanding()?.communityKey ?? null,
       selectedEvent: this.selectedEvent()?.id ?? null,
@@ -5040,7 +5202,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _openInfoPanel() {
-    if (this.responsiveService.isNotMobile()) {
+    if (this.usesMapDrawer()) {
       this.sidenavOpen.set(true);
     }
   }
@@ -5339,9 +5501,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
     this._locationSubscription?.unsubscribe();
-    this._alainModeSubscription?.unsubscribe();
     this._breakpointSubscription?.unsubscribe();
-    this._compactSidenavBreakpointSubscription?.unsubscribe();
     this._consentSubscription?.unsubscribe();
     this._authStateSubscription?.unsubscribe();
     this._privateDataSubscription?.unsubscribe();
@@ -5446,8 +5606,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return /^\/map\/(?:spots|events|communities)\/[^/]+/u.test(currentPath);
   }
 
-  spotCheckIn(spotId: SpotId) {
-    this.checkInService.checkIn(spotId);
+  private readonly _checkInFlow = inject(CheckInFlowService);
+  readonly checkInPending = this._checkInFlow.pending;
+
+  spotCheckIn(spotId: SpotId): Promise<void> {
+    return this._checkInFlow.checkIn(spotId, this.proximityCheckInSpot()?.name ?? null);
   }
 
   dismissCheckInSpot(spotId: SpotId) {

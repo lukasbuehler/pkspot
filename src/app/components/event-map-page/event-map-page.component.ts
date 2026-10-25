@@ -1,3 +1,7 @@
+import { ShareCardService } from "../../services/share-card.service";
+import { eventCopy } from "../../localization/entity-copy";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   inject,
@@ -18,6 +22,7 @@ import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   isPlatformBrowser,
   LocationStrategy,
+  NgTemplateOutlet,
 } from "@angular/common";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import type { AnyMedia } from "../../../db/models/Media";
@@ -99,7 +104,7 @@ import { EventProgramOccurrenceListComponent } from "../event-program-occurrence
 import { EventProgramMapScheduleComponent } from "../event-program-map-schedule/event-program-map-schedule.component";
 import {
   eventProgramDays,
-  eventProgramLocationVisits,
+  eventProgramMapLocationVisits,
   eventProgramSpotRefs,
   isEventProgramMarkerOccurrence,
   isEventProgramSpotOccurrence,
@@ -129,6 +134,7 @@ type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
 @Component({
   selector: "app-event-map-page",
   imports: [
+    NgTemplateOutlet,
     SpotListComponent,
     MatButtonModule,
     MatIconModule,
@@ -169,6 +175,9 @@ type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
   styleUrl: "./event-map-page.component.scss",
 })
 export class EventMapPageComponent implements OnInit, OnDestroy {
+  readonly shareCards = inject(ShareCardService);
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _spotMap: SpotMapComponent | GoogleMap2dComponent | undefined;
 
   /**
@@ -314,7 +323,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   // Derived display values. Defaults keep the template safe before the event loads.
   readonly name = computed(() => this.event()?.name ?? "");
   readonly venueString = computed(() => this.event()?.venueString ?? "");
-  readonly localityString = computed(() => this.event()?.localityString ?? "");
+  readonly localityString = computed(() => this.event()?.localityLabel ?? "");
   readonly bannerImageSrc = computed(
     () => eventImageDisplaySrc(this.event()?.bannerSrc) ?? "",
   );
@@ -329,7 +338,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   );
   readonly bounds = computed(() => {
     const event = this.event();
-    return event ? this._eventPageData.eventMapBounds(event) : null;
+    return event ? this._eventPageData.eventMapBounds(event, [
+      ...this.customMarkers().map((marker) => marker.location),
+      ...this.spots().map((spot) => spot.location()),
+    ]) : null;
   });
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
   /** Live event status, recomputed against the current event's dates. */
@@ -372,7 +384,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
    */
   readonly highlightedSpots = computed<SpotPreviewData[]>(() => {
     const tab = this.tab();
-    return tab === "all" || tab === "spots" || tab === "program"
+    return tab === "all" || tab === "spots"
       ? this._eventPageData.spotPreviewMarkers(this.spots())
       : [];
   });
@@ -458,7 +470,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     ),
   );
   readonly programLocationVisits = computed(() =>
-    eventProgramLocationVisits(
+    eventProgramMapLocationVisits(
       this.programOccurrences(),
       this.selectedProgramDay(),
       this.now(),
@@ -493,7 +505,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         icons: place.icons,
         number: time,
         badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
-        color: eventProgramLocationColor(visit),
+        color: eventProgramLocationColor(visit, this.selectedProgramDay()),
         priority: "required",
         ignoreCollisions: true,
         type: "event-program",
@@ -910,7 +922,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventCanonicalPath(event);
-    if (!event.published || event.visibility !== "public") {
+    if (!event.published || event.visibility !== "public" || event.viewerPolicy || event.listingTier === "community") {
       const isDraft = !event.published;
       this.metaTagService.setStaticPageMetaTags(
         isDraft
@@ -925,13 +937,15 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       this.metaTagService.setRobotsContent("noindex,nofollow");
       return;
     }
-    const description = this._eventDescription(event);
+    const copy = eventCopy(event, this.locale);
+    const description = copy.description;
     const image =
       eventImageDisplaySrc(event.bannerSrc) ?? "assets/banner_1200x630.png";
 
     this.metaTagService.setEventMetaTags(
       {
         name: event.name,
+        title: copy.title,
         image,
         description,
       },
@@ -945,15 +959,6 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _eventCanonicalPath(event: PkEvent): string {
     return this._eventPageData.eventCanonicalPath(event);
-  }
-
-  private _eventDescription(event: PkEvent): string {
-    const range = this._dateTime.formatDateRange(event.start, event.end);
-
-    return (
-      event.description ??
-      $localize`Event in ` + event.localityString + ` (${range})`
-    );
   }
 
   trackWebsiteClick() {
@@ -972,80 +977,13 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  async shareEvent() {
+  async shareEvent(): Promise<void> {
     const event = this.event();
     if (!event) return;
-
-    const { buildAbsoluteUrlNoLocale } =
-      await import("../../../scripts/Helpers");
-    const link = buildAbsoluteUrlNoLocale(`/events/${event.slug ?? event.id}`);
-
-    const shareData = {
-      title: event.name,
-      text: `PK Spot: ${event.name}`,
-      url: link,
-    };
-    this._analytics.trackEvent("share_event_clicked", {
-      surface: "event_map_page",
-      event_id: event.id,
-      event_slug: event.slug ?? null,
-      event_name: event.name,
-      event_status: event.status(),
-    });
-
-    const { Capacitor } = await import("@capacitor/core");
-    const isNative = Capacitor.isNativePlatform();
-
-    if (isNative) {
-      const { Share } = await import("@capacitor/share");
-      try {
-        await Share.share({ ...shareData, dialogTitle: "Share Event" });
-        this._analytics.trackEvent("share_event_succeeded", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "native_share",
-        });
-      } catch (err) {
-        console.error("Couldn't share this event", err);
-        this._analytics.trackEvent("share_event_failed", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "native_share",
-        });
-      }
-    } else if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        this._analytics.trackEvent("share_event_succeeded", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "web_share",
-        });
-      } catch (err) {
-        console.error("Couldn't share this event", err);
-        this._analytics.trackEvent("share_event_failed", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "web_share",
-        });
-      }
-    } else {
-      navigator.clipboard.writeText(`${event.name} - PK Spot \n${link}`);
-      this._analytics.trackEvent("share_event_succeeded", {
-        surface: "event_map_page",
-        event_id: event.id,
-        method: "clipboard",
-      });
-      this._snackbar.open(
-        `Link to ${event.name} event copied to clipboard`,
-        "Dismiss",
-        {
-          duration: 3000,
-          horizontalPosition: "center",
-          verticalPosition: "top",
-        },
-      );
-    }
+    const { buildAbsoluteUrlNoLocale } = await import("../../../scripts/Helpers");
+    this._analytics.trackEvent("share_event_clicked", { surface: "event_map_page", event_id: event.id });
+    await this.shareCards.share({ kind: "event", id: String(event.id) },
+      buildAbsoluteUrlNoLocale(`/events/${event.slug ?? event.id}`), event.name);
   }
 
   openEventWeather(selection: EventWeatherSelection): void {
@@ -1550,7 +1488,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------
 
   startEditingEvent(): void {
-    if (!this.canEditEvent()) return;
+    const event = this.event();
+    if (!event || !this.canEditEvent()) return;
+    if (event.listingTier === "community") {
+      void this._router.navigate(["/events", event.slug ?? event.id, "edit"]);
+      return;
+    }
     this.isEditingEvent.set(true);
   }
 
@@ -1577,6 +1520,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         { duration: 3000 },
       );
     } catch (err) {
+      this.featureTelemetry.failure("event-map-page", "onSaveEvent", err);
       console.error("Failed to save event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.save_failed:Couldn't save the event. Check the console for details.`,
@@ -1602,6 +1546,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       // Leave the page — the event no longer exists.
       this._router.navigate(["/events"]);
     } catch (err) {
+      this.featureTelemetry.failure("event-map-page", "onDeleteEvent", err);
       console.error("Failed to delete event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.delete_failed:Couldn't delete the event.`,

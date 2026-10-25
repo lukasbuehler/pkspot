@@ -4,6 +4,7 @@ import {
   buildEventCalendarMonth,
   calendarWeekdayLabels,
   eventLocalDateKeys,
+  isDayKey,
   shiftMonthKey,
 } from "./event-calendar.model";
 
@@ -40,6 +41,12 @@ function event(
 }
 
 describe("event calendar model", () => {
+  it("validates real calendar dates including leap days", () => {
+    expect(isDayKey("2028-02-29")).toBe(true);
+    for (const day of ["2026-02-29", "2026-09-31", "2026-13-01", "invalid"]) {
+      expect(isDayKey(day)).toBe(false);
+    }
+  });
   it("shifts months across year boundaries and renders leap day", () => {
     expect(shiftMonthKey("2026-12", 1)).toBe("2027-01");
     expect(shiftMonthKey("2027-01", -1)).toBe("2026-12");

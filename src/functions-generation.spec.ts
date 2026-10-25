@@ -134,6 +134,20 @@ describe("Cloud Functions generation policy", () => {
     );
   });
 
+  it("gives full community rebuilds a bounded maintenance window and terminal states", () => {
+    const communitySource = readFileSync(
+      resolve(functionsSourceRoot, "communityFunctions.ts"),
+      "utf8"
+    );
+
+    expect(communitySource).toMatch(
+      /export const rebuildAllCommunityPages = onDocumentCreated\([\s\S]*?\{ document: MANUAL_REBUILD_DOC, timeoutSeconds: 540, memory: "1GiB" \}/u
+    );
+    expect(communitySource).toContain('status: "RUNNING"');
+    expect(communitySource).toContain('status: "DONE"');
+    expect(communitySource).toContain('status: "FAILED"');
+  });
+
   it("binds age policy to Play Integrity in App Check protected callables", () => {
     const indexSource = readFileSync(
       resolve(functionsSourceRoot, "index.ts"),
@@ -234,6 +248,7 @@ describe("Cloud Functions generation policy", () => {
 
     expect(indexSource).toContain("processMediaIntakeUpload");
     expect(indexSource).toContain("markMediaUploadSafe");
+    expect(indexSource).toContain("markMediaUploadFalsePositive");
     expect(indexSource).toContain("reconcilePublishedMediaReviews");
     expect(indexSource).toContain("runMediaIntakeBackfill");
     expect(indexSource).toContain("runMediaModerationAudit");
@@ -277,6 +292,22 @@ describe("Cloud Functions generation policy", () => {
     expect(source).not.toContain("credential.cert");
     expect(source).not.toContain("process.env.GCE_METADATA_HOST =");
     expect(source).not.toContain("process.env.GCE_METADATA_HOST ??=");
+  });
+
+  it("keeps the Cloudflare SSR token broker narrow and cost bounded", () => {
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "cloudflareSsrAppCheckFunctions.ts"),
+      "utf8",
+    );
+
+    expect(source).toContain("CLOUDFLARE_SSR_TOKEN_BROKER_SECRET");
+    expect(source).toContain("CLOUDFLARE_SSR_FIREBASE_APP_ID");
+    expect(source).toContain('invoker: "public"');
+    expect(source).toContain("maxInstances: 2");
+    expect(source).toContain('response.set("Cache-Control", "no-store")');
+    expect(source).toContain("getAppCheck().createToken");
+    expect(source).not.toContain("credential.cert");
+    expect(source).not.toContain("private_key");
   });
 
   it("keeps Storage metadata auth on a gaxios version with compatible headers", () => {

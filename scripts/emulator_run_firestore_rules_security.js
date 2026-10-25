@@ -128,6 +128,17 @@ async function seedSecurityFixture() {
     type: "UPDATE",
     user: { uid: "owner" },
     timestamp_raw_ms: 1,
+    approved: false,
+    visibility: "public",
+    processing_status: "VOTING_OPEN",
+  });
+  batch.set(adminDb.doc("spots/public-spot/edits/closed-vote"), {
+    type: "UPDATE",
+    user: { uid: "owner" },
+    timestamp_raw_ms: 1,
+    approved: true,
+    visibility: "public",
+    processing_status: "APPROVED_VOTING",
   });
   batch.set(adminDb.doc("spots/public-spot/reviews/owner"), {
     rating: 4,
@@ -437,6 +448,21 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("users/owner/check_ins/check-in-1"), {
     spot_id: "public-spot",
   });
+  batch.set(adminDb.doc("users/owner/session_records/server-check-in"), {
+    owner_id: "owner",
+    source: "check_in",
+  });
+  batch.set(adminDb.doc("spot_activity_public/public-spot"), {
+    status: "recently_trained",
+    bucket: "2–4",
+    window_days: 30,
+  });
+  batch.set(
+    adminDb.doc(
+      "spots/public-spot/check_in_aggregate_contributions/private-check-in",
+    ),
+    { owner_id: "owner", eligibility: "accepted" }
+  );
   const notificationNow = Date.now();
   batch.set(adminDb.doc("users/owner/notifications/notification-1"), {
     type: "follow_request",
@@ -491,6 +517,20 @@ async function testPublicReadSurface(
   adminUser
 ) {
   await assertAllowed("anonymous spot read", () => getDoc(doc(anon.db, "spots/public-spot")));
+  await assertAllowed("anonymous reads coarse Spot activity by id", () =>
+    getDoc(doc(anon.db, "spot_activity_public/public-spot"))
+  );
+  await assertDenied("anonymous cannot list coarse Spot activity", () =>
+    getDocs(collection(anon.db, "spot_activity_public"))
+  );
+  await assertDenied("anonymous cannot read activity contributions", () =>
+    getDoc(
+      doc(
+        anon.db,
+        "spots/public-spot/check_in_aggregate_contributions/private-check-in"
+      )
+    )
+  );
   await assertAllowed("anonymous edit read", () =>
     getDoc(doc(anon.db, "spots/public-spot/edits/public-edit"))
   );
@@ -529,8 +569,11 @@ async function testPublicReadSurface(
   await assertDenied("anonymous draft event read", () =>
     getDoc(doc(anon.db, "events/unpublished-event"))
   );
-  await assertAllowed("legacy clients can temporarily enumerate canonical events", () =>
+  await assertDenied("ordinary clients cannot enumerate canonical events", () =>
     getDocs(collection(owner.db, "events"))
+  );
+  await assertDenied("anonymous clients cannot enumerate canonical events", () =>
+    getDocs(collection(anon.db, "events"))
   );
   await assertAllowed("admins can list canonical events", () =>
     getDocs(collection(adminUser.db, "events"))
@@ -741,6 +784,27 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
   );
   await assertDenied("vote payload impersonation", () =>
     setDoc(doc(other.db, "spots/public-spot/edits/public-edit/votes/other"), {
+      value: 1,
+      vote: "yes",
+      user: { uid: "owner" },
+    })
+  );
+  await assertDenied("vote value and label must agree", () =>
+    setDoc(doc(owner.db, "spots/public-spot/edits/public-edit/votes/owner"), {
+      value: 1,
+      vote: "no",
+      user: { uid: "owner" },
+    })
+  );
+  await assertDenied("cannot vote on private organization review", () =>
+    setDoc(doc(owner.db, "spots/verified-spot/edits/private-pending/votes/owner"), {
+      value: 1,
+      vote: "yes",
+      user: { uid: "owner" },
+    })
+  );
+  await assertDenied("cannot vote after an edit is approved", () =>
+    setDoc(doc(owner.db, "spots/public-spot/edits/closed-vote/votes/owner"), {
       value: 1,
       vote: "yes",
       user: { uid: "owner" },
@@ -982,6 +1046,7 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertAllowed("owner writes own session record", () =>
     setDoc(doc(owner.db, "users/owner/session_records/session-1"), {
       owner_id: "owner",
+      source: "manual",
     })
   );
   await assertAllowed("owner reads own session records", () =>
@@ -993,6 +1058,58 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertDenied("owner cannot forge a session record owner", () =>
     setDoc(doc(owner.db, "users/owner/session_records/forged"), {
       owner_id: "other",
+      source: "manual",
+    })
+  );
+  await assertDenied("owner cannot forge a check-in session", () =>
+    setDoc(doc(owner.db, "users/owner/session_records/forged-check-in"), {
+      owner_id: "owner",
+      source: "check_in",
+    })
+  );
+  await assertDenied("owner cannot alter a server check-in session", () =>
+    updateDoc(doc(owner.db, "users/owner/session_records/server-check-in"), {
+      source: "manual",
+    })
+  );
+  await assertDenied("owner cannot delete a server check-in session", () =>
+    deleteDoc(doc(owner.db, "users/owner/session_records/server-check-in"))
+  );
+  const recoveryPausePath = "users/owner/recovery_pauses/recovery-1";
+  const recoveryNow = Timestamp.now();
+  const recoveryPause = {
+    owner_id: "owner",
+    started_on: "2026-08-03",
+    ended_on: "2026-08-07",
+    reason: "injury",
+    note: "Private context only.",
+    time_created: recoveryNow,
+    time_created_raw_ms: Date.now(),
+    time_updated: recoveryNow,
+    time_updated_raw_ms: Date.now(),
+  };
+  await assertAllowed("owner writes own recovery pause", () =>
+    setDoc(doc(owner.db, recoveryPausePath), recoveryPause)
+  );
+  await assertAllowed("owner reads own recovery pauses", () =>
+    getDocs(collection(owner.db, "users/owner/recovery_pauses"))
+  );
+  await assertDenied("other user reads owner recovery pause", () =>
+    getDoc(doc(other.db, recoveryPausePath))
+  );
+  await assertDenied("other user lists owner recovery pauses", () =>
+    getDocs(collection(other.db, "users/owner/recovery_pauses"))
+  );
+  await assertDenied("other user creates an owner recovery pause", () =>
+    setDoc(doc(other.db, "users/owner/recovery_pauses/recovery-2"), recoveryPause)
+  );
+  await assertDenied("other user updates owner recovery pause", () =>
+    updateDoc(doc(other.db, recoveryPausePath), { note: "Compromised" })
+  );
+  await assertDenied("owner adds location data to recovery pause", () =>
+    setDoc(doc(owner.db, "users/owner/recovery_pauses/with-location"), {
+      ...recoveryPause,
+      spot_id: "public-spot",
     })
   );
   await assertAllowed("owner reads own following", () =>
@@ -1199,6 +1316,55 @@ async function testPublicUserProfileGuards(
       public_search: true,
     })
   );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.client_integrity": "firebase_app_check",
+    "age_policy.assurance.method": { provider: "apple" },
+  });
+  await assertDenied("unbound Apple relay cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), { public_profile_enabled: true })
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.client_integrity": "apple_app_attest_request_bound",
+  });
+  await assertAllowed("bound Apple approval can enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), { public_profile_enabled: true })
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.source": "oneid_age_check",
+    "age_policy.assurance.client_integrity": "server_to_server_oidc",
+    "age_policy.assurance.approval_basis": "oneid:financial_attribute:age_check:server_to_server_oidc:v1",
+    "age_policy.assurance.method": {provider: "oneid", category: "financial_attribute", provider_method: "age_check"},
+  });
+  await assertDenied("legacy OneID proof cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.approval_basis": "oneid:financial_attribute:age_check:server_to_server_oidc:v2",
+  });
+  await assertAllowed("reviewed OneID proof can enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await adminDb.doc("users/adult").update({"age_policy.assurance.method.provider_method": "unapproved"});
+  await assertDenied("unapproved OneID method cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.approval_basis": "oneid:provider_threshold:server_to_server_oidc:v3",
+    "age_policy.assurance.method": {provider: "oneid", category: "external_verification", provider_method: "age_verification"},
+  });
+  await assertAllowed("reviewed multi-method OneID proof can enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await adminDb.doc("users/adult").update({"age_policy.assurance.method.provider_method": "unapproved"});
+  await assertDenied("unknown OneID product cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await assertDenied("owner cannot inject an Apple attestation key", () =>
+    setDoc(doc(adult.db, "users/adult/apple_age_keys/forged"), { public_key: "forged", counter: 0 })
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.client_integrity": "play_integrity_request_bound",
+  });
   await assertDenied("user without verified adult eligibility cannot enable public profile", () =>
     updateDoc(doc(restricted.db, "users/restricted"), {
       public_profile_enabled: true,
@@ -1376,6 +1542,34 @@ async function testReadOnlyBackendCollections(owner, adminUser) {
     );
     await assertDenied(`regular user write to ${label}`, () =>
       setDoc(doc(owner.db, path), { attacker: true })
+    );
+    await assertDenied(`admin direct write to ${label}`, () =>
+      setDoc(doc(adminUser.db, path), { bypass: true })
+    );
+  }
+
+  await adminDb.doc("support_orders/server-order").set({
+    kind: "physical_order",
+    payment: { status: "paid" },
+    customer: { email: "supporter@example.com" },
+    shipping: { line1: "Private Street 1" },
+  });
+  await adminDb.doc("support_shop_webhook_events/server-event").set({
+    order_id: "server-order",
+    stripe_event_id: "evt_private",
+  });
+  for (const [label, path] of [
+    ["support order", "support_orders/server-order"],
+    ["support shop webhook receipt", "support_shop_webhook_events/server-event"],
+  ]) {
+    await assertDenied(`regular user read of ${label}`, () =>
+      getDoc(doc(owner.db, path))
+    );
+    await assertDenied(`regular user write to ${label}`, () =>
+      setDoc(doc(owner.db, path), { attacker: true })
+    );
+    await assertDenied(`admin direct read of ${label}`, () =>
+      getDoc(doc(adminUser.db, path))
     );
     await assertDenied(`admin direct write to ${label}`, () =>
       setDoc(doc(adminUser.db, path), { bypass: true })
@@ -1772,7 +1966,7 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       owner: { type: "user", user_id: "other" },
     })
   );
-  await assertDenied("private creation remains disabled during compatibility", () =>
+  await assertDenied("ordinary clients cannot directly create private canonical events", () =>
     setDoc(doc(owner.db, "events/owner-private-event"), {
       name: "Owner Private Event",
       owner: { type: "user", user_id: "owner" },
@@ -1782,7 +1976,7 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       viewer_policy: { audience: "invited" },
     })
   );
-  await assertDenied("unlisted creation remains disabled during compatibility", () =>
+  await assertDenied("ordinary clients cannot directly create unlisted canonical events", () =>
     setDoc(doc(owner.db, "events/owner-unlisted-event"), {
       name: "Owner Unlisted Event",
       owner: { type: "user", user_id: "owner" },
@@ -2005,6 +2199,18 @@ async function testEventLiveUpdateGuards(anon, owner, other, adminUser) {
       active: false,
       updated_at: Timestamp.now(),
     })
+  );
+  await assertAllowed("user lists own subscriptions across events", () =>
+    getDocs(query(collectionGroup(owner.db, "live_update_subscribers"), where("user_id", "==", "owner")))
+  );
+  await assertDenied("user cannot list another attendee's subscriptions", () =>
+    getDocs(query(collectionGroup(other.db, "live_update_subscribers"), where("user_id", "==", "owner")))
+  );
+  await assertDenied("user cannot list subscriptions without an owner filter", () =>
+    getDocs(collectionGroup(owner.db, "live_update_subscribers"))
+  );
+  await assertDenied("anonymous cannot list event subscriptions", () =>
+    getDocs(query(collectionGroup(anon.db, "live_update_subscribers"), where("user_id", "==", "owner")))
   );
   await assertAllowed("user keeps only reminders for their event", () =>
     updateDoc(doc(owner.db, subscriptionPath), {

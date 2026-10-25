@@ -1,0 +1,34 @@
+<h2 mat-dialog-title i18n>Verify my age</h2>
+
+<mat-dialog-content>
+  <p class="mat-body-medium" i18n>
+    This is optional. PK Spot’s normal features and private check-ins stay available without it.
+    Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available.
+  </p>
+  <p class="mat-body-small verification-dialog__privacy" i18n>
+    PK Spot requests only an 18+ result. OneID may ask you for documents, a selfie or other details depending on the method you choose. PK Spot does not store these details. Available methods depend on your country and OneID.
+  </p>
+
+  <div class="verification-dialog__options">
+    @for (option of options(); track option.id) {
+      <section class="verification-dialog__option" [class.verification-dialog__option--unavailable]="option.state === 'unavailable'">
+        <div class="verification-dialog__icon" aria-hidden="true"><mat-icon>verified_user</mat-icon></div>
+        <div class="verification-dialog__copy">
+          <h3 class="mat-title-small">{{ option.title }} @if (option.recommended) { <span i18n>(recommended)</span> }</h3>
+          <p class="mat-body-small">{{ option.description }}</p>
+          @if (option.state === "unavailable") { <p class="mat-body-small" i18n>Not available on this installation yet.</p> }
+        </div>
+        <button matButton="outlined" type="button" [disabled]="option.state === 'unavailable' || activeProvider() !== null"
+          [showProgress]="activeProvider() === option.id" (click)="start(option.id)">
+          <span i18n>Verify</span>
+          <mat-spinner progressIndicator diameter="18" strokeWidth="2" />
+        </button>
+      </section>
+    }
+  </div>
+  @if (statusMessage(); as message) { <p role="status">{{ message }}</p> }
+  <button matButton type="button" [disabled]="checking()" (click)="retry()" i18n>Check verification result</button>
+  @if (error(); as message) { <p class="verification-dialog__error mat-body-small" role="alert">{{ message }}</p> }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end"><button matButton="filled" type="button" mat-dialog-close i18n>Not now</button></mat-dialog-actions>

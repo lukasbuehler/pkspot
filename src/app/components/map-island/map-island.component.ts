@@ -108,6 +108,15 @@ export class MapIslandComponent {
 
   readonly promotedEventLabel = computed(() => promotedEventLabel("short"));
 
+  readonly hasBroadcast = computed(() => {
+    const content = this.content();
+    return (
+      content?.kind === "event" &&
+      this.eventStatus() === "live" &&
+      content.event.livestreamLive
+    );
+  });
+
   readonly dismissEventLabel = computed(() => {
     const c = this.content();
     return c?.kind === "event" && c.event.isSponsored

@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# @capacitor-firebase/authentication compiles optional Facebook provider hooks
+# even when PK Spot does not configure Facebook login. Keep R8 strict for all
+# enabled providers while suppressing only these absent optional SDK classes.
+-dontwarn com.facebook.CallbackManager$Factory
+-dontwarn com.facebook.CallbackManager
+-dontwarn com.facebook.FacebookCallback
+-dontwarn com.facebook.login.LoginManager
+-dontwarn com.facebook.login.widget.LoginButton

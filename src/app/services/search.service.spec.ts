@@ -12,9 +12,8 @@ import {
 const typesenseSearchMock = vi.hoisted(() => vi.fn());
 const typesenseMultiSearchMock = vi.hoisted(() => vi.fn());
 
-// Mock the Typesense SearchClient
-vi.mock("typesense", () => ({
-  SearchClient: function SearchClient() {
+vi.mock("./typesense-search-client", () => ({
+  TypesenseSearchClient: function TypesenseSearchClient() {
     return {
       multiSearch: {
         perform: typesenseMultiSearchMock,
@@ -186,6 +185,17 @@ describe("SearchService", () => {
       expect(preview.location?.longitude).toBe(11.5678);
     });
 
+    it("preserves only published activity bands from search", () => {
+      for (const value of [2, 5, 10, 25, null, undefined, 3, 42]) {
+        const preview = service.getSpotPreviewFromHit({
+          document: { id: "activity", name: "Test", recent_activity_min_30d: value },
+        });
+        expect(preview.recent_activity_min_30d).toBe(
+          [2, 5, 10, 25].includes(value as number) ? value : null,
+        );
+      }
+    });
+
     it("should parse location object correctly", () => {
       const hit = {
         document: {
@@ -238,6 +248,32 @@ describe("SearchService", () => {
       const preview = service.getSpotPreviewFromHit(hit);
 
       expect(preview.locality).toBe("Schwabing, Munich, DE");
+    });
+
+    it("carries server-copied town names for localized cards", () => {
+      const preview = service.getSpotPreviewFromHit({
+        document: {
+          id: "liege-steps",
+          name: "Steps",
+          address: { locality: "Liège", country: { code: "be" } },
+          place_names: { key: "BE:liege:51:6", locality: { de: "Lüttich", fr: "Liège", bad: 3 } },
+        },
+      });
+
+      expect(preview.locality).toBe("Liège, BE");
+      expect(preview.localityNames).toEqual({ de: "Lüttich", fr: "Liège" });
+    });
+
+    it("keeps an event's original town for editing and its names for display", () => {
+      const preview = service.getEventPreviewFromHit({
+        document: {
+          id: "jam", name: "Jam", locality_string: "Liège", start_seconds: 1, end_seconds: 2,
+          place_names: { key: "BE:liege:51:6", locality: { de: "Lüttich" } },
+        },
+      });
+
+      expect(preview.localityString).toBe("Liège");
+      expect(preview.placeNames?.locality).toEqual({ de: "Lüttich" });
     });
 
     it("should handle partial address data", () => {
@@ -690,18 +726,52 @@ describe("SearchService", () => {
       expect(results.hits.map((hit) => hit.document.id)).toEqual(["spot-a"]);
     });
 
+    it.each([12, 14])("returns all three Locarno Spots within the preview budget at zoom %s", async (zoom) => {
+      const hits = [
+        { document: { id: "burbaglio", rating: 0 } },
+        { document: { id: "scuola", rating: 0 } },
+        { document: { id: "castello", rating: 0 } },
+      ];
+      typesenseSearchMock
+        .mockResolvedValueOnce({
+          found: zoom === 12 ? 1 : 2,
+          found_docs: 3,
+          grouped_hits: zoom === 12
+            ? [{ group_key: [8592, 5817], found: 3, hits: hits.slice(0, 1) }]
+            : [
+                { group_key: [34371, 23270], found: 1, hits: hits.slice(0, 1) },
+                { group_key: [34368, 23271], found: 2, hits: hits.slice(1, 2) },
+              ],
+        })
+        .mockResolvedValueOnce({ found: 3, hits });
+
+      const result = await service.searchSpotsInRawBounds(
+        46.2, 46.14, 8.84, 8.74, 250,
+        undefined, undefined, undefined, undefined, false, zoom,
+      );
+
+      expect(result.hits).toEqual(hits);
+      expect(result.found).toBe(3);
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      const [sampledParams] = typesenseSearchMock.mock.calls[0];
+      const [completeParams] = typesenseSearchMock.mock.calls[1];
+      expect(completeParams.group_by).toBeUndefined();
+      expect(completeParams.group_limit).toBeUndefined();
+      expect(completeParams.filter_by).toBe(sampledParams.filter_by);
+    });
+
     it("uses finer groups so a lower-rated geographic pocket remains represented", async () => {
       typesenseSearchMock.mockResolvedValueOnce({
         found: 2,
         grouped_hits: [
           {
             group_key: [34322, 22950],
-            found: 5,
+            found: 50,
             hits: [{ document: { id: "rated-a", rating: 4 } }],
           },
           {
             group_key: [34322, 22948],
-            found: 3,
+            found: 30,
             hits: [{ document: { id: "walchestrasse", rating: 0 } }],
           },
         ],
@@ -729,6 +799,26 @@ describe("SearchService", () => {
         "rated-a",
         "walchestrasse",
       ]);
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps sampling when the total document count exceeds the budget", async () => {
+      const hit = { document: { id: "sample", rating: 0 } };
+      typesenseSearchMock.mockResolvedValueOnce({
+        found: 300,
+        found_docs: 600,
+        grouped_hits: [{ found: 2, hits: [hit] }],
+      });
+      typesenseSearchMock.mockResolvedValue({ grouped_hits: [], found: 300 });
+
+      await service.searchSpotsInRawBounds(
+        46.2, 46.14, 8.84, 8.74, 250,
+        undefined, undefined, undefined, undefined, false, 12,
+      );
+
+      for (const [params] of typesenseSearchMock.mock.calls) {
+        expect(params.group_by).toBeDefined();
+      }
     });
 
     it("clamps close-zoom spot grouping at the finest indexed tile level", async () => {
@@ -904,6 +994,13 @@ describe("SearchService", () => {
   });
 
   describe("getEventPreviewFromHit", () => {
+    it.each([true, false, undefined])("carries explicit livestream status %s through a Typesense-only map preview", (live) => {
+      const hit = {document: {id: "broadcast", name: "Broadcast", start_seconds: 1792750000,
+        end_seconds: 1792850000, livestream_live: live}};
+      expect(service.getEventPreviewFromHit(hit).livestreamLive).toBe(live === true);
+      expect(service.getEventFromHit(hit)?.livestreamLive).toBe(live === true);
+    });
+
     it("maps Typesense event hits to lightweight previews with resolved media and geo fields", () => {
       const preview = service.getEventPreviewFromHit({
         document: {
@@ -1423,7 +1520,9 @@ describe("SearchService", () => {
             "event_categories:=[`jam`,`competition`] && " +
             "series_ids:=[`parkour-earth`]",
           sort_by: "start_seconds:desc",
-          facet_by: "event_categories,series_ids,community_keys",
+          facet_by:
+            "event_categories,series_ids,community_keys,listing_tier," +
+            "region_keys",
           page: 2,
           per_page: 40,
         }),
@@ -1439,7 +1538,52 @@ describe("SearchService", () => {
         categories: [{ value: "jam", count: 1 }],
         series: [{ value: "parkour-earth", count: 1 }],
         communities: [{ value: "country:ch", count: 1 }],
+        listingTiers: [],
+        regions: [],
       });
+    });
+
+    it("falls back safely when the deployed schema cannot filter discovery tiers", async () => {
+      typesenseSearchMock
+        .mockRejectedValueOnce(
+          new Error("Could not find a filter field named `listing_tier` in the schema."),
+        )
+        .mockResolvedValueOnce({
+          hits: [{ document: validDocument }],
+          found: 1,
+          page: 1,
+        });
+
+      const result = await service.searchEventDiscovery({
+        listingTiers: ["formal"],
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      expect(typesenseSearchMock.mock.calls[1][0]).toMatchObject({
+        filter_by: "published:=true",
+        facet_by: "event_categories,series_ids,community_keys",
+      });
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].listingTier).toBe("formal");
+    });
+
+    it("does not mislabel legacy search results as Community activities", async () => {
+      typesenseSearchMock
+        .mockRejectedValueOnce(
+          new Error("Could not find a filter field named `listing_tier` in the schema."),
+        )
+        .mockResolvedValueOnce({
+          hits: [{ document: validDocument }],
+          found: 1,
+          page: 1,
+        });
+
+      const result = await service.searchEventDiscovery({
+        listingTiers: ["community"],
+      });
+
+      expect(result.items).toEqual([]);
+      expect(result.found).toBe(0);
     });
 
     it("uses wildcard search and excludes invalid time-zone projections", async () => {

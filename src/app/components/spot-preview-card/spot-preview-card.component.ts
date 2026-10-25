@@ -14,6 +14,7 @@ import {
   ChangeDetectionStrategy,
   output
 } from "@angular/core";
+import { formatDistanceKm } from "../../shared/distance-format";
 import { Router } from "@angular/router";
 import { MapsApiService } from "../../services/maps-api.service";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -44,7 +45,10 @@ import {
 } from "../../../db/schemas/SpotTypeAndAccess";
 
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { SpotActivitySummaryComponent } from "../spot-activity-summary/spot-activity-summary.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+import { localizedCountryName } from "../../../scripts/CommunityPlaceNames";
+import { localizedPlaceLabel } from "../../../scripts/LocalizedPlaceLabels";
 
 type SpotPreviewCardData = SpotPreviewData & {
   is_iconic?: unknown;
@@ -62,6 +66,7 @@ type SpotPreviewCardData = SpotPreviewData & {
     NgOptimizedImage,
     SpotRatingComponent,
     MediaPlaceholderComponent,
+    SpotActivitySummaryComponent,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -86,6 +91,7 @@ export class SpotPreviewCardComponent
   forcePlaceholderContainer = input<boolean>(false);
 
   spotData = input<Spot | LocalSpot | SpotPreviewCardData | null>(null);
+  readonly activitySpotId = computed(() => this.shouldLoadMedia() ? this._getSpotId(this.spotData()) : undefined);
   isIconicSpot = computed(() => {
     const spot = this.spotData();
     if (!spot) return false;
@@ -116,7 +122,7 @@ export class SpotPreviewCardComponent
     const spotType =
       "type" in spot && typeof spot.type === "string" ? spot.type : undefined;
     return spot.amenities
-      ? getImportantAmenities(spot.amenities, spotType)
+      ? getImportantAmenities(spot.amenities, spotType, this.spotAccess())
       : [];
   });
   showInfoButton = input<boolean>(true);
@@ -124,6 +130,11 @@ export class SpotPreviewCardComponent
   readonly infoOnly = input<boolean>(false);
   readonly clickable = input<boolean>(false);
   readonly isCompact = input(false);
+  /** Straight-line distance from the viewer's area, shown beside the place. */
+  readonly distanceKm = input<number | null | undefined>(null);
+  readonly distanceLabel = computed(() =>
+    formatDistanceKm(this.distanceKm(), this.locale),
+  );
 
   readonly spotClick = output<Spot | LocalSpot>();
   readonly dismiss = output<boolean>();
@@ -275,7 +286,9 @@ export class SpotPreviewCardComponent
       return getDisplayCountryName(spot.address()) ?? "";
     }
 
-    return spot.countryName?.trim() ?? countries[this.countryCode() ?? ""]?.name ?? "";
+    const fallback = spot.countryName?.trim() || countries[this.countryCode() ?? ""]?.name || "";
+    const code = this.countryCode();
+    return code ? localizedCountryName(code, this.locale, fallback) : fallback;
   });
 
   countryTooltip = this.countryDisplayName;
@@ -285,10 +298,15 @@ export class SpotPreviewCardComponent
     if (!spot) return "";
 
     if (spot instanceof Spot || spot instanceof LocalSpot) {
-      return getDisplayLocalityName(spot.address()) ?? "";
+      return getDisplayLocalityName(spot.localizedAddress()) ?? "";
     }
 
-    return this.getPreviewLocalityName(spot.locality, this.countryCode());
+    // Server-copied names localize the town without a lookup per card.
+    return localizedPlaceLabel(
+      this.getPreviewLocalityName(spot.locality, this.countryCode()),
+      spot.localityNames,
+      this.locale,
+    );
   });
 
   displayLocation = computed(

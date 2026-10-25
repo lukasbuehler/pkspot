@@ -1,0 +1,98 @@
+:host {
+  display: block;
+}
+
+.reward {
+  display: grid;
+  gap: 14px;
+  padding: 8px 4px calc(8px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+.reward__summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reward__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+
+  &.is-failed {
+    color: var(--mat-sys-on-error-container);
+    background: var(--mat-sys-error-container);
+  }
+}
+
+.reward__progress {
+  border-radius: 4px;
+}
+
+.reward__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+    overflow-wrap: anywhere;
+  }
+}
+
+.reward__visit {
+  margin: 0;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-title-small);
+}
+
+.reward__note {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+// Rank progress: tonal-card structure with a separate 40px icon tile.
+.reward__rank {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+}
+
+.reward__rank-tile {
+  --spot-rank-icon-size: 26px;
+
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-highest);
+}
+
+.reward__rank-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+
+  strong { font: var(--mat-sys-title-small); }
+  span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); }
+}
+
+.reward__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -2,16 +2,14 @@ import {
   Injectable,
   signal,
   computed,
-  effect,
+  DestroyRef,
   inject,
   PLATFORM_ID,
-  Optional,
-  Inject,
+  REQUEST,
 } from "@angular/core";
-import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { isPlatformBrowser } from "@angular/common";
-import { REQUEST } from "../../express.token";
-import { Request } from "express";
+import { getNavigationLayout } from "../features/navigation-layout";
 
 /**
  * Responsive view mode based on screen size breakpoints
@@ -36,10 +34,12 @@ export type ViewMode = "mobile" | "tablet" | "desktop";
  */
 @Injectable({ providedIn: "root" })
 export class ResponsiveService {
+  private readonly destroyRef = inject(DestroyRef);
+  private initializationFrame = 0;
   private breakpointObserver = inject(BreakpointObserver);
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
-  private request = inject(REQUEST, { optional: true }) as Request | null;
+  private request = inject(REQUEST);
   private _initializationCheckScheduled = false;
 
   /**
@@ -67,6 +67,26 @@ export class ResponsiveService {
    * Typical devices: desktops, laptops
    */
   readonly isDesktop = signal(this.detectInitialDesktop());
+
+  /** Current layout viewport width, observed independently of the app shell. */
+  private readonly _viewportWidth = signal<number | null>(this.getViewportWidth());
+  readonly viewportWidth = this._viewportWidth.asReadonly();
+
+  /**
+   * Current layout viewport height, observed independently of the app shell.
+   * Deliberately uses `innerHeight` rather than VisualViewport so opening the
+   * keyboard never switches the navigation placement.
+   */
+  private readonly _viewportHeight = signal<number | null>(
+    this.getViewportHeight(),
+  );
+  readonly viewportHeight = this._viewportHeight.asReadonly();
+
+  readonly navigationLayout = computed(() => getNavigationLayout({
+    width: this.viewportWidth(),
+    height: this.viewportHeight(),
+  }));
+  readonly alainMode = computed(() => this.navigationLayout() === "menu");
 
   /**
    * Current view mode
@@ -96,7 +116,15 @@ export class ResponsiveService {
     // Only setup breakpoint listener in browser environment
     if (this.isBrowser) {
       this.setupBreakpointListener();
+      this.observeViewport();
     }
+  }
+
+  refreshViewport(): void {
+    this._viewportWidth.set(this.getViewportWidth());
+    this._viewportHeight.set(this.getViewportHeight());
+    const mode = this.detectViewportMode();
+    if (mode) this.applyViewportMode(mode);
   }
 
   /**
@@ -152,11 +180,11 @@ export class ResponsiveService {
     if (!this.request) return false;
 
     // Check modern Client Hints header
-    const secChUaMobile = this.request.headers["sec-ch-ua-mobile"];
+    const secChUaMobile = this.request.headers.get("sec-ch-ua-mobile");
     if (secChUaMobile === "?1") return true;
     if (secChUaMobile === "?0") return false;
 
-    const ua = this.request.headers["user-agent"] || "";
+    const ua = this.request.headers.get("user-agent") ?? "";
     // Added 'Mobile' to the regex to catch more general mobile user agents
     return /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(
       ua
@@ -168,7 +196,7 @@ export class ResponsiveService {
    */
   private isTabletUserAgent(): boolean {
     if (!this.request) return false;
-    const ua = this.request.headers["user-agent"] || "";
+    const ua = this.request.headers.get("user-agent") ?? "";
     return /iPad|Android(?!.*Mobile)/i.test(ua);
   }
 
@@ -178,13 +206,14 @@ export class ResponsiveService {
     // - Mobile: < 600px
     // - Tablet: 600px - 959px
     // - Desktop: >= 960px
-    this.breakpointObserver
+    const subscription = this.breakpointObserver
       .observe([
         "(max-width: 599.98px)", // mobile
         "(min-width: 600px) and (max-width: 959.98px)", // tablet
         "(min-width: 960px)", // desktop
       ])
       .subscribe((result) => {
+        this.refreshViewport();
         const viewportMode = this.detectViewportMode();
         const isMobile =
           viewportMode === "mobile" ||
@@ -205,15 +234,30 @@ export class ResponsiveService {
           this.scheduleInitializedAfterViewportSettles();
         }
       });
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
+
+  private observeViewport(): void {
+    const refresh = () => this.refreshViewport();
+    // WebKit may settle its layout after bootstrap, without crossing a CDK
+    // breakpoint. Observe both axes, including changes within the same mode.
+    window.addEventListener("resize", refresh);
+    window.visualViewport?.addEventListener("resize", refresh);
+    const observer = typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(refresh);
+    observer?.observe(document.documentElement);
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener("resize", refresh);
+      window.visualViewport?.removeEventListener("resize", refresh);
+      observer?.disconnect();
+      cancelAnimationFrame(this.initializationFrame);
+    });
   }
 
   private getViewportWidth(): number | null {
     if (!this.isBrowser || typeof window === "undefined") return null;
 
-    const visualViewportWidth =
-      typeof window.visualViewport?.width === "number"
-        ? window.visualViewport.width
-        : null;
     const documentWidth =
       typeof document !== "undefined"
         ? document.documentElement.clientWidth
@@ -221,10 +265,26 @@ export class ResponsiveService {
 
     return Math.round(
       Math.min(
-        ...[visualViewportWidth, documentWidth, window.innerWidth].filter(
+        ...[documentWidth, window.innerWidth].filter(
           (width): width is number => typeof width === "number" && width > 0
         )
       )
+    );
+  }
+
+  private getViewportHeight(): number | null {
+    if (!this.isBrowser || typeof window === "undefined") return null;
+    const documentHeight =
+      typeof document !== "undefined"
+        ? document.documentElement.clientHeight
+        : null;
+
+    return Math.round(
+      Math.min(
+        ...[documentHeight, window.innerHeight].filter(
+          (height): height is number => typeof height === "number" && height > 0,
+        ),
+      ),
     );
   }
 
@@ -246,20 +306,22 @@ export class ResponsiveService {
     if (this._initializationCheckScheduled) return;
     this._initializationCheckScheduled = true;
 
-    let lastMode: ViewMode | null = null;
+    let lastSize = "";
     let stableFrameCount = 0;
     let frameCount = 0;
     const requiredStableFrames = 6;
     const maxFrames = 45;
 
     const check = () => {
+      this.refreshViewport();
       const mode = this.detectViewportMode();
+      const size = `${this.viewportWidth()}x${this.viewportHeight()}`;
       frameCount += 1;
 
       if (mode) {
         this.applyViewportMode(mode);
-        stableFrameCount = mode === lastMode ? stableFrameCount + 1 : 1;
-        lastMode = mode;
+        stableFrameCount = size === lastSize ? stableFrameCount + 1 : 1;
+        lastSize = size;
       }
 
       if (
@@ -277,9 +339,9 @@ export class ResponsiveService {
         return;
       }
 
-      requestAnimationFrame(check);
+      this.initializationFrame = requestAnimationFrame(check);
     };
 
-    requestAnimationFrame(check);
+    this.initializationFrame = requestAnimationFrame(check);
   }
 }

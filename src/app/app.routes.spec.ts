@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { routes } from "./app.routes";
 
 describe("app routes", () => {
+  it("keeps training notes owner-only with no public profile log route", () => {
+    expect(routes.some(route => route.path === "u/:userID/logs")).toBe(false);
+    for (const path of ["train/log", "train/log/new", "train/log/:entryId", "train/log/:entryId/edit"]) {
+      expect(routes.some(route => route.path === path)).toBe(true);
+    }
+  });
   const legacyCommunityPrefix = ["map", "community"].join("/");
   const legacyCommunityRoute = `${legacyCommunityPrefix}/:slug`;
 
@@ -125,6 +131,12 @@ describe("app routes", () => {
     expect(contactRoute?.data?.["acceptanceFree"]).toBe(true);
   });
 
+  it("should keep the development-only shop out of the default route table", () => {
+    expect(routes.find((route) => route.path === "shop")).toBeUndefined();
+    expect(routes.find((route) => route.path === "shop/orders")).toBeUndefined();
+    expect(routes.find((route) => route.path === "support/orders")).toBeUndefined();
+  });
+
   it("should keep unified safety cases hidden until email delivery is ready", () => {
     const intake = routes.find((route) => route.path === "safety");
     const caseView = routes.find(
@@ -161,13 +173,11 @@ describe("app routes", () => {
     expect(embeddedMapIndex).toBeLessThan(embeddedInfoIndex);
   });
 
-  it("should keep session planning disabled for this release", () => {
-    const sessionPlanner = findRoute("events/session/new");
+  it("should send legacy community creation links to the private-first session planner", () => {
+    const communityPlanner = findRoute("events/community/new");
 
-    expect(sessionPlanner.loadComponent).toBeUndefined();
-    expect(sessionPlanner.pathMatch).toBe("full");
-    expect(sessionPlanner.data?.["discoverable"]).toBe(false);
-    expect(getRedirectTarget(sessionPlanner)).toBe("/events");
+    expect((communityPlanner.redirectTo as () => string)()).toBe("/events/session/new");
+    expect(communityPlanner.pathMatch).toBe("full");
   });
 
   it("should redirect legacy embedded event URLs to the embedded event map", () => {

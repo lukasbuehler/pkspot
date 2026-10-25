@@ -620,6 +620,25 @@ describe("FirestoreAdapterService (native)", () => {
   });
 
   describe("setDocument (native)", () => {
+    it("retains a subscription timestamp marker unchanged across native read and write", async () => {
+      const subscribedAt = {
+        __type__: "timestamp", seconds: 1791963326, nanoseconds: 471000000,
+      };
+      FirebaseFirestore.getDocument.mockResolvedValueOnce({
+        snapshot: { id: "user-1", data: { subscribed_at: subscribedAt } },
+      });
+      const existing = await service.getDocument<{ subscribed_at: unknown }>(
+        "events/event-1/live_update_subscribers/user-1",
+      );
+      await service.setDocument("events/event-1/live_update_subscribers/user-1", {
+        subscribed_at: existing!.subscribed_at,
+        updated_at: Timestamp.now(),
+      });
+      const payload = JSON.parse(JSON.stringify(FirebaseFirestore.setDocument.mock.calls[0][0].data));
+      expect(payload.subscribed_at).toEqual(subscribedAt);
+      expect(payload.updated_at.__type__).toBe("timestamp");
+    });
+
     it("should call native setDocument", async () => {
       await service.setDocument("collection/doc-id", { name: "Native Doc" });
 

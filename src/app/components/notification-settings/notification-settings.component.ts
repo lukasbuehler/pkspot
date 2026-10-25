@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -62,6 +64,8 @@ type CommunityNotificationKind = "events" | "spots";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationSettingsComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly notificationPreferences = inject(NotificationPreferencesService);
   readonly pushNotifications = inject(PushNotificationsService);
 
@@ -78,7 +82,6 @@ export class NotificationSettingsComponent implements OnInit {
   readonly savingPreferences = signal(false);
   readonly savingCommunityPreferences = signal(false);
 
-  readonly notificationColumns = ["notification", "enabled"] as const;
   readonly communityColumns = ["community", "events", "spots"] as const;
 
   readonly notificationRows: readonly NotificationPreferenceRow[] = [
@@ -251,6 +254,7 @@ export class NotificationSettingsComponent implements OnInit {
       );
       this.updateCommunityFollows(new Set([follow.community_key]), kind, enabled);
     } catch (error: unknown) {
+      this.featureTelemetry.failure("notification-settings", "setCommunityNotification", error);
       console.error("Error saving community notification preference:", error);
       this.showCommunitySaveError();
     } finally {
@@ -337,6 +341,7 @@ export class NotificationSettingsComponent implements OnInit {
       }
       return true;
     } catch (error: unknown) {
+      this.featureTelemetry.failure("notification-settings", "saveNotificationPreferences", error);
       console.error("Error saving notification preference:", error);
       this.showPreferenceSaveError();
       return false;

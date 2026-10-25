@@ -1,0 +1,88 @@
+<main class="shop-cart-page">
+  <a mat-button routerLink="/shop" class="shop-cart-page__back-link">
+    <mat-icon>arrow_back</mat-icon>
+    <span>Shop</span>
+  </a>
+
+  <header>
+    <h1 class="mat-headline-large">My cart</h1>
+    <p class="mat-title-medium">Your selected PK Spot shop items.</p>
+  </header>
+
+  @if (checkoutState() === "success") {
+    <section class="shop-cart-page__notice" role="status">
+      <mat-icon>check_circle</mat-icon>
+      <div>
+        <strong>Thanks for your support.</strong>
+        <p>Stripe is securely confirming your payment before it appears in My orders.</p>
+      </div>
+    </section>
+  } @else if (checkoutState() === "cancelled") {
+    <section class="shop-cart-page__notice" role="status">
+      <mat-icon>info</mat-icon>
+      <div>
+        <strong>Checkout was cancelled.</strong>
+        <p>Your selected items are still in your cart.</p>
+      </div>
+    </section>
+  }
+
+  @if (cart.items().length) {
+    <div class="shop-cart-page__items" aria-label="Cart items">
+      @for (item of cart.items(); track item.id) {
+        <section class="shop-cart-page__item">
+          @if (item.kind === "physical_order") {
+            <div>
+              <p class="mat-label-large">Sticker Support Pack</p>
+              <h2 class="mat-title-large">{{ item.product.name }}</h2>
+              <p class="mat-body-medium">
+                {{ item.product.stickerCount }} stickers · Shipping within Switzerland included
+              </p>
+            </div>
+            <strong class="mat-title-medium">{{ item.product.priceLabel }}</strong>
+          } @else {
+            <div>
+              <p class="mat-label-large">Support PK Spot</p>
+              <h2 class="mat-title-large">One-time support</h2>
+              @if (item.displayName) {
+                <p class="mat-body-medium">Display name: {{ item.displayName }}</p>
+              }
+              <p class="mat-body-small">
+                Display names are manually reviewed before appearing publicly on the PK Spot supporters page.
+              </p>
+            </div>
+            <strong class="mat-title-medium">{{ item.priceLabel }}</strong>
+          }
+          <button mat-button type="button" (click)="cart.remove(item.id)">Remove</button>
+        </section>
+      }
+    </div>
+
+    <div class="shop-cart-page__checkout">
+      <p class="mat-title-medium">Total <strong>{{ cart.totalPriceLabel() }}</strong></p>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        [disabled]="checkoutAction()"
+        [showProgress]="checkoutAction()"
+        (click)="checkout()"
+      >
+        <mat-icon>lock</mat-icon>
+        <span>Continue to secure checkout</span>
+        <mat-spinner progressIndicator diameter="20" strokeWidth="3" />
+      </button>
+    </div>
+  } @else {
+    <section class="shop-cart-page__empty">
+      <mat-icon>shopping_cart</mat-icon>
+      <h2 class="mat-headline-small">Your cart is empty</h2>
+      <p class="mat-body-large">Choose an item from the shop to add it here.</p>
+      <a mat-flat-button routerLink="/shop" color="primary">Explore the shop</a>
+    </section>
+  }
+
+  @if (checkoutError()) {
+    <p class="shop-cart-page__error" role="alert">{{ checkoutError() }}</p>
+  }
+</main>

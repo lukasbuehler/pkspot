@@ -1,18 +1,24 @@
+import { localizedLocalityLabel } from "../../scripts/LocalizedPlaceLabels";
+import type { EntityPlaceNames } from "../../scripts/EntityPlaceNames";
+import { selectLocalizedContent } from "../../scripts/LocalizedContent";
 import { GeoPoint, Timestamp } from "firebase/firestore";
 import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
   EventCategory,
+  EventCommunityBroadcastMode,
   EventFeaturedParticipantSchema,
   EventImageFit,
   EventAttendanceSchema,
   EventDisplayedLifecycleStatus,
   EventDiscoverability,
   EventKind,
+  EventListingTier,
   EventLifecycleStatus,
   EventNotificationPolicy,
   EventOwnerSchema,
   EventPriority,
+  EventRegionKey,
   EventProgramItemSchema,
   EventProgramPlanSchema,
   EventProgramRuntimeOverrideSchema,
@@ -48,6 +54,7 @@ import {
   legacyExactTiming,
 } from "../utils/event-timing";
 import type { MediaSchema } from "../schemas/Media";
+import type { UserReferenceSchema } from "../schemas/UserSchema";
 import { LocaleCode, LocaleMap } from "./Interfaces";
 import {
   getBestLocale,
@@ -115,6 +122,7 @@ export class Event {
   readonly name: string;
   readonly description?: string;
   readonly descriptions?: LocaleMap;
+  readonly descriptionLocale?: string;
 
   readonly bannerSrc?: string;
   readonly bannerFit: EventImageFit;
@@ -123,13 +131,20 @@ export class Event {
   readonly logoFit: EventImageFit;
   readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
+  readonly livestreamLive: boolean;
   readonly organizer?: EventOrganizerSchema;
+  readonly organizerUser?: UserReferenceSchema;
   readonly organizerName?: string;
   readonly organizerAccess?: "view" | "edit";
   readonly featuredParticipants: EventFeaturedParticipant[];
 
   readonly venueString: string;
+  readonly isOutdoor: boolean;
+  /** The original town text. Forms and lookups use this; display uses `localityLabel`. */
   readonly localityString: string;
+  /** The town in the app language when a translation is known. */
+  readonly localityLabel: string;
+  placeNames?: EntityPlaceNames;
   readonly location?: { lat: number; lng: number };
   readonly hasLocation: boolean;
   readonly start: Date;
@@ -141,6 +156,10 @@ export class Event {
   readonly eventLinks: EventLinkSchema[];
   readonly ticketOptions: EventTicketOption[];
   readonly eventCategories: EventCategory[];
+  readonly listingTier: EventListingTier;
+  readonly countryCode?: string;
+  readonly regionKeys: EventRegionKey[];
+  readonly communityBroadcast: EventCommunityBroadcastMode;
   readonly timeZone?: string;
   readonly program?: EventProgram;
 
@@ -183,13 +202,14 @@ export class Event {
   readonly notificationPolicy: EventNotificationPolicy;
   readonly published: boolean;
 
-  constructor(id: EventId, data: EventSchema, locale: LocaleCode = "en") {
+  constructor(id: EventId, data: EventSchema, readonly locale: LocaleCode = "en") {
     this.id = id;
     this.slug = data.slug;
     this.name = data.name;
     this.descriptions = Event.mapDescriptionLocaleMap(data);
-    this.description =
-      Event.descriptionForLocale(this.descriptions, locale) ?? data.description;
+    const selectedDescription = selectLocalizedContent(data.description_i18n, locale, data.description);
+    this.description = selectedDescription.text || undefined;
+    this.descriptionLocale = selectedDescription.locale;
     this.bannerSrc = data.banner_src;
     this.bannerFit = data.banner_fit ?? "cover";
     this.bannerAccentColor = data.banner_accent_color;
@@ -197,13 +217,19 @@ export class Event {
     this.logoFit = data.logo_fit ?? "contain";
     this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
+    this.livestreamLive = data.livestream_live === true;
     this.organizer = data.organizer;
+    this.organizerUser = data.organizer_user;
     this.organizerName =
-      data.organizer?.organization.name ?? data.organizer_name;
+      data.organizer?.organization.name ??
+      data.organizer_user?.display_name ??
+      data.organizer_name;
     this.organizerAccess = data.organizer_access;
     this.featuredParticipants = data.featured_participants ?? [];
     this.venueString = data.venue_string ?? "";
+    this.isOutdoor = data.is_outdoor !== false;
     this.localityString = data.locality_string ?? "";
+    this.localityLabel = localizedLocalityLabel(this.localityString, data.place_names, locale);
     this.location =
       Event.toLatLng(data.location_raw, data.location) ??
       (data.bounds ? Event.boundsCenter(data.bounds) : undefined);
@@ -250,6 +276,10 @@ export class Event {
       badge: option.badge,
     }));
     this.eventCategories = data.event_categories ?? [];
+    this.listingTier = data.listing_tier ?? "formal";
+    this.countryCode = data.country_code;
+    this.regionKeys = data.region_keys ?? [];
+    this.communityBroadcast = data.community_broadcast ?? "none";
     this.timeZone = data.time_zone;
     this.program = data.program
       ? Event.mapProgram(data.program, locale)

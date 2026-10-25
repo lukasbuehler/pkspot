@@ -2,6 +2,21 @@
 // Swiss-grid layout with street-culture marker accents
 // ============================================
 
+.about-page-background {
+  // The shared document shell reserves room for the floating nav. Extend the
+  // page background into that space so the final section does not end on the
+  // app shell's surface color.
+  box-sizing: border-box;
+  // Paint through shell safe-area gutters while keeping content inside them.
+  margin-block-start: calc(-1 * var(--page-safe-top, 0px));
+  margin-inline: calc(-1 * var(--page-safe-left, 0px)) calc(-1 * var(--page-safe-right, 0px));
+  padding-block-start: var(--page-safe-top, 0px);
+  padding-inline: var(--page-safe-left, 0px) var(--page-safe-right, 0px);
+  margin-block-end: calc(-1 * var(--navigation-bottom-clearance, 0px));
+  min-height: 100%;
+  padding-block-end: var(--navigation-bottom-clearance, 0px);
+}
+
 .about-page {
   --about-divider: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
 
@@ -172,9 +187,9 @@ section {
 }
 
 .carousel-container {
-  width: 90vw;
-  margin-left: calc(50% - 45vw);
-  margin-right: calc(50% - 45vw);
+  // Viewport widths include the navigation rail and side cutouts.
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
   position: relative;
   mask-image: linear-gradient(

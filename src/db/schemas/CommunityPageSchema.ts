@@ -5,6 +5,27 @@ import { SpotPreviewData } from "./SpotPreviewData";
 
 export type CommunityScope = "country" | "region" | "locality";
 
+/** First-level administrative region resolved through the town's provider hierarchy. */
+export interface CommunityRegionLocalization {
+  geonamesId: number;
+  countryCode: string;
+  names: Record<string, string>;
+}
+
+/** Server-owned enrichment; never changes keys, slugs, or geographic identity. */
+export interface CommunityPlaceLocalization {
+  source: "geonames";
+  geonamesId: number;
+  /** Public town centroid supplied by GeoNames, never an entity location. */
+  center?: [number, number];
+  names: Record<string, string>;
+  /** Version 2 includes an administrative-region lookup, even when none exists. */
+  version?: 2;
+  region?: CommunityRegionLocalization;
+  fingerprint: string;
+  updatedAtMs: number;
+}
+
 export interface CommunityGeographySchema {
   countryCode?: string;
   countryName?: string;
@@ -110,6 +131,10 @@ export interface CommunityChildSummarySchema {
   communityKey: string;
   scope: CommunityScope;
   displayName: string;
+  place_localization?: CommunityPlaceLocalization;
+  /** Reviewed overrides are separate so automatic enrichment never replaces them. */
+  place_name_overrides?: Record<string, string>;
+  place_phrase_overrides?: Record<string, string>;
   preferredSlug: string;
   canonicalPath: string;
   totalSpotCount: number;
@@ -141,6 +166,10 @@ export interface CommunityPageSchema {
   communityKey: string;
   scope: CommunityScope;
   displayName: string;
+  place_localization?: CommunityPlaceLocalization;
+  /** Reviewed overrides are separate so automatic enrichment never replaces them. */
+  place_name_overrides?: Record<string, string>;
+  place_phrase_overrides?: Record<string, string>;
   preferredSlug: string;
   allSlugs: string[];
   canonicalPath: string;
@@ -176,6 +205,8 @@ export interface CommunityPageSchema {
   merge_into?: CommunityMergeIntoSchema;
   merged_community_keys?: string[];
   search_aliases?: string[];
+  /** Server-owned original, localized and overridden names that search matches. */
+  localized_search_names?: string[];
   redirected_from_slugs?: string[];
   redirect_to_community_key?: string;
   redirect_to_path?: string;

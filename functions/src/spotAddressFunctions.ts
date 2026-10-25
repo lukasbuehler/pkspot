@@ -1,4 +1,4 @@
-import { FieldValue, GeoPoint } from "firebase-admin/firestore";
+import { FieldValue, GeoPoint, FieldPath } from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
@@ -50,10 +50,29 @@ type GeocodeApiResponse = {
   results?: AddressAPIResultType[];
 };
 
+/**
+ * The display name of an address component. Google's short name is often an
+ * abbreviation ("DO" for Dortmund, "NRW", "HKI" for Helsinki), so names use the
+ * long form; short names are only used as codes (country, region code).
+ */
 const getAddressComponentName = (
   component: AddressAPIResultType["address_components"][number]
 ): string | undefined => {
-  return component.short_name?.trim() || component.long_name?.trim() || undefined;
+  return component.long_name?.trim() || component.short_name?.trim() || undefined;
+};
+
+/**
+ * Addresses written before names used the long form may hold an abbreviation
+ * as the town ("DO" for Dortmund). Those are re-geocoded by the address
+ * refresh. Region names that equal their code ("NRW") are left alone: they
+ * affect thousands of Spots, and each refreshed address rebuilds its
+ * communities, so they are corrected on the Spot's next address change.
+ */
+export const hasAbbreviatedAddressName = (
+  address: AddressType | SpotSchema["address"] | null | undefined
+): boolean => {
+  const locality = address?.locality?.trim();
+  return Boolean(locality && /^\p{Lu}{1,4}$/u.test(locality));
 };
 
 const getAddressComponentByType = (
@@ -96,33 +115,15 @@ const hasAddressData = (address: AddressType | null | undefined): boolean => {
   );
 };
 
-const hasLocalizedAddressData = (
+/**
+ * Spots the address refresh re-geocodes: no usable address, or an abbreviated
+ * town. It used to also refresh Spots without local-language fields, but
+ * Google no longer returns those, so that matched almost every Spot.
+ */
+export const shouldRefreshAddress = (
   address: AddressType | SpotSchema["address"] | null | undefined
 ): boolean => {
-  if (!address) return false;
-
-  return Boolean(
-    (typeof address.formattedLocal === "string" &&
-      address.formattedLocal.trim()) ||
-      (typeof address.localityLocal === "string" &&
-        address.localityLocal.trim()) ||
-      (typeof address.sublocalityLocal === "string" &&
-        address.sublocalityLocal.trim()) ||
-      (typeof address.region?.localName === "string" &&
-        address.region.localName.trim()) ||
-      (typeof address.country?.localName === "string" &&
-        address.country.localName.trim())
-  );
-};
-
-const shouldRefreshAddress = (
-  address: AddressType | SpotSchema["address"] | null | undefined
-): boolean => {
-  if (!hasAddressData(address)) {
-    return true;
-  }
-
-  return !hasLocalizedAddressData(address);
+  return !hasAddressData(address) || hasAbbreviatedAddressName(address);
 };
 
 const removeUndefinedValues = <T>(value: T): T => {
@@ -298,7 +299,7 @@ const fetchReverseGeocodeResponse = async (
   return data;
 };
 
-const extractAddressFromGeocodeResponse = (
+export const extractAddressFromGeocodeResponse = (
   data: GeocodeApiResponse
 ): AddressType => {
   const address: AddressType = {};
@@ -479,59 +480,62 @@ export const updateAllSpotAddresses = onDocumentCreated(
     timeoutSeconds: 540,
   },
   async (event) => {
-    const spots = await admin.firestore().collection("spots").get();
     const apiKey: string = isEmulatorEnvironment ? "" : googleAPIKey.value();
     let updatedCount = 0;
     let skippedCount = 0;
     let failedCount = 0;
 
-    for (const spot of spots.docs) {
-      if (spot.id === "typesense" || spot.id.startsWith("run-")) {
-        skippedCount += 1;
-        continue;
-      }
+    // Page through Spots reading only the fields needed to decide, so memory
+    // stays small however many Spots exist.
+    const PAGE_SIZE = 500;
+    let cursor: admin.firestore.QueryDocumentSnapshot | undefined;
+    while (true) {
+      let query = admin.firestore().collection("spots")
+        .select("address", "location")
+        .orderBy(FieldPath.documentId())
+        .limit(PAGE_SIZE);
+      if (cursor) query = query.startAfter(cursor);
+      const page = await query.get();
 
-      const spotData = spot.data() as SpotSchema;
-      if (!shouldRefreshAddress(spotData.address)) {
-        skippedCount += 1;
-        continue;
-      }
-
-      const location = spotData.location;
-      if (!location) {
-        console.warn("Spot has no location", spot.id);
-        failedCount += 1;
-        continue;
-      }
-      const lat = location?.latitude;
-      const lng = location?.longitude;
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        console.warn("Spot location is invalid", spot.id, location);
-        failedCount += 1;
-        continue;
-      }
-
-      try {
-        const [address, _] = await getAddressAndLocaleFromGeopoint(
-          location,
-          apiKey
-        );
-
-        if (hasAddressData(address)) {
-          await spot.ref.update({ address: removeUndefinedValues(address) });
-          updatedCount += 1;
-          console.log("Updated address for spot", spot.id, address);
-        } else {
+      for (const spot of page.docs) {
+        if (spot.id === "typesense" || spot.id.startsWith("run-")) {
           skippedCount += 1;
-          console.warn(
-            "Skipping empty/incomplete address update for spot",
-            spot.id
-          );
+          continue;
         }
-      } catch (err) {
-        failedCount += 1;
-        console.error("Error updating address for spot", spot.id, err);
+
+        const spotData = spot.data() as Pick<SpotSchema, "address" | "location">;
+        if (!shouldRefreshAddress(spotData.address)) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const location = spotData.location;
+        const lat = location?.latitude;
+        const lng = location?.longitude;
+        if (!location || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+          console.warn("Spot location is missing or invalid", spot.id);
+          failedCount += 1;
+          continue;
+        }
+
+        try {
+          const [address] = await getAddressAndLocaleFromGeopoint(location, apiKey);
+          if (hasAddressData(address)) {
+            await spot.ref.update({ address: removeUndefinedValues(address) });
+            updatedCount += 1;
+            console.log("Updated address for spot", spot.id, address.locality);
+          } else {
+            skippedCount += 1;
+            console.warn("Skipping empty/incomplete address update for spot", spot.id);
+          }
+        } catch (err) {
+          failedCount += 1;
+          console.error("Error updating address for spot", spot.id, err);
+        }
       }
+
+      if (page.size < PAGE_SIZE) break;
+      cursor = page.docs[page.size - 1];
     }
 
     await event.data?.ref.set(

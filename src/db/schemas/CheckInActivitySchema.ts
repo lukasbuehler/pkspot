@@ -1,0 +1,54 @@
+/** Raw coordinates are accepted only transiently by the check-in callable. */
+export interface ConfirmCheckInRequest {
+  spotId: string;
+  location: { lat: number; lng: number };
+  accuracyMeters: number;
+  timeZone: string;
+}
+
+export interface ConfirmCheckInResponse {
+  checkInId: string;
+  sessionRecordId: string;
+  duplicate: boolean;
+  /** Your visits at this Spot including this one. Absent for duplicates and older servers. */
+  spotVisitCount?: number;
+  /** Whether the check-in passed proximity and integrity checks. Absent on older servers. */
+  verified?: boolean;
+}
+
+export interface DeleteCheckInRequest {
+  checkInId: string;
+}
+
+export interface DeleteCheckInResponse {
+  deleted: boolean;
+}
+
+export interface DeleteAllCheckInsResponse {
+  deleted: number;
+}
+
+export type CheckInAggregateEligibility = "accepted" | "excluded" | "pending";
+
+/** The only activity data that is readable by other users. */
+export interface SpotActivityPublicSchema {
+  status: "recently_trained";
+  bucket: "2–4" | "5–9" | "10–24" | "25+";
+  window_days: 30;
+}
+
+/** Coarse public ranges deliberately avoid exposing the exact account count. */
+export const checkInActivityBucket = (
+  accounts: number,
+): SpotActivityPublicSchema["bucket"] | null => {
+  if (accounts < 2) return null;
+  if (accounts < 5) return "2–4";
+  if (accounts < 10) return "5–9";
+  if (accounts < 25) return "10–24";
+  return "25+";
+};
+
+/** Only the published lower bounds are allowed into public Spot/search data. */
+export type RecentActivityMin30d = 2 | 5 | 10 | 25;
+export const normalizeRecentActivityMin30d = (value: unknown): RecentActivityMin30d | null =>
+  value === 2 || value === 5 || value === 10 || value === 25 ? value : null;

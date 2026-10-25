@@ -1,3 +1,9 @@
+import { ShareCardService } from "../../services/share-card.service";
+import { eventCopy, eventPlaceCopy } from "../../localization/entity-copy";
+import { contentLanguageLabel } from "../../../scripts/LocalizedContent";
+import { RESPONSE_INIT } from "@angular/core";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -103,11 +109,10 @@ import {
   EventOwnershipClaimDialogData,
 } from "../event-ownership-claim-dialog/event-ownership-claim-dialog.component";
 import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
-import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next-card.component";
 import { EventTicketListComponent } from "../event-ticket-list/event-ticket-list.component";
 import {
   eventProgramDays,
-  eventProgramLocationVisits,
+  eventProgramMapLocationVisits,
   isEventProgramMarkerOccurrence,
   isEventProgramSpotOccurrence,
   resolveEventProgramOccurrences,
@@ -124,6 +129,10 @@ import {
   EventQrDialogComponent,
   type EventQrDialogData,
 } from "../event-qr-dialog/event-qr-dialog.component";
+import {
+  SafetyCaseFormComponent,
+  type SafetyCaseFormPreset,
+} from "../safety-case-form/safety-case-form.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -160,14 +169,17 @@ type ProgramMapMarker = MarkerSchema & {
     EventAccessManagerComponent,
     EventRegistrationManagerComponent,
     EventProgramDayChipsComponent,
-    EventNowNextCardComponent,
     EventTicketListComponent,
+    SafetyCaseFormComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventInfoPageComponent implements OnInit, OnDestroy {
+  readonly shareCards = inject(ShareCardService);
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _snackbar = inject(MatSnackBar);
@@ -175,6 +187,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _eventsService = inject(EventsService);
   private _authService = inject(AuthenticationService);
   private _analytics = inject(AnalyticsService);
+  private readonly serverResponse = inject(RESPONSE_INIT, { optional: true });
   private _structuredData = inject(StructuredDataService);
   private _metaTags = inject(MetaTagService);
   private _eventPageData = inject(EventPageDataService);
@@ -213,6 +226,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isCrawler = signal(this.isBrowser() && isBot());
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
+  readonly isReportingEvent = signal(false);
   readonly isEventDescriptionExpanded = signal(false);
   readonly currentRsvp = signal<EventRSVPOption | null>(null);
   readonly now = signal(new Date());
@@ -230,6 +244,38 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isSignedIn = computed(() => !!this._authService.user.uid);
   readonly canEditEvent = signal(false);
   readonly canManageEvent = signal(false);
+  readonly eventReportPreset = computed<SafetyCaseFormPreset>(() => {
+    const event = this.event();
+    if (!event) return {};
+    return {
+      caseType: "report",
+      category: "other_safety",
+      subject: {
+        type: "event",
+        path: `events/${event.id}`,
+        label: event.name,
+        ...(event.owner?.type === "user" ? { owner_uid: event.owner.user_id } : {}),
+      },
+      summary: $localize`:@@event_report.default_summary:Report: ${event.name}`,
+    };
+  });
+
+  openEventReport(): void {
+    this.isReportingEvent.set(true);
+  }
+
+  closeEventReport(): void {
+    this.isReportingEvent.set(false);
+  }
+
+  onEventReportSubmitted(): void {
+    this.closeEventReport();
+    this._snackbar.open(
+      $localize`:@@event_report.submitted:Your report has been sent securely.`,
+      $localize`:@@common.dismiss:Dismiss`,
+      { duration: 4_000 },
+    );
+  }
 
   openOwnershipClaimDialog(): void {
     const event = this.event();
@@ -252,14 +298,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly description = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return (
-      event.description ??
-      (event.localityString
-        ? $localize`Event in ` + event.localityString
-        : $localize`:@@event.description_without_location:Event details`) +
-        ` (${this.dateRange()})`
-    );
+    return event.description ?? "";
   });
+  readonly localizedCopy = computed(() => {
+    const event = this.event();
+    return event ? eventCopy(event, this._locale, this.dateRange()) : null;
+  });
+  readonly descriptionLanguageLabel = computed(() => contentLanguageLabel(this.event()?.descriptionLocale, this._locale));
   readonly hasLongDescription = computed(() => {
     const description = this.description();
     if (!description) return false;
@@ -271,8 +316,21 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   });
 
   readonly name = computed(() => this.event()?.name ?? "");
+  readonly singleMapSpotId = computed(() => {
+    const event = this.event();
+    // Count declared locations, not loaded previews: an unloaded second Spot
+    // must not make a multi-location event look like a single-Spot event.
+    if (!event || event.inlineSpots.length || event.customMarkers.length) return null;
+    const ids = [...new Set(event.spotIds)];
+    return ids.length === 1 ? ids[0] : null;
+  });
+  readonly openMapLabel = computed(() => this.singleMapSpotId()
+    ? $localize`:@@event_info.open_spot_map:Open Spot on map`
+    : $localize`:@@event_info.open_map:Open event map`);
   readonly mapRoute = computed(() => {
     const event = this.event();
+    const spotId = this.singleMapSpotId();
+    if (spotId) return ["/map/spots", spotId];
     return event ? ["/events", event.slug ?? event.id, "map"] : ["/events"];
   });
   readonly organizer = computed(() => this.event()?.organizer?.organization);
@@ -414,7 +472,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly programLocationVisits = computed(() =>
     this.selectedProgramDay() === null
       ? []
-      : eventProgramLocationVisits(
+      : eventProgramMapLocationVisits(
           this.programOccurrences(),
           this.selectedProgramDay() ?? "",
           this.now(),
@@ -429,6 +487,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       if (
         !this.isBrowser() ||
         !event ||
+        !event.isOutdoor ||
         !event.location ||
         !Number.isFinite(event.location.lat) ||
         !Number.isFinite(event.location.lng) ||
@@ -568,7 +627,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         icons: place.icons,
         number: time,
         badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
-        color: eventProgramLocationColor(visit),
+        color: eventProgramLocationColor(visit, this.selectedProgramDay()),
         priority: "required",
         ignoreCollisions: true,
         type: "event-program",
@@ -577,18 +636,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }),
   );
   readonly mapPriorityMarkers = computed<ProgramMapMarker[]>(() =>
-    this.programFilterActive()
-      ? [
-          ...this.mapMarkers().map((marker) => ({
-            ...marker,
-            color: "gray" as const,
-          })),
-          ...this.programMapMarkers(),
-        ]
-      : this.mapMarkers(),
+    this.programFilterActive() ? this.programMapMarkers() : this.mapMarkers(),
   );
   readonly mapPreviewSpotMarkers = computed<SpotPreviewData[]>(() =>
-    this._eventPageData.spotPreviewMarkers(this.spots()),
+    this.programFilterActive()
+      ? []
+      : this._eventPageData.spotPreviewMarkers(this.spots()),
   );
   readonly eventLocationMarker = computed<MarkerSchema | null>(() =>
     this._eventPageData.eventLocationMarker(this.event()),
@@ -607,7 +660,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this.isBrowser() &&
       !this.isCrawler() &&
       !!this.mapPreviewBounds() &&
-      (this.mapMarkers().length > 0 || this.mapPreviewSpotMarkers().length > 0),
+      (this.mapMarkers().length > 0 || this.spots().length > 0),
   );
 
   constructor() {
@@ -803,6 +856,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   openMapForSpot(spot: Spot | LocalSpot | SpotPreviewData | SpotId): void {
+    if (this.singleMapSpotId()) {
+      void this._router.navigate(this.mapRoute());
+      return;
+    }
     const spotId = this._eventMapSpotQueryParam(spot);
     if (!spotId) return;
 
@@ -833,6 +890,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (index === undefined) return;
     const occurrence = this.mapPriorityMarkers()[index]?.programOccurrence;
     if (!occurrence) return;
+    if (this.singleMapSpotId()) {
+      void this._router.navigate(this.mapRoute());
+      return;
+    }
     void this._router.navigate(this.mapRoute(), {
       queryParams: {
         mapFilter: "program",
@@ -949,76 +1010,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   async shareEvent(): Promise<void> {
     const event = this.event();
     if (!event) return;
-
-    const { buildAbsoluteUrlNoLocale } =
-      await import("../../../scripts/Helpers");
-    const link = buildAbsoluteUrlNoLocale(
-      this._eventPageData.eventCanonicalPath(event),
-    );
-    const shareData = {
-      title: event.name,
-      text: `PK Spot: ${event.name}`,
-      url: link,
-    };
-    this._analytics.trackEvent("share_event_clicked", {
-      surface: "event_info_page",
-      event_id: event.id,
-      event_slug: event.slug ?? null,
-      event_name: event.name,
-      event_status: event.status(),
-    });
-
-    const { Capacitor } = await import("@capacitor/core");
-    if (Capacitor.isNativePlatform()) {
-      const { Share } = await import("@capacitor/share");
-      try {
-        await Share.share({ ...shareData, dialogTitle: "Share Event" });
-        this._analytics.trackEvent("share_event_succeeded", {
-          surface: "event_info_page",
-          event_id: event.id,
-          method: "native_share",
-        });
-      } catch (err) {
-        console.error("Couldn't share this event", err);
-        this._analytics.trackEvent("share_event_failed", {
-          surface: "event_info_page",
-          event_id: event.id,
-          method: "native_share",
-        });
-      }
-      return;
-    }
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        this._analytics.trackEvent("share_event_succeeded", {
-          surface: "event_info_page",
-          event_id: event.id,
-          method: "web_share",
-        });
-      } catch (err) {
-        console.error("Couldn't share this event", err);
-        this._analytics.trackEvent("share_event_failed", {
-          surface: "event_info_page",
-          event_id: event.id,
-          method: "web_share",
-        });
-      }
-      return;
-    }
-
-    await navigator.clipboard.writeText(`${event.name} - PK Spot \n${link}`);
-    this._analytics.trackEvent("share_event_succeeded", {
-      surface: "event_info_page",
-      event_id: event.id,
-      method: "clipboard",
-    });
-    this._snackbar.open(
-      $localize`:@@event_info.link_copied:Event link copied to clipboard.`,
-      $localize`:@@common.dismiss:Dismiss`,
-      { duration: 3000, horizontalPosition: "center", verticalPosition: "top" },
-    );
+    const { buildAbsoluteUrlNoLocale } = await import("../../../scripts/Helpers");
+    this._analytics.trackEvent("share_event_clicked", { surface: "event_info_page", event_id: event.id });
+    await this.shareCards.share({ kind: "event", id: String(event.id) },
+      buildAbsoluteUrlNoLocale(this._eventPageData.eventCanonicalPath(event)), event.name);
   }
 
   openAddDialog(
@@ -1069,9 +1064,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   startEditingEvent(): void {
-    if (this.canEditEvent()) {
-      this.isEditingEvent.set(true);
+    const event = this.event();
+    if (!event || !this.canEditEvent()) return;
+    if (event.listingTier === "community") {
+      void this._router.navigate(["/events", event.slug ?? event.id, "edit"]);
+      return;
     }
+    this.isEditingEvent.set(true);
   }
 
   cancelEditingEvent(): void {
@@ -1106,6 +1105,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         { duration: 3000 },
       );
     } catch (err) {
+      this.featureTelemetry.failure("event-page", "onSaveEvent", err);
       console.error("Failed to save event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.save_failed:Couldn't save the event. Check the console for details.`,
@@ -1130,6 +1130,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       );
       void this._router.navigate(["/events"]);
     } catch (err) {
+      this.featureTelemetry.failure("event-page", "onDeleteEvent", err);
       console.error("Failed to delete event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.delete_failed:Couldn't delete the event.`,
@@ -1153,9 +1154,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         next: (loaded) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           if (!loaded) {
-            if (this.isBrowser()) {
-              void this._router.navigate(["/events"]);
-            }
+            this._setEventLoadFailure(404);
             return;
           }
           this._setEvent(loaded);
@@ -1175,16 +1174,28 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const requestVersion = ++this._eventLoadRequestVersion;
     this.isLoadingEvent.set(true);
     this.eventLoadFailed.set(false);
-    const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
-
-    if (requestVersion !== this._eventLoadRequestVersion) return;
-    if (!loaded) {
-      if (this.isBrowser()) {
-        void this._router.navigate(["/events"]);
+    try {
+      const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
+      if (requestVersion !== this._eventLoadRequestVersion) return;
+      if (!loaded) {
+        this._setEventLoadFailure(404);
+        return;
       }
-      return;
+      this._setEvent(loaded);
+    } catch (error) {
+      if (requestVersion !== this._eventLoadRequestVersion) return;
+      this.featureTelemetry.failure("event-page", "load", error);
+      this._setEventLoadFailure(503);
     }
-    this._setEvent(loaded);
+  }
+
+  private _setEventLoadFailure(status: 404 | 503): void {
+    if (this.serverResponse) this.serverResponse.status = status;
+    this.event.set(null);
+    this.isLoadingEvent.set(false);
+    this.eventLoadFailed.set(true);
+    this._structuredData.removeStructuredData("event");
+    this._metaTags.setRobotsContent("noindex,follow");
   }
 
   private _setEvent(event: PkEvent): void {
@@ -1230,7 +1241,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this._metaTags.setRobotsContent("noindex,nofollow");
       return;
     }
-    if (event.visibility !== "public") {
+    if (event.visibility !== "public" || event.viewerPolicy || event.listingTier === "community") {
       this._structuredData.removeStructuredData("event");
       this._metaTags.setStaticPageMetaTags(
         $localize`:@@event_unlisted.meta.title:Unlisted event`,
@@ -1241,11 +1252,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this._metaTags.setRobotsContent("noindex,nofollow");
       return;
     }
-    const description = this.description();
+    const copy = eventCopy(event, this._locale, this.dateRange());
+    const description = copy.description;
     const image = this._eventSocialImage(event);
 
     this._metaTags.setEventMetaTags(
-      { name: event.name, image, description },
+      { name: event.name, title: copy.title, image, description },
       canonicalPath,
     );
 
@@ -1270,7 +1282,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           name: event.venueString || event.localityString || event.name,
           address: {
             "@type": "PostalAddress",
-            addressLocality: event.localityString || undefined,
+            addressLocality: eventPlaceCopy(event, this._locale).locality || undefined,
+            addressCountry: event.countryCode || undefined,
           },
           geo: {
             "@type": "GeoCoordinates",
@@ -1282,17 +1295,21 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return {
       "@type": "Event",
       name: event.name,
-      startDate: event.timing?.start_date ?? event.start.toISOString(),
+      startDate: event.timing && !event.timing.start_time
+        ? event.timing.start_date
+        : event.start.toISOString(),
       endDate:
         event.timing?.mode === "open_end"
           ? undefined
-          : (event.timing?.end_date ??
-            event.timing?.start_date ??
-            event.end.toISOString()),
+          : event.timing && !event.timing.end_time
+            ? (event.timing.end_date ?? event.timing.start_date)
+            : event.end.toISOString(),
       eventAttendanceMode: event.location
         ? "https://schema.org/OfflineEventAttendanceMode"
         : "https://schema.org/MixedEventAttendanceMode",
-      eventStatus: "https://schema.org/EventScheduled",
+      eventStatus: event.lifecycleStatus === "cancelled"
+        ? "https://schema.org/EventCancelled"
+        : "https://schema.org/EventScheduled",
       location: structuredLocation,
       image: [
         ...this._eventStructuredImages(event).map((src) =>

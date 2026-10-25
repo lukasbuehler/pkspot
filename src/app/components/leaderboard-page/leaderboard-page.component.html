@@ -18,6 +18,8 @@
           mat-table
           [dataSource]="leaderboardData"
           matSort
+          [matSortActive]="sortColumn"
+          [matSortDirection]="sortDirection"
           (matSortChange)="onSort($event)"
           class="leaderboard-table"
         >

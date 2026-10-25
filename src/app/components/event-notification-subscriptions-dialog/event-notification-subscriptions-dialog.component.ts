@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
   ChangeDetectionStrategy,
@@ -48,6 +50,8 @@ interface EventSubscriptionRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventNotificationSubscriptionsDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly liveUpdates = inject(EventLiveUpdatesService);
   private readonly events = inject(EventsService);
   private readonly snackbar = inject(MatSnackBar);
@@ -96,6 +100,7 @@ export class EventNotificationSubscriptionsDialogComponent {
     try {
       await this.liveUpdates.setNotificationLevel(eventId, level);
     } catch (error) {
+      this.featureTelemetry.failure("event-notification-subscriptions-dialog", "notificationLevelChanged", error);
       console.error("Could not update event notifications", error);
       this.snackbar.open(
         $localize`:@@event_subscriptions.save_error:Could not update event notifications.`,

@@ -2,6 +2,7 @@ export type MediaUploadReviewStatus =
   | "uploaded"
   | "scanning"
   | "approved"
+  | "dismissed"
   | "needs_review"
   | "blocked"
   | "scan_failed"
@@ -21,6 +22,10 @@ export type MediaSafetyDecision =
 
 export type MediaSafetySeverity =
   | "none"
+  | "suggestive"
+  | "adult_content"
+  | "graphic_violence"
+  /** Legacy broad classification retained for older reports and clients. */
   | "explicit_non_child"
   | "possible_child_safety"
   | "known_csam_match";
@@ -63,6 +68,13 @@ export interface MediaUploadReviewSchema {
   created_at: unknown;
   completed_at?: unknown;
   failure_reason?: string;
+  incident_path?: string;
+  release_in_progress?: boolean;
+  manual_review?: {
+    decision: "safe" | "false_positive";
+    reviewed_by: string;
+    reviewed_at?: unknown;
+  };
 }
 
 export interface MediaUploadStatusSchema {

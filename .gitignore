@@ -1,6 +1,9 @@
 .angular
 .DS_Store
 
+# Local social content plans, scripts, and ideas.
+/content-workspace/
+
 # TypeScript compiled output (should only be in dist folders)
 src/**/*.js
 !src/firebase-messaging-sw.js
@@ -79,6 +82,9 @@ node_modules/
 # dotenv environment variables file
 .env
 .env.local
+/functions/.env
+/functions/.env.*
+!/functions/.env.example
 
 SPH\ LOGOS\ ALL
 
@@ -231,4 +237,14 @@ __pycache__
 
 *.p8
 
-docs/*
+docs/
+
+.claude/
+
+# Private feature planning stays on this machine.
+/feature-passes/
+
+# Legacy locations: private documents belong under ignored docs/.
+/ideas/
+/mcp/submission/review-preparation.json
+/user_stories.md

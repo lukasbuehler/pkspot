@@ -138,6 +138,26 @@ describe("FunctionsAdapterService", () => {
     );
   });
 
+  it("calls unauthenticated restoration endpoints without reading a native ID token", async () => {
+    platformService.isNative.mockReturnValue(true);
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    await service.callUnauthenticated<Record<string, never>, { ok: boolean }>(
+      "beginRestoreCredentialAuthentication",
+      {},
+    );
+
+    expect(FirebaseAuthentication.getIdToken).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/beginRestoreCredentialAuthentication",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: {} }),
+      },
+    );
+  });
+
   it("uses the same-origin proxy for production public provenance requests", async () => {
     environment.production = true;
     const service = TestBed.inject(FunctionsAdapterService);

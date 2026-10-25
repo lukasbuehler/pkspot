@@ -40,6 +40,16 @@ describe("resolveNotificationPath", () => {
     ).toBe("/map/spots/spot%2Fid");
   });
 
+  it("opens a follow request at the requester's profile", () => {
+    expect(
+      resolveNotificationPath({
+        type: "follow_request",
+        path: "/profile",
+        payload: { requester_id: "requester/id" },
+      }),
+    ).toBe("/u/requester%2Fid");
+  });
+
   it("falls back to the map for an old digest without Spot payload data", () => {
     expect(
       resolveNotificationPath({

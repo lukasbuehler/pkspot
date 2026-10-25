@@ -1,3 +1,4 @@
+import {createHash} from "node:crypto";
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions/v1";
 import { UserRecord } from "firebase-functions/lib/common/providers/identity";
@@ -14,6 +15,14 @@ export const cleanupOnUserDelete = functions.auth
     const db = admin.firestore();
 
     console.log(`Cleaning up data for deleted user ${userId}`);
+
+    const { deletePlannedSessionData } = await import("./plannedSessionFunctions");
+    await deletePlannedSessionData(userId);
+    // Private check-ins, sessions, logs and the summaries and Spot-rank tallies
+    // derived from them must not outlive the account.
+    const { deleteTrainingDataForUser } = await import("./trainingSummaryFunctions");
+    await deleteTrainingDataForUser(userId);
+    await db.doc(`age_assurance_external_limits/${userId}`).delete();
 
     // Batch delete logic for followers and following
     // Note: If a user has thousands of followers, this might need chunking,
@@ -68,6 +77,10 @@ export const cleanupOnUserDelete = functions.auth
       if (opCount > 0) await batch.commit();
       console.log(`Refreshed following for ${opCount} users.`);
     }
+
+    // App Attest key material is scoped to this account and must not outlive it.
+    await db.recursiveDelete(db.collection(`users/${userId}/apple_age_keys`));
+    await db.doc(`age_assurance_challenges/apple-${createHash("sha256").update(userId).digest("hex")}`).delete();
 
     // 3. Delete the user document itself if it exists
     await db.doc(`users/${userId}`).delete();

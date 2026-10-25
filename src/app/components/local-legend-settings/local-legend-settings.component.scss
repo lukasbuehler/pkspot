@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+// Matches the outlined boxes around it in the general settings.
+.legend-settings {
+  display: grid;
+  gap: 8px;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+}
+
+.legend-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.legend-settings__help {
+  color: var(--mat-sys-on-surface-variant);
+}

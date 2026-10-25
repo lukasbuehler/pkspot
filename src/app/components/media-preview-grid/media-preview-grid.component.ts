@@ -18,6 +18,8 @@ import {
 } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 import { MatIconButton } from "@angular/material/button";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import type { PendingMediaPreview } from "../../services/firebase/firestore/media-upload-status.service";
 import { NgOptimizedImage } from "@angular/common";
 import { AnyMedia, StorageImage, StorageVideo } from "../../../db/models/Media";
 import { MatDialog } from "@angular/material/dialog";
@@ -35,35 +37,42 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
     MatIconButton,
     MatIcon,
     NgOptimizedImage,
+    MatProgressSpinner,
   ],
 })
 export class MediaPreviewGridComponent {
   readonly media = input<readonly AnyMedia[]>([]);
   readonly spotId = input<string>();
+  readonly processingMedia = input<readonly PendingMediaPreview[]>([]);
   readonly mediaChanged = output<AnyMedia[]>();
 
   private readonly dialog = inject(MatDialog);
-  private readonly fallbackImageIndices = signal<ReadonlySet<number>>(
-    new Set(),
-  );
+  // Key by media identity so loading and fallback state follow drag-and-drop moves.
+  private readonly imageStates = signal<ReadonlyMap<AnyMedia, {
+    original: boolean;
+    settled: boolean;
+    failed: boolean;
+  }>>(new Map());
 
-  readonly mediaSources = computed(() => {
-    const media = this.media();
-
-    return media
-      .map((mediaObj, index) => {
-        if (mediaObj instanceof StorageImage) {
-          if (this.fallbackImageIndices().has(index)) {
-            return mediaObj.getOriginalSrc();
-          }
-          return mediaObj.getSrc(400);
-        } else if (mediaObj instanceof StorageVideo) {
-          return mediaObj.getPreviewImageSrc();
-        } else {
-          return mediaObj.src;
-        }
-      })
-      .filter((src) => !!src) as string[];
+  readonly mediaPreviews = computed(() => {
+    const states = this.imageStates();
+    return this.media().map((media) => {
+      const state = states.get(media);
+      let src: string;
+      if (media instanceof StorageImage) {
+        src = state?.original ? media.getOriginalSrc() : media.getSrc(200);
+      } else if (media instanceof StorageVideo) {
+        src = media.thumbnail.getSrc(200);
+      } else {
+        src = media.src;
+      }
+      return {
+        media,
+        src,
+        loading: !!src && !state?.settled,
+        failed: !!state?.failed,
+      };
+    });
   });
 
   drop(event: CdkDragDrop<number>): void {
@@ -84,15 +93,23 @@ export class MediaPreviewGridComponent {
     });
   }
 
-  useOriginalFallback(index: number, mediaObj: AnyMedia): void {
-    if (!(mediaObj instanceof StorageImage)) {
-      return;
-    }
+  onImageLoad(media: AnyMedia): void {
+    this.imageStates.update((states) => new Map(states).set(media, {
+      original: states.get(media)?.original ?? false,
+      settled: true,
+      failed: false,
+    }));
+  }
 
-    this.fallbackImageIndices.update((set) => {
-      const newSet = new Set(set);
-      newSet.add(index);
-      return newSet;
+  onImageError(media: AnyMedia): void {
+    this.imageStates.update((states) => {
+      const original = states.get(media)?.original ?? false;
+      const canFallback = media instanceof StorageImage && !original;
+      return new Map(states).set(media, {
+        original: original || canFallback,
+        settled: !canFallback,
+        failed: !canFallback,
+      });
     });
   }
 }

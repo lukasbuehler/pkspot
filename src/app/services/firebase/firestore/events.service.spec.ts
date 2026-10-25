@@ -149,15 +149,15 @@ describe("EventsService", () => {
     expect(firestoreAdapter.getDocument).not.toHaveBeenCalled();
   });
 
-  it("resolves a public slug through event_slugs before loading the event", async () => {
+  it.each(["swissjam26", "event-75VvqXshL8W8cldZ2g9w"])("resolves public alias %s before loading the event", async (slug) => {
     const doc = buildEventDoc(
       "event-123",
       "2026-06-01T10:00:00.000Z",
       "2026-06-02T10:00:00.000Z",
     );
     firestoreAdapter.getDocument.mockImplementation((path: string) => {
-      if (path === "event_slugs/swissjam26") {
-        return Promise.resolve({ id: "swissjam26", event_id: "event-123" });
+      if (path === `event_slugs/${slug}`) {
+        return Promise.resolve({ id: slug, event_id: "event-123" });
       }
       if (path === "events/event-123") {
         return Promise.resolve(doc);
@@ -165,12 +165,12 @@ describe("EventsService", () => {
       return Promise.resolve(null);
     });
 
-    const event = await service.getEventBySlugOrId("swissjam26");
+    const event = await service.getEventBySlugOrId(slug);
 
     expect(event?.id).toBe("event-123");
     expect(firestoreAdapter.getDocument).toHaveBeenNthCalledWith(
       1,
-      "event_slugs/swissjam26",
+      `event_slugs/${slug}`,
     );
     expect(firestoreAdapter.getDocument).toHaveBeenNthCalledWith(
       2,

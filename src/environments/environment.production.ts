@@ -1,11 +1,17 @@
+import { ageVerificationProviders } from "./age-verification";
 export const environment = {
   name: "Production",
   production: true,
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
-    training: false,
-    checkIns: false,
+    finances: false,
+    ageVerification: { ...ageVerificationProviders },
+    shareCards: true,
+    plannedSessions: false,
+    training: true,
+    checkIns: true,
+    supportShop: false,
     continuousEventCalendar: true,
     mapPerformanceProfiling: false,
     streetView: {
@@ -36,7 +42,7 @@ export const environment = {
       apiKey: "AIzaSyBweX0jjdbdrIy2slKPf6ZAhvl6XHz4AlI",
     },
     typesense: {
-      host: "g5re3ouiqm0j8bc9p-1.a1.typesense.net",
+      host: "search.pkspot.app",
       apiKey: "7yxCDDLoGisH1vDtl2ZBfIglrr3OXsVk",
     },
     posthog: {

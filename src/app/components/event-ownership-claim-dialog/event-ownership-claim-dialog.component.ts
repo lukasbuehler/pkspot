@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -37,6 +39,8 @@ export interface EventOwnershipClaimDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventOwnershipClaimDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly organizationsService = inject(OrganizationsService);
   private readonly claimsService = inject(EventOwnershipClaimsService);
   private readonly dialogRef = inject(MatDialogRef<EventOwnershipClaimDialogComponent>);
@@ -86,6 +90,7 @@ export class EventOwnershipClaimDialogComponent {
       });
       this.dialogRef.close(true);
     } catch (error) {
+      this.featureTelemetry.failure("event-ownership-claim-dialog", "submit", error);
       this.error.set(
         error instanceof Error ? error.message : $localize`Claim submission failed.`,
       );

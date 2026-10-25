@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   OnInit,
@@ -55,6 +57,8 @@ interface UserData {
   styleUrl: "./leaderboard-page.component.scss",
 })
 export class LeaderboardPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
@@ -65,8 +69,8 @@ export class LeaderboardPageComponent implements OnInit {
   displayedColumns: string[] = [
     "rank",
     "user",
-    "spot_creates_count",
     "spot_edits_count",
+    "spot_creates_count",
     "media_added_count",
   ];
 
@@ -131,6 +135,7 @@ export class LeaderboardPageComponent implements OnInit {
       this.leaderboardData = entries;
       this._cdr.detectChanges();
     } catch (error) {
+      this.featureTelemetry.failure("leaderboard-page", "loadLeaderboard", error);
       console.error("Error loading leaderboard:", error);
     } finally {
       this.isLoading = false;
@@ -143,6 +148,11 @@ export class LeaderboardPageComponent implements OnInit {
       return;
     }
 
+    this.sortColumn = sort.active as keyof LeaderboardEntry;
+    this.sortDirection = sort.direction;
+    this.displayedColumns = ["rank", "user", sort.active,
+      ...["spot_edits_count", "spot_creates_count", "media_added_count"].filter((column) => column !== sort.active),
+    ];
     const data = [...this.leaderboardData];
     const isAsc = sort.direction === "asc";
 

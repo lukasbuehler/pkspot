@@ -24,19 +24,11 @@ export function getBestLocale(
   availableLocales: LocaleCode[],
   locale: LocaleCode
 ): string {
-  if (availableLocales.includes(locale)) {
-    return locale;
-  } else if (availableLocales.length > 0) {
-    // try to get a locale with the same language (first two letters)
-    const language = locale.substring(0, 2);
-    const bestLocale = availableLocales.find((loc) => loc.startsWith(language));
-    if (bestLocale) {
-      return bestLocale;
-    }
-    // if no locale with the same language is found, return the first available locale
-    return availableLocales[0];
-  } else {
-    // No available locales: fall back to requested locale to let callers handle missing values
-    return locale;
-  }
+  const requested = locale.replace(/_/g, "-").toLowerCase();
+  const language = requested.split("-")[0];
+  const locales = [...availableLocales].sort();
+  const exact = (value: string) => locales.find((key) => key.toLowerCase().replace(/_/g, "-") === value);
+  return exact(requested) ?? exact(language) ??
+    locales.find((key) => key.toLowerCase().split(/[-_]/)[0] === language) ??
+    exact("en") ?? locales[0] ?? locale;
 }

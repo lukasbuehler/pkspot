@@ -1,3 +1,6 @@
+import { youtubeVideoId } from "../../../db/utils/youtube-video";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,10 +8,13 @@ import {
   effect,
   inject,
   input,
+  LOCALE_ID,
   output,
   signal,
+  TemplateRef,
   untracked,
   ViewChild,
+  viewChild,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
@@ -24,6 +30,7 @@ import {
   MatAutocompleteModule,
   MatAutocompleteSelectedEvent,
 } from "@angular/material/autocomplete";
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDatepickerModule } from "@angular/material/datepicker";
@@ -89,7 +96,7 @@ import {
 } from "../../../db/schemas/OrganizationSchema";
 import { MediaSchema, StorageBucket } from "../../../db/schemas/Media";
 import type { UserReferenceSchema } from "../../../db/schemas/UserSchema";
-import { LocaleMap, MediaType } from "../../../db/models/Interfaces";
+import { LocaleCode, LocaleMap, MediaType } from "../../../db/models/Interfaces";
 import { makeLocaleMapFromObject } from "../../../scripts/LanguageHelpers";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import {
@@ -98,7 +105,11 @@ import {
 } from "../../services/search.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MapsApiService } from "../../services/maps-api.service";
-import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component";
+import {
+  BoundsPickerComponent,
+  MapPickerInlineSpot,
+  MapPickerPoint,
+} from "../bounds-picker/bounds-picker.component";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
@@ -115,6 +126,7 @@ import {
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { UserPickerComponent } from "../user-picker/user-picker.component";
 import { EventTimeZoneService } from "../../services/event-time-zone.service";
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { eventProgramSpotRefs } from "../../shared/event-program-spots";
 import { EventRescheduleConfirmDialogComponent } from "../event-reschedule-confirm-dialog/event-reschedule-confirm-dialog.component";
 import { eventRescheduleConfirmation } from "../event-reschedule-confirm-dialog/event-reschedule-confirmation.model";
@@ -325,8 +337,8 @@ export type EventEditPatch = Omit<
  *   - Image fields: <app-media-upload> writing to Firebase Storage
  *     under `event_media/`. On upload completion we capture the
  *     returned URL and patch the corresponding form control.
- *   - Area: <app-bounds-picker> (small map with a draggable event pin +
- *     editable area polygon).
+ *   - Event Map: <app-bounds-picker> keeps the event pin, area, event Spots,
+ *     custom markers, and temporary Spot areas in one draggable preview.
  *   - Spot list: <app-spot-picker> (chip list backed by SearchField).
  *   - Community keys: chip list auto-suggested from event center
  *     vs. published community circles. User can add / remove freely.
@@ -345,6 +357,7 @@ export type EventEditPatch = Omit<
     MatAutocompleteModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatSlideToggleModule,
     MatChipsModule,
     MatDatepickerModule,
     MatNativeDateModule,
@@ -368,6 +381,8 @@ export type EventEditPatch = Omit<
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventEditFormComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
   readonly squareIconCropPolicy = SQUARE_ICON_CROP_POLICY;
   /** Existing event to edit. When null, the form is in create mode. */
@@ -391,6 +406,8 @@ export class EventEditFormComponent {
   private _searchService = inject(SearchService);
   private _organizationsService = inject(OrganizationsService);
   private _authService = inject(AuthenticationService);
+  private readonly _locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _spotSelectionData = inject(SpotSelectionDataService);
   private _mapsApiService = inject(MapsApiService);
   private _eventTimeZones = inject(EventTimeZoneService);
   private _dialog = inject(MatDialog);
@@ -400,6 +417,9 @@ export class EventEditFormComponent {
   private _communitySearchTimer: ReturnType<typeof setTimeout> | null = null;
   private _communitySearchRequestId = 0;
   @ViewChild(BoundsPickerComponent) private _boundsPicker?: BoundsPickerComponent;
+  readonly eventMapItemsTemplate = viewChild<TemplateRef<unknown>>(
+    "eventMapItems",
+  );
 
   /** Storage folder for banner / logo / sponsor-logo uploads. */
   readonly eventMediaBucket = StorageBucket.EventMedia;
@@ -407,8 +427,8 @@ export class EventEditFormComponent {
   // ---------------------------------------------------------------------
   // Form structure
   //
-  // Required section (always visible): name, venue, locality, dates,
-  // bounds (via the map picker).
+  // Required section (always visible): name, description, and dates. The
+  // Event Map then groups the venue, locality, map geometry, and map items.
   //
   // Everything else lives under the Optional details expansion below.
   // Dates are split into _date / _time controls and recomposed in
@@ -417,6 +437,7 @@ export class EventEditFormComponent {
   form: FormGroup = this._fb.group({
     name: ["", Validators.required],
     venue_string: [""],
+    is_outdoor: [true],
     locality_string: [""],
     location_lat: [null as number | null],
     location_lng: [null as number | null],
@@ -467,6 +488,7 @@ export class EventEditFormComponent {
     series_ids_csv: [""],
     promo_radius_m: [null as number | null],
     is_promoted: [false],
+    livestream_live: [false],
     sponsor_name: [""],
     sponsor_url: [""],
     sponsor_logo_src: [""],
@@ -519,6 +541,23 @@ export class EventEditFormComponent {
   autoSuggestedCommunityKeys = signal<string[]>([]);
   customMarkers = signal<EditableEventMarker[]>([]);
   inlineSpots = signal<EditableInlineEventSpot[]>([]);
+  eventSpotMapPoints = signal<MapPickerPoint[]>([]);
+  inlineSpotAreaPlacementTarget = signal<string | null>(null);
+  readonly customMarkerMapPoints = computed<MapPickerPoint[]>(() =>
+    this.customMarkers().map((marker) => ({
+      id: marker.id,
+      title: marker.name || marker.id,
+      location: mapLocation(marker.lat, marker.lng),
+    })),
+  );
+  readonly inlineSpotMapPoints = computed<MapPickerInlineSpot[]>(() =>
+    this.inlineSpots().map((spot) => ({
+      id: spot.key,
+      title: spot.name || spot.id,
+      location: mapLocation(spot.lat, spot.lng),
+      areaPath: validMapPath(spot.bounds),
+    })),
+  );
   readonly selectableInlineSpots = computed(() =>
     this.inlineSpots().map((spot) => ({
       id: spot.id,
@@ -749,6 +788,8 @@ export class EventEditFormComponent {
         this.bounds.set(null);
         this.areaTouched.set(false);
         this.spotIds.set([]);
+        this.eventSpotMapPoints.set([]);
+        this.inlineSpotAreaPlacementTarget.set(null);
         this.communityKeys.set([]);
         this.selectedOrganizer.set(null);
         this.initialCollaborators.set([]);
@@ -765,7 +806,11 @@ export class EventEditFormComponent {
         this.programPlans.set([]);
         this.activeProgramPlanId.set("");
         this.seriesMemberships.set([]);
-        this._descriptionLocaleMap.set(undefined);
+        this._descriptionLocaleMap.set(
+          this.mode() === "event"
+            ? { [this._locale]: { text: "", provider: "user" } }
+            : undefined,
+        );
         this.locationSearchControl.setValue("", { emitEvent: false });
         this.locationSearchResults.set([]);
         this._resetCommunitySearch();
@@ -782,6 +827,7 @@ export class EventEditFormComponent {
         slug: e.slug ?? "",
         organizer_query: e.organizerName ?? "",
         venue_string: e.venueString,
+        is_outdoor: e.isOutdoor,
         locality_string: e.localityString,
         location_lat: e.location?.lat ?? null,
         location_lng: e.location?.lng ?? null,
@@ -851,6 +897,7 @@ export class EventEditFormComponent {
             ? e.promoRegion.radius_m
             : null,
         is_promoted: e.isPromoted,
+        livestream_live: e.livestreamLive,
         sponsor_name: e.sponsor?.name ?? "",
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
@@ -866,6 +913,8 @@ export class EventEditFormComponent {
       this.bounds.set(e.bounds ?? null);
       this.areaTouched.set(false);
       this.spotIds.set([...e.spotIds]);
+      void this._loadEventSpotMapPoints(e.spotIds);
+      this.inlineSpotAreaPlacementTarget.set(null);
       this.communityKeys.set([...e.communityKeys]);
       this.selectedOrganizer.set(e.organizer?.organization ?? null);
       this.preserveLegacyRegistration.set(
@@ -1131,6 +1180,7 @@ export class EventEditFormComponent {
 
   onSpotIdsChange(ids: string[]): void {
     this.spotIds.set(ids);
+    void this._loadEventSpotMapPoints(ids);
   }
 
   onOrganizerInput(event: Event): void {
@@ -1300,6 +1350,47 @@ export class EventEditFormComponent {
     });
   }
 
+  onInlineSpotMapLocationChange(event: {
+    id: string;
+    location: { lat: number; lng: number };
+  }): void {
+    this.updateInlineSpot(event.id, {
+      lat: event.location.lat,
+      lng: event.location.lng,
+    });
+  }
+
+  onInlineSpotAreaChange(event: {
+    id: string;
+    areaPath: Array<{ lat: number; lng: number }> | null;
+  }): void {
+    this.inlineSpots.update((spots) =>
+      spots.map((spot) =>
+        spot.key !== event.id
+          ? spot
+          : {
+              ...spot,
+              bounds: (event.areaPath ?? []).map((point, index) => ({
+                id: `${spot.key}-map-bounds-${index}`,
+                lat: point.lat,
+                lng: point.lng,
+              })),
+            },
+      ),
+    );
+  }
+
+  startInlineSpotAreaPlacement(spotKey: string): void {
+    this.inlineSpotAreaPlacementTarget.set(spotKey);
+  }
+
+  clearInlineSpotArea(spotKey: string): void {
+    this.onInlineSpotAreaChange({ id: spotKey, areaPath: null });
+    if (this.inlineSpotAreaPlacementTarget() === spotKey) {
+      this.inlineSpotAreaPlacementTarget.set(null);
+    }
+  }
+
   addInlineSpotBoundsPoint(spotKey: string): void {
     const location = this.location();
     this.inlineSpots.update((spots) =>
@@ -1426,6 +1517,16 @@ export class EventEditFormComponent {
   ): void {
     this.updateCustomMarker(id, {
       [field]: Number.isFinite(value) ? value : null,
+    });
+  }
+
+  onCustomMarkerMapLocationChange(event: {
+    id: string;
+    location: { lat: number; lng: number };
+  }): void {
+    this.updateCustomMarker(event.id, {
+      lat: event.location.lat,
+      lng: event.location.lng,
     });
   }
 
@@ -2181,6 +2282,7 @@ export class EventEditFormComponent {
       description_i18n: this._descriptionI18nPatch(),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
       venue_string: trimOrUndefined(v.venue_string) ?? null,
+      is_outdoor: v.is_outdoor !== false,
       locality_string: trimOrUndefined(v.locality_string) ?? null,
       timing,
       start: Timestamp.fromDate(compatibility.start),
@@ -2260,6 +2362,7 @@ export class EventEditFormComponent {
       logo_background_color: trimOrUndefined(v.logo_background_color),
       focus_zoom: numberOrUndefined(v.focus_zoom),
       media: [...this.externalMedia()],
+      livestream_live: v.livestream_live === true,
       custom_markers: this._buildCustomMarkersPatch(),
       inline_spots: this._buildInlineSpotsPatch(),
       spot_ids: [...this.spotIds()],
@@ -2401,6 +2504,36 @@ export class EventEditFormComponent {
     void this._resolveLocationTimeZone(location);
   }
 
+  private _eventSpotMapRequestId = 0;
+
+  private async _loadEventSpotMapPoints(ids: readonly string[]): Promise<void> {
+    const requestId = ++this._eventSpotMapRequestId;
+    if (ids.length === 0) {
+      this.eventSpotMapPoints.set([]);
+      return;
+    }
+
+    const spots: Array<MapPickerPoint | null> = await Promise.all(
+      ids.map(async (id): Promise<MapPickerPoint | null> => {
+        try {
+          const spot = await this._spotSelectionData.resolve(id, this._locale);
+          return {
+            id,
+            title: spot.name() || id,
+            location: spot.location(),
+          } satisfies MapPickerPoint;
+        } catch {
+          return null;
+        }
+      }),
+    );
+    if (requestId === this._eventSpotMapRequestId) {
+      this.eventSpotMapPoints.set(
+        spots.filter((spot): spot is MapPickerPoint => spot !== null),
+      );
+    }
+  }
+
   private async _resolveLocationTimeZone(
     location: { lat: number; lng: number },
   ): Promise<void> {
@@ -2414,7 +2547,8 @@ export class EventEditFormComponent {
       ) {
         this.form.controls["time_zone"].setValue(timeZone);
       }
-    } catch {
+    } catch (caughtFailure) {
+      this.featureTelemetry.failure("event-edit-form", "_resolveLocationTimeZone", caughtFailure);
       this.timeZoneError.set(
         $localize`:@@event_edit.time_zone_resolve_error:Time zone could not be derived. Enter it manually before saving a timed event.`,
       );
@@ -3028,6 +3162,29 @@ function numberOrUndefined(value: number | null | undefined): number | undefined
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function mapLocation(
+  lat: number | null,
+  lng: number | null,
+): { lat: number; lng: number } | null {
+  return typeof lat === "number" &&
+    Number.isFinite(lat) &&
+    typeof lng === "number" &&
+    Number.isFinite(lng)
+    ? { lat, lng }
+    : null;
+}
+
+function validMapPath(
+  points: EditableInlineSpotBoundsPoint[],
+): Array<{ lat: number; lng: number }> | null {
+  const path = points
+    .map((point) => mapLocation(point.lat, point.lng))
+    .filter(
+      (point): point is { lat: number; lng: number } => point !== null,
+    );
+  return path.length >= 3 ? path : null;
+}
+
 function positiveIntegerOrUndefined(
   value: number | null | undefined,
 ): number | undefined {
@@ -3121,7 +3278,7 @@ function safeExternalUrl(value: string | null | undefined): string | null {
 
 function inferMediaType(url: string): MediaType {
   const pathname = new URL(url).pathname.toLowerCase();
-  return /\.(?:mp4|m4v|mov|webm|ogv)$/u.test(pathname)
+  return youtubeVideoId(url) || /\.(?:mp4|m4v|mov|webm|ogv)$/u.test(pathname)
     ? MediaType.Video
     : MediaType.Image;
 }

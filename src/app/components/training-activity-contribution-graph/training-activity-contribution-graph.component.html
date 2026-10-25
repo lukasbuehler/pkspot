@@ -1,0 +1,73 @@
+<section class="contribution-graph" [class.contribution-graph--bare]="!showHeader()" aria-label="Training rhythm" i18n-aria-label="@@trainingContributionGraph.ariaLabel">
+  @if (showHeader()) {
+  <header class="contribution-graph__header">
+    <div>
+      <h2 i18n="@@trainingContributionGraph.title">Training rhythm</h2>
+      <p i18n="@@trainingContributionGraph.subtitle">Week by week</p>
+    </div>
+    <div class="contribution-graph__legend" aria-label="Activity legend" i18n-aria-label="@@trainingContributionGraph.legend">
+      <span><i class="legend-swatch week" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.week">Active week</span></span>
+      <span><i class="legend-swatch day" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.day">Training day</span></span>
+      <span><i class="legend-swatch recovery" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.recovery">Recovery pause</span></span>
+    </div>
+  </header>
+  }
+
+  @if (singleWeek()) {
+  <div class="week-strip" role="list">
+    @for (day of currentWeekDays(); track day.key; let index = $index) {
+      <div class="week-strip__day" role="listitem" [attr.aria-label]="dayLabel(day)">
+        <span class="week-strip__label" aria-hidden="true">{{ weekdays()[index] }}</span>
+        <span
+          class="cell"
+          [class.day-active]="!!day.activity"
+          [class.recovery-pause]="!day.activity && !!day.recoveryPause"
+          [class.is-today]="day.isToday"
+          [class.is-future]="day.isFuture"
+          aria-hidden="true"
+        ></span>
+      </div>
+    }
+  </div>
+  } @else {
+  <div class="contribution-graph__body">
+    <div class="weekday-labels" aria-hidden="true">
+      @for (weekday of weekdays(); track $index) {
+        <span>{{ weekday }}</span>
+      }
+    </div>
+    <div #scrollContainer class="contribution-graph__scroll" tabindex="0" role="region" aria-label="Scrollable training history" i18n-aria-label="@@trainingContributionGraph.scrollable">
+      <div class="weeks" role="list">
+        @for (week of visibleWeeks(); track week.key) {
+          <div class="week" role="listitem" [class.week-active]="week.hasActivity">
+            @for (day of week.days; track day.key) {
+              @if (!day.isFuture && (day.activity || day.recoveryPause) && interactive()) {
+                <button
+                  class="cell"
+                  type="button"
+                  [class.day-active]="!!day.activity"
+                  [class.recovery-pause]="!day.activity && !!day.recoveryPause"
+                  [class.is-selected]="isSelected(day)"
+                  [class.is-today]="day.isToday"
+                  [attr.aria-label]="dayLabel(day)"
+                  [attr.aria-pressed]="isSelected(day)"
+                  [title]="dayLabel(day)"
+                  (click)="selectDay(day)"
+                ></button>
+              } @else if (!day.isFuture) {
+                <span
+                  class="cell"
+                  [class.day-active]="!!day.activity"
+                  [class.recovery-pause]="!day.activity && !!day.recoveryPause"
+                  [class.is-today]="day.isToday"
+                  aria-hidden="true"
+                ></span>
+              }
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+</section>

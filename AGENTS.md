@@ -2,6 +2,15 @@
 
 These instructions apply to all work in this repository.
 
+## Private documents
+
+- Keep product ideas and feature plans in ignored `docs/planning/`, submission
+  preparation in `docs/release/`, and deployment checklists in `docs/deployment/`.
+- These are local maintainer records. Do not force-add ignored documents or copy
+  private planning/assessment contents into tracked files without explicit approval.
+- Keep contributor setup and implementation documentation in Git when useful,
+  but do not include unpublished roadmap details by default.
+
 ## Angular standards
 
 - This repository uses Angular 22. For Angular-specific work, prefer the official `angular-developer` Codex skill when available and check the installed Angular version before applying version-sensitive guidance.
@@ -122,15 +131,16 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 
 ## Deployment and App Hosting
 
+- Pushing `development` to `origin/development` automatically deploys Cloudflare staging at `https://test.pkspot.app`. Treat this push as a staging deployment and obtain explicit user authorization. Further local work must not be pushed under an earlier one-time push authorization.
 - Do routine implementation work directly on the local `development` branch; do not create feature PRs. Reserve GitHub PRs for `development` to `main` release merges. Before creating or changing a release PR, or pushing commits that would update it, ask the user for explicit approval. This includes editing PR metadata, commenting, requesting reviews, closing, reopening, or merging. Local commits and verification on `development` may proceed when otherwise authorized, but the user must have the final say over every GitHub action.
 - Do not create, start, promote, or otherwise operate Firebase App Hosting rollouts. The user deploys the web app by updating the `main` branch, which automatically rolls the update out to App Hosting.
 - Do not push or merge changes to `main` unless the user explicitly asks for that release. Local testing and backend-compatible development can remain on the current development branch while production clients and the production web app stay on their previous version.
 - Treat a request to deploy Firebase rules, functions, extensions, or other backend resources as separate from an App Hosting release. It never implies permission to update `main` or operate App Hosting.
-- Treat `DEPLOYMENT_TASKS.md` as the maintainer-facing source of truth for pre-deployment, deployment, and post-deployment work. Review it before release-related work and surface any applicable unchecked items in the handoff.
-- When a change requires release coordination—such as updating Firestore indexes or Typesense schemas, deploying functions or rules, running a migration or backfill, regenerating a sitemap, cleaning up old resources, or completing an external-service check—update `DEPLOYMENT_TASKS.md` in the same change. Add release-specific pending actions with the required order, exact commands or targets where practical, success checks, and any condition for retaining or removing compatibility behavior.
-- Keep the reusable release procedure in `DEPLOYMENT_TASKS.md` aligned with the repository's actual scripts and infrastructure. Put one-off work under `Release-specific pending actions`, not in the reusable procedure.
+- Treat `DEPLOYMENT_TASKS.md` and its linked `docs/deployment/*.md` checklists as the maintainer-facing source of truth for pre-deployment, deployment, and post-deployment work. Review it before release-related work and surface any applicable unchecked items in the handoff.
+- When a change requires release coordination—such as updating Firestore indexes or Typesense schemas, deploying functions or rules, running a migration or backfill, regenerating a sitemap, cleaning up old resources, or completing an external-service check—update the single owning checklist under `docs/deployment/` in the same change. Keep `DEPLOYMENT_TASKS.md` as the index and shared procedure. Add pending actions with the required order, exact commands or targets where practical, success checks, and any condition for retaining or removing compatibility behavior.
+- Keep the reusable release procedure in `DEPLOYMENT_TASKS.md` aligned with the repository's actual scripts and infrastructure. Put one-off work in its owning linked checklist, not in the reusable procedure.
 - Never mark a deployment-note item complete unless the action was actually performed and its result verified. A checklist entry documents pending work; it does not grant permission to deploy, mutate production data, or operate App Hosting.
-- Once a deployment action and its success condition are performed and verified, remove that item from `DEPLOYMENT_TASKS.md`; remove the entire section when it has no pending work. Git history is the completion record. If only part of an item is complete, rewrite it to describe only the remaining action and success condition.
+- Once a deployment action and its success condition are performed and verified, remove that item from its owning deployment checklist; remove the entire section when it has no pending work. Git history is the completion record. If only part of an item is complete, rewrite it to describe only the remaining action and success condition.
 
 ## Backwards compatibility
 
@@ -148,6 +158,20 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - **Red (`--mat-sys-error`) is reserved for destructive / past / error states**: past-event banners, validation errors, delete confirmations.
 - Tertiary, surface variants, and outline tokens are general-purpose and can be used freely for UI structure.
 - Do not use the green accent for static decoration — overuse breaks the "this is happening live" signal.
+
+## Expansion panels
+
+- Use Angular Material `mat-expansion-panel` for expandable panels. Do not build custom disclosure panels or use native `details`/`summary` as substitutes.
+
+## FAB menus
+
+- Use the shared `app-fab-menu` (`src/app/components/fab-menu`) for FABs that open multiple actions, as on the Events page. Do not attach a `mat-menu` or introduce another speed-dial implementation for these launchers.
+- Use `direction="down"` and `alignment="start"` for top-left navigation; page-action FABs use the default upward menu. Keep viewport scrolling, safe-area clearance, accessible labels, and existing navigation/actions intact.
+
+## Floating navigation clearance
+
+- Alain Mode replaces the usual navigation with the app-level `#alainMenuButton` FAB in the top-left whenever the viewport is under 500px high, or is under 768px wide and under 700px high. A scrolling page whose content begins at the top must reserve this space in its own styles; use the same media condition and `padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))))`.
+- Do not move or restyle the shared menu FAB to solve a page collision. Add an Alain-mode visual route using `assertAlainClearance` against the page header or first interactive content so the menu has at least an 8px gap.
 
 ## Icon workflow
 

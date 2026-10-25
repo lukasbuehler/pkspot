@@ -57,7 +57,7 @@
                 <mat-icon>open_in_new</mat-icon>
               </a>
             }
-            <button mat-icon-button class="d-flex" (click)="shareEvent()">
+            <button mat-icon-button class="d-flex" [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareEvent()">
               <mat-icon>share</mat-icon>
             </button>
             @if (canEditEvent()) {
@@ -417,112 +417,45 @@
                 </div>
               }
               @case ("program") {
-                <div
-                  class="program-drawer d-flex flex-column gap-3 p-3 overflow-y-auto w-100"
-                >
-                  <div>
-                    <h2
-                      class="mat-title-medium m-0"
-                      i18n="@@event_program.heading"
-                    >
-                      Program
-                    </h2>
-                  </div>
-                  @if (selectedSpot()) {
-                    <section class="selected-program-spot d-flex flex-column gap-2">
-                      <div class="d-flex align-items-center gap-2">
-                        <button
-                          mat-icon-button
-                          type="button"
-                          (click)="deselectSpot()"
-                          aria-label="All program locations"
-                          i18n-aria-label="@@event_program.all_locations"
-                        >
-                          <mat-icon>close</mat-icon>
-                        </button>
-                        <h3 class="mat-title-small m-0">
-                          {{ selectedSpot()!.name() }}
-                        </h3>
-                      </div>
-                      <p
-                        class="mat-label-large program-section-label m-0"
-                        i18n="@@event_program.at_this_spot"
+                @if (selectedSpot()) {
+                  <ng-container [ngTemplateOutlet]="spotDetailsPanel" />
+                } @else {
+                  <div
+                    class="program-drawer d-flex flex-column gap-3 p-3 overflow-y-auto w-100"
+                  >
+                    <div>
+                      <h2
+                        class="mat-title-medium m-0"
+                        i18n="@@event_program.heading"
                       >
-                        Program at this Spot
-                      </p>
-                      <app-event-program-occurrence-list
-                        [occurrences]="selectedSpotProgramOccurrences()"
-                        [timeZone]="event()?.timeZone"
-                        [selectedItemId]="selectedProgramItemId()"
-                        [showSpotCards]="false"
-                        (occurrenceSelected)="selectProgramOccurrence($event)"
-                      />
-                    </section>
-                  }
-                  <app-event-program-map-schedule
-                    [items]="activeProgramItems()"
-                    [occurrences]="programOccurrences()"
-                    [customMarkers]="customMarkers()"
-                    [linkedEventsById]="programLinkedEventsById()"
-                    [timeZone]="event()?.timeZone"
-                    [eventStart]="event()?.start"
-                    [eventEnd]="event()?.end"
-                    [weather]="eventWeather()"
-                    [now]="now()"
-                    [selectedDay]="selectedProgramDay()"
-                    [selectedItemId]="selectedProgramItemId()"
-                    (dayOpened)="openProgramDay($event)"
-                    (dayClosed)="closeProgramDay($event)"
-                    (occurrenceSelected)="openProgramMarkerDetails($event)"
-                    (spotSelected)="openProgramSpotDetails($event)"
-                    (weatherSelected)="openEventWeather($event)"
-                  />
-                </div>
+                        Program
+                      </h2>
+                    </div>
+                    <app-event-program-map-schedule
+                      [items]="activeProgramItems()"
+                      [occurrences]="programOccurrences()"
+                      [customMarkers]="customMarkers()"
+                      [linkedEventsById]="programLinkedEventsById()"
+                      [timeZone]="event()?.timeZone"
+                      [eventStart]="event()?.start"
+                      [eventEnd]="event()?.end"
+                      [weather]="eventWeather()"
+                      [now]="now()"
+                      [selectedDay]="selectedProgramDay()"
+                      [selectedItemId]="selectedProgramItemId()"
+                      (dayOpened)="openProgramDay($event)"
+                      (dayClosed)="closeProgramDay($event)"
+                      (occurrenceSelected)="openProgramMarkerDetails($event)"
+                      (spotSelected)="openProgramSpotDetails($event)"
+                      (weatherSelected)="openEventWeather($event)"
+                    />
+                  </div>
+                }
               }
               @case ("spots") {
                 <!-- Show spots -->
                 @if (selectedSpot()) {
-                  <div
-                    #spotScrollContainer
-                    class="w-100 d-flex flex-column overflow-x-hidden overflow-y-auto h-100"
-                  >
-                    <app-spot-details
-                      @fadeInOut
-                      [spot]="selectedSpot()"
-                      [editable]="false"
-                      [isEditing]="false"
-                      [dismissable]="true"
-                      [border]="false"
-                      [showRating]="false"
-                      (dismiss)="deselectSpot()"
-                      class="w-100 d-block overflow-x-hidden flex-shrink-0"
-                    >
-                      <section
-                        spotDetailsAfterMedia
-                        class="location-program-section spot-program-section"
-                        [hidden]="
-                          selectedSpotProgramOccurrences().length === 0
-                        "
-                      >
-                        @if (selectedSpotProgramOccurrences().length > 0) {
-                          <h2
-                            class="mat-title-medium m-0"
-                            i18n="@@event_program.at_this_spot"
-                          >
-                            Program at this Spot
-                          </h2>
-                          <app-event-program-occurrence-list
-                            [occurrences]="selectedSpotProgramOccurrences()"
-                            [timeZone]="event()?.timeZone"
-                            [showSpotCards]="false"
-                            (occurrenceSelected)="
-                              selectProgramOccurrence($event)
-                            "
-                          />
-                        }
-                      </section>
-                    </app-spot-details>
-                  </div>
+                  <ng-container [ngTemplateOutlet]="spotDetailsPanel" />
                 } @else {
                   @if (spots() && spots()!.length > 0) {
                     <app-spot-list
@@ -656,3 +589,48 @@
     </mat-drawer-container>
   }
 </div>
+
+<ng-template #spotDetailsPanel>
+  <div
+    #spotScrollContainer
+    class="w-100 d-flex flex-column overflow-x-hidden overflow-y-auto h-100"
+  >
+    <app-spot-details
+      @fadeInOut
+      [spot]="selectedSpot()"
+      [editable]="false"
+      [isEditing]="false"
+      [dismissable]="true"
+      [border]="false"
+      [showRating]="false"
+      (dismiss)="deselectSpot()"
+      class="w-100 d-block overflow-x-hidden flex-shrink-0"
+    >
+      <section
+        spotDetailsAfterMedia
+        class="location-program-section spot-program-section"
+        [hidden]="
+          selectedSpotProgramOccurrences().length === 0
+        "
+      >
+        @if (selectedSpotProgramOccurrences().length > 0) {
+          <h2
+            class="mat-title-medium m-0"
+            i18n="@@event_program.at_this_spot"
+          >
+            Program at this Spot
+          </h2>
+          <app-event-program-occurrence-list
+            [occurrences]="selectedSpotProgramOccurrences()"
+            [timeZone]="event()?.timeZone"
+            [showSpotCards]="false"
+            (occurrenceSelected)="
+              selectProgramOccurrence($event)
+            "
+          />
+        }
+      </section>
+    </app-spot-details>
+  </div>
+
+</ng-template>

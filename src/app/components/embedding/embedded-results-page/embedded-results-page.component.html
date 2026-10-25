@@ -1,0 +1,34 @@
+<section class="embedded-results" aria-label="PK Spot selection">
+  @if (results.isLoading()) {
+    <p role="status" i18n>Loading your selection…</p>
+  } @else if (!items().length) {
+    <p role="status" i18n>No public content is available for this selection.</p>
+    @if (selection().length) { <button mat-button (click)="results.reload()" i18n>Retry</button> }
+  } @else {
+    @if (results.hasValue() && results.value().unavailable) {
+      <p role="status" i18n>Some items could not be loaded or are no longer public.</p>
+      <button mat-button (click)="results.reload()" i18n>Retry</button>
+    }
+    @if (showMap() && spots().length) {
+      <div class="selection-map">
+        <app-spot-map [spots]="spots()" [centerStart]="center()" [focusedSpotPreviews]="spotPreviews()"
+          [showGeolocation]="false" [showSatelliteToggle]="true" gestureHandling="cooperative" />
+      </div>
+    }
+    @if (spots().length) {
+      <app-spot-list [spots]="spots()" [hideHeader]="true" [withHrefLink]="false"
+        [enableAnimation]="false" (spotClick)="openSpot($event)" />
+    }
+    <div class="event-grid">
+      @for (event of eventCards(); track event.id) {
+        <app-event-card [event]="event" [showRsvp]="false" [selectMode]="true" (select)="openEvent($event)" />
+      }
+    </div>
+    @for (community of communityCards(); track community.communityKey) {
+      <a [href]="community.canonicalPath | appHref" target="_blank" rel="noopener noreferrer" class="community-link">
+        <app-entity-preview-card [title]="community.displayName" [subtitle]="community.description"
+          [imageSrc]="community.imageUrl" [imageAlt]="community.displayName" icon="groups" [clickable]="true" />
+      </a>
+    }
+  }
+</section>

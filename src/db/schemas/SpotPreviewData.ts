@@ -1,3 +1,4 @@
+import type { RecentActivityMin30d } from "./CheckInActivitySchema";
 import type { GeoPoint } from "firebase/firestore";
 import { SpotId } from "../schemas/SpotSchema";
 import { AmenitiesMap } from "./Amenities";
@@ -11,11 +12,15 @@ export interface SpotPreviewData {
   type?: string; //SpotTypes;
   access?: string; //SpotAccess;
   locality: string;
+  /** Localized names of the town in `locality`, keyed by locale. */
+  localityNames?: Record<string, string>;
   countryCode?: string;
   countryName?: string;
   imageSrc: string;
   isIconic: boolean;
   hideStreetview?: boolean;
+  /** Server-owned distinct-account activity band over the last 30 days. Null clears expired activity. */
+  recent_activity_min_30d?: RecentActivityMin30d | null;
   rating?: number; // whole number 1-10
   numReviews?: number;
   num_reviews?: number;

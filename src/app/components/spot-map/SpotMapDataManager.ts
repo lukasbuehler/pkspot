@@ -1,4 +1,5 @@
 import { firstValueFrom } from "rxjs";
+import { GeoPoint } from "firebase/firestore";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import {
@@ -15,7 +16,7 @@ import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { LocaleCode } from "../../../db/models/Interfaces";
-import { OsmDataService } from "../../services/osm-data.service";
+import { OsmDataService, OsmAmenityUnavailableError } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { createUserReference } from "../../../scripts/Helpers";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -128,6 +129,7 @@ export class SpotMapDataManager {
   private _sortByPriority(a: Spot, b: Spot): number {
     const priorityDifference =
       getSpotMarkerPriority({
+        recent_activity_min_30d: b.recent_activity_min_30d,
         rating: b.rating ?? this.defaultRating,
         access: b.access(),
         isIconic: b.isIconic,
@@ -135,6 +137,7 @@ export class SpotMapDataManager {
         hasMedia: this._hasUserProvidedMedia(b),
       }) -
       getSpotMarkerPriority({
+        recent_activity_min_30d: a.recent_activity_min_30d,
         rating: a.rating ?? this.defaultRating,
         access: a.access(),
         isIconic: a.isIconic,
@@ -151,6 +154,7 @@ export class SpotMapDataManager {
   ): number {
     const priorityDifference =
       getSpotMarkerPriority({
+        recent_activity_min_30d: b.recent_activity_min_30d,
         rating: b.rating,
         access: b.access,
         isIconic: b.isIconic,
@@ -158,6 +162,7 @@ export class SpotMapDataManager {
         hasMedia: !!b.imageSrc,
       }) -
       getSpotMarkerPriority({
+        recent_activity_min_30d: a.recent_activity_min_30d,
         rating: a.rating,
         access: a.access,
         isIconic: a.isIconic,
@@ -556,6 +561,12 @@ export class SpotMapDataManager {
    * @param currentData - The current/new spot data after editing
    * @returns A partial object containing only the fields that changed
    */
+  private static readonly _wholeValueKeys = new Set([
+    "location_raw",
+    "bounds_raw",
+    "tile_coordinates",
+  ]);
+
   private _computeDataDiff(
     originalData: Partial<any>,
     currentData: Partial<any>
@@ -575,8 +586,12 @@ export class SpotMapDataManager {
           currentValue !== null &&
           !Array.isArray(currentValue) &&
           !(currentValue instanceof Date) &&
-          currentValue._latitude === undefined && // not a GeoPoint
-          currentValue.seconds === undefined // not a Timestamp
+          !(currentValue instanceof GeoPoint) &&
+          currentValue._latitude === undefined && // not a serialized GeoPoint
+          currentValue.seconds === undefined && // not a Timestamp
+          // Coordinates are only meaningful as a whole: a pin moved along one
+          // axis must still send both values, or the server rejects the edit.
+          !SpotMapDataManager._wholeValueKeys.has(key)
         ) {
           // This is a plain object - compute the diff for nested properties
           const nestedDiff = this._computeNestedDiff(
@@ -638,6 +653,9 @@ export class SpotMapDataManager {
     if (typeof a !== "object" || typeof b !== "object") return false;
 
     // Handle GeoPoint (Firebase Firestore type)
+    if (a instanceof GeoPoint && b instanceof GeoPoint) {
+      return a.isEqual(b);
+    }
     if (a._latitude !== undefined && b._latitude !== undefined) {
       return a._latitude === b._latitude && a._longitude === b._longitude;
     }
@@ -807,8 +825,10 @@ export class SpotMapDataManager {
             this._pendingAmenityTiles.delete(tileKey);
             this._amenityTileRetryAfter.set(
               tileKey,
-              Date.now() + this.AMENITY_TILE_RETRY_MS
+              Date.now() + (error instanceof OsmAmenityUnavailableError
+                ? error.retryAfterSeconds * 1000 : this.AMENITY_TILE_RETRY_MS)
             );
+            if (error instanceof OsmAmenityUnavailableError) return;
             console.warn(
               "[SpotMapDataManager] Amenity tile unavailable; retrying later",
               error
@@ -1496,14 +1516,12 @@ export class SpotMapDataManager {
           } else {
             // Add as a new spot
             spots.push(newSpot);
-            console.debug("Added new spot to loaded spots", newSpot);
           }
         }
       } else {
         // There are no spots loaded for this 16 tile, add it to the loaded spots
         spots = [newSpot];
         this._spots.set(tileKey, spots);
-        console.debug("Added new spot to empty tile", newSpot);
       }
     }
 

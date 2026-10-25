@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { DOCUMENT } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -32,7 +34,7 @@ const calendarTimestamp = (date: Date): string =>
   date.toISOString().replace(/[-:]/gu, "").replace(/\.\d{3}Z$/u, "Z");
 
 export const buildEventCalendar = (event: PkEvent): string => {
-  const location = [event.venueString, event.localityString]
+  const location = [event.venueString, event.localityLabel]
     .filter(Boolean)
     .join(", ");
   return [
@@ -65,6 +67,8 @@ export const buildEventCalendar = (event: PkEvent): string => {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventLiveUpdateControlsComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly auth = inject(AuthenticationService);
   private readonly liveUpdates = inject(EventLiveUpdatesService);
   private readonly push = inject(PushNotificationsService);
@@ -168,6 +172,7 @@ export class EventLiveUpdateControlsComponent {
         );
       }
     } catch (error) {
+      this.featureTelemetry.failure("event-live-update-controls", "saveNotificationLevel", error);
       console.error("Could not update event notifications", error);
       this.notificationLevel.set(previous);
       this.failed.set(true);

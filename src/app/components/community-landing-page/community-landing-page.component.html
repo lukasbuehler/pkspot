@@ -3,6 +3,7 @@
     <header class="panel-header">
       <app-map-info-panel
         [title]="heading()"
+        [primaryHeading]="true"
         [titleTooltip]="heading()"
         [titleSuffix]="countryFlag()"
         [typeLabel]="heading() ? 'Community' : ''"
@@ -75,6 +76,7 @@
       <header class="panel-header">
         <app-map-info-panel
           [title]="heading()"
+        [primaryHeading]="true"
           [titleTooltip]="heading()"
           [titleSuffix]="countryFlag()"
           typeLabel="Community"
@@ -88,12 +90,12 @@
         >
           <div mapInfoMeta>
             <div class="d-flex flex-row gap-1 align-items-center pb-1">
-              <span class="mat-label-large text-nowrap text-truncate">
-                {{ totalSpotCount() }} spots
+              <span class="mat-label-large text-nowrap text-truncate" i18n="@@community.stats.spot_count">
+                {{ totalSpotCount() }} Spots
               </span>
               @if (dryCount() > 0) {
                 <span>·</span>
-                <span class="mat-label-large text-nowrap text-truncate">
+                <span class="mat-label-large text-nowrap text-truncate" i18n="@@community.stats.dry_count">
                   {{ dryCount() }} dry
                 </span>
               }
@@ -102,13 +104,13 @@
               @if (data.scope === "country") {
                 <span>{{ scopeLabel() }}</span>
               } @else {
-                <span>{{ scopeLabel() }} in</span>
+                <span>{{ scopeLabel() }} ·</span>
                 @if (countryBreadcrumb(); as country) {
                   @if (panelMode()) {
                     <a
                       class="text-decoration-none"
                       style="color: var(--mat-sys-primary)"
-                      [href]="country.path"
+                      [href]="country.path | appHref"
                       (click)="onCommunityPathClick($event, country.path)"
                     >
                       {{ country.name }}
@@ -170,7 +172,7 @@
             @if (parentBreadcrumb(); as parent) {
               <p class="eyebrow m-0">
                 <a [routerLink]="parent.path">{{ parent.name }}</a>
-                / {{ heading() }}
+                / {{ data.displayName }}
               </p>
             } @else {
               <p class="eyebrow m-0">{{ scopeLabel() }}</p>
@@ -187,15 +189,15 @@
             <div class="stats-grid">
               <div class="stat-card">
                 <div class="stat-value">{{ totalSpotCount() }}</div>
-                <div class="stat-label">Total Spots</div>
+                <div class="stat-label" i18n="@@community.stats.total">Total Spots</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value">{{ topRatedCount() }}</div>
-                <div class="stat-label">Top Rated Spots</div>
+                <div class="stat-label" i18n="@@community.stats.top">Top rated Spots</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value">{{ dryCount() }}</div>
-                <div class="stat-label">Dry Spots</div>
+                <div class="stat-label" i18n="@@community.stats.dry">Dry Spots</div>
               </div>
             </div>
           </mat-card-content>
@@ -205,103 +207,112 @@
 
     @if (!data.notFound) {
       @if (communityInfoCards().length > 0) {
-        <section class="content-section local-info-section">
-          <div class="section-heading section-heading-row">
-            <h2
-              class="mat-title-large m-0 collapsible"
-              [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
-              i18n="@@community.local_knowledge_heading"
-            >
-              Local Knowledge
-            </h2>
-            @if (canSuggestKnowledge()) {
-              <button
-                mat-icon-button
-                type="button"
-                class="d-flex"
-                [attr.aria-label]="knowledgeEditActionLabel()"
-                [matTooltip]="knowledgeEditActionLabel()"
-                (click)="startKnowledgeEdit()"
-              >
-                <mat-icon>{{ canEditKnowledge() ? "edit" : "add" }}</mat-icon>
-              </button>
-            }
-          </div>
+        <div
+          class="knowledge-reveal"
+          [style.grid-template-rows]="knowledgeRevealProgress() + 'fr'"
+          [style.opacity]="knowledgeRevealProgress()"
+          [attr.inert]="knowledgeRevealProgress() === 0 ? '' : null"
+          [attr.aria-hidden]="knowledgeRevealProgress() === 0 ? 'true' : null"
+        >
+          <div class="knowledge-reveal-content">
+            <section class="content-section local-info-section">
+              <div class="section-heading section-heading-row">
+                <h2
+                  class="mat-title-large m-0"
+                  i18n="@@community.local_knowledge_heading"
+                >
+                  Local Knowledge
+                </h2>
+                @if (canSuggestKnowledge()) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="d-flex"
+                    [attr.aria-label]="knowledgeEditActionLabel()"
+                    [matTooltip]="knowledgeEditActionLabel()"
+                    (click)="startKnowledgeEdit()"
+                  >
+                    <mat-icon>{{ canEditKnowledge() ? "edit" : "add" }}</mat-icon>
+                  </button>
+                }
+              </div>
 
-          <div class="local-info-grid">
-            @for (card of communityInfoCards(); track card.id) {
-              <mat-card class="local-info-card border">
-                <mat-card-content>
-                  <div class="local-info-card-header">
-                    <span class="local-info-icon" aria-hidden="true">
-                      <mat-icon>{{ card.icon }}</mat-icon>
-                    </span>
-                    <div class="local-info-title-block">
-                      <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
-                      @if (card.disclosure) {
-                        <span class="local-info-disclosure">
-                          @if (card.disclosureIcon) {
-                            <mat-icon aria-hidden="true">{{
-                              card.disclosureIcon
-                            }}</mat-icon>
-                          }
-                          <span>{{ card.disclosure }}</span>
+              <div class="local-info-grid">
+                @for (card of communityInfoCards(); track card.id) {
+                  <mat-card class="local-info-card border">
+                    <mat-card-content>
+                      <div class="local-info-card-header">
+                        <span class="local-info-icon" aria-hidden="true">
+                          <mat-icon>{{ card.icon }}</mat-icon>
                         </span>
-                      }
-                    </div>
-                  </div>
+                        <div class="local-info-title-block">
+                          <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
+                          @if (card.disclosure) {
+                            <span class="local-info-disclosure">
+                              @if (card.disclosureIcon) {
+                                <mat-icon aria-hidden="true">{{
+                                  card.disclosureIcon
+                                }}</mat-icon>
+                              }
+                              <span>{{ card.disclosure }}</span>
+                            </span>
+                          }
+                        </div>
+                      </div>
 
-                  @if (card.body) {
-                    <p class="mat-body-medium local-info-body">
-                      {{ card.body }}
-                    </p>
-                  }
-
-                  @if (card.cta; as cta) {
-                    <div class="local-info-actions">
-                      @if (cta.target === "url") {
-                        <a
-                          mat-stroked-button
-                          [href]="cta.url"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          (click)="trackCommunityInfoCtaClick(card, cta)"
-                        >
-                          <mat-icon>link</mat-icon>
-                          <span>{{ cta.label }}</span>
-                        </a>
-                      } @else {
-                        <a
-                          mat-stroked-button
-                          [routerLink]="cta.path"
-                          (click)="trackCommunityInfoCtaClick(card, cta)"
-                        >
-                          <mat-icon>{{
-                            cta.target === "spot" ? "place" : "event"
-                          }}</mat-icon>
-                          <span>{{ cta.label }}</span>
-                        </a>
+                      @if (card.body) {
+                        <p class="mat-body-medium local-info-body">
+                          {{ card.body }}
+                        </p>
                       }
-                    </div>
-                  } @else if (card.requiresSignInForCta) {
-                    <div class="local-info-actions">
-                      <a
-                        mat-stroked-button
-                        routerLink="/sign-in"
-                        [queryParams]="signInQueryParams()"
-                      >
-                        <mat-icon>login</mat-icon>
-                        <span i18n="@@community.sign_in_to_see_link"
-                          >Sign in to see link</span
-                        >
-                      </a>
-                    </div>
-                  }
-                </mat-card-content>
-              </mat-card>
-            }
+
+                      @if (card.cta; as cta) {
+                        <div class="local-info-actions">
+                          @if (cta.target === "url") {
+                            <a
+                              mat-stroked-button
+                              [href]="cta.url"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              (click)="trackCommunityInfoCtaClick(card, cta)"
+                            >
+                              <mat-icon>link</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          } @else {
+                            <a
+                              mat-stroked-button
+                              [routerLink]="cta.path"
+                              (click)="trackCommunityInfoCtaClick(card, cta)"
+                            >
+                              <mat-icon>{{
+                                cta.target === "spot" ? "place" : "event"
+                              }}</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          }
+                        </div>
+                      } @else if (card.requiresSignInForCta) {
+                        <div class="local-info-actions">
+                          <a
+                            mat-stroked-button
+                            routerLink="/sign-in"
+                            [queryParams]="signInQueryParams()"
+                          >
+                            <mat-icon>login</mat-icon>
+                            <span i18n="@@community.sign_in_to_see_link"
+                              >Sign in to see link</span
+                            >
+                          </a>
+                        </div>
+                      }
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       }
 
       @if (visibleEvents().length > 0) {
@@ -512,8 +523,8 @@
       @if (childCommunities().length > 0) {
         <section class="content-section">
           <div class="section-heading">
-            <p class="section-eyebrow m-0">Country Directory</p>
-            <h2 class="mat-title-large m-0">Communities in {{ heading() }}</h2>
+            <p class="section-eyebrow m-0" i18n="@@community.directory.countryLabel">Country Directory</p>
+            <h2 class="mat-title-large m-0">{{ data.communityDirectoryHeading ?? data.displayName }}</h2>
           </div>
 
           <div class="community-directory-grid">
@@ -521,7 +532,7 @@
               @if (panelMode()) {
                 <a
                   class="community-link-card"
-                  [href]="child.canonicalPath"
+                  [href]="child.canonicalPath | appHref"
                   (click)="onCommunityPathClick($event, child.canonicalPath)"
                 >
                   <span class="community-link-name">
@@ -558,7 +569,7 @@
       @if (!panelMode() && crawlerSpotDirectory().length > 0) {
         <section class="content-section spot-text-directory">
           <div class="section-heading">
-            <p class="section-eyebrow m-0">Spot Directory</p>
+            <p class="section-eyebrow m-0" i18n="@@community.directory.spotLabel">Spot Directory</p>
             <h2 class="mat-title-large m-0">
               {{ crawlerSpotDirectoryHeading() }}
             </h2>
@@ -582,6 +593,14 @@
       <p class="mat-body-small page-updated-text">
         Source data updated {{ lastUpdated | systemDate: "longDate" }}.
       </p>
+    }
+    @if (data.hasGeoNamesAttribution) {
+      <footer class="community-attribution mat-body-small">
+        <span i18n="@@community.placeNames.attribution">Place names:</span>
+        <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="license noopener noreferrer">CC BY 4.0</a>
+      </footer>
     }
   </div>
 

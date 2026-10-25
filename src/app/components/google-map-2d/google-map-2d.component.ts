@@ -1,5 +1,12 @@
+import { NativeMarkerClickDirective } from "../../directives/native-marker-click.directive";
+import { MatButtonModule } from "@angular/material/button";
+import { observeMapLongPress } from "./map-long-press";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   OnInit,
+  afterNextRender,
+  Injector,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -71,6 +78,7 @@ import {
 } from "../map/community-dot-marker/community-dot-marker.component";
 import { MapPresenceDotMarkerComponent } from "../map/map-presence-dot-marker/map-presence-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
+import { LocationAccessService } from "../../services/location-access.service";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
 import {
   MapBoundsOverlay,
@@ -95,32 +103,7 @@ import {
   toUsableMapCenterLiteral,
 } from "../../shared/map-coordinate-utils";
 
-function enumerateTileRangeX(
-  start: number,
-  end: number,
-  zoom: number,
-): number[] {
-  const tileCount = 1 << zoom;
-  const normalize = (value: number) => {
-    const mod = value % tileCount;
-    return mod < 0 ? mod + tileCount : mod;
-  };
-
-  const from = normalize(start);
-  const to = normalize(end);
-  const range: number[] = [];
-
-  range.push(from);
-
-  let current = from;
-  const safetyLimit = tileCount + 1;
-  while (current !== to && range.length <= safetyLimit) {
-    current = (current + 1) % tileCount;
-    range.push(current);
-  }
-
-  return range;
-}
+import { calculateViewportTiles } from "./viewport-tiles";
 
 interface SpotPreviewAreaOverlay {
   id: string;
@@ -148,6 +131,7 @@ interface MarkerCollisionLayoutCache {
 }
 
 interface VisibleRegularSpotMarkersCache {
+  checkInSpotId: string | null;
   spots: (LocalSpot | Spot)[];
   highlightedSpots: SpotPreviewData[];
   selectedSpot: LocalSpot | Spot | null;
@@ -157,6 +141,7 @@ interface VisibleRegularSpotMarkersCache {
 }
 
 interface VisibleHighlightedSpotPreviewsCache {
+  checkInSpotId: string | null;
   spots: SpotPreviewData[];
   selectedSpotId: string | null;
   visibleSpots: SpotPreviewData[];
@@ -183,6 +168,7 @@ interface FilteredPointMarkersCache {
 }
 
 interface VisibleHighlightedSpotAreasCache {
+  selectedSpotId: string | null;
   spots: SpotPreviewData[];
   areas: SpotPreviewAreaOverlay[];
 }
@@ -236,7 +222,7 @@ interface WatchedMapCanvas {
   selector: "app-google-map-2d",
   templateUrl: "./google-map-2d.component.html",
   styleUrls: ["./google-map-2d.component.scss"],
-  imports: [
+  imports: [NativeMarkerClickDirective,
     GoogleMap,
     MapCircle,
     MapPolygon,
@@ -251,6 +237,7 @@ interface WatchedMapCanvas {
     MapPresenceDotMarkerComponent,
     SpotPreviewMarkerComponent,
     MatSnackBarModule,
+    MatButtonModule,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -273,6 +260,8 @@ export class GoogleMap2dComponent
   extends MapBase
   implements OnChanges, AfterViewInit, OnDestroy
 {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private static readonly ZOOM_SYNC_EPSILON = 0.5;
   private static readonly CAMERA_JUMP_WINDOW_MS = 600;
   private static readonly MAX_CAMERA_ZOOM_JUMP = 3;
@@ -699,7 +688,70 @@ export class GoogleMap2dComponent
     };
   }
 
+  readonly allowLocationSelection = input(false);
+  readonly createSpotAt = output<google.maps.LatLngLiteral>();
+  readonly droppedLocation = signal<google.maps.LatLngLiteral | null>(null);
+  readonly droppedLocations = computed(() => {
+    const location = this.droppedLocation();
+    return location ? [location] : [];
+  });
+  private readonly locationRenderInjector = injectFeatureTelemetry(Injector);
+  private removeLongPress?: () => void;
+  private longPressMap?: google.maps.Map;
+
+  createAtDroppedLocation() {
+    const location = this.droppedLocation();
+    if (!location) return;
+    this.droppedLocation.set(null);
+    this.createSpotAt.emit(location);
+  }
+
+  navigateToDroppedLocation() {
+    const location = this.droppedLocation();
+    if (location) this.mapsApiService.openDirectionsInMaps(location);
+  }
+
+  private attachLongPress() {
+    const map = this.googleMap?.googleMap;
+    if (!map || this.longPressMap === map) return;
+    this.removeLongPress?.();
+    this.longPressMap = map;
+    // The projection converts the touched pixel into a location, including after pans/zooms.
+    const overlay = new google.maps.OverlayView();
+    overlay.onAdd = () => {};
+    overlay.draw = () => {};
+    overlay.onRemove = () => {};
+    overlay.setMap(map);
+    const detach = observeMapLongPress(map.getDiv(),
+      () => this.allowLocationSelection() && !this.isEditing(),
+      (x, y) => {
+        const rect = map.getDiv().getBoundingClientRect();
+        const location = overlay.getProjection()?.fromContainerPixelToLatLng(
+          new google.maps.Point(x - rect.left, y - rect.top));
+        if (!location) return;
+        const point = location.toJSON();
+        this.droppedLocation.set(point);
+        afterNextRender(() => {
+          if (this.droppedLocation() !== point) return;
+          const card = this._hostElement.nativeElement.querySelector<HTMLElement>(".dropped-location-actions");
+          const pixel = overlay.getProjection()?.fromLatLngToContainerPixel(location);
+          if (!card || !pixel) return;
+          const box = card.getBoundingClientRect();
+          const mapBox = map.getDiv().getBoundingClientRect();
+          const pinX = mapBox.left + pixel.x;
+          const pinY = mapBox.top + pixel.y;
+          // Keep the newly dropped pin visible if the action card covers the chosen pixel.
+          if (pinX >= box.left - 20 && pinX <= box.right + 20 &&
+              pinY >= box.top - 8 && pinY <= box.bottom + 40) {
+            map.panBy(0, pinY - box.top + 40);
+          }
+        }, { injector: this.locationRenderInjector });
+      });
+    this.removeLongPress = () => { detach(); overlay.setMap(null); };
+  }
+
   onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
+    this.droppedLocation.set(null);
     if (!event.latLng) return;
 
     // Check if it's a POI click (IconMouseEvent has placeId)
@@ -879,22 +931,25 @@ export class GoogleMap2dComponent
     const selectedSpot = this.selectedSpot();
     const selectedSpotId =
       selectedSpot && "id" in selectedSpot ? selectedSpot.id : null;
+    const checkInSpotId = this.shouldShowCheckInMarker() ? this.checkInSpot()?.id ?? null : null;
 
     if (
       this._visibleHighlightedSpotPreviewsCache &&
       this._visibleHighlightedSpotPreviewsCache.spots === spots &&
+      this._visibleHighlightedSpotPreviewsCache.checkInSpotId === checkInSpotId &&
       this._visibleHighlightedSpotPreviewsCache.selectedSpotId ===
         selectedSpotId
     ) {
       return this._visibleHighlightedSpotPreviewsCache.visibleSpots;
     }
 
-    // Only filter out the selected spot - don't filter by bounds.
-    const visibleSpots = selectedSpotId
-      ? spots.filter((spot) => spot.id !== selectedSpotId)
+    // The dedicated check-in marker replaces the normal pill for the same Spot.
+    const visibleSpots = selectedSpotId || checkInSpotId
+      ? spots.filter((spot) => spot.id !== selectedSpotId && spot.id !== checkInSpotId)
       : spots;
 
     this._visibleHighlightedSpotPreviewsCache = {
+      checkInSpotId,
       spots,
       selectedSpotId,
       visibleSpots,
@@ -911,6 +966,7 @@ export class GoogleMap2dComponent
     const selectedSpot = this.selectedSpot();
     const isEditing = this.isEditing();
     const highlightedSpots = this._getVisibleHighlightedSpotPreviews();
+    const checkInSpotId = this.shouldShowCheckInMarker() ? this.checkInSpot()?.id ?? null : null;
 
     if (!shouldRenderRegularSpotMarkers) {
       return [];
@@ -920,6 +976,7 @@ export class GoogleMap2dComponent
     if (
       this._visibleRegularSpotMarkersCache &&
       this._visibleRegularSpotMarkersCache.spots === spots &&
+      this._visibleRegularSpotMarkersCache.checkInSpotId === checkInSpotId &&
       this._visibleRegularSpotMarkersCache.highlightedSpots ===
         highlightedSpots &&
       this._visibleRegularSpotMarkersCache.selectedSpot === selectedSpot &&
@@ -933,12 +990,14 @@ export class GoogleMap2dComponent
     const highlightedSpotIds = new Set(highlightedSpots.map((spot) => spot.id));
     const visibleSpots = spots.filter(
       (spot) =>
+        !("id" in spot && spot.id === checkInSpotId) &&
         !this.isSelectedSpotBeingEdited(spot) &&
         !this.isSameAsSelectedSpot(spot) &&
         !this._hasHighlightedPreviewMarker(spot, highlightedSpotIds),
     );
 
     this._visibleRegularSpotMarkersCache = {
+      checkInSpotId,
       spots: spots,
       highlightedSpots,
       selectedSpot,
@@ -1169,6 +1228,7 @@ export class GoogleMap2dComponent
             lng: spot.location.longitude,
           },
           priority: getSpotMarkerPriority({
+            recent_activity_min_30d: spot.recent_activity_min_30d,
             rating: spot.rating,
             access: spot.access,
             isIconic: spot.isIconic,
@@ -1194,6 +1254,7 @@ export class GoogleMap2dComponent
         kind: "spot",
         location: spot.location(),
         priority: getSpotMarkerPriority({
+          recent_activity_min_30d: spot.recent_activity_min_30d,
           rating: spot.rating,
           access: spot.access(),
           isIconic: spot.isIconic,
@@ -1281,20 +1342,26 @@ export class GoogleMap2dComponent
       return this._emptyHighlightedSpotAreas;
     }
 
-    const spots = this._getVisibleHighlightedSpotPreviews();
+    // Pin replacement must not remove the Spot's geographic footprint.
+    const spots = this.highlightedSpots();
+    const selectedSpot = this.selectedSpot();
+    const selectedSpotId = selectedSpot && "id" in selectedSpot ? selectedSpot.id : null;
     if (
       this._visibleHighlightedSpotAreasCache &&
-      this._visibleHighlightedSpotAreasCache.spots === spots
+      this._visibleHighlightedSpotAreasCache.spots === spots &&
+      this._visibleHighlightedSpotAreasCache.selectedSpotId === selectedSpotId
     ) {
       return this._visibleHighlightedSpotAreasCache.areas;
     }
 
     const areas = spots
+      .filter((spot) => spot.id !== selectedSpotId)
       .map((spot) => this._getSpotPreviewAreaOverlay(spot))
       .filter((area): area is SpotPreviewAreaOverlay => !!area);
 
     this._visibleHighlightedSpotAreasCache = {
       spots,
+      selectedSpotId,
       areas,
     };
 
@@ -1338,6 +1405,7 @@ export class GoogleMap2dComponent
     east: number;
 } | null>(null);
   readonly fitToBounds = input<google.maps.LatLngBoundsLiteral | null>(null);
+  readonly fitBoundsPadding = input<number | google.maps.Padding>(40);
   readonly minZoom = input<number | null>(null);
   /**
    * Whether to apply a bottom offset (via CSS) to the Google Maps logo/copyright.
@@ -1525,77 +1593,21 @@ export class GoogleMap2dComponent
 
   boundsToRender = signal<google.maps.LatLngBounds | null>(null);
 
-  private _previouslyVisibleTiles: TilesObject | null = null;
+  private readonly _settledViewport = signal<{
+    bounds: google.maps.LatLngBoundsLiteral;
+    zoom: number;
+    center: google.maps.LatLngLiteral;
+  } | null>(null);
+
+  // Capture bounds and zoom together at idle. Reading live zoom here can combine
+  // a new vector-map zoom with old bounds and enumerate millions of tiles.
   visibleTiles = computed<TilesObject | null>(() => {
-    const zoom = this.googleMap?.getZoom(); // this needs to be getZoom because _zoom is still outdated if panning
-    const boundsToRender = this.boundsToRender();
-
-    if (!boundsToRender || typeof zoom !== "number") {
-      return null;
-    }
-
-    // Use an integer zoom for tile calculations. Google Maps may report
-    // fractional zoom levels during smooth zooming; tile systems expect
-    // integer zooms. Flooring the zoom ensures consistent tile keys and
-    // allows the cluster logic to handle zooms below the minimum cluster
-    // zoom (e.g., 2 or 3) by mapping them to the cluster zoom levels.
-    const intZoom = Math.max(0, Math.floor(zoom));
-
-    const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
-      boundsToRender.getNorthEast().toJSON(),
-      intZoom,
-    );
-    const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
-      boundsToRender.getSouthWest().toJSON(),
-      intZoom,
-    );
-
-    // Check if we cover effectively the whole world horizontally
-    const tilesObj: TilesObject = {
-      zoom: intZoom,
-      tiles: [],
-      ne: neTile,
-      sw: swTile,
-      center: boundsToRender.getCenter().toJSON(),
-      viewportBounds: boundsToRender.toJSON(),
-    };
-
-    // Check if we cover effectively the whole world horizontally
-    const ne = boundsToRender.getNorthEast();
-    const sw = boundsToRender.getSouthWest();
-    const lngDiff = ne.lng() - sw.lng();
-    // Special case: when east === west, the viewport has wrapped around the entire world (360°)
-    const isFullWorldWrap = sw.lng() === ne.lng();
-    const lngSpan = isFullWorldWrap
-      ? 360
-      : lngDiff < 0
-        ? lngDiff + 360
-        : lngDiff;
-
-    // Maximum valid tile index for Y at this zoom level
-    const maxTileIndex = (1 << intZoom) - 1;
-    const clampY = (y: number) => Math.max(0, Math.min(maxTileIndex, y));
-
-    let xRange: number[];
-    if (lngSpan > 359 || isFullWorldWrap) {
-      const tileCount = 1 << intZoom;
-      xRange = Array.from({ length: tileCount }, (_, i) => i);
-    } else {
-      xRange = enumerateTileRangeX(swTile.x, neTile.x, intZoom);
-    }
-
-    // Clamp Y values to valid tile bounds before iterating
-    const yMin = clampY(Math.min(swTile.y, neTile.y));
-    const yMax = clampY(Math.max(swTile.y, neTile.y));
-
-    xRange.forEach((x) => {
-      for (let y = yMin; y <= yMax; y++) {
-        tilesObj.tiles.push({ x, y });
-      }
-    });
-
-    this._previouslyVisibleTiles = tilesObj;
-    return tilesObj;
+    const viewport = this._settledViewport();
+    if (!viewport) return null;
+    const tiles = calculateViewportTiles(viewport.bounds, viewport.zoom);
+    return tiles
+      ? { ...tiles, center: viewport.center, viewportBounds: viewport.bounds }
+      : null;
   });
 
   /**
@@ -1746,6 +1758,7 @@ export class GoogleMap2dComponent
     private theme: ThemeService,
     private _hostElement: ElementRef<HTMLElement>,
     private geolocationService: GeolocationService,
+    readonly locationAccess: LocationAccessService,
     private snackBar: MatSnackBar,
     private _mapProfiler: MapPerformanceProfilerService,
     private _ngZone: NgZone,
@@ -1815,8 +1828,9 @@ export class GoogleMap2dComponent
       this._updateMapConfig();
     });
 
-    effect(() => {
-      const enableVectorMaps = this._appSettings.enableVectorMaps();
+    // Native recreation reads camera signals. Keep those incidental reads out
+    // of this subscription, or zoom animation frames can recreate the map.
+    bindSignalToImperativeApi(this._appSettings.enableVectorMaps, (enableVectorMaps) => {
       if (!this._hasInitializedNativeMap) {
         void this._updateMapConfig();
         return;
@@ -1924,7 +1938,8 @@ export class GoogleMap2dComponent
     this._updateMapConfig();
   }
 
-  onMapReady() {
+  onMapReady(initializedMap?: GoogleMap) {
+    if (initializedMap) this.googleMap = initializedMap;
     if (!this.googleMap) {
       console.error("GoogleMap component is not available!");
       return;
@@ -1953,6 +1968,7 @@ export class GoogleMap2dComponent
       this._hasInitializedNativeMap = true;
     }
 
+    this.attachLongPress();
     this._ensurePassiveGeolocationWatch();
 
     const boundRestriction = this.boundRestriction();
@@ -1979,6 +1995,8 @@ export class GoogleMap2dComponent
     this._subscribeToTiltChanges();
     this._subscribeToMapCapabilitiesChanges();
     this._watchMapCanvasContextLoss();
+    this._removeMapDiagnostics?.();
+    this._removeMapDiagnostics = this._mapProfiler.registerMap(this.googleMap.googleMap!);
     void this._updateFeatureBoundaryStyle();
 
     if (this.isDebug()) {
@@ -2159,25 +2177,17 @@ export class GoogleMap2dComponent
 
     this._allowProgrammaticCameraJump("fit-to-bounds-input");
     this._runWhenMapViewportReady("fit-to-bounds-input", () => {
-      this.googleMap?.fitBounds(this.fitToBounds()!, 40);
+      this.googleMap?.fitBounds(this.fitToBounds()!, this.fitBoundsPadding());
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Check if selectedSpot has changed
-    if (changes["selectedSpot"]) {
-      console.debug("Selected spot changed:", {
-        previous: changes["selectedSpot"].previousValue,
-        current: changes["selectedSpot"].currentValue,
-      });
-    }
-
     // Reapply bound restriction if it changes
     if (changes["boundRestriction"] && this.googleMap?.googleMap) {
       this._applyBoundRestriction();
     }
 
-    if (changes["fitToBounds"] && this.googleMap?.googleMap) {
+    if ((changes["fitToBounds"] || changes["fitBoundsPadding"]) && this.googleMap?.googleMap) {
       this._applyFitBounds();
     }
 
@@ -2204,7 +2214,11 @@ export class GoogleMap2dComponent
     }
   }
 
+  private _removeMapDiagnostics?: () => void;
+
   ngOnDestroy() {
+    this._removeMapDiagnostics?.();
+    this.removeLongPress?.();
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
@@ -2236,7 +2250,7 @@ export class GoogleMap2dComponent
     if (!boundary || !map || typeof google === "undefined") {
       return;
     }
-    if (!this._appSettings.enableVectorMaps()) {
+    if (!this._appSettings.enableVectorMaps() || map.getRenderingType() !== "VECTOR") {
       this._mapProfiler.recordThrottled(
         "google-map-2d:feature-boundary-skipped-raster",
         { featureType: boundary.featureType },
@@ -2257,7 +2271,7 @@ export class GoogleMap2dComponent
     const featureType = await this._getFeatureBoundaryFeatureType(
       boundary.featureType,
     );
-    if (requestVersion !== this._featureBoundaryRequestVersion) {
+    if (requestVersion !== this._featureBoundaryRequestVersion || map.getRenderingType() !== "VECTOR") {
       return;
     }
     if (!featureType) {
@@ -2678,10 +2692,7 @@ export class GoogleMap2dComponent
   }
 
   async initGeolocation() {
-    // Check permissions and auto-start if already granted
-    const hasPermission = await this.geolocationService.checkPermissions();
-    if (hasPermission) {
-      await this.geolocationService.startWatching();
+    if (await this.locationAccess.startWatchingIfEnabled()) {
       this._geolocationStarted = true;
     }
   }
@@ -2696,10 +2707,10 @@ export class GoogleMap2dComponent
   private _geolocationStarted = false;
 
   async useGeolocation() {
+    if (!this.locationAccess.enabled()) return;
     // Start watching if not already started
     if (!this._geolocationStarted) {
-      await this.geolocationService.startWatching();
-      this._geolocationStarted = true;
+      this._geolocationStarted = await this.locationAccess.startWatchingIfEnabled({ requestPermission: true });
     }
 
     // Pan to current position if available, otherwise it will happen when location updates
@@ -2888,7 +2899,7 @@ export class GoogleMap2dComponent
 
     this._rememberValidCamera(camera);
     this._commitSettledCameraZoom(camera.zoom, "idle");
-    this._executeBoundsChange();
+    this._executeBoundsChange(camera);
     this.centerChanged();
     this._recordMapProfile("idle");
   }
@@ -3169,6 +3180,8 @@ export class GoogleMap2dComponent
     this._lastObservedNativeIntegerZoom = Math.floor(fallback.zoom);
     this._setCommunityVisualZoom(fallback.zoom);
     this._hasInitializedNativeMap = false;
+    this._removeMapDiagnostics?.();
+    this._removeMapDiagnostics = undefined;
     this.googleMap = undefined;
     this.optionsInitialized.set(false);
     this.cdr.detectChanges();
@@ -3184,7 +3197,7 @@ export class GoogleMap2dComponent
     }, 0);
   }
 
-  private _executeBoundsChange() {
+  private _executeBoundsChange(camera: MapCameraSnapshot) {
     if (!this.googleMap) return;
     const bounds = this.googleMap.getBounds()!;
     const boundsDebug = bounds?.toJSON();
@@ -3193,6 +3206,11 @@ export class GoogleMap2dComponent
       return;
     }
 
+    this._settledViewport.set({
+      bounds: bounds.toJSON(),
+      zoom: camera.zoom,
+      center: camera.center,
+    });
     this.boundsToRender.set(bounds);
     this._debugMapEvent("boundsChanged", {
       center: bounds.getCenter().toJSON(),
@@ -3332,93 +3350,30 @@ export class GoogleMap2dComponent
   }
 
   /**
-   * Debug method to check the state of the selectedSpotPolygon ViewChild
-   * Can be called from browser console for debugging
-   */
-  debugPolygonState() {
-    if (this.selectedSpotPolygon?.polygon) {
-      const paths = this.selectedSpotPolygon.polygon.getPaths();
-      console.log("Polygon paths:", paths);
-
-      if (paths && paths.getLength() > 0) {
-        const firstPath = paths.getAt(0);
-        console.log("First path length:", firstPath.getLength());
-        for (let i = 0; i < firstPath.getLength(); i++) {
-          const point = firstPath.getAt(i);
-          console.log(`Point ${i}:`, { lat: point.lat(), lng: point.lng() });
-        }
-      }
-    }
-  }
-
-  /**
-   * Debug method to check polygon state - can be called from console
-   */
-  debugPolygonStateForSpotSwitch() {
-    console.log("=== POLYGON DEBUG FOR SPOT SWITCH ===");
-    console.log("selectedSpot:", this.selectedSpot);
-    console.log("isEditing():", this.isEditing());
-    console.log("selectedSpotPolygon ViewChild:", this.selectedSpotPolygon);
-
-    if (this.selectedSpotPolygon?.polygon) {
-      const paths = this.selectedSpotPolygon.polygon.getPaths();
-      console.log("Current polygon paths count:", paths.getLength());
-
-      for (let i = 0; i < paths.getLength(); i++) {
-        const path = paths.getAt(i);
-        console.log(`Path ${i} length:`, path.getLength());
-
-        if (path.getLength() > 0) {
-          console.log(`First point of path ${i}:`, {
-            lat: path.getAt(0).lat(),
-            lng: path.getAt(0).lng(),
-          });
-        }
-      }
-    }
-
-    console.log("selectedSpotPaths():", this.selectedSpotPaths());
-    console.log("selectedSpotFirstPath():", this.selectedSpotFirstPath());
-    console.log("=== END POLYGON DEBUG ===");
-  }
-
-  /**
    * Get the current paths of the selected spot polygon from the map component.
    * This should be called when saving to get the updated polygon data.
    */
   async getSelectedSpotPolygonPaths(): Promise<
     google.maps.LatLngLiteral[][] | null
   > {
-    if (!this.selectedSpot) {
-      console.log("No selected spot, returning null");
-      return null;
-    }
+    if (!this.selectedSpot) return null;
 
     if (this.isEditing()) {
-      console.log("🔄 In editing mode, trying to get live polygon paths...");
-
       // Try to get the current paths using the waiting method
       const livePaths = await this.waitForPolygonAndGetPaths();
       if (livePaths && livePaths.length > 0) {
-        console.log("✅ Got live polygon paths, updating spot");
         return livePaths;
       }
-
-      console.log(
-        "⚠️ Could not get live polygon paths, falling back to existing paths",
-      );
     }
 
     // Fall back to existing paths - DO NOT create default paths
     const selectedSpot = this.selectedSpot();
     const paths = selectedSpot?.paths();
     if (paths && paths.length > 0) {
-      console.log("Falling back to existing spot paths");
       return paths;
     }
 
     // Return null if no paths exist - don't create default paths
-    console.log("No paths exist, returning null");
     return null;
   }
 
@@ -3489,7 +3444,6 @@ export class GoogleMap2dComponent
   }
 
   onHighlightedSpotClick(spot: SpotPreviewData) {
-    console.log("Highlighted spot clicked:", spot);
     this.spotClick.emit(spot);
   }
 
@@ -3661,11 +3615,11 @@ export class GoogleMap2dComponent
               }
 
               if (paths.length > 0) {
-                console.log("✅ Successfully retrieved polygon paths");
                 return paths;
               }
             }
           } catch (error) {
+      this.featureTelemetry.failure("google-map-2d", "waitForPolygonAndGetPaths", error);
             console.error("❌ Error getting paths:", error);
           }
         }
@@ -3677,7 +3631,6 @@ export class GoogleMap2dComponent
       }
     }
 
-    console.log("❌ Failed to get polygon paths after", maxRetries, "attempts");
     return null;
   }
 
@@ -3857,7 +3810,7 @@ export class GoogleMap2dComponent
     if (!this.isDebug()) return;
 
     console.debug("[MapDebug][GoogleMap2d]", event, {
-      ...payload,
+      detailKeys: Object.keys(payload).sort(),
       selectedSpot: this._debugSelectedSpotKey(),
       timestamp: Math.round(performance.now()),
     });
@@ -3960,7 +3913,6 @@ export class GoogleMap2dComponent
     if (!spot) return null;
     if ("id" in spot && spot.id) return spot.id as string;
 
-    const location = spot.location();
-    return `local-${location.lat}_${location.lng}`;
+    return "local";
   }
 }

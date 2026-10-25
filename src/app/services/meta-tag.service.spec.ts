@@ -1,3 +1,4 @@
+import { environment } from "../../environments/environment.default";
 import { DOCUMENT } from "@angular/common";
 import { LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
@@ -92,6 +93,22 @@ describe("MetaTagService", () => {
     });
 
     service = TestBed.inject(MetaTagService);
+  });
+
+  it.each([
+    ["About PK Spot", "Learn about the parkour community platform.", "/about"],
+    ["Contact PK Spot", "Contact support and share feedback about PK Spot.", "/contact"],
+    ["Training", "Plan training and review your activity history.", "/train"],
+  ])("keeps one complete metadata set when navigating to %s", (name, description, path) => {
+    service.setStaticPageMetaTags("Previous page", "Previous description", undefined, "/previous");
+    service.setStaticPageMetaTags(name, description, undefined, path);
+    expect(title.setTitle).toHaveBeenLastCalledWith(`${name} | PK Spot`);
+    for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
+      expect(doc.head.querySelectorAll(selector)).toHaveLength(1);
+      expect(metaContent(doc, selector)).toBe(description);
+    }
+    expect(doc.head.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
+    expect(linkHref(doc, 'link[rel="canonical"]')).toBe(`https://pkspot.app/en${path}`);
   });
 
   it("sets complete crawler metadata for event detail pages", () => {
@@ -204,4 +221,15 @@ describe("MetaTagService", () => {
       "https://pkspot.app/en/u/user-1",
     );
   });
+  it("uses the gated preview endpoint for enabled entity pages only", () => {
+    const previous = environment.features.shareCards;
+    environment.features.shareCards = true;
+    try {
+      service.setEventMetaTags({ name: "Jam" }, "/events/jam");
+      expect(metaContent(doc, 'meta[property="og:image"]')).toContain('/shareCardImage?kind=event&id=jam&alias=1');
+      service.setDefaultMapMetaTags("/map");
+      expect(metaContent(doc, 'meta[property="og:image"]')).not.toContain('shareCardImage');
+    } finally { environment.features.shareCards = previous; }
+  });
+
 });

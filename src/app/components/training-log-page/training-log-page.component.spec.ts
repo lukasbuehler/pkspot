@@ -1,0 +1,259 @@
+import { signal } from "@angular/core";
+import { LocalLegendService } from "../../services/local-legend.service";
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
+import { TrainingSummaryService } from "../../services/firebase/firestore/training-summary.service";
+import { StoreReviewService } from "../../reviews/store-review.service";
+import { TestBed } from "@angular/core/testing";
+import { MatDialog } from "@angular/material/dialog";
+import { provideRouter } from "@angular/router";
+import { BehaviorSubject } from "rxjs";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
+import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
+import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
+import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
+import { SessionRecordsService } from "../../services/firebase/firestore/session-records.service";
+import { TrainingLogPageComponent } from "./training-log-page.component";
+
+const trainingEntry: LogEntryDocument = {
+  id: "entry-1",
+  owner_id: "user-1",
+  note: "Precision practice",
+  visibility: "private",
+  session_record_ids: ["session-1"],
+  session_summaries: [{
+    session_record_id: "session-1",
+    local_date: "2026-08-04",
+    duration_minutes: 90,
+    spot_count: 2,
+  }],
+  activity_at: {} as LogEntryDocument["activity_at"],
+  activity_at_raw_ms: new Date("2026-08-04T12:00:00").getTime(),
+  time_created: {} as LogEntryDocument["time_created"],
+  time_created_raw_ms: 0,
+  time_updated: {} as LogEntryDocument["time_updated"],
+  time_updated_raw_ms: 0,
+};
+
+const recoveryPause: RecoveryPauseDocument = {
+  id: "recovery-1",
+  owner_id: "user-1",
+  started_on: "2026-08-03",
+  ended_on: "2026-08-05",
+  reason: "injury",
+  note: "Give the leg time to heal.",
+  time_created: {} as RecoveryPauseDocument["time_created"],
+  time_created_raw_ms: 0,
+  time_updated: {} as RecoveryPauseDocument["time_updated"],
+  time_updated_raw_ms: 0,
+};
+
+describe("TrainingLogPageComponent", () => {
+  beforeEach(() => TestBed.resetTestingModule());
+
+  it("warns about Local Legend only for potentially contributing check-ins", async () => {
+    const component = createComponent();
+    const legend = TestBed.inject(LocalLegendService);
+    vi.spyOn(legend, "enabled").mockReturnValue(true);
+    vi.spyOn(legend, "enabledSinceMs").mockReturnValue(1000);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const visit = {checkInId: "check", sessionRecordId: "session", spotId: "river", arrivedAtRawMs: 2000, verified: true};
+    await component.removeCheckIn(visit);
+    expect(confirm).toHaveBeenLastCalledWith(expect.stringContaining("Local Legend"));
+    await component.removeCheckIn({...visit, verified: false});
+    expect(confirm).toHaveBeenLastCalledWith("Delete this check-in from your private history?");
+    await component.removeCheckIn({...visit, arrivedAtRawMs: 500});
+    expect(confirm).toHaveBeenLastCalledWith("Delete this check-in from your private history?");
+    confirm.mockRestore();
+  });
+
+  it("renders legacy notes as private without changing the saved audience field", async () => {
+    createComponent();
+    const fixture = TestBed.createComponent(TrainingLogPageComponent);
+    await fixture.whenStable();
+    const legacy = {...trainingEntry, visibility: "public" as const};
+    fixture.componentInstance.logs.set([legacy]);
+    await fixture.whenStable();
+    const badge = (fixture.nativeElement as HTMLElement).querySelector(".session-card .visibility");
+    expect(badge?.textContent).toContain("Private");
+    expect(badge?.textContent).not.toContain("Public");
+    expect(legacy.visibility).toBe("public");
+  });
+
+  it("includes unlogged check-ins in the private graph without resurrecting deleted sessions from notes", async () => {
+    const component = createComponent();
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    expect(TestBed.inject(SessionRecordsService).listMine).toHaveBeenCalledWith(null);
+    const session = {
+      id: "session-1", source: "check_in", time_zone: "Europe/Zurich",
+      started_at_raw_ms: new Date("2026-08-04T12:00:00Z").getTime(),
+      spot_visits: [{spot_id: "spot-1", check_in_id: "confirmed-1"}],
+    } as SessionRecordDocument;
+    component.sessions.set([session]);
+    component.logs.set([]);
+    expect(component.activityDays()).toEqual([{key: "2026-08-04", entryIds: [], sessionCount: 1, durationMinutes: 0, spotCount: 1}]);
+    component.logs.set([trainingEntry]);
+    expect(component.activityDays()[0]).toMatchObject({sessionCount: 1, durationMinutes: 0, spotCount: 1});
+    component.sessions.set([]);
+    expect(component.activityDays()).toEqual([]);
+    vi.mocked(TestBed.inject(LogEntriesService).listMine).mockRejectedValue(new Error("Optional notes unavailable"));
+    vi.mocked(TestBed.inject(SessionRecordsService).listMine).mockResolvedValue([session]);
+    await component.load();
+    expect(component.loadFailed()).toBe(true);
+    expect(component.sessionsLoaded()).toBe(true);
+    expect(component.activityDays()[0].sessionCount).toBe(1);
+    expect(component.checkIns()[0].checkInId).toBe("confirmed-1");
+    vi.mocked(TestBed.inject(SessionRecordsService).listMine).mockRejectedValue(new Error("Session history unavailable"));
+    await component.load();
+    expect(component.loadFailed()).toBe(true);
+    expect(component.sessionsLoaded()).toBe(false);
+  });
+
+  it("resolves missing check-in names instead of displaying document IDs", async () => {
+    const component = createComponent();
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    const names = TestBed.inject(SpotSelectionDataService);
+    vi.mocked(names.resolveVisitNames).mockResolvedValue(new Map([["opaque-id", "Polyterrasse"]]));
+    vi.mocked(TestBed.inject(SessionRecordsService).listMine).mockResolvedValue([{
+      id: "session", spot_visits: [{spot_id: "opaque-id", check_in_id: "check-in", arrived_at_raw_ms: 1}],
+    } as unknown as import("../../../db/schemas/SessionRecordSchema").SessionRecordDocument]);
+    await component.load();
+    await vi.waitFor(() => expect(component.spotNames().get("opaque-id")).toBe("Polyterrasse"));
+  });
+
+  it("focuses a selected recovery pause without treating it as a session", async () => {
+    const component = createComponent();
+
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+
+    component.selection.set({
+      kind: "recovery-pause",
+      recoveryPauseId: recoveryPause.id,
+    });
+
+    expect(component.timeline()).toHaveLength(1);
+    expect(component.timeline()[0].entries).toEqual([
+      expect.objectContaining({
+        kind: "recovery",
+        id: recoveryPause.id,
+        pause: recoveryPause,
+      }),
+    ]);
+  });
+
+  it("keeps training-day selection limited to training entries", async () => {
+    const component = createComponent();
+
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+
+    component.selection.set({ kind: "training-day", dayKey: "2026-08-04" });
+
+    expect(component.timeline()).toHaveLength(1);
+    expect(component.timeline()[0].entries).toEqual([
+      expect.objectContaining({ kind: "training", id: trainingEntry.id }),
+    ]);
+  });
+
+  it("stops loading on a denied collection and can retry successfully", async () => {
+    const listPauses = vi.fn()
+      .mockRejectedValueOnce(new Error("Missing or insufficient permissions."))
+      .mockResolvedValue([recoveryPause]);
+    const component = createComponent(listPauses);
+
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    expect(component.loadFailed()).toBe(true);
+    expect(component.logs()).toEqual([trainingEntry]);
+
+    await component.load();
+    expect(component.loadFailed()).toBe(false);
+    expect(component.loading()).toBe(false);
+    expect(component.logs()).toEqual([trainingEntry]);
+    expect(component.recoveryPauses()).toEqual([recoveryPause]);
+  });
+
+  it("does not restore private history when a request finishes after sign-out", async () => {
+    let resolvePauses!: (pauses: RecoveryPauseDocument[]) => void;
+    const component = createComponent(() => new Promise((resolve) => {
+      resolvePauses = resolve;
+    }));
+    const auth = TestBed.inject(AuthenticationService);
+    auth.user.uid = "";
+    await component.load();
+    resolvePauses([recoveryPause]);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(component.loading()).toBe(false);
+    expect(component.logs()).toEqual([]);
+    expect(component.recoveryPauses()).toEqual([]);
+  });
+
+  it("renders an error and retries through the button in a zoneless view", async () => {
+    const listPauses = vi.fn().mockRejectedValue(new Error("Permission denied"));
+    createComponent(listPauses);
+    const fixture = TestBed.createComponent(TrainingLogPageComponent);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('[role="alert"]')?.textContent)
+      .toContain("Your training log could not be loaded.");
+    expect(element.querySelector("mat-progress-spinner")).toBeNull();
+
+    listPauses.mockResolvedValue([recoveryPause]);
+    element.querySelector<HTMLButtonElement>('[role="alert"] button')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('[role="alert"]')).toBeNull();
+    expect(element.textContent).toContain(trainingEntry.note);
+  });
+
+  it("ignores a stale failure after a newer request succeeds", async () => {
+    let rejectPauses!: (reason: Error) => void;
+    const listPauses = vi.fn()
+      .mockImplementationOnce(() => new Promise((_, reject) => {
+        rejectPauses = reject;
+      }))
+      .mockResolvedValue([recoveryPause]);
+    const component = createComponent(listPauses);
+    await component.load();
+    rejectPauses(new Error("Late failure"));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(component.loadFailed()).toBe(false);
+    expect(component.loading()).toBe(false);
+    expect(component.recoveryPauses()).toEqual([recoveryPause]);
+  });
+});
+
+function createComponent(
+  listPauses: () => Promise<RecoveryPauseDocument[]> = vi.fn().mockResolvedValue([recoveryPause]),
+): TrainingLogPageComponent {
+  const auth = {
+    authState$: new BehaviorSubject({ uid: "user-1" }),
+    user: { uid: "user-1", data: null },
+  };
+  TestBed.configureTestingModule({
+    imports: [TrainingLogPageComponent],
+    providers: [
+      {provide: LocalLegendService, useValue: {enabled: signal(false), enabledSinceMs: signal(0)}},
+      { provide: SpotSelectionDataService, useValue: { resolveVisitNames: vi.fn().mockResolvedValue(new Map()) } },
+        { provide: StoreReviewService, useValue: { registerCompletionSurface: () => () => {} } },
+      provideRouter([]),
+      TrainingLogPageComponent,
+      { provide: AuthenticationService, useValue: auth },
+      { provide: LogEntriesService, useValue: { listMine: vi.fn().mockResolvedValue([trainingEntry]) } },
+      { provide: RecoveryPausesService, useValue: { listMine: listPauses } },
+      { provide: SessionRecordsService, useValue: { listMine: vi.fn().mockResolvedValue([]) } },
+      {
+        provide: TrainingSummaryService,
+        useValue: {
+          listMyMonths: vi.fn().mockResolvedValue([]),
+          getMyRanks: vi.fn().mockResolvedValue(null),
+        },
+      },
+      { provide: MatDialog, useValue: { open: vi.fn() } },
+    ],
+  });
+  return TestBed.inject(TrainingLogPageComponent);
+}

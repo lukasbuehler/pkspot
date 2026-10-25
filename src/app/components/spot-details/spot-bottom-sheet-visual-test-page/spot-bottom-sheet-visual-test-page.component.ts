@@ -1,13 +1,23 @@
+import {ImageCropDialogComponent} from "../../crop-image/image-crop-dialog.component";
+import {OPTIONAL_MEDIA_CROP_POLICY} from "../../crop-image/image-crop-policy";
 import {
   AfterViewInit,
+  afterNextRender,
+  Injector,
   ChangeDetectionStrategy,
   Component,
+  inject,
   signal,
   ViewChild,
 } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import { SpotReportDialogComponent } from "../../spot-report-dialog/spot-report-dialog.component";
+import { SpotReportsService } from "../../../services/firebase/firestore/spot-reports.service";
+import { ActivatedRoute } from "@angular/router";
 import { Timestamp } from "firebase/firestore";
 import { BottomSheetComponent } from "../../bottom-sheet/bottom-sheet.component";
 import { MapSpotDetailsPanelComponent } from "../../map/map-spot-details-panel/map-spot-details-panel.component";
+import { PendingSpotPanel } from "../../map/map-panel-view.model";
 import { Spot } from "../../../../db/models/Spot";
 import { MediaType } from "../../../../db/models/Interfaces";
 import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
@@ -100,21 +110,102 @@ const visualSpotData: SpotSchema = {
   },
 };
 
+const visualPendingSpot: PendingSpotPanel = {
+  id: "visual-riverside-training-walls",
+  slug: "riverside-training-walls",
+  name: "Riverside Training Walls",
+  locality: "Zurich",
+  imageSrc: "/assets/swissjam/swissjam1.jpg",
+  rating: 4.6,
+};
+
 @Component({
   selector: "app-spot-bottom-sheet-visual-test-page",
   imports: [BottomSheetComponent, MapSpotDetailsPanelComponent],
+  providers: [{
+    provide: SpotReportsService,
+    useValue: {
+      getOwnSpotReport: async () => ({
+        id: "visual-report", kind: "spot", status: "open",
+        reasons: ["torn down"], comment: "Die Trainingsmauer wurde entfernt.", comment_locale: "de",
+      }),
+    },
+  }],
   templateUrl: "./spot-bottom-sheet-visual-test-page.component.html",
   styleUrl: "./spot-bottom-sheet-visual-test-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
+  private readonly injector = inject(Injector);
+
+  constructor() {
+    afterNextRender(() => {
+      if (this.route.snapshot.queryParamMap.has("crop")) void this.openCropFixture();
+      if (this.route.snapshot.queryParamMap.has("mapdrafts")) void this.openMapDraftFixture();
+      if (this.route.snapshot.queryParamMap.has("photos")) void this.openPhotoFixture();
+      if (this.route.snapshot.queryParamMap.get("report") === "edit") {
+        this.dialog.open(SpotReportDialogComponent, {
+      width: "560px",
+      maxWidth: "calc(100vw - 32px)",
+      height: "min(780px, calc(100dvh - 32px))",
+          injector: this.injector,
+          data: {spotId: this.spot.id, spotName: this.spot.name()},
+        });
+      }
+    });
+  }
+
+  private async openMapDraftFixture(): Promise<void> {
+    const {SharedMapDraftsDialogComponent} = await import("../../shared-map-drafts-dialog/shared-map-drafts-dialog.component");
+    const {NativeMapShareService} = await import("../../../services/native-map-share.service");
+    const drafts = signal([
+      {id: "new", text: "https://maps.apple.com/?ll=47.3,8.5", name: "Training walls by the river", location: {lat: 47.3, lng: 8.5}},
+      {id: "known", text: "https://maps.apple.com/?ll=47.4,8.6", name: "Riverside Spot", spotId: "fixture", location: {lat: 47.4, lng: 8.6}},
+    ]);
+    const injector = Injector.create({parent: this.injector, providers: [{provide: NativeMapShareService, useValue: {
+      drafts, reviewDraft: () => Promise.resolve(), removeDraft: (id: string) => drafts.update(items => items.filter(item => item.id !== id)),
+    }}]});
+    this.dialog.open(SharedMapDraftsDialogComponent, {injector, width: "560px", maxHeight: "80dvh"});
+  }
+
+  private async openPhotoFixture(): Promise<void> {
+    if (this.route.snapshot.queryParamMap.get("photos") === "target") {
+      const {SharedPhotoTargetDialogComponent} = await import("../../shared-photo-target-dialog/shared-photo-target-dialog.component");
+      this.dialog.open(SharedPhotoTargetDialogComponent, {width: "560px"});
+      return;
+    }
+    const {MediaUploadDialogComponent} = await import("../../media-upload-dialog/media-upload-dialog.component");
+    const blob = await (await fetch("/assets/swissjam/swissjam1.jpg")).blob();
+    this.dialog.open(MediaUploadDialogComponent, {
+      width: "680px",
+      data: {spotId: this.spot.id, initialFiles: [new File([blob], "shared-photo.jpg", {type: "image/jpeg"})]},
+    });
+  }
+
+  private async openCropFixture(): Promise<void> {
+    const blob = await (await fetch("/assets/swissjam/swissjam1.jpg")).blob();
+    this.dialog.open(ImageCropDialogComponent, {
+      data: {file: new File([blob], "training.jpg", {type: "image/jpeg"}), policy: OPTIONAL_MEDIA_CROP_POLICY},
+      width: "720px", maxWidth: "100vw", maxHeight: "100dvh",
+      panelClass: "image-crop-dialog-panel", autoFocus: "dialog",
+    });
+  }
+
   @ViewChild(BottomSheetComponent)
   private bottomSheet?: BottomSheetComponent;
 
   readonly openProgress = signal(1);
+  readonly isLoading =
+    this.route.snapshot.queryParamMap.get("state") === "loading";
+  readonly pendingSpot = this.isLoading ? visualPendingSpot : null;
   readonly spot = new Spot(
     "visual-riverside-training-walls" as SpotId,
-    visualSpotData,
+    this.route.snapshot.queryParamMap.has("report")
+      ? {...visualSpotData, is_reported: true, report_reason: "torn down"}
+      : {...visualSpotData, recent_activity_min_30d: this.route.snapshot.queryParamMap.has("activity") ? 2 : null, ...(this.route.snapshot.queryParamMap.has("shortTitle")
+          ? {name: {en: "Lindenhof", de: "Lindenhof"}} : {})},
     "de",
   );
 

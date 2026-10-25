@@ -1,0 +1,71 @@
+@if (videoId()) {
+  <div
+    class="youtube-player"
+    (click)="$event.stopPropagation()"
+    (pointerdown)="$event.stopPropagation()"
+  >
+    @if (playerUrl(); as url) {
+      <iframe
+        [src]="url"
+        title="YouTube video player"
+        i18n-title
+        allow="encrypted-media; picture-in-picture; fullscreen"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen
+      ></iframe>
+    } @else {
+      <div class="youtube-consent">
+        <strong class="mat-title-large">YouTube Video Embed</strong>
+        <p i18n="@@youtube.consent">
+          YouTube/Google may collect device and playback data when loaded.
+          Privacy-enhanced mode is enabled.
+        </p>
+        <p i18n="@@youtube.agreement">
+          Loading means you agree to YouTube’s Terms of Service.
+        </p>
+        <p class="youtube-policies">
+          <a
+            href="https://www.youtube.com/t/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            i18n="@@youtube.terms"
+            >YouTube Terms</a
+          >
+          ·
+          <a
+            href="https://policies.google.com/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            i18n="@@youtube.privacy"
+            >Google Privacy Policy</a
+          >
+        </p>
+        <button
+          mat-flat-button
+          type="button"
+          (click)="loadOnce.set(true)"
+          i18n="@@youtube.load"
+        >
+          Load this video
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="preferences.setYoutubeAllowed(true)"
+          i18n="@@youtube.always"
+        >
+          Always allow YouTube on this device
+        </button>
+        <a
+          class="youtube-watch"
+          mat-stroked-button
+          [href]="watchUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          i18n="@@youtube.watch"
+          >Watch on YouTube</a
+        >
+      </div>
+    }
+  </div>
+}

@@ -7,10 +7,8 @@
     mat-stroked-button
     (click)="trySignInApple()"
     [disabled]="disabled() || isSubmitting()"
+    [showProgress]="isSigningInApple()"
   >
-    @if(isSigningInApple()) {
-    <mat-spinner diameter="16"></mat-spinner>
-    } @else {
     <span class="d-flex gap-2 align-items-center">
       <img
         ngSrc="assets/logos/apple_icon_dark.png"
@@ -20,16 +18,14 @@
       />
       Apple</span
     >
-    }
+    <mat-spinner progressIndicator diameter="16" />
   </button>
   <button
     mat-stroked-button
     (click)="trySignInGoogle()"
     [disabled]="disabled() || isSubmitting()"
+    [showProgress]="isSigningInGoogle()"
   >
-    @if(isSigningInGoogle()) {
-    <mat-spinner diameter="16"></mat-spinner>
-    } @else {
     <span class="d-flex gap-2 align-items-center">
       <img
         ngSrc="assets/logos/google_icon.png"
@@ -39,6 +35,6 @@
       />
       Google</span
     >
-    }
+    <mat-spinner progressIndicator diameter="16" />
   </button>
 </div>

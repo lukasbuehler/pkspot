@@ -1,10 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   effect,
   inject,
   input,
+  OnDestroy,
   OnInit,
   output,
   signal,
@@ -18,11 +18,25 @@ import { MatIconModule } from "@angular/material/icon";
 import { MapsApiService } from "../../services/maps-api.service";
 import { EventBoundsSchema } from "../../../db/schemas/EventSchema";
 
+export type MapPickerLocation = { lat: number; lng: number };
+
+/** A read-only or draggable point rendered in the event map editor. */
+export interface MapPickerPoint {
+  id: string;
+  title: string;
+  location: MapPickerLocation | null;
+}
+
+/** An event-only Spot which can also own a small editable map area. */
+export interface MapPickerInlineSpot extends MapPickerPoint {
+  areaPath: MapPickerLocation[] | null;
+}
+
 /**
  * Lightweight map picker for an event's geometry. Renders a required,
- * draggable event pin plus an optional editable area polygon. Event bounds are
- * server-owned; this component only uses the bounds input to frame existing
- * event context when no area exists yet.
+ * draggable event pin plus editable event-only markers and areas. Event bounds
+ * are server-owned; this component only uses the bounds input to frame
+ * existing event context when no area exists yet.
  *
  * Emits the new area path on every change. Doesn't reuse google-map-2d
  * intentionally — that component is tuned for clustered spots, not
@@ -36,7 +50,7 @@ import { EventBoundsSchema } from "../../../db/schemas/EventSchema";
   styleUrl: "./bounds-picker.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BoundsPickerComponent implements OnInit {
+export class BoundsPickerComponent implements OnInit, OnDestroy {
   private _platformId = inject(PLATFORM_ID);
   mapsApiService = inject(MapsApiService);
 
@@ -55,16 +69,47 @@ export class BoundsPickerComponent implements OnInit {
   /** Initial size in degrees for newly-created rectangles (click-to-place). */
   defaultSizeDegrees = input<number>(0.02);
 
+  /** Canonical Spots associated with the event. They remain read-only here. */
+  eventSpots = input<readonly MapPickerPoint[]>([]);
+
+  /** Event-only custom markers. Their location can be changed by dragging. */
+  customMarkers = input<readonly MapPickerPoint[]>([]);
+
+  /** Event-only Spots and their optional editable areas. */
+  inlineSpots = input<readonly MapPickerInlineSpot[]>([]);
+
+  /** A temporary Spot whose area should be placed by the next map click. */
+  inlineSpotAreaPlacementId = input<string | null>(null);
+
   /** Emits whenever the user moves / reshapes / creates the event area. */
   areaChange = output<Array<{ lat: number; lng: number }> | null>();
 
   /** Emits whenever the required event pin is dragged. */
-  locationChange = output<{ lat: number; lng: number }>();
+  locationChange = output<MapPickerLocation>();
+
+  customMarkerLocationChange = output<{
+    id: string;
+    location: MapPickerLocation;
+  }>();
+  inlineSpotLocationChange = output<{
+    id: string;
+    location: MapPickerLocation;
+  }>();
+  inlineSpotAreaChange = output<{
+    id: string;
+    areaPath: MapPickerLocation[] | null;
+  }>();
+  inlineSpotAreaPlacementHandled = output<void>();
 
   @ViewChild(GoogleMap) private _googleMap?: GoogleMap;
   @ViewChild(MapPolygon) private _polygonRef?: MapPolygon;
   private _polygon?: google.maps.Polygon;
   private _pathListeners: google.maps.MapsEventListener[] = [];
+  private _inlinePolygons = new Map<string, google.maps.Polygon>();
+  private _inlinePathListeners = new Map<
+    string,
+    google.maps.MapsEventListener[]
+  >();
 
   internalAreaPath = signal<Array<{ lat: number; lng: number }> | null>(null);
   internalLocation = signal<{ lat: number; lng: number }>({
@@ -86,6 +131,21 @@ export class BoundsPickerComponent implements OnInit {
     draggable: true,
     title: $localize`:@@bounds_picker.location_pin:Event pin`,
   };
+  readonly eventSpotMarkerOptions: google.maps.MarkerOptions = {
+    clickable: false,
+    label: "S",
+    zIndex: 10,
+  };
+  readonly customMarkerOptions: google.maps.MarkerOptions = {
+    draggable: true,
+    label: "M",
+    zIndex: 20,
+  };
+  readonly inlineSpotMarkerOptions: google.maps.MarkerOptions = {
+    draggable: true,
+    label: "T",
+    zIndex: 30,
+  };
 
   /** Area options: high-contrast on satellite imagery, editable + draggable. */
   readonly areaPolygonOptions: google.maps.PolygonOptions = {
@@ -98,6 +158,15 @@ export class BoundsPickerComponent implements OnInit {
     draggable: true,
     clickable: false,
     zIndex: 5,
+  };
+  readonly inlineSpotPolygonOptions: google.maps.PolygonOptions = {
+    fillOpacity: 0.1,
+    strokeOpacity: 1,
+    strokeWeight: 2,
+    editable: true,
+    draggable: true,
+    clickable: false,
+    zIndex: 4,
   };
 
   /** Map zoom that frames a typical event area on first render. */
@@ -145,6 +214,13 @@ export class BoundsPickerComponent implements OnInit {
         }
       }
     });
+
+    effect(() => {
+      const activeIds = new Set(this.inlineSpots().map((spot) => spot.id));
+      for (const id of this._inlinePolygons.keys()) {
+        if (!activeIds.has(id)) this._clearInlinePolygon(id);
+      }
+    });
   }
 
   /**
@@ -153,7 +229,7 @@ export class BoundsPickerComponent implements OnInit {
    * this is a no-op.
    */
   onMapClick(event: google.maps.MapMouseEvent): void {
-    if (this.internalAreaPath() || !event.latLng) return;
+    if (!event.latLng) return;
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
     const half = this.defaultSizeDegrees() / 2;
@@ -163,6 +239,13 @@ export class BoundsPickerComponent implements OnInit {
       east: lng + half,
       west: lng - half,
     });
+    const inlineSpotId = this.inlineSpotAreaPlacementId();
+    if (inlineSpotId) {
+      this.inlineSpotAreaChange.emit({ id: inlineSpotId, areaPath: next });
+      this.inlineSpotAreaPlacementHandled.emit();
+      return;
+    }
+    if (this.internalAreaPath()) return;
     this.internalAreaPath.set(next);
     this.areaChange.emit(next);
   }
@@ -175,6 +258,22 @@ export class BoundsPickerComponent implements OnInit {
     };
     this.internalLocation.set(next);
     this.locationChange.emit(next);
+  }
+
+  onCustomMarkerDragEnd(
+    id: string,
+    event: google.maps.MapMouseEvent,
+  ): void {
+    const location = mapMouseLocation(event);
+    if (location) this.customMarkerLocationChange.emit({ id, location });
+  }
+
+  onInlineSpotDragEnd(
+    id: string,
+    event: google.maps.MapMouseEvent,
+  ): void {
+    const location = mapMouseLocation(event);
+    if (location) this.inlineSpotLocationChange.emit({ id, location });
   }
 
   onPolygonInitialized(polygon: google.maps.Polygon): void {
@@ -202,6 +301,25 @@ export class BoundsPickerComponent implements OnInit {
     this.areaChange.emit(next);
   }
 
+  onInlineSpotPolygonInitialized(id: string, polygon: google.maps.Polygon): void {
+    this._clearInlinePolygon(id);
+    this._inlinePolygons.set(id, polygon);
+    const path = polygon.getPath();
+    this._inlinePathListeners.set(id, [
+      path.addListener("insert_at", () => this.onInlineSpotPolygonChanged(id)),
+      path.addListener("remove_at", () => this.onInlineSpotPolygonChanged(id)),
+      path.addListener("set_at", () => this.onInlineSpotPolygonChanged(id)),
+    ]);
+  }
+
+  onInlineSpotPolygonChanged(id: string): void {
+    const polygon = this._inlinePolygons.get(id);
+    if (!polygon) return;
+    const areaPath = polygonPath(polygon);
+    if (areaPath.length < 3) return;
+    this.inlineSpotAreaChange.emit({ id, areaPath });
+  }
+
   currentAreaPath(): Array<{ lat: number; lng: number }> | null {
     const polygon = this._polygon ?? this._polygonRef?.polygon;
     if (!polygon) return this.internalAreaPath();
@@ -219,6 +337,32 @@ export class BoundsPickerComponent implements OnInit {
     this.internalAreaPath.set(null);
     this.areaChange.emit(null);
   }
+
+  ngOnDestroy(): void {
+    this._pathListeners.forEach((listener) => listener.remove());
+    for (const id of this._inlinePolygons.keys()) this._clearInlinePolygon(id);
+  }
+
+  private _clearInlinePolygon(id: string): void {
+    this._inlinePathListeners.get(id)?.forEach((listener) => listener.remove());
+    this._inlinePathListeners.delete(id);
+    this._inlinePolygons.delete(id);
+  }
+}
+
+function mapMouseLocation(event: google.maps.MapMouseEvent): MapPickerLocation | null {
+  if (!event.latLng) return null;
+  return { lat: event.latLng.lat(), lng: event.latLng.lng() };
+}
+
+function polygonPath(polygon: google.maps.Polygon): MapPickerLocation[] {
+  const path = polygon.getPath();
+  const next: MapPickerLocation[] = [];
+  for (let i = 0; i < path.getLength(); i++) {
+    const point = path.getAt(i);
+    next.push({ lat: point.lat(), lng: point.lng() });
+  }
+  return next;
 }
 
 function boundsToPath(

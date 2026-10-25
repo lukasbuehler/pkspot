@@ -18,6 +18,11 @@ export function buildUnembeddedUrlFromHref(
 
   url.pathname = url.pathname.replace(/\/embedded(?=\/|$)/, "") || "/";
 
+  if (/\/results$/.test(url.pathname)) {
+    url.pathname = url.pathname.replace(/results$/, "map");
+    url.searchParams.delete("refs");
+    url.searchParams.delete("showMap");
+  }
   if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
     url.pathname = url.pathname.slice(0, -1);
   }

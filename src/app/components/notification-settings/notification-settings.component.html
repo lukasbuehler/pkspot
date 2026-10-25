@@ -151,25 +151,30 @@
       </button>
     </div>
 
-    <div class="material-table-shell">
-      <table
-        mat-table
-        [dataSource]="notificationRows"
-        aria-label="Notification preferences"
-        i18n-aria-label="@@settings.notifications.table_aria"
-      >
-        <ng-container matColumnDef="notification">
-          <th mat-header-cell *matHeaderCellDef>
-            <span i18n="@@settings.notifications.table_notification"
-              >Notification</span
-            >
-          </th>
-          <td mat-cell *matCellDef="let row">
-            <div class="notification-copy">
-              <h4 class="mat-title-medium m-0">{{ row.title }}</h4>
-              <p class="mat-body-small m-0">{{ row.description }}</p>
-
-              @if (row.key === "event_reminders") {
+    <div class="preference-list">
+      <div class="preference-list__all">
+        <mat-checkbox
+          [checked]="allNotificationsEnabled()"
+          [indeterminate]="notificationSelectionIndeterminate()"
+          [disabled]="notificationPreferences.loading() || pushNotifications.busy() || savingPreferences()"
+          (change)="setAllNotificationPreferences($event.checked)"
+          aria-label="Select or deselect all notification types"
+          i18n-aria-label="@@settings.notifications.select_all_aria"
+        ><span i18n="@@settings.notifications.all">All</span></mat-checkbox>
+      </div>
+      @for (row of notificationRows; track row.key) {
+        <div class="preference-row">
+          <div class="preference-row__heading">
+            <h4 [id]="'notification-' + row.key">{{ row.title }}</h4>
+            <mat-checkbox
+              [checked]="preferenceEnabled(row.key)"
+              [disabled]="notificationPreferences.loading() || pushNotifications.busy() || savingPreferences()"
+              (change)="setNotificationPreference(row.key, $event.checked)"
+              [aria-labelledby]="'notification-' + row.key"
+            />
+          </div>
+          <p>{{ row.description }}</p>
+              @if (row.key === "event_reminders" && preferenceEnabled(row.key)) {
                 <div class="reminder-settings">
                   <span
                     class="mat-label-medium"
@@ -199,54 +204,8 @@
                   </mat-chip-listbox>
                 </div>
               }
-            </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="enabled">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            class="notification-control-column"
-          >
-            <mat-checkbox
-              color="primary"
-              [checked]="allNotificationsEnabled()"
-              [indeterminate]="notificationSelectionIndeterminate()"
-              [disabled]="
-                notificationPreferences.loading() ||
-                pushNotifications.busy() ||
-                savingPreferences()
-              "
-              (change)="setAllNotificationPreferences($event.checked)"
-              aria-label="Select or deselect all notification types"
-              i18n-aria-label="@@settings.notifications.select_all_aria"
-            >
-              <span i18n="@@settings.notifications.all">All</span>
-            </mat-checkbox>
-          </th>
-          <td
-            mat-cell
-            *matCellDef="let row"
-            class="notification-control-column"
-          >
-            <mat-checkbox
-              color="primary"
-              [checked]="preferenceEnabled(row.key)"
-              [disabled]="
-                notificationPreferences.loading() ||
-                pushNotifications.busy() ||
-                savingPreferences()
-              "
-              (change)="setNotificationPreference(row.key, $event.checked)"
-              [attr.aria-label]="row.title"
-            ></mat-checkbox>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="notificationColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: notificationColumns"></tr>
-      </table>
+        </div>
+      }
     </div>
   </section>
 

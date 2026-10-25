@@ -69,6 +69,7 @@ export type AgeAssuranceMethodCategory =
   | "age_estimation"
   | "mobile_network"
   | "financial_attribute"
+  | "external_verification"
   | "digital_identity"
   | "government_id"
   | "email_estimation"
@@ -79,6 +80,7 @@ export interface UserAgePolicySchema {
   source?:
     | "android_play_age_signals"
     | "ios_declared_age_range"
+    | "oneid_age_check"
     | "web_tos"
     | "manual";
   platform?: "android" | "ios" | "web";
@@ -99,7 +101,9 @@ export interface UserAgePolicySchema {
     client_integrity?:
       | "unverified_client"
       | "firebase_app_check"
-      | "play_integrity_request_bound";
+      | "play_integrity_request_bound"
+      | "apple_app_attest_request_bound"
+      | "server_to_server_oidc";
     app_id?: string;
     verification_id?: string;
     status?: "active" | "expired" | "invalidated" | "superseded";
@@ -114,7 +118,7 @@ export interface UserAgePolicySchema {
     approval_basis?: string;
     previous_approval_basis?: string;
     method?: {
-      provider?: "google_play" | "apple" | "external";
+      provider?: "google_play" | "apple" | "oneid" | "external";
       category?: AgeAssuranceMethodCategory;
       provider_method?: string;
     };

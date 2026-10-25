@@ -75,11 +75,9 @@
 <mat-dialog-actions align="end">
   @if (previewing()) {
     <button mat-button type="button" (click)="previewing.set(false)" i18n>Back</button>
-    <button mat-flat-button type="button" [disabled]="publishing()" (click)="publishUpdate()">
-      @if (publishing()) {
-        <mat-spinner diameter="20"></mat-spinner>
-      }
+    <button mat-flat-button type="button" [disabled]="publishing()" [showProgress]="publishing()" (click)="publishUpdate()">
       <span i18n>Publish update</span>
+      <mat-spinner progressIndicator diameter="20" />
     </button>
   } @else {
     <button mat-button type="button" mat-dialog-close i18n>Cancel</button>

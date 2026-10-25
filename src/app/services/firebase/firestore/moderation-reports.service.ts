@@ -4,12 +4,17 @@ import { MediaType } from "../../../../db/models/Interfaces";
 import { StorageImage } from "../../../../db/models/Media";
 import { ContactMessageSchema } from "../../../../db/schemas/ContactMessageSchema";
 import type { MediaSchema } from "../../../../db/schemas/Media";
-import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
+import {
+  MediaReportSchema,
+  ReportModerationStatus,
+} from "../../../../db/schemas/MediaReportSchema";
 import { ModerationActionType } from "../../../../db/schemas/ModerationActionSchema";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
 import { UserReportSchema } from "../../../../db/schemas/UserReportSchema";
 import { SearchService } from "../../search.service";
 import { isFirstPartyStorageUrl } from "../../../utils/first-party-media-url";
+import { mediaSafetyPresentation } from "../../../shared/media-moderation-labels";
+import { reportReasonsLabel } from "../../../shared/report-labels";
 import {
   FirestoreAdapterService,
   QueryConstraintOptions,
@@ -25,7 +30,7 @@ import type { SpotCreationDiagnosticsResponse } from "../../../../db/schemas/Spo
 import type { SpotSchema } from "../../../../db/schemas/SpotSchema";
 
 export type ModerationReportKind = "spot" | "media" | "profile";
-export type ModerationReportStatus = "open" | "resolved" | "dismissed";
+export type ModerationReportStatus = ReportModerationStatus;
 
 export interface ModerationReportItem {
   id: string;
@@ -33,6 +38,7 @@ export interface ModerationReportItem {
   kind: ModerationReportKind;
   status: ModerationReportStatus;
   reason: string;
+  reasonLabel?: string;
   createdAt: unknown;
   createdAtMillis: number;
   reporterLabel: string;
@@ -59,6 +65,7 @@ export interface ModerationReportItem {
   mediaSource?: "storage" | "external";
   mediaSourceLabel?: string;
   requiresManualReview: boolean;
+  mediaReviewId?: string;
   scannerProvider?: string;
   scannerDecision?: string;
   scannerReason?: string;
@@ -87,6 +94,7 @@ export interface ModerationContactMessageItem {
 export interface ModerationDuplicateSpot {
   id: string;
   label: string;
+  createdAtMillis?: number;
 }
 
 export interface ModerationDuplicateGroup {
@@ -95,7 +103,7 @@ export interface ModerationDuplicateGroup {
   closestDistanceMeters: number;
 }
 
-type DuplicateSpotDocument = Partial<Pick<SpotSchema, "name" | "duplicate_check">> & {
+type DuplicateSpotDocument = Partial<Pick<SpotSchema, "name" | "duplicate_check" | "time_created">> & {
   id: string;
 };
 
@@ -125,7 +133,10 @@ export const groupDuplicateSpotCandidates = (
   };
 
   for (const document of documents) {
-    spots.set(document.id, {id: document.id, label: spotLabel(document)});
+    spots.set(document.id, {
+      id: document.id, label: spotLabel(document),
+      ...(document.time_created ? {createdAtMillis: document.time_created.seconds * 1000} : {}),
+    });
     for (const candidate of document.duplicate_check?.candidates ?? []) {
       // Candidate arrays are scan snapshots. A referenced Spot may since have
       // been deleted or cleared by a newer scan, so only connect documents that
@@ -135,6 +146,7 @@ export const groupDuplicateSpotCandidates = (
       spots.set(candidate.spot_id, {
         id: candidate.spot_id,
         label: current?.label ?? candidate.name ?? candidate.spot_id,
+        ...(current?.createdAtMillis !== undefined ? {createdAtMillis: current.createdAtMillis} : {}),
       });
       connect(document.id, candidate.spot_id, candidate.distance_m);
     }
@@ -249,6 +261,8 @@ export class ModerationReportsService {
   }
 
   async getDuplicateSpotGroups(): Promise<ModerationDuplicateGroup[]> {
+    const fixture = (globalThis as {__PKSPOT_SCREENSHOT_DUPLICATES__?: ModerationDuplicateGroup[]}).__PKSPOT_SCREENSHOT_DUPLICATES__;
+    if (fixture) return fixture;
     const spots: DuplicateSpotDocument[] = [];
     let cursor: unknown;
     do {
@@ -360,7 +374,7 @@ export class ModerationReportsService {
       path: report.path,
       kind: "spot",
       status,
-      reason: report.reason || "unknown",
+      reason: report.reasons?.join(", ") || report.reason || "unknown",
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
@@ -411,7 +425,7 @@ export class ModerationReportsService {
       path: report.path ?? `media_reports/${report.id}`,
       kind: "media",
       status,
-      reason: report.reason || "unknown",
+      reason: report.reasons?.join(", ") || report.reason || "unknown",
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
@@ -437,8 +451,12 @@ export class ModerationReportsService {
       requiresManualReview,
       scannerProvider,
       scannerDecision,
-      scannerReason: scanner?.reason,
+      scannerReason: mediaSafetyPresentation(scanner).description ?? scanner?.reason,
+      reasonLabel: mediaSafetyPresentation(scanner).label ?? reportReasonsLabel(report.reasons ?? [report.reason]),
       scannerLabels: scanner?.labels,
+      mediaReviewId: report.review_path?.match(
+        /^media_upload_reviews\/([A-Za-z0-9_-]+)$/,
+      )?.[1],
       incidentPath: report.incident_path,
       raw: report,
     };
@@ -600,7 +618,7 @@ export class ModerationReportsService {
   private _normalizeStatus(
     status: ModerationReportStatus | undefined,
   ): ModerationReportStatus {
-    return status === "resolved" || status === "dismissed" ? status : "open";
+    return status ?? "open";
   }
 
   private _formatUser(user: MediaReportSchema["user"]): string {

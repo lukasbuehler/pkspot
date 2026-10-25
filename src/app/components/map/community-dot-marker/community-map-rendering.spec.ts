@@ -7,6 +7,7 @@ import {
   limitCommunityDotsPerTile,
   shouldShowCommunityAreaPresence,
   shouldShowCommunityDot,
+  shouldShowCommunityPin,
 } from "./community-map-rendering";
 
 const locality: CommunityMapMarker = {
@@ -83,5 +84,27 @@ describe("community map rendering", () => {
         showAreaPresence: true,
       }),
     ).toBe(true);
+  });
+});
+
+describe("full community pin handoff", () => {
+  const pin = { ...locality, pinVisible: true, showAreaPresence: true };
+
+  it("hides a full locality pin when zooming into its area, then restores it on zoom out", () => {
+    expect(shouldShowCommunityPin(pin, 10)).toBe(true);
+    expect(shouldShowCommunityPin(pin, 12)).toBe(false);
+    expect(shouldShowCommunityPin(pin, 10)).toBe(true);
+  });
+
+  it("preserves pins that have no replacement circle", () => {
+    expect(shouldShowCommunityPin({ ...pin, scope: "country" }, 18)).toBe(true);
+    expect(shouldShowCommunityPin({ ...pin, scope: "region" }, 18)).toBe(true);
+    expect(shouldShowCommunityPin({ ...pin, showAreaPresence: false }, 18)).toBe(true);
+    expect(shouldShowCommunityPin({ ...pin, pinVisible: false }, 8)).toBe(false);
+  });
+
+  it("accounts for the pin scale at the handoff", () => {
+    expect(shouldShowCommunityPin({ ...pin, pinSize: 0.5 }, 11)).toBe(false);
+    expect(shouldShowCommunityPin({ ...pin, pinSize: 1 }, 11)).toBe(true);
   });
 });

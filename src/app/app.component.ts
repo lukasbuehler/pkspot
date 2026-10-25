@@ -1,8 +1,14 @@
+import {NativePhotoShareService} from "./media-ingestion/native-photo-share.service";
+import {NativeMapShareService} from "./services/native-map-share.service";
+import { FabMenuComponent, type FabMenuAction } from "./components/fab-menu/fab-menu.component";
+import { StoreReviewService } from "./reviews/store-review.service";
 import {
   AfterViewInit,
   ApplicationRef,
   Component,
   computed,
+  DestroyRef,
+  ElementRef,
   inject,
   OnInit,
   signal,
@@ -12,6 +18,7 @@ import {
   NgZone,
   ChangeDetectionStrategy,
   effect,
+  untracked,
 } from "@angular/core";
 import {
   trigger,
@@ -39,19 +46,18 @@ import {
   RouteConfigLoadEnd,
   RouterModule,
 } from "@angular/router";
-import { filter } from "rxjs/operators";
+import { filter, map } from "rxjs/operators";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { AuthenticationService } from "./services/firebase/authentication.service";
 import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
-import { GlobalVariables } from "../scripts/global";
 import { environment } from "../environments/environment.default";
 import { isBot } from "../scripts/Helpers";
 import { ACCEPTANCE_FREE_PREFIXES } from "./app.routes";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
-import { MatButtonModule, MatFabButton } from "@angular/material/button";
+import { MatButtonModule } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
 import {
-  MatMenuTrigger,
   MatMenu,
   MatMenuItem,
   MatMenuModule,
@@ -63,6 +69,8 @@ import { Mat3NavButtonComponent } from "./components/mat3-nav-button/mat3-nav-bu
 import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
 import { NavRailContainerComponent } from "./components/nav-rail-container/nav-rail-container.component";
 import { WelcomeDialogComponent } from "./components/welcome-dialog/welcome-dialog.component";
+import { WhatsNewDialogComponent } from "./components/whats-new-dialog/whats-new-dialog.component";
+import { WHATS_NEW_STORAGE_KEY, welcomeScreenFor } from "./services/whats-new";
 import { MatDialog } from "@angular/material/dialog";
 import { isKnownUiLocalePrefix } from "./config/ui-locales";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -82,6 +90,8 @@ import {
 } from "@capacitor/core";
 import { BackHandlingService } from "./services/back-handling.service";
 import { CheckInService } from "./services/check-in.service";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { CheckInFlowService } from "./services/check-in-flow.service";
 import { SpotId } from "../db/schemas/SpotSchema";
 import { MetaTagService } from "./services/meta-tag.service";
 import { KeyboardService } from "./services/keyboard.service";
@@ -95,14 +105,23 @@ import { UiLanguageService } from "./services/ui-language.service";
 import { AppCheckFailureWarningService } from "./services/firebase/app-check-failure-warning.service";
 import { PushNotificationsService } from "./services/push-notifications.service";
 import { trainingFeatureEnabled } from "./features/training-feature";
+import { supportShopFeatureEnabled } from "./features/support-shop-feature";
+import {
+  desktopNavigationSlotCount,
+  splitNavigationOverflow,
+  type NavigationOverflow,
+} from "./features/navbar-overflow";
 import { MyEventContextService } from "./services/my-event-context.service";
 
 interface ButtonBase {
+  id: string;
   name: string;
   icon: string;
+  overflowPriority: number;
   image?: string;
   active?: boolean;
   liveIndicator?: boolean;
+  alwaysVisible?: boolean;
 }
 
 interface LinkButton extends ButtonBase {
@@ -127,27 +146,37 @@ interface NavigationPerfEntry {
   lastPhaseAt: number;
 }
 
+interface DesktopNavigationRailMeasurement {
+  leadingHeightWithoutLanguage: number;
+  languageFooterHeight: number;
+  buttonStep: number;
+}
+
 type NavigationPerfDetails = Record<string, unknown>;
 
 @Component({
   selector: "app-root",
   host: {
     "(window:resize)": "onResize()",
+    "[class.has-floating-bottom-navigation]": "usesFloatingBottomNavigation()",
+    "[class.has-navigation-rail]": "usesNavigationRail()",
+    "[class.immersive-map-route]": "isImmersiveMapRoute()",
+    "[class.event-map-route]": "isEventMapRoute()",
   },
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
   imports: [
+    FabMenuComponent,
+    MatProgressSpinnerModule,
     NavRailContainerComponent,
     NavRailComponent,
     RouterLink,
     NavRailContentComponent,
     RouterOutlet,
     MatToolbar,
-    MatMenuTrigger,
     MatMenu,
     MatMenuItem,
     MatIcon,
-    MatFabButton,
     Mat3NavButtonComponent,
     NgOptimizedImage,
     MatMenuModule,
@@ -182,10 +211,14 @@ type NavigationPerfDetails = Record<string, unknown>;
   ],
 })
 export class AppComponent implements OnInit, AfterViewInit {
+  /** App paths (without locale) that carry the site identity structured data. */
+  private static readonly SITE_IDENTITY_PATHS = new Set(["/", "/map", "/about"]);
+
   readonly dialog = inject(MatDialog);
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
   private _appRef = inject(ApplicationRef);
+  private readonly _destroyRef = inject(DestroyRef);
   readonly responsive = inject(ResponsiveService);
   private readonly _platformService = inject(PlatformService);
   private readonly _uiLanguageService = inject(UiLanguageService);
@@ -219,6 +252,25 @@ export class AppComponent implements OnInit, AfterViewInit {
   public checkInService = inject(CheckInService);
   readonly myEventContext = inject(MyEventContextService);
   readonly checkInEnabled = environment.features.checkIns;
+  private readonly _desktopNavigationRailMeasurement = signal<DesktopNavigationRailMeasurement | null>(
+    null,
+  );
+  private _desktopNavigationRail?: HTMLElement;
+  private _desktopNavigationFooter?: HTMLElement;
+  private _desktopNavigationLayoutObserver?: ResizeObserver;
+  private _desktopNavigationMeasurementFrame?: number;
+
+  @ViewChild("desktopNavigationRail", { read: ElementRef })
+  set desktopNavigationRail(element: ElementRef<HTMLElement> | undefined) {
+    this._desktopNavigationRail = element?.nativeElement;
+    this.observeDesktopNavigationLayout();
+  }
+
+  @ViewChild("desktopNavigationFooter", { read: ElementRef })
+  set desktopNavigationFooter(element: ElementRef<HTMLElement> | undefined) {
+    this._desktopNavigationFooter = element?.nativeElement;
+    this.observeDesktopNavigationLayout();
+  }
 
   constructor(
     public router: Router,
@@ -230,7 +282,15 @@ export class AppComponent implements OnInit, AfterViewInit {
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
 
-    this.enforceAlainMode();
+    this._destroyRef.onDestroy(() => {
+      this._desktopNavigationLayoutObserver?.disconnect();
+      if (
+        this._desktopNavigationMeasurementFrame !== undefined &&
+        typeof window !== "undefined"
+      ) {
+        window.cancelAnimationFrame(this._desktopNavigationMeasurementFrame);
+      }
+    });
   }
 
   hasAds = false;
@@ -259,10 +319,20 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   });
 
-  alainMode: boolean = false;
+  readonly alainMode = this.responsive.alainMode;
 
-  /** True when running with a non-production environment (dev/ios dev config) */
-  isDevMode: boolean = !environment.production;
+  /**
+   * Content density keeps the established 600/960px breakpoints. Navigation
+   * instead follows the available viewport shape, so an unfolded phone can
+   * use a rail without being treated as a desktop page everywhere else.
+   */
+  readonly navigationLayout = this.responsive.navigationLayout;
+  readonly usesNavigationRail = computed(
+    () => this.navigationLayout() === "rail",
+  );
+  readonly usesFloatingBottomNavigation = computed(
+    () => this.navigationLayout() === "bottom",
+  );
 
   /** True when running as a native iOS or Android app via Capacitor */
   isNativePlatform: boolean = Capacitor.isNativePlatform();
@@ -270,30 +340,18 @@ export class AppComponent implements OnInit, AfterViewInit {
   isEmbedded: WritableSignal<boolean | null> = signal(null);
 
   onResize() {
-    this.enforceAlainMode();
+    this.responsive.refreshViewport();
+    this.scheduleDesktopNavigationMeasurement();
   }
 
-  enforceAlainMode() {
+  private readonly trackNavigationMode = effect(() => {
+    const alainMode = this.alainMode();
     if (typeof window !== "undefined") {
-      // Enable alain mode when:
-      // 1. Height is very small (< 500px) - handles landscape mobile
-      // 2. OR both height < 700 and width < 768 - handles portrait mobile
-      const isLandscapeMobile = window.innerHeight < 500;
-      const isPortraitMobile =
-        window.innerHeight < 700 && window.innerWidth < 768;
-
-      const nextAlainMode = isLandscapeMobile || isPortraitMobile;
-      if (this.alainMode === nextAlainMode) {
-        return;
-      }
-
-      this.alainMode = nextAlainMode;
-      GlobalVariables.alainMode.next(nextAlainMode);
-      this._analyticsService.trackEvent("Alain Mode Changed", {
-        alainMode: nextAlainMode,
-      });
+      untracked(() => this._analyticsService.trackEvent("Alain Mode Changed", {
+        alainMode,
+      }));
     }
-  }
+  });
 
   async ngAfterViewInit() {
     await this.waitForInitialRenderState();
@@ -301,6 +359,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     await this.waitForNextPaint();
     await this.hideSplashScreens();
   }
+
+  private readonly storeReview = inject(StoreReviewService);
 
   async ngOnInit() {
     // Wire initial layout-affecting state before any awaited startup work.
@@ -312,6 +372,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this._keyboardService.init();
     this._mapProfiler.ensureInstalled();
+    void this._injector.get(NativeMapShareService).initialize();
+    void this._injector.get(NativePhotoShareService).initialize().catch(() => console.warn("Photo sharing initialization failed"));
     this.installNavigationPerformanceLogging();
 
     this.router.events
@@ -379,10 +441,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           // unless fully configured for i18n routing in the same app instance.
           // For Capacitor, we usually want to just navigate to the content.
           const segments = path.split("/");
-          if (
-            segments.length > 1 &&
-            isKnownUiLocalePrefix(segments[1])
-          ) {
+          if (segments.length > 1 && isKnownUiLocalePrefix(segments[1])) {
             // Remove the locale segment
             segments.splice(1, 1);
             path = segments.join("/");
@@ -451,27 +510,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
     }
 
-    // structured data
-    const json: WebSite = {
-      "@type": "WebSite",
-      name: StructuredDataService.BRAND_NAME,
-      alternateName: [
-        "pkspot.app",
-        "PK Spot App",
-        "Parkour Spot",
-        "Parkour Spot App",
-      ],
-      url: StructuredDataService.BRAND_URL,
-    };
-    this._structuredDataService.addStructuredData("website", json);
-    this._structuredDataService.addStructuredData(
-      "organization",
-      this._structuredDataService.generateOrganizationData(),
-    );
-    this._structuredDataService.addStructuredData(
-      "software-application",
-      this._structuredDataService.generateSoftwareApplicationData(),
-    );
 
     // Track when consent is granted so we can correlate accepters vs non-accepters
     this._consentService.consentGranted$.subscribe((granted) => {
@@ -625,23 +663,13 @@ export class AppComponent implements OnInit, AfterViewInit {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         const nav = event as NavigationEnd;
-        this.currentNavUrl.set(nav.urlAfterRedirects);
+        this.syncSiteStructuredData(nav.urlAfterRedirects);
         this.checkWelcomeDialogForCurrentRoute();
 
         const send = () => {
           try {
             const isBrowser =
               typeof window !== "undefined" && typeof document !== "undefined";
-
-            // Reset scroll position of the main content container on navigation
-            // This is needed because we use a custom scroll container (.main-content)
-            // not the viewport, so Angular's scrollPositionRestoration doesn't work
-            if (isBrowser) {
-              const mainContent = document.querySelector(".main-content");
-              if (mainContent) {
-                mainContent.scrollTop = 0;
-              }
-            }
 
             const url = isBrowser
               ? window.location.href
@@ -760,6 +788,40 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.checkWelcomeDialogForCurrentRoute();
   }
 
+
+  /**
+   * Site identity markup (WebSite, Organization, SoftwareApplication) belongs
+   * on the home, map and About pages. Google reads it from the home page, and
+   * on every Spot page it only tied the app icon to random Spots in Images.
+   */
+  private syncSiteStructuredData(url: string): void {
+    const path = url.split(/[?#]/u)[0].replace(/\/$/u, "") || "/";
+    const ids = ["website", "organization", "software-application"];
+    if (!AppComponent.SITE_IDENTITY_PATHS.has(path)) {
+      for (const id of ids) this._structuredDataService.removeStructuredData(id);
+      return;
+    }
+    const website: WebSite = {
+      "@type": "WebSite",
+      name: StructuredDataService.BRAND_NAME,
+      alternateName: [
+        "pkspot.app",
+        "PK Spot App",
+        "Parkour Spot",
+        "Parkour Spot App",
+      ],
+      url: StructuredDataService.BRAND_URL,
+    };
+    this._structuredDataService.addStructuredData("website", website);
+    this._structuredDataService.addStructuredData(
+      "organization",
+      this._structuredDataService.generateOrganizationData(),
+    );
+    this._structuredDataService.addStructuredData(
+      "software-application",
+      this._structuredDataService.generateSoftwareApplicationData(),
+    );
+  }
   private checkWelcomeDialogForCurrentRoute(): void {
     if (typeof window === "undefined") {
       return;
@@ -769,11 +831,16 @@ export class AppComponent implements OnInit, AfterViewInit {
       const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
       const acceptedVersion = localStorage.getItem("acceptedVersion");
       this.policyAccepted = acceptedVersion === currentTermsVersion;
+      const screen = welcomeScreenFor(
+        acceptedVersion,
+        currentTermsVersion,
+        localStorage.getItem(WHATS_NEW_STORAGE_KEY),
+      );
 
       if (this.policyAccepted) {
         this._consentService.grantConsent();
-        return;
       }
+      if (!screen) return;
 
       const path = window.location.pathname;
       const isEmbedded =
@@ -787,26 +854,49 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.dialog.openDialogs
           .filter(
             (dialogRef) =>
-              dialogRef.componentInstance instanceof WelcomeDialogComponent,
+              dialogRef.componentInstance instanceof WelcomeDialogComponent ||
+              dialogRef.componentInstance instanceof WhatsNewDialogComponent,
           )
           .forEach((dialogRef) => dialogRef.close(false));
         return;
       }
 
-      if (!isEmbedded && !isBot() && this.dialog.openDialogs.length === 0) {
-        const dialogRef = this.dialog.open(WelcomeDialogComponent, {
-          data: { version: currentTermsVersion },
+      if (isEmbedded || isBot() || this.dialog.openDialogs.length > 0) return;
+
+      if (screen === "whats-new" || screen === "whats-new-consent") {
+        const dialogRef = this.dialog.open(WhatsNewDialogComponent, {
+          data: { consentVersion: screen === "whats-new-consent" ? currentTermsVersion : null },
           hasBackdrop: true,
           disableClose: true,
-          enterAnimationDuration: "0ms",
+          autoFocus: "dialog",
+          width: "560px",
+          maxWidth: "calc(100vw - 2rem)",
+          maxHeight: "calc(100dvh - 2rem)",
         });
-
-        dialogRef.afterClosed().subscribe((agreed: boolean) => {
-          if (agreed) {
+        dialogRef.afterClosed().subscribe((closed: boolean) => {
+          if (closed && screen === "whats-new-consent") {
+            this.policyAccepted = true;
             this._consentService.grantConsent();
           }
         });
+        return;
       }
+
+      const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+        data: { version: currentTermsVersion },
+        width: "680px",
+        maxWidth: "min(680px, calc(100vw - 2rem))",
+        maxHeight: "calc(100dvh - 2rem)",
+        hasBackdrop: true,
+        disableClose: true,
+        enterAnimationDuration: "0ms",
+      });
+
+      dialogRef.afterClosed().subscribe((agreed: boolean) => {
+        if (agreed) {
+          this._consentService.grantConsent();
+        }
+      });
     } catch (e) {
       console.error("Error in welcome dialog check", e);
     }
@@ -832,10 +922,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private stripLocalePrefix(pathname: string): string {
     const segments = pathname.split("/");
 
-    if (
-      segments.length > 1 &&
-      isKnownUiLocalePrefix(segments[1])
-    ) {
+    if (segments.length > 1 && isKnownUiLocalePrefix(segments[1])) {
       segments.splice(1, 1);
       return segments.join("/") || "/";
     }
@@ -1117,6 +1204,19 @@ html.pkspot-roboto-loaded body {
     );
   });
 
+  // Map routes fill the viewport and scroll only inside their panels. A
+  // document that can still scroll (even by a few pixels) gives iOS a second
+  // scroller that competes with the bottom sheet's content for each swipe.
+  private readonly _mapRouteDocumentScrollEffect = effect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    document.documentElement.classList.toggle(
+      "map-route-active",
+      this.isImmersiveMapRoute() || this.isEventMapRoute(),
+    );
+  });
+
   private installNavigationPerformanceLogging(): void {
     if (!this.isNativePlatform || typeof window === "undefined") {
       return;
@@ -1292,31 +1392,39 @@ html.pkspot-roboto-loaded body {
   }
 
   private installNavigationClickLogging(): void {
-    document.addEventListener(
-      "click",
-      (event) => {
-        const target = event.target;
-        if (!(target instanceof Element)) {
-          return;
-        }
+    const logClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
 
-        const anchor = target.closest("a");
-        const button = target.closest("button");
-        const element = anchor ?? button;
-        if (!element) {
-          return;
-        }
+      const anchor = target.closest("a");
+      const element = anchor ?? target.closest("button");
+      if (!element) {
+        return;
+      }
 
-        this.writeNavigationPerformanceLog("info", {
-          phase: "Click",
-          tagName: element.tagName.toLowerCase(),
-          href: anchor?.getAttribute("href") ?? undefined,
-          text: element.textContent?.trim().slice(0, 80) ?? "",
-          path: window.location.pathname,
-        });
-      },
-      { capture: true },
-    );
+      this.writeNavigationPerformanceLog("info", {
+        phase: event.eventPhase === Event.CAPTURING_PHASE ? "Click" : "ClickHandled",
+        tagName: element.tagName.toLowerCase(),
+        href: anchor?.getAttribute("href") ?? undefined,
+        target: anchor?.getAttribute("target") ?? undefined,
+        text: element.textContent?.trim().slice(0, 80) ?? "",
+        path: window.location.pathname,
+        button: event.button,
+        ctrlKey: event.ctrlKey,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        metaKey: event.metaKey,
+        defaultPrevented: event.defaultPrevented,
+        isTrusted: event.isTrusted,
+      });
+    };
+
+    // Capture records the input even if propagation stops. The bubble record
+    // shows whether RouterLink prevented the anchor's document navigation.
+    document.addEventListener("click", logClick, { capture: true });
+    document.addEventListener("click", logClick);
   }
 
   private installLongTaskLogging(): void {
@@ -1408,13 +1516,31 @@ html.pkspot-roboto-loaded body {
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
   isSignedIn = signal(false);
-  currentNavUrl = signal<string>(this.router.url);
+  // Subscribe during construction. Analytics initialization can outlive the
+  // initial navigation; missing that event leaves the map shell at zero height.
+  readonly currentNavUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
+  readonly isImmersiveMapRoute = computed(() =>
+    /^\/map(?:[/?]|$)/.test(this.currentNavUrl()),
+  );
+
+  readonly isEventMapRoute = computed(() =>
+    /^\/(?:embedded\/)?events\/[^/?]+\/map(?:[/?]|$)/.test(this.currentNavUrl()),
+  );
 
   // Engagement tracking state (initialized in ngOnInit)
   private _engagement: any = null;
 
-  spotCheckIn(spotId: SpotId) {
-    this.checkInService.checkIn(spotId);
+  private readonly _checkInFlow = inject(CheckInFlowService);
+  readonly checkInPending = this._checkInFlow.pending;
+
+  spotCheckIn(spotId: SpotId, spotName: string | null): void {
+    void this._checkInFlow.checkIn(spotId, spotName);
   }
 
   hasUserProfilePicture = computed(() => {
@@ -1426,7 +1552,7 @@ html.pkspot-roboto-loaded body {
   });
 
   openPKSpotinAppStore() {
-    this._platformService.openPKSpotinAppStore();
+    this._platformService.openPKSpotinAppStore("navbar");
   }
 
   navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
@@ -1434,69 +1560,92 @@ html.pkspot-roboto-loaded body {
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
     const currentNavUrl = this.currentNavUrl();
-    const isCompact = this.responsive.viewMode() !== "desktop";
+    const isCompact = !this.usesNavigationRail();
     const isOnMobileWeb = this.isMobileAppStoreBrowser();
 
     const buttons: NavbarButtonConfig = [
       {
+        id: "map",
         name: $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`,
         link: "/map",
         icon: "map",
+        overflowPriority: 0,
       },
     ];
     if (trainingFeatureEnabled) {
       buttons.push({
+        id: "train",
         name: $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`,
         link: "/train",
         icon: "steps",
+        overflowPriority: 1,
       });
     }
 
     buttons.push({
+      id: "events",
       name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
       link: "/events",
       icon: "event",
+      overflowPriority: 2,
       liveIndicator: this.myEventContext.hasLiveEvent(),
     });
 
-    // Drop "About" on tight viewports so the bottom toolbar fits 4 items
-    // (map, activity, events, profile/account).
     if (!isCompact) {
       buttons.push({
-        name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
-        link: "/about",
-        icon: "info",
+        id: "language",
+        spacerBefore: true,
+        name: $localize`:@@2826581353496868063:Language`,
+        function: () => this._uiLanguageService.changeLanguage(),
+        icon: "language",
+        overflowPriority: 3,
       });
+    }
 
-      if (this.authService.isAdmin()) {
-        buttons.push({
-          name: $localize`:Moderation navbar button label|A very short label for the admin moderation page button@@moderation_label:Moderation`,
-          link: "/moderation",
-          icon: "gavel",
-        });
-      }
+    if (supportShopFeatureEnabled) {
+      buttons.push({
+        id: "shop",
+        name: $localize`:Shop navbar button label|A very short label for the PK Spot shop@@shop.nav:Shop`,
+        link: "/shop",
+        icon: "shopping_bag",
+        overflowPriority: 4,
+      });
+    }
+
+    // About is lowest priority, so More absorbs it before primary navigation.
+    buttons.push({
+      id: "about",
+      name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
+      link: "/about",
+      icon: "info",
+      overflowPriority: 5,
+    });
+
+    // Compact navigation routes lower-priority destinations through More, so
+    // administrators retain access without crowding out the primary actions.
+    if (this.authService.isAdmin()) {
+      buttons.push({
+        id: "moderation",
+        name: $localize`:Moderation navbar button label|A very short label for the admin moderation page button@@moderation_label:Moderation`,
+        link: "/moderation",
+        icon: "gavel",
+        overflowPriority: 6,
+      });
     }
 
     if (isOnMobileWeb) {
       buttons.push({
-        spacerBefore: true,
+        id: "get-app",
         name: $localize`:Get App navbar button label|A very short label for the navbar get app button@@get_app_label:Get App`,
         function: () => this.openPKSpotinAppStore(),
         icon: "mobile_border",
-      });
-    }
-
-    if (!signedIn && !isCompact) {
-      buttons.push({
-        spacerBefore: !isOnMobileWeb,
-        name: $localize`:@@2826581353496868063:Language`,
-        function: () => this._uiLanguageService.changeLanguage(),
-        icon: "language",
+        overflowPriority: 7,
       });
     }
 
     buttons.push({
-      spacerBefore: !isOnMobileWeb && (signedIn || isCompact),
+      id: "account",
+      spacerBefore: !isCompact,
       name: signedIn
         ? shortUserDisplayName || $localize`Profile`
         : $localize`:@@login.nav_label:Account`,
@@ -1504,6 +1653,8 @@ html.pkspot-roboto-loaded body {
         ? {
             link: "/profile",
             icon: "person",
+            overflowPriority: 8,
+            alwaysVisible: true,
             image: userPhoto || "",
             active:
               currentNavUrl.startsWith("/profile") ||
@@ -1512,6 +1663,8 @@ html.pkspot-roboto-loaded body {
         : {
             function: () => this.navigateToAccount(),
             icon: "manage_accounts",
+            overflowPriority: 8,
+            alwaysVisible: true,
             active:
               currentNavUrl.startsWith("/account") ||
               currentNavUrl.startsWith("/sign-in"),
@@ -1520,6 +1673,192 @@ html.pkspot-roboto-loaded body {
 
     return buttons;
   });
+
+  readonly navigationMenuLabel = $localize`Navigation`;
+  readonly navigationFabActions = computed<readonly FabMenuAction[]>(() =>
+    (this.navbarConfig() ?? []).map((button) => ({
+      id: button.id,
+      label: button.name,
+      icon: button.icon,
+      image: button.image,
+      outlineIcon: this.isOutlineIcon(button.icon),
+    })),
+  );
+
+  onNavigationFabAction(id: string): void {
+    const button = this.navbarConfig()?.find((button) => button.id === id);
+    if (button?.link) void this.router.navigateByUrl(button.link);
+    else button?.function?.();
+  }
+
+  readonly navbarOverflow = computed(() => {
+    const navigationLayout = this.navigationLayout();
+
+    return splitNavigationOverflow(
+      this.navbarConfig() ?? [],
+      navigationLayout === "rail"
+        ? desktopNavigationSlotCount(
+            this.navbarConfig() ?? [],
+            (navigation) =>
+              this.getDesktopLeadingSlotCount(
+                navigation,
+                this._desktopNavigationRailMeasurement(),
+              ),
+          )
+        : 5,
+      navigationLayout === "bottom"
+        ? this.mobileVisibleDestinationCount()
+        : Number.POSITIVE_INFINITY,
+    );
+  });
+  readonly mobileVisibleDestinationCount = computed(() => {
+    const width = this.responsive.viewportWidth();
+
+    if (width === null || width >= 520) return 4;
+    if (width >= 390) return 3;
+    if (width >= 320) return 2;
+    return 1;
+  });
+  readonly visibleNavbarButtons = computed(() => this.navbarOverflow().visible);
+  readonly overflowNavbarButtons = computed(
+    () => this.navbarOverflow().overflow,
+  );
+  readonly desktopLeadingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter(
+      (button) => !button.spacerBefore && !button.alwaysVisible,
+    ),
+  );
+  readonly desktopTrailingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter(
+      (button) => button.spacerBefore || button.alwaysVisible,
+    ),
+  );
+  readonly mobileLeadingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter((button) => !button.alwaysVisible),
+  );
+  readonly mobileTrailingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter((button) => button.alwaysVisible),
+  );
+  readonly hasNavbarOverflow = computed(
+    () => this.overflowNavbarButtons().length > 0,
+  );
+  readonly moreNavigationLabel = $localize`:More navbar button label|A very short label that opens overflow navigation@@more.nav:More`;
+  readonly overflowNavigationActive = computed(() =>
+    this.overflowNavbarButtons().some(
+      (button) =>
+        !!button.active ||
+        (!!button.link && this.isNavbarLinkActive(button.link)),
+    ),
+  );
+
+  private observeDesktopNavigationLayout(): void {
+    this._desktopNavigationLayoutObserver?.disconnect();
+
+    const rail = this._desktopNavigationRail?.querySelector<HTMLElement>(
+      ".nav-rail",
+    );
+    const footer = this._desktopNavigationFooter;
+    if (!rail || !footer || typeof ResizeObserver === "undefined") return;
+
+    this._desktopNavigationLayoutObserver = new ResizeObserver(() =>
+      this.scheduleDesktopNavigationMeasurement(),
+    );
+    this._desktopNavigationLayoutObserver.observe(rail);
+    this._desktopNavigationLayoutObserver.observe(footer);
+    this.scheduleDesktopNavigationMeasurement();
+  }
+
+  private scheduleDesktopNavigationMeasurement(): void {
+    if (
+      this._desktopNavigationMeasurementFrame !== undefined ||
+      typeof window === "undefined"
+    ) {
+      return;
+    }
+
+    this._desktopNavigationMeasurementFrame = window.requestAnimationFrame(() => {
+      this._desktopNavigationMeasurementFrame = undefined;
+      this.measureDesktopNavigationLayout();
+    });
+  }
+
+  private measureDesktopNavigationLayout(): void {
+    if (!this.usesNavigationRail()) return;
+
+    const rail = this._desktopNavigationRail?.querySelector<HTMLElement>(
+      ".nav-rail",
+    );
+    const footer = this._desktopNavigationFooter;
+    const firstLeadingButton = rail?.querySelector<HTMLElement>(
+      "[data-desktop-leading-navigation]",
+    );
+    if (!rail || !footer || !firstLeadingButton) return;
+
+    const railRect = rail.getBoundingClientRect();
+    const footerRect = footer.getBoundingClientRect();
+    const buttonRect = firstLeadingButton.getBoundingClientRect();
+    const buttonMargin = Number.parseFloat(
+      getComputedStyle(firstLeadingButton).marginBottom,
+    );
+    const buttonStep =
+      buttonRect.height + (Number.isFinite(buttonMargin) ? buttonMargin : 0);
+    if (railRect.height <= 0 || buttonStep <= 0) return;
+
+    const footerGap = Number.parseFloat(getComputedStyle(footer).rowGap);
+    const footerButton = footer.querySelector<HTMLElement>(
+      "[data-desktop-trailing-navigation]",
+    );
+    if (!footerButton) return;
+
+    const languageFooterButton = footer.querySelector<HTMLElement>(
+      '[data-navigation-id="language"]',
+    );
+    const languageFooterHeight =
+      footerButton.getBoundingClientRect().height +
+      (Number.isFinite(footerGap) ? footerGap : 0);
+    const footerHeightWithoutLanguage =
+      footerRect.height - (languageFooterButton ? languageFooterHeight : 0);
+    const nextMeasurement = {
+      leadingHeightWithoutLanguage:
+        railRect.bottom - footerHeightWithoutLanguage - buttonRect.top,
+      languageFooterHeight,
+      buttonStep,
+    };
+    const currentMeasurement = this._desktopNavigationRailMeasurement();
+    if (
+      !currentMeasurement ||
+      currentMeasurement.leadingHeightWithoutLanguage !==
+        nextMeasurement.leadingHeightWithoutLanguage ||
+      currentMeasurement.languageFooterHeight !==
+        nextMeasurement.languageFooterHeight ||
+      currentMeasurement.buttonStep !== nextMeasurement.buttonStep
+    ) {
+      this._desktopNavigationRailMeasurement.set(nextMeasurement);
+    }
+  }
+
+  private getDesktopLeadingSlotCount(
+    navigation: NavigationOverflow<NavbarButton>,
+    measurement: DesktopNavigationRailMeasurement | null,
+  ): number {
+    if (!measurement) return this.navbarConfig()?.length ?? 0;
+
+    const languageIsVisible = navigation.visible.some(
+      (button) => button.spacerBefore && !button.alwaysVisible,
+    );
+    const leadingHeight =
+      measurement.leadingHeightWithoutLanguage -
+      (languageIsVisible ? measurement.languageFooterHeight : 0);
+    return Math.max(
+      0,
+      Math.floor((leadingHeight + 0.5) / measurement.buttonStep),
+    );
+  }
+
+  private isNavbarLinkActive(link: string): boolean {
+    const currentUrl = this.currentNavUrl();
+    return currentUrl === link || currentUrl.startsWith(`${link}/`);
+  }
 
   private isMobileAppStoreBrowser(): boolean {
     return this._platformService.isMobileAppStoreBrowser();

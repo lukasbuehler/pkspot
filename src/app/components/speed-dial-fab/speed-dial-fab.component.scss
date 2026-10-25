@@ -13,6 +13,9 @@
     align-items: flex-end;
     gap: 12px;
     margin-bottom: 12px;
+    max-height: calc(100dvh - var(--fab-menu-bottom-offset, 24px) - 80px - max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px)));
+    max-width: calc(100vw - var(--fab-menu-inline-start-offset, 24px) - var(--fab-menu-inline-end-offset, 24px));
+    overflow: auto;
 
     .labels-right & {
       align-items: flex-start;
@@ -36,7 +39,8 @@
       box-shadow: var(--mat-sys-level2);
       max-width: min(240px, calc(100vw - 120px));
       padding: 7px 11px;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
   }
 }

@@ -34,6 +34,18 @@ export function isGuestMediaReportReason(
   return typeof value === "string" && guestMediaReportReasons.has(value);
 }
 
+export function isMediaReportReasons(
+  value: unknown,
+): value is MediaReportReason[] {
+  return Array.isArray(value) && value.length > 0 && value.every(isMediaReportReason);
+}
+
+export function areGuestMediaReportReasons(
+  value: readonly MediaReportReason[],
+): boolean {
+  return value.every(isGuestMediaReportReason);
+}
+
 export interface SubmitMediaReportRequest {
   media: {
     type: string;
@@ -42,15 +54,20 @@ export interface SubmitMediaReportRequest {
     source_page_url?: string;
     is_in_storage?: boolean;
   };
-  reason: MediaReportReason;
+  /** Legacy clients send `reason`; current clients send `reasons`. */
+  reason?: MediaReportReason;
+  reasons?: MediaReportReason[];
   comment: string;
   reporterEmail?: string;
   locale?: string;
   spotId?: string;
   context?: "spot" | "event" | "media";
   targetId?: string;
+  /** Required when the duplicate reason is selected. */
+  duplicateMedia?: { src: string };
 }
 
 export interface SubmitMediaReportResponse {
   reportId: string;
+  created?: boolean;
 }

@@ -59,11 +59,17 @@
     [areaKey]="areaKey()"
     [categoryOptions]="categoryFilterOptions()"
     [seriesOptions]="seriesFilterOptions()"
+    [listingTierOptions]="listingTierFilterOptions()"
+    [regionOptions]="regionFilterOptions()"
     [selectedCategories]="selectedCategories()"
     [selectedSeriesIds]="selectedSeriesIds()"
+    [selectedListingTiers]="selectedListingTiers()"
+    [selectedRegions]="selectedRegions()"
     (periodChange)="onPeriodChange($event)"
     (categoryToggled)="toggleCategory($event)"
     (seriesToggled)="toggleSeries($event)"
+    (listingTierToggled)="toggleListingTier($event)"
+    (regionToggled)="toggleRegion($event)"
     (filtersCleared)="clearFilters()"
   />
 
@@ -112,6 +118,8 @@
         [query]="query()"
         [areaKeys]="discoveryAreaKeys()"
         [categories]="selectedCategories()"
+        [listingTiers]="selectedListingTiers()"
+        [regionKeys]="selectedRegions()"
         [seriesIds]="selectedSeriesIds()"
         [seriesById]="seriesById()"
         [loadEvents]="loadContinuousCalendarEvents"
@@ -164,16 +172,11 @@
   }
 
   @if (isAdmin() && (draftsResource.isLoading() || drafts().length > 0)) {
-    <section class="drafts-section">
-      <div class="drafts-heading">
-        <span class="status-icon"><mat-icon>visibility_off</mat-icon></span>
-        <div>
-          <h2 class="mat-title-large" i18n>Admin drafts</h2>
+    <mat-expansion-panel class="drafts-section">
+      <mat-expansion-panel-header><mat-panel-title><mat-icon>visibility_off</mat-icon><span i18n>Admin drafts</span></mat-panel-title></mat-expansion-panel-header>
           <p class="mat-body-medium" i18n>
             Unpublished events are kept separate from public search results.
           </p>
-        </div>
-      </div>
       @if (draftsResource.isLoading()) {
         <p class="mat-body-medium" i18n>Loading drafts…</p>
       } @else {
@@ -186,14 +189,14 @@
           }
         </div>
       }
-    </section>
+    </mat-expansion-panel>
   }
 </main>
 
 @if (createActions().length > 0) {
   <app-fab-menu
     id="eventsCreateFabMenu"
-    class="create-event-fab-menu"
+    class="app-page-fab"
     [actions]="createActions()"
     [launcherLabel]="createMenuLabel"
     (actionSelected)="onCreateAction($event)"

@@ -181,6 +181,7 @@ runWithEmulator("media report submission callable", () => {
       },
       reason: "duplicate",
       comment: "",
+      duplicateMedia: {src: "https://example.test/original-authenticated.jpg"},
       reporterEmail: "spoofed@example.test",
     });
     const report = await waitForReport(
@@ -197,5 +198,49 @@ runWithEmulator("media report submission callable", () => {
     );
     expect(report["user"]["email"]).not.toBe("spoofed@example.test");
     expect(report["submission"]["authenticated"]).toBe(true);
+  }, timeoutMs);
+
+  it("updates one authenticated open report for the same media target", async () => {
+    const uid = `media-report-update-${Date.now()}`;
+    adminDb();
+    const adminAuth = admin.auth(adminApp);
+    await adminAuth.createUser({uid, email: `${uid}@example.test`});
+    await signInWithCustomToken(auth, await adminAuth.createCustomToken(uid));
+    const submit = httpsCallable<SubmitMediaReportRequest, SubmitMediaReportResponse>(
+      functions,
+      "submitMediaReport",
+    );
+    const target = {
+      media: {type: "image", src: `https://example.test/${uid}.jpg`},
+      comment: "The media should be reviewed.",
+      context: "media" as const,
+      targetId: uid,
+    };
+
+    const [first, retry] = await Promise.all([
+      submit({...target, reasons: ["bad quality"]}),
+      submit({...target, reasons: ["bad quality"]}),
+    ]);
+    expect(retry.data.reportId).toBe(first.data.reportId);
+    expect([first.data.created, retry.data.created].filter(Boolean)).toHaveLength(1);
+    const updated = await submit({...target, reasons: ["bad quality", "other"]});
+    const report = await waitForReport(
+      first.data.reportId,
+      (data) => Array.isArray(data["reasons"]) && data["reasons"].length === 2,
+    );
+
+    expect(updated.data).toEqual({reportId: first.data.reportId, created: false});
+    expect(report["reasons"]).toEqual(["bad quality", "other"]);
+    await expect(submit({...target, reasons: ["duplicate"]})).resolves.toEqual({
+      data: {reportId: first.data.reportId, created: false},
+    });
+    const duplicateReport = await waitForReport(first.data.reportId,
+      (data) => Array.isArray(data["reasons"]) && data["reasons"].includes("duplicate"));
+    expect(duplicateReport["duplicate_media"]).toBeUndefined();
+    await expect(submit({
+      ...target,
+      reasons: ["duplicate"],
+      duplicateMedia: {src: "https://example.test/original-media.jpg"},
+    })).resolves.toEqual({data: {reportId: first.data.reportId, created: false}});
   }, timeoutMs);
 });

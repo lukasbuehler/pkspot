@@ -260,6 +260,8 @@
 
 .moderation-dashboard__list {
   display: grid;
+  // Storage paths must wrap inside their column instead of sizing the grid track.
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
 }
 
@@ -269,7 +271,14 @@
 
 .stat-card,
 .queue-card {
+  min-width: 0;
   border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.queue-card mat-card-title,
+.queue-card mat-card-subtitle,
+.queue-card__message {
+  overflow-wrap: anywhere;
 }
 
 .stat-card mat-card-content {

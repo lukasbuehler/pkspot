@@ -9,10 +9,17 @@ import {
 } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 import { UsersService } from "./users.service";
+import { mediaReviewStatusLabels, mediaSafetyPresentation, safeSearchLabelNames, safeSearchLikelihoodLabels } from "../../../shared/media-moderation-labels";
 
 export interface ModerationMediaItem {
   id: string;
   status: MediaUploadReviewSchema["status"];
+  statusLabel: string;
+  safetyLabel?: string;
+  incidentPath?: string;
+  isFalsePositive: boolean;
+  canMarkFalsePositive: boolean;
+  canEscalate: boolean;
   uploaderUid?: string;
   uploader?: UserReferenceSchema;
   targetKind?: string;
@@ -40,6 +47,17 @@ export class ModerationMediaService {
   private readonly _functions = inject(FunctionsAdapterService);
   private readonly _search = inject(SearchService);
   private readonly _users = inject(UsersService);
+
+  async getReview(reviewId: string): Promise<ModerationMediaItem[]> {
+    if (!/^[A-Za-z0-9_-]+$/.test(reviewId)) return [];
+    // Fetch directly so links to older reports work beyond the stream's limit.
+    const review = await this._firestore.getDocument<MediaUploadReviewSchema>(
+      `media_upload_reviews/${reviewId}`,
+    );
+    return review
+      ? this._enrichReferences([this._mapReview({ ...review, id: reviewId })])
+      : [];
+  }
 
   async getUploadStream(limitCount = 200): Promise<ModerationMediaItem[]> {
     const constraints: QueryConstraintOptions[] = [
@@ -129,9 +147,20 @@ export class ModerationMediaService {
   ): ModerationMediaItem {
     const scan = review.scan_result;
     const contentType = review.content_type;
+    const safety = mediaSafetyPresentation(scan);
+    const isRestricted = scan?.decision === "reportable_match" || scan?.severity === "known_csam_match";
+    const isFalsePositive = review.status === "dismissed";
+    const isPending = ["needs_review", "blocked", "scan_failed", "audit_flagged"].includes(review.status);
+    const canReview = isPending && !review.incident_path && !review.release_in_progress;
     return {
       id: review.id,
       status: review.status,
+      statusLabel: review.incident_path ? $localize`Escalated to incident` : mediaReviewStatusLabels[review.status] ?? $localize`Needs review`,
+      safetyLabel: safety.label,
+      incidentPath: review.incident_path,
+      isFalsePositive,
+      canMarkFalsePositive: canReview && !isRestricted && ["needs_review", "audit_flagged"].includes(review.status),
+      canEscalate: Boolean(review.incident_path) || (canReview && review.status !== "scan_failed"),
       uploaderUid: review.uid,
       targetKind: review.target_kind,
       targetId: review.target_id,
@@ -140,27 +169,19 @@ export class ModerationMediaService {
       storagePath:
         review.approved_path ?? review.intake_path ?? review.audited_path,
       createdAtMillis: this._toMillis(review.completed_at ?? review.created_at),
-      provider: scan?.provider,
+      provider: scan?.provider === "google_vision_safe_search" ? "Google Vision SafeSearch" : scan?.provider,
       decision: scan?.decision,
-      reason: scan?.reason ?? review.failure_reason,
+      reason: safety.description ?? scan?.reason ?? review.failure_reason,
       labels: scan?.labels,
       labelEntries: Object.entries(scan?.labels ?? {}).map(([name, value]) => ({
-        name,
-        value,
+        name: safeSearchLabelNames[name] ?? name,
+        value: safeSearchLikelihoodLabels[value] ?? value,
       })),
       isApproved: review.status === "approved" && Boolean(review.approved_url),
       isVideo: contentType?.startsWith("video/") === true,
-      isRestricted:
-        scan?.decision === "reportable_match" ||
-        scan?.severity === "known_csam_match",
-      canReveal:
-        review.status !== "approved" &&
-        scan?.decision !== "reportable_match" &&
-        scan?.severity !== "known_csam_match",
-      canMarkSafe:
-        review.status !== "approved" &&
-        scan?.decision !== "reportable_match" &&
-        scan?.severity !== "known_csam_match",
+      isRestricted,
+      canReveal: canReview && !isRestricted,
+      canMarkSafe: canReview && !isRestricted,
     };
   }
 
@@ -177,6 +198,17 @@ export class ModerationMediaService {
       "markMediaUploadSafe",
       { review_id: reviewId },
     );
+  }
+
+  async markFalsePositive(reviewId: string): Promise<void> {
+    await this._functions.call("markMediaUploadFalsePositive", { review_id: reviewId });
+  }
+
+  async createIncident(reviewId: string): Promise<string> {
+    const result = await this._functions.call<{ report_path: string }, { incident_path: string }>(
+      "createSafetyIncident", { report_path: `reports/scanner_${reviewId}` },
+    );
+    return result.incident_path;
   }
 
   private _toMillis(value: unknown): number {

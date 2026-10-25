@@ -10,6 +10,84 @@
         },
         {
           "fieldPath": "attempt_count",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "spot_create_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "last_attempt_at",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "guard_block_count",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "owner.user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "listing_tier",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "visibility",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lifecycle_status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "support_orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "check_in_aggregate_contributions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "eligibility",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "accepted_at",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "spot_create_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "last_attempt_at",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "attempt_count",
           "order": "ASCENDING"
         }
       ]
@@ -325,9 +403,43 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "planned_sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "audience",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "endsAt",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
+    {
+      "collectionGroup": "live_update_subscribers",
+      "fieldPath": "user_id",
+      "indexes": [
+        { "queryScope": "COLLECTION", "order": "ASCENDING" },
+        { "queryScope": "COLLECTION", "order": "DESCENDING" },
+        { "queryScope": "COLLECTION", "arrayConfig": "CONTAINS" },
+        { "queryScope": "COLLECTION_GROUP", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reports",
+      "fieldPath": "user.uid",
+      "indexes": [
+        { "queryScope": "COLLECTION", "order": "ASCENDING" },
+        { "queryScope": "COLLECTION", "order": "DESCENDING" },
+        { "queryScope": "COLLECTION", "arrayConfig": "CONTAINS" },
+        { "queryScope": "COLLECTION_GROUP", "order": "ASCENDING" }
+      ]
+    },
     {
       "collectionGroup": "notifications",
       "fieldPath": "expires_at",
@@ -338,19 +450,19 @@
       "collectionGroup": "safety_case_access_tokens",
       "fieldPath": "expires_at",
       "ttl": true,
-      "indexes": []
+      "indexes": [{ "queryScope": "COLLECTION", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "safety_case_sessions",
       "fieldPath": "expires_at",
       "ttl": true,
-      "indexes": []
+      "indexes": [{ "queryScope": "COLLECTION", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "safety_case_rate_limits",
       "fieldPath": "expires_at",
       "ttl": true,
-      "indexes": []
+      "indexes": [{ "queryScope": "COLLECTION", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "edits",
@@ -495,6 +607,40 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "private",
+      "fieldPath": "metadata_expires_at",
+      "indexes": [
+        {
+          "queryScope": "COLLECTION",
+          "order": "ASCENDING"
+        },
+        {
+          "queryScope": "COLLECTION",
+          "order": "DESCENDING"
+        },
+        {
+          "queryScope": "COLLECTION_GROUP",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "session_plans",
+      "fieldPath": "sessionId",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "check_in_integrity",
+      "fieldPath": "expires_at",
+      "ttl": true,
+      "indexes": []
     }
   ]
 }

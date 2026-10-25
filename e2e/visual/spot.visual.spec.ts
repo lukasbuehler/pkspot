@@ -1,10 +1,31 @@
 import { test, expect, type Page } from "@playwright/test";
 import { acceptCurrentTerms } from "../fixtures/consent";
 
-async function openSpotFixture(page: Page, viewport = { width: 390, height: 844 }) {
+test.beforeEach(async ({ page }) => {
+  // Visual fixtures must not depend on the external App Check challenge.
+  await page.addInitScript(() => {
+    (globalThis as typeof globalThis & { __PKSPOT_STORE_SCREENSHOT__?: boolean })
+      .__PKSPOT_STORE_SCREENSHOT__ = true;
+  });
+});
+
+type SpotFixtureState = "loaded" | "loading";
+
+// Dialog screenshots include their transparent rounded corners. Use a fixed
+// surface behind them so independently loading fixture photos cannot change pixels.
+const dialogScreenshotStyle = ".cdk-global-overlay-wrapper { background: var(--mat-sys-surface) !important; }";
+
+async function openSpotFixture(
+  page: Page,
+  viewport = { width: 390, height: 844 },
+  state: SpotFixtureState = "loaded",
+  extraQuery = "",
+  title = "Riverside Training Walls",
+) {
   await page.setViewportSize(viewport);
   await acceptCurrentTerms(page);
-  await page.goto("/de/__visual/spot-bottom-sheet", {
+  const query = `?state=${state}${extraQuery}`;
+  await page.goto(`/de/__visual/spot-bottom-sheet${query}`, {
     waitUntil: "domcontentloaded",
   });
   await page.addStyleTag({
@@ -22,9 +43,26 @@ async function openSpotFixture(page: Page, viewport = { width: 390, height: 844 
     `,
   });
   await expect(page.locator("app-map-spot-details-panel")).toBeVisible();
-  await expect(page.locator("app-spot-details")).toContainText(
-    "Riverside Training Walls",
-  );
+  const details = page.locator("app-spot-details");
+  await expect(details).toContainText(title);
+  if (state === "loading") {
+    await expect(details).toContainText(
+      /Loading spot details|Spotdetails werden geladen/u,
+    );
+  }
+  if (state === "loaded") {
+    // Photo decoding updates the carousel's aspect ratios and schedules a resize.
+    // Wait for both before comparing pixels, especially under full-suite load.
+    await expect.poll(() => details.locator("app-img-carousel img").evaluateAll(images =>
+      images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0),
+    )).toBe(true);
+    await details.locator("app-img-carousel img").evaluateAll(images =>
+      Promise.all(images.map(image => (image as HTMLImageElement).decode())),
+    );
+    await page.evaluate(() => new Promise<void>(resolve =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    ));
+  }
   await page.waitForTimeout(700);
 }
 
@@ -81,6 +119,72 @@ async function expandSheetForFullContentSnapshot(page: Page): Promise<void> {
 }
 
 test.describe("Spot Details Visual Regression @visual", () => {
+  test("should truncate the pending title and preserve carousel geometry", async ({
+    page,
+  }) => {
+    await openSpotFixture(page, { width: 390, height: 844 }, "loading");
+
+    const loadingTitle = page.locator(".spot-loading-name");
+    await expect(loadingTitle).toHaveCSS("white-space", "nowrap");
+    await expect(loadingTitle).toHaveCSS("text-overflow", "ellipsis");
+    const loadingHeader = await page.locator("mat-card-header").first().boundingBox();
+    const sheet = page.locator("app-bottom-sheet .sheet");
+    const loadingMedia = page.getByTestId("spot-loading-media");
+    const loadingBox = await loadingMedia.boundingBox();
+    expect(loadingBox).not.toBeNull();
+    if (!loadingBox) return;
+
+    const sheetBox = await sheet.boundingBox();
+    expect(sheetBox).not.toBeNull();
+    if (!sheetBox) return;
+
+    await expect(page).toHaveScreenshot("spot-details-bottom-sheet-loading.png", {
+      clip: {
+        x: sheetBox.x,
+        y: sheetBox.y,
+        width: sheetBox.width,
+        height: Math.min(sheetBox.height, 510),
+      },
+      maxDiffPixels: 250,
+      animations: "disabled",
+    });
+
+    await openSpotFixture(page, { width: 390, height: 844 });
+    const resolvedMedia = page.locator(
+      "app-img-carousel .spot-img-container[data-media-index='0']",
+    );
+    await expect(resolvedMedia).toBeVisible();
+    const resolvedBox = await resolvedMedia.boundingBox();
+    expect(resolvedBox).not.toBeNull();
+    if (!resolvedBox) return;
+
+    expect(Math.abs(loadingBox.x - resolvedBox.x)).toBeLessThanOrEqual(1);
+    const resolvedHeader = await page.locator("mat-card-header").first().boundingBox();
+    expect(loadingHeader).not.toBeNull();
+    expect(resolvedHeader).not.toBeNull();
+    // Loaded metadata can make the header taller. Keep the media immediately
+    // below it, with the same crop and spacing as the compact loading header.
+    expect(Math.abs((resolvedBox.y - loadingBox.y) -
+      (resolvedHeader!.height - loadingHeader!.height))).toBeLessThanOrEqual(1);
+    expect(Math.abs(loadingBox.width - resolvedBox.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(loadingBox.height - resolvedBox.height)).toBeLessThanOrEqual(1);
+  });
+
+  test("should ellipsize an overflowing loading title on narrow phones", async ({ page }) => {
+    await openSpotFixture(page, { width: 320, height: 844 }, "loading");
+    const title = page.locator(".spot-loading-name");
+    await expect(title).toHaveCSS("white-space", "nowrap");
+    await expect(title).toHaveCSS("text-overflow", "ellipsis");
+    const size = await title.evaluate(element => ({
+      width: element.clientWidth,
+      textWidth: element.scrollWidth,
+      height: element.getBoundingClientRect().height,
+      lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+    }));
+    expect(size.textWidth).toBeGreaterThan(size.width);
+    expect(size.height).toBeCloseTo(size.lineHeight, 0);
+  });
+
   test("should match full rich persisted spot details", async ({
     page,
   }) => {
@@ -89,7 +193,12 @@ test.describe("Spot Details Visual Regression @visual", () => {
 
     const sheet = page.locator("app-bottom-sheet .sheet");
     const details = sheet.locator("app-spot-details");
+    await expect(details.getByRole("button", { name: /In Karten öffnen|Open in Maps/ })).toHaveCount(1);
+    await expect(details.getByRole("button", { name: /Open in (Google|Apple) Maps/ })).toHaveCount(0);
 
+    const title = details.locator('.spot-title-text').first();
+    await expect(title).toHaveText('Riverside Training Walls');
+    expect(await title.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     await expect(details).toContainText(/Details|Eigenschaften/u);
     await expect(details).toContainText(
       /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
@@ -122,19 +231,132 @@ test.describe("Spot Details Visual Regression @visual", () => {
     await page.waitForTimeout(100);
 
     await expect(sheet).toContainText("Riverside Training Walls");
+    // Measure the crop only after the header's collapse transitions and fonts
+    // settle. Screenshot animation disabling happens too late for a precomputed clip.
+    await page.evaluate(() => document.fonts.ready);
+    await sheet.evaluate(async element => {
+      await Promise.all(element.getAnimations({subtree: true}).map(animation => animation.finished.catch(() => undefined)));
+    });
     const box = await sheet.boundingBox();
     expect(box).not.toBeNull();
     if (!box) return;
 
+    const headerBox = await sheet.locator("mat-card-header").first().boundingBox();
+    expect(headerBox).not.toBeNull();
+    if (!headerBox) return;
+    // This assertion protects the collapsed header. Carousel imagery has separate
+    // full-sheet coverage and should not make a header regression nondeterministic.
     await expect(page).toHaveScreenshot("spot-details-bottom-sheet-collapsed.png", {
       clip: {
         x: box.x,
         y: box.y,
         width: box.width,
-        height: Math.min(box.height, 220),
+        height: Math.ceil(headerBox.y + headerBox.height - box.y),
       },
       maxDiffPixels: 150,
       animations: "disabled",
     });
   });
 });
+
+
+test("shows an existing Spot report with localized edit and withdrawal actions @visual", async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await acceptCurrentTerms(page);
+  await page.goto("/de/__visual/spot-bottom-sheet?report=edit");
+  const dialog = page.locator("app-spot-report-dialog");
+  await expect(dialog).toContainText("Meldung bearbeiten");
+  await expect(dialog).toContainText("Meldung zurückziehen");
+  await expect(dialog.locator("textarea")).toHaveValue("Die Trainingsmauer wurde entfernt.");
+  await expect(dialog.locator("mat-select")).toContainText("Deutsch");
+  await expect(page.locator("mat-dialog-container")).toHaveScreenshot("spot-report-edit-mobile.png", {animations: "disabled"});
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".spot-access-warning")).toContainText("entfernt");
+  await expect(page.locator(".spot-access-warning")).toHaveScreenshot("spot-report-warning.png", {animations: "disabled"});
+});
+
+for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
+  test(`crop dialog stays within safe areas ${viewport.width} @visual`, async ({page}) => {
+    await page.setViewportSize(viewport);
+    await acceptCurrentTerms(page);
+    await page.goto("/de/__visual/spot-bottom-sheet?crop=1");
+    await page.evaluate(() => {
+      const style = document.documentElement.style;
+      style.setProperty("--safe-area-inset-top", "32px");
+      style.setProperty("--safe-area-inset-bottom", "24px");
+      style.setProperty("--safe-area-inset-left", "28px");
+      style.setProperty("--safe-area-inset-right", "0px");
+    });
+    const dialog = page.locator("app-image-crop-dialog");
+    const surface = page.locator(".image-crop-dialog-panel .mat-mdc-dialog-surface");
+    await expect(dialog.locator("image-cropper img").first()).toBeVisible();
+    const bounds = await surface.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(28);
+    expect(bounds!.y).toBeGreaterThanOrEqual(32);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height - 24);
+    expect(await surface.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+    await expect(surface).toHaveScreenshot(`crop-safe-area-${viewport.width}.png`);
+    const apply = dialog.locator(".crop-actions button").last();
+    await apply.scrollIntoViewIfNeeded();
+    await expect(apply).toBeEnabled();
+    await apply.click();
+    await expect(dialog).toHaveCount(0);
+  });
+}
+
+for (const mode of ["target", "review"]) {
+  test(`shared photo ${mode} @visual`, async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await acceptCurrentTerms(page);
+    await page.goto(`/de/__visual/spot-bottom-sheet?photos=${mode}`);
+    const dialog = page.locator(mode === "target" ? "app-shared-photo-target-dialog" : "app-media-upload-dialog");
+    await expect(dialog).toBeVisible();
+    if (mode === "target") await expect(dialog.locator("app-spot-picker")).toBeVisible();
+    else await expect(dialog.locator("app-media-upload img").first()).toBeVisible();
+    await page.addStyleTag({content: dialogScreenshotStyle});
+    await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-photo-${mode}.png`);
+  });
+}
+
+for (const width of [390, 1000]) {
+  test(`shared map drafts ${width} @visual`, async ({page}) => {
+    await page.setViewportSize({width, height: 844});
+    await acceptCurrentTerms(page);
+    await page.goto("/de/__visual/spot-bottom-sheet?mapdrafts=1");
+    const dialog = page.locator("app-shared-map-drafts-dialog");
+    await expect(dialog.locator("article")).toHaveCount(2);
+    await expect(dialog.getByRole("button", {name: "Spot erstellen"})).toHaveCount(1);
+    await page.addStyleTag({content: dialogScreenshotStyle});
+    await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-map-drafts-${width}.png`);
+    await dialog.getByRole("button", {name: "Entwurf entfernen"}).first().click();
+    await expect(dialog.locator("article")).toHaveCount(1);
+  });
+}
+
+for (const name of ["Lindenhof", "Riverside Training Walls"]) {
+  test(`spot title and activity hierarchy ${name} @visual`, async ({page}) => {
+    await openSpotFixture(page, undefined, 'loaded', `&activity=1${name === 'Lindenhof' ? '&shortTitle=1' : ''}`, name);
+    const title = page.locator('.spot-title-text').first();
+    const badge = page.locator('.spot-kind-label').first();
+    const activity = page.locator('.spot-activity-reveal');
+    await expect(activity).toContainText('2+');
+    await expect(activity).not.toContainText('30');
+    expect((await activity.boundingBox())!.height).toBeLessThan(60);
+    const titleBox = await title.evaluate(element => {
+      const text = document.createRange();
+      text.selectNodeContents(element);
+      const rect = text.getBoundingClientRect();
+      return {y: rect.y, height: rect.height};
+    });
+    const badgeBox = (await badge.boundingBox())!;
+    expect(Math.abs(titleBox.y + titleBox.height / 2 - badgeBox.y - badgeBox.height / 2)).toBeLessThanOrEqual(3);
+    const headerBox = (await page.locator('mat-card-subtitle').first().boundingBox())!;
+    expect((await activity.boundingBox())!.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1);
+    await expect(page.locator('app-spot-details')).toHaveScreenshot(`spot-header-${name === 'Lindenhof' ? 'short' : 'long'}.png`, {animations:'disabled'});
+    await page.locator('app-bottom-sheet .handle-region').click();
+    await expect(activity).toHaveAttribute('aria-hidden', 'true');
+    await expect.poll(async () => (await activity.boundingBox())?.height).toBe(0);
+  });
+}

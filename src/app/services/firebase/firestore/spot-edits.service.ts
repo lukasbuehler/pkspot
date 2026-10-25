@@ -51,17 +51,31 @@ export interface CreatedSpotEdit {
   editId: string;
 }
 
-const REVIEW_PROCESSING_STATUSES = new Set([
+const ORGANIZATION_REVIEW_PROCESSING_STATUSES = new Set([
   "PENDING_MANAGEMENT_REVIEW",
   "PENDING_STEWARD_REVIEW",
+]);
+
+const COMMUNITY_VOTE_PROCESSING_STATUSES = new Set([
+  "VOTING_OPEN",
   "BLOCKED_ICONIC_SPOT",
+  "BLOCKED_VERIFIED_SPOT",
+  // Backward-compatible display for votes created before `community_voting`.
   "VOTING_FORCED_TEST",
 ]);
 
 export function spotEditAwaitsReviewOutcome(edit: SpotEditSchema): boolean {
   return (
     edit.review_status === "pending" ||
-    REVIEW_PROCESSING_STATUSES.has(edit.processing_status ?? "")
+    ORGANIZATION_REVIEW_PROCESSING_STATUSES.has(edit.processing_status ?? "") ||
+    spotEditAwaitsCommunityVote(edit)
+  );
+}
+
+export function spotEditAwaitsCommunityVote(edit: SpotEditSchema): boolean {
+  return (
+    edit.approved !== true &&
+    COMMUNITY_VOTE_PROCESSING_STATUSES.has(edit.processing_status ?? "")
   );
 }
 
@@ -687,6 +701,7 @@ export class SpotEditsService extends ConsentAwareService {
       "rating_histogram",
       "highlighted_reviews",
       // Computed fields (calculated server-side)
+      "recent_activity_min_30d",
       "tile_coordinates",
       "is_iconic",
       "stewardship",

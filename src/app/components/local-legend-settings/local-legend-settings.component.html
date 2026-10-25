@@ -1,0 +1,22 @@
+<section class="legend-settings" aria-labelledby="legend-settings-title">
+  <div class="legend-settings__header">
+    <div>
+      <h3 id="legend-settings-title" class="mat-h3 m-0" i18n="@@localLegend.settings.title">Local Legend</h3>
+      <p class="mat-body mt-2 mb-0" i18n="@@localLegend.settings.description">
+        A private monthly rank at the Spots where you check in, based on days with a verified check-in. Only participating accounts are compared, and nobody else sees your rank.
+      </p>
+    </div>
+    <mat-slide-toggle
+      [checked]="localLegend.enabled()"
+      [disabled]="localLegend.saving() || localLegend.state() === 'unavailable'"
+      (change)="toggle($event)"
+      aria-labelledby="legend-settings-title"
+    />
+  </div>
+
+  <p class="mat-body-small legend-settings__help">
+    <span i18n="@@localLegend.settings.participationHelp">Only new verified check-ins count after you turn it on. Ranks update overnight. Leaving removes your current-month ranks; past ranks stay private.</span>
+    <span i18n="@@localLegend.ageRequirement">Local Legend is for people aged 16 and older.</span>
+  </p>
+  <button matButton="outlined" type="button" [disabled]="localLegend.state() === 'unavailable'" (click)="manage()" i18n="@@localLegend.settings.manage">Manage Local Legend data</button>
+</section>

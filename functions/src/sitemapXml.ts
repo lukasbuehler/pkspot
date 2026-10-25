@@ -10,22 +10,37 @@ const SUPPORTED_LOCALES = ["en", "de", "fr", "it", "es", "nl"];
 const DEFAULT_LOCALE = "en";
 
 // Static pages from app.routes.ts (excluding redirects, auth-required,
-// duplicate, and embedded pages).
+// duplicate, and embedded pages). Account and auth forms are utility pages
+// with no search value; `/account` also canonicalizes to sign-in when signed
+// out, so listing them only sends crawlers to non-canonical or thin URLs.
 const STATIC_PAGES = [
   { path: "/map", priority: "1.0", changefreq: "daily" },
   { path: "/events", priority: "0.8", changefreq: "weekly" },
   { path: "/events/swissjam25", priority: "0.7", changefreq: "weekly" },
   { path: "/about", priority: "0.7", changefreq: "monthly" },
   { path: "/support", priority: "0.5", changefreq: "monthly" },
-  { path: "/account", priority: "0.5", changefreq: "monthly" },
-  { path: "/sign-in", priority: "0.5", changefreq: "monthly" },
-  { path: "/sign-up", priority: "0.5", changefreq: "monthly" },
-  { path: "/forgot-password", priority: "0.3", changefreq: "monthly" },
   { path: "/terms-of-service", priority: "0.3", changefreq: "yearly" },
   { path: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
   { path: "/impressum", priority: "0.3", changefreq: "yearly" },
   { path: "/embed", priority: "0.4", changefreq: "monthly" },
 ] as const;
+
+/**
+ * Brand images appear on every page (header logo, default share image, app
+ * icon), so Google picks a random Spot or legal page as their landing page.
+ * Listing them under About tells it which page they belong to.
+ */
+const STATIC_PAGE_IMAGES: Readonly<Record<string, readonly string[]>> = {
+  "/about": [
+    `${BASE_URL}/assets/banner_1200x630.png`,
+    `${BASE_URL}/assets/logos/pkspot/pkspot_logo_stacked_dark.png`,
+    `${BASE_URL}/assets/icons/icon-512.webp`,
+  ],
+};
+
+function staticPageImages(path: string): readonly string[] {
+  return STATIC_PAGE_IMAGES[path] ?? [];
+}
 
 export interface UserSitemapData {
   display_name?: string;
@@ -33,6 +48,7 @@ export interface UserSitemapData {
 }
 
 export interface SpotSitemapData {
+  media?: Array<{ type?: string; src?: string; isInStorage?: boolean; isReported?: boolean }>;
   slug?: string;
   time_updated?: { seconds: number; nanoseconds: number };
 }
@@ -47,6 +63,8 @@ export interface CommunitySitemapData {
 }
 
 export interface EventSitemapData {
+  visibility?: string;
+  publication_state?: string;
   slug?: string;
   canonicalPath?: string;
   published?: boolean;
@@ -84,10 +102,37 @@ export interface SitemapBuildResult {
   stats: SitemapGenerationStats;
 }
 
+function escapeXml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+/** Publish only first-party, unreported Spot photos. External consent-gated media
+ * and intake files must never be advertised to crawlers by this sitemap.
+ */
+export function spotSitemapImages(spot: SpotSitemapData): string[] {
+  const images = new Set<string>();
+  for (const media of spot.media ?? []) {
+    if (media.type !== "image" || media.isReported || !media.isInStorage || !media.src) continue;
+    try {
+      const url = new URL(media.src, BASE_URL);
+      if (url.protocol !== "https:" || url.hostname !== "firebasestorage.googleapis.com" ||
+          !decodeURIComponent(url.pathname).startsWith("/v0/b/parkour-base-project.appspot.com/o/spot_pictures/")) continue;
+      // Match the structured-data photo size, without publishing download tokens.
+      url.pathname = url.pathname.replace(/(?:_\d+x\d+)?(\.[a-zA-Z]+)$/, "_800x800$1");
+      url.search = "?alt=media";
+      url.hash = "";
+      images.add(url.href);
+    } catch { /* Malformed legacy media must not stop sitemap generation. */ }
+  }
+  return [...images].slice(0, 1000);
+}
+
 function buildSitemapHeader(): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 `;
 }
 
@@ -98,7 +143,8 @@ function generateUrlWithHreflang(
   path: string,
   lastmod: string,
   changefreq: string,
-  priority: string
+  priority: string,
+  images: readonly string[] = []
 ): string {
   let xml = "";
 
@@ -122,6 +168,9 @@ function generateUrlWithHreflang(
     xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}${path}"/>
 `;
 
+    for (const image of images) {
+      xml += `    <image:image><image:loc>${escapeXml(image)}</image:loc></image:image>\n`;
+    }
     xml += `  </url>
 `;
   }
@@ -232,7 +281,13 @@ function getEventPath(id: string, data: EventSitemapData): string {
 
 function buildStaticPageEntries(now: string): string {
   return STATIC_PAGES.map((page) =>
-    generateUrlWithHreflang(page.path, now, page.changefreq, page.priority)
+    generateUrlWithHreflang(
+      page.path,
+      now,
+      page.changefreq,
+      page.priority,
+      staticPageImages(page.path)
+    )
   ).join("");
 }
 
@@ -276,7 +331,7 @@ function buildSpotEntries(
     spotCount += 1;
     const lastmod = getLastModDate(spot.data.time_updated, fallbackDate);
     const priority = slug ? "0.9" : "0.8";
-    xml += generateUrlWithHreflang(path, lastmod, "weekly", priority);
+    xml += generateUrlWithHreflang(path, lastmod, "weekly", priority, spotSitemapImages(spot.data));
   }
 
   return { xml, spotCount, slugCount };
@@ -432,7 +487,9 @@ export function buildEventSitemapEntry(
   data: EventSitemapData,
   fallbackDate: string
 ): ResolvedSitemapEntry | null {
-  if (data.published === false || data.status === "draft") {
+  if (data.published === false || data.status === "draft" ||
+      (data.visibility !== undefined && data.visibility !== "public") ||
+      (data.publication_state !== undefined && data.publication_state !== "published")) {
     return null;
   }
 
@@ -508,6 +565,7 @@ export {
   BASE_URL,
   DEFAULT_LOCALE,
   STATIC_PAGES,
+  staticPageImages,
   SUPPORTED_LOCALES,
   buildSitemapHeader,
   buildEventEntries,

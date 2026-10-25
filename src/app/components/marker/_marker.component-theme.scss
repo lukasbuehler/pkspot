@@ -41,6 +41,12 @@
       fill: var(--mat-sys-on-surface-variant);
     }
   }
+  .pin-reported {
+    > div {
+      background-color: light-dark(var(--mat-sys-inverse-surface), var(--mat-sys-surface-container-highest));
+      color: light-dark(var(--mat-sys-inverse-on-surface), var(--mat-sys-on-surface));
+    }
+  }
   .pin-iconic {
     > div {
       border-color: var(--mat-sys-on-tertiary);

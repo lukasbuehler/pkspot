@@ -24,6 +24,24 @@ public class AgeAssurancePlugin extends Plugin {
   private static final String PLAY_STORE_PACKAGE = "com.android.vending";
 
   @PluginMethod
+  public void openVerificationBrowser(PluginCall call) {
+    Uri url = Uri.parse(call.getString("url", ""));
+    String host = url.getHost();
+    if (!"https".equals(url.getScheme()) || url.getUserInfo() != null ||
+        !("controller.myoneid.co.uk".equals(host) || "controller.sandbox.myoneid.co.uk".equals(host))) {
+      call.reject("Invalid verification URL", "invalid-argument");
+      return;
+    }
+    try {
+      // ACTION_VIEW opens the default browser, not a Custom Tab/WebView.
+      getActivity().startActivity(new Intent(Intent.ACTION_VIEW, url).addCategory(Intent.CATEGORY_BROWSABLE));
+      call.resolve();
+    } catch (Exception error) {
+      call.reject("Could not open verification browser", "unavailable");
+    }
+  }
+
+  @PluginMethod
   public void getAgeSignal(PluginCall call) {
     requestAgeSignal(
         signal -> call.resolve(AgeSignalsResponseMapper.toJsObject(signal)),

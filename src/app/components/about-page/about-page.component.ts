@@ -18,6 +18,7 @@ import { APP_LINKS } from "../../shared/app-links";
 import { PlatformService } from "../../services/platform.service";
 import {
   AnalyticsService,
+  type AppStoreTarget,
   ContactChannel,
 } from "../../services/analytics.service";
 import crew from "../../../assets/data/crew.json";
@@ -52,11 +53,11 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
   private readonly analytics = inject(AnalyticsService);
 
   openPKSpotinAppStore(): void {
-    this.analytics.trackEvent("app_store_cta_clicked", {
-      surface: "about_page",
-      cta_id: "about_app_icon",
-    });
-    this.platformService.openPKSpotinAppStore();
+    this.platformService.openPKSpotinAppStore("about_page");
+  }
+
+  trackAppStoreClick(store: AppStoreTarget): void {
+    this.analytics.trackAppStoreClick("about_page", store, "about_store_badge");
   }
 
   trackOutboundLinkClick(

@@ -48,7 +48,7 @@
               [style.grid-column]="column + 1"
               [attr.data-day]="day.key"
               [attr.aria-label]="dayAriaLabels()[day.key]"
-              (click)="daySelected.emit(day.key)"
+              (click)="selectDay(day.key)"
             >
               @if (monthLabels()[day.key]; as monthLabel) {
                 <span
@@ -91,7 +91,7 @@
                   type="button"
                   class="more-events"
                   [style.grid-column]="column + 1"
-                  (click)="daySelected.emit(day.key)"
+                  (click)="selectDay(day.key)"
                 >
                   +{{ day.hiddenEventCount }}
                   <span i18n>more</span>

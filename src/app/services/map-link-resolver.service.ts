@@ -103,11 +103,10 @@ export class MapLinkResolverService {
         url.searchParams.get("address"),
     );
     const location =
-      this.parseCoordinates(url.searchParams.get("ll")) ??
-      this.parseCoordinates(url.searchParams.get("coordinate")) ??
-      this.parseCoordinates(queryValue) ??
       this.parseCoordinatesFromGoogleData(url.pathname) ??
-      this.parseCoordinatesFromGooglePath(url.pathname);
+      this.parseCoordinates(url.searchParams.get("coordinate")) ??
+      this.parseCoordinates(url.searchParams.get("query") ?? url.searchParams.get("q")) ??
+      (provider === "apple" ? this.parseCoordinates(url.searchParams.get("ll")) : undefined);
     const pathLabel =
       provider === "google"
         ? this.nonEmpty(
@@ -136,11 +135,12 @@ export class MapLinkResolverService {
   }
 
   private providerFor(url: URL): MapLinkProvider | null {
+    if (url.protocol !== "https:" || url.username || url.password || url.port || url.href.length > 16_384) return null;
     const host = url.hostname.toLowerCase();
     if (host === "maps.apple.com") return "apple";
     if (
       (GOOGLE_SHORT_HOSTS.has(host) && isGoogleShortLink(url)) ||
-      (GOOGLE_HOST_PATTERN.test(host) && isGoogleMapsPath(url))
+      (GOOGLE_HOST_PATTERN.test(host) && (isGoogleMapsPath(url) || (host.startsWith("maps.") && url.pathname === "/")))
     ) {
       return "google";
     }
@@ -152,13 +152,6 @@ export class MapLinkResolverService {
     | undefined {
     if (!value) return undefined;
     const match = value.trim().match(/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/u);
-    return match ? this.validCoordinates(Number(match[1]), Number(match[2])) : undefined;
-  }
-
-  private parseCoordinatesFromGooglePath(
-    path: string,
-  ): google.maps.LatLngLiteral | undefined {
-    const match = path.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/u);
     return match ? this.validCoordinates(Number(match[1]), Number(match[2])) : undefined;
   }
 
@@ -194,7 +187,11 @@ export class MapLinkResolverService {
 
   private toUrl(value: string): URL | null {
     try {
-      const url = new URL(value.trim());
+      // Share sheets can include a place title before the URL.
+      const candidate = value.trim().match(/https:\/\/[^\s<>]+/gu)?.find((text) => {
+        try { return this.providerFor(new URL(text)) !== null; } catch { return false; }
+      });
+      const url = new URL(candidate ?? value.trim());
       return url.protocol === "https:" ? url : null;
     } catch {
       return null;

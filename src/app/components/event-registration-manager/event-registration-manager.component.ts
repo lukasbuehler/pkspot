@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -37,6 +39,8 @@ interface RegistrationRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationManagerComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _registrations = inject(EventRegistrationsService);
   private readonly _users = inject(UsersService);
   private _loadVersion = 0;
@@ -71,6 +75,7 @@ export class EventRegistrationManagerComponent {
       await this._registrations.cancel(this.event().id, userId);
       await this._reload(this.event());
     } catch (error) {
+      this.featureTelemetry.failure("event-registration-manager", "cancelRegistration", error);
       console.error("Could not cancel attendee registration", error);
       this.error.set(
         $localize`:@@event_registration_manager.cancel_failed:Registration could not be cancelled.`,
@@ -99,6 +104,7 @@ export class EventRegistrationManagerComponent {
       );
       if (version === this._loadVersion) this.rows.set(rows);
     } catch (error) {
+      this.featureTelemetry.failure("event-registration-manager", "_reload", error);
       if (version !== this._loadVersion) return;
       console.error("Could not load event registrations", error);
       this.error.set(

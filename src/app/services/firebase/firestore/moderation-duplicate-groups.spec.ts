@@ -1,3 +1,4 @@
+import {Timestamp} from "firebase/firestore";
 import {describe, expect, it} from "vitest";
 import {groupDuplicateSpotCandidates} from "./moderation-reports.service";
 
@@ -6,6 +7,7 @@ describe("groupDuplicateSpotCandidates", () => {
     const groups = groupDuplicateSpotCandidates([
       {
         id: "named",
+        time_created: Timestamp.fromMillis(1750000000000),
         name: {en: "Named Spot"},
         duplicate_check: {
           status: "possible_duplicate",
@@ -39,7 +41,7 @@ describe("groupDuplicateSpotCandidates", () => {
     expect(groups).toHaveLength(1);
     expect(groups[0].closestDistanceMeters).toBe(0);
     expect(groups[0].spots).toEqual([
-      {id: "named", label: "Named Spot"},
+      {id: "named", label: "Named Spot", createdAtMillis: 1750000000000},
       {id: "nearby", label: "Nearby Spot"},
       {id: "unnamed", label: "unnamed"},
     ]);

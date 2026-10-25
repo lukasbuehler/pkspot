@@ -1,22 +1,32 @@
 div.nav-rail-content {
   width: 100%;
-  height: 100%;
-  min-height: 0;
-  //   overflow: scroll; // weird scroll bars on chrome
+  min-width: 0;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 
 ::ng-deep div.nav-rail-content > div.main-content {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
+  min-width: 0;
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
+  // The floating bottom bar is outside document flow. Immersive workspaces
+  // can clear only this document reserve without changing their own overlays.
+  padding-block-end: var(
+    --document-navigation-bottom-clearance,
+    var(--navigation-bottom-clearance, 0px)
+  );
 
   // Reserve space at the bottom of the scroll container for the on-screen
   // keyboard so `scrollIntoView` places focused inputs above the keyboard
   // instead of behind it. KeyboardService updates --keyboard-offset at
   // runtime (0 when no keyboard is visible).
-  scroll-padding-bottom: calc(var(--keyboard-offset, 0px) + 24px);
+  scroll-padding-bottom: calc(
+    var(--keyboard-offset, 0px) +
+      var(
+        --document-navigation-bottom-clearance,
+        var(--navigation-bottom-clearance, 0px)
+      ) +
+      24px
+  );
 }

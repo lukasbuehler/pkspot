@@ -1,223 +1,408 @@
 <main class="train-page">
   <header class="train-header">
-    <div>
-      <p class="eyebrow" i18n="@@train.eyebrow">Plan your training</p>
-      <h1>
-        @if (displayName()) {
-          <span i18n="@@train.greetingNamed"
-            >Hey {{ displayName() }}, let's train!</span
-          >
+    <h1 i18n="@@train.title">Find your next session</h1>
+
+    <div class="train-context" role="group" aria-label="Training area and weather" i18n-aria-label="@@train.context.group">
+      <button
+        matButton="tonal"
+        type="button"
+        class="training-context-button"
+        [disabled]="locating()"
+        (click)="openContext()"
+        aria-label="Change training area"
+        i18n-aria-label="@@train.context.area"
+      >
+        <mat-icon>location_on</mat-icon>
+        @if (area()?.displayName; as areaLabel) {
+          <span class="training-context-button__area">{{ areaLabel }}</span>
         } @else {
-          <span i18n="@@train.greeting">Let's train!</span>
+          <span class="training-context-button__area">
+            <span i18n="@@train.nearYou">Near you</span>
+            @if (nearbyLocality.value(); as locality) { <span> ({{ locality }})</span> }
+          </span>
         }
-      </h1>
+      </button>
+
+      @if (weatherSummary(); as weather) {
+        <button
+          matButton="outlined"
+          type="button"
+          class="training-weather-button"
+          (click)="openWeatherForecast()"
+          aria-label="Show weather forecast"
+          i18n-aria-label="@@train.context.weather"
+        >
+          <mat-icon>{{ weather.icon }}</mat-icon>
+          <span class="training-weather-button__label">
+            @if (weather.temperature) {
+              {{ weather.temperature }} ·
+            }
+            {{ weather.outlook }}
+          </span>
+        </button>
+      } @else if (hasTrainingArea() && !weatherLoading()) {
+        <button matButton="outlined" type="button" class="training-weather-button" disabled>
+          <mat-icon>cloud_off</mat-icon>
+          <span i18n="@@train.context.weatherUnavailable">Weather unavailable</span>
+        </button>
+      }
     </div>
-    @if (signedIn()) {
-      <a matButton="filled" routerLink="/train/log">
-        <mat-icon>book_2</mat-icon>
-        <span i18n="@@train.openLog">Training log</span>
-      </a>
-    }
   </header>
 
-  <section class="context-bar" aria-label="Training conditions" i18n-aria-label>
-    <div class="context-item">
-      <mat-icon>location_on</mat-icon>
-      <div>
-        <strong>{{ area()?.displayName || "Near you" }}</strong>
-        <span i18n="@@train.searchRadius">Within {{ radiusKm() }} km</span>
-      </div>
-    </div>
-    @if (weather(); as forecast) {
-      <div class="context-item weather">
-        <mat-icon>{{ weatherIcon() }}</mat-icon>
-        <div>
-          <strong
-            >{{ forecast.current?.temperatureC | number: "1.0-0" }}°</strong
-          >
-          <span>{{ forecast.insights.summary }}</span>
-        </div>
-      </div>
-    }
-    <button
-      matButton
-      type="button"
-      (click)="useMyLocation()"
-      [disabled]="locating()"
-    >
-      <mat-icon>my_location</mat-icon>
-      <span i18n="@@train.useLocation">Use my location</span>
-    </button>
-  </section>
-  <!-- 
-  <section class="area-search">
-    <app-search-field
-      appearance="outline"
-      [contextLabel]="area()?.displayName || null"
-      (spotSelected)="chooseArea($event)"
-      (contextClear)="clearArea()"
-    />
-    @if (area(); as selectedArea) {
-      <button
-        matButton
-        type="button"
-        [disabled]="!signedIn()"
-        (click)="toggleFollow(selectedArea)"
-      >
-        <mat-icon>{{ isFollowing(selectedArea.communityKey) ? "bookmark_added" : "bookmark_add" }}</mat-icon>
-        <span>{{ isFollowing(selectedArea.communityKey) ? "Following" : "Follow community" }}</span>
-      </button>
-    }
-  </section> -->
-
-  @if (loading()) {
-    <div class="state">
-      <mat-progress-spinner diameter="36" mode="indeterminate" />
-    </div>
-  } @else if (error()) {
-    <p class="state">{{ error() }}</p>
-  } @else {
-    <section class="train-section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow" i18n="@@train.nearbySpots">Nearby spots</p>
-          <h2 i18n="@@train.bestSpots">Best spots in your area</h2>
-          @if (weatherFilterActive()) {
-            <span class="weather-filter-note">
-              <mat-icon>rainy</mat-icon>
-              <span i18n="@@train.weatherDryFilter">
-                Dry spots prioritized for the forecast
-              </span>
-            </span>
+  <div class="train-layout">
+    <div class="train-main">
+      @if (momentViews().length > 0) {
+        <section class="train-now" aria-label="Happening now" i18n-aria-label="@@train.now.label">
+          @for (moment of momentViews(); track moment.key) {
+            <mat-card appearance="outlined" class="moment-card">
+              <div class="moment-card__icon" aria-hidden="true">
+                <mat-icon>{{ moment.icon }}</mat-icon>
+              </div>
+              <div class="moment-card__body">
+                <p class="moment-card__eyebrow mat-label-large">{{ moment.eyebrow }}</p>
+                <h2 class="moment-card__title">{{ moment.title }}</h2>
+                @if (moment.detail) {
+                  <p class="moment-card__detail mat-body-medium">{{ moment.detail }}</p>
+                }
+              </div>
+              <div class="moment-card__actions">
+                @if (moment.checkOutSessionId; as sessionId) {
+                  <a matButton [routerLink]="moment.link" [queryParams]="moment.queryParams">{{ moment.actionLabel }}</a>
+                  <button
+                    matButton="filled"
+                    type="button"
+                    [disabled]="checkingOut() === sessionId"
+                    (click)="checkOut(sessionId)"
+                  >
+                    <mat-icon>logout</mat-icon>
+                    <span i18n="@@train.checkOut.action">Check out</span>
+                  </button>
+                } @else {
+                  <a
+                    matButton="filled"
+                    [routerLink]="moment.link"
+                    [queryParams]="moment.queryParams"
+                  >{{ moment.actionLabel }}</a>
+                }
+              </div>
+            </mat-card>
           }
-        </div>
-        <a matButton routerLink="/map" i18n="@@train.openMap">Open map</a>
-      </div>
-      <div class="spot-filter-row">
-        <app-filter-chips-bar
-          appearance="solid"
-          selectionRole="primary"
-          [selectedFilter]="selectedSpotFilter()"
-          [showFiltersChip]="false"
-          [showClearChip]="false"
-          ariaLabel="Spot filters"
-          i18n-ariaLabel="@@train.spotFilters"
-          (filterChange)="setSpotFilter($event)"
-        />
-      </div>
-      @if (bestSpots().length) {
-        <div class="preview-grid spot-preview-grid">
-          @for (spot of bestSpots(); track spot.id) {
-            <a
-              class="spot-preview-link"
-              [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
-            >
-              <app-spot-preview-card
-                [spotData]="spot"
-                [forcePlaceholderContainer]="true"
-                [infoOnly]="true"
-                [clickable]="true"
-                [loadingPriority]="$index < 2"
-              />
-            </a>
-          }
-        </div>
-      } @else if (!hasTrainingArea()) {
-        <p class="empty" i18n="@@train.spotsNeedArea">
-          Use your location or choose an area to see nearby spots.
-        </p>
-      } @else {
-        <p class="empty" i18n="@@train.noSpots">
-          No spots found in this area yet.
-        </p>
+        </section>
       }
-    </section>
 
-    <section class="train-section">
-      @if (todayOptions().length) {
+      @if (signedIn() && trainingSessionsLoaded()) {
+        <app-check-in-log-prompt [sessions]="promptSessions()" [logs]="trainingLogs()" />
+      }
+
+      <section class="train-section train-spots" aria-labelledby="train-spots-title">
         <div class="section-heading">
-          <div>
-            <p class="eyebrow" i18n="@@train.bestOptions">Best options</p>
-            <h2 i18n="@@train.goodOptions">Good options today and this week</h2>
-          </div>
-          <a matButton routerLink="/events" i18n="@@train.allEvents"
-            >All events</a
-          >
+          <h2 id="train-spots-title" i18n="@@train.spots.title">Spots to train at</h2>
+          <a matButton routerLink="/map" i18n="@@train.openMap">Open map</a>
         </div>
 
-        <div class="preview-grid event-preview-grid">
-          @for (event of todayOptions(); track event.id) {
-            <app-event-discovery-card
-              [event]="event"
-              [seriesById]="seriesById()"
-            />
-          }
+        <div class="spot-filter-row">
+          <app-filter-chips-bar
+            appearance="solid"
+            selectionRole="primary"
+            [selectedFilter]="selectedSpotFilter()"
+            [showFiltersChip]="false"
+            [showClearChip]="false"
+            ariaLabel="Spot filters"
+            i18n-ariaLabel="@@train.spotFilters"
+            (filterChange)="setSpotFilter($event)"
+          />
         </div>
-      }
-    </section>
+        @if (weatherFilterActive()) {
+          <p class="weather-filter-note mat-label-medium">
+            <mat-icon aria-hidden="true">rainy</mat-icon>
+            <span i18n="@@train.weatherDryFilter">Dry Spots are prioritised for the forecast.</span>
+          </p>
+        }
 
-    <section class="train-section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow" i18n="@@train.communitiesEyebrow">Your network</p>
-          <h2 i18n="@@train.followedCommunities">Communities you follow</h2>
-        </div>
-      </div>
-      @if (!signedIn()) {
-        <p class="empty" i18n="@@train.signInCommunities">
-          Sign in to follow training communities.
-        </p>
-      } @else if (followedCommunities().length) {
-        <div class="community-row">
-          @for (
-            community of followedCommunities();
-            track community.communityKey
-          ) {
-            <article class="community-item">
-              <a [routerLink]="community.canonicalPath">
-                <mat-icon>groups</mat-icon>
-                <span>{{ community.displayName }}</span>
-              </a>
-              <button
-                matIconButton
-                type="button"
-                (click)="toggleFollow(community)"
-                aria-label="Unfollow community"
-                i18n-aria-label
+        @if (spotsLoading() && bestSpots().length === 0) {
+          <mat-progress-bar mode="indeterminate" class="section-progress" />
+        } @else if (bestSpots().length) {
+          <div class="spot-preview-grid">
+            @for (item of bestSpots(); track item.spot.id) {
+              <a
+                class="spot-preview-link"
+                [routerLink]="['/map', 'spots', item.spot.slug ?? item.spot.id]"
               >
-                <mat-icon>bookmark_added</mat-icon>
-              </button>
-            </article>
+                <app-spot-preview-card
+                  [spotData]="item.spot"
+                  [distanceKm]="item.distanceKm"
+                  [forcePlaceholderContainer]="true"
+                  [infoOnly]="true"
+                  [clickable]="true"
+                  [loadingPriority]="$index < 2"
+                />
+              </a>
+            }
+          </div>
+        } @else if (!hasTrainingArea()) {
+          <div class="empty empty--context">
+            <mat-icon>location_on</mat-icon>
+            <p i18n="@@train.spotsNeedArea">Choose a training area to see nearby Spots.</p>
+            <button matButton="tonal" type="button" (click)="openContext()" i18n="@@train.context.chooseAction">
+              Choose area
+            </button>
+          </div>
+        } @else {
+          <p class="empty" i18n="@@train.noSpots">No Spots found in this area yet.</p>
+        }
+      </section>
+
+      @if (eventsLoading() || eventsFailed() || comingUp().length > 0) {
+        <section class="train-section coming-up" aria-labelledby="train-coming-up-title">
+          <div class="section-heading">
+            <h2 id="train-coming-up-title" i18n="@@train.comingUp.title">Coming up</h2>
+            <a matButton routerLink="/events" i18n="@@train.allEvents">All events</a>
+          </div>
+
+          @if (eventsLoading() && comingUp().length === 0) {
+            <mat-progress-bar mode="indeterminate" class="section-progress" />
+          } @else if (eventsFailed()) {
+            <div class="empty" role="alert">
+              <p i18n="@@train.comingUp.error">Events could not be loaded.</p>
+              <button matButton="outlined" type="button" (click)="retryEvents()" i18n="@@notification_center.retry">Retry</button>
+            </div>
+          } @else if (comingUpCards().length) {
+            <div class="coming-up-cards">
+              @for (card of comingUpCards(); track card.item.id) {
+                <div class="coming-up-cards__item">
+                  <app-event-card [event]="card.event" />
+                  @if (card.item.distance || card.item.community || card.item.relationship) {
+                    <p class="coming-up-cards__meta mat-label-medium">
+                      @if (card.item.distance) {
+                        <span class="coming-up-cards__distance">{{ card.item.distance }}</span>
+                      }
+                      @if (card.item.community; as community) {
+                        <span i18n="@@train.comingUp.followedCommunity">From your communities: {{ community }}</span>
+                      }
+                      @if (card.item.relationship; as relationship) {
+                        <span class="coming-up__relationship">{{ relationship }}</span>
+                      }
+                    </p>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <mat-card appearance="outlined" class="coming-up__card">
+              <mat-nav-list class="coming-up__list">
+                @for (item of comingUp(); track item.id) {
+                  <a mat-list-item [routerLink]="item.link" class="coming-up__item">
+                    <span matListItemAvatar class="date-badge" aria-hidden="true">
+                      <span class="date-badge__month">{{ item.month }}</span>
+                      <span class="date-badge__day">{{ item.day }}</span>
+                    </span>
+                    <span matListItemTitle>{{ item.title }}</span>
+                    @if (item.community; as community) {
+                      <span matListItemLine class="coming-up__community" i18n="@@train.comingUp.followedCommunity">From your communities: {{ community }}</span>
+                    }
+                    <span matListItemLine>{{ item.detail }}</span>
+                    @if (item.relationship; as relationship) {
+                      <span matListItemMeta class="coming-up__relationship mat-label-medium">{{ relationship }}</span>
+                    }
+                  </a>
+                }
+              </mat-nav-list>
+            </mat-card>
           }
-        </div>
+        </section>
+      }
+    </div>
+
+    <aside class="train-rail" aria-label="Conditions and your rhythm" i18n-aria-label="@@train.rail.label">
+      @if (weatherSummary(); as weather) {
+        <mat-card appearance="outlined" class="rail-card conditions-card">
+          <div class="rail-card__header">
+            <h2 class="rail-card__title" i18n="@@train.conditions.title">Conditions</h2>
+            <button matButton type="button" (click)="openWeatherForecast()" i18n="@@train.conditions.forecast">Forecast</button>
+          </div>
+          <div class="conditions-card__now">
+            <mat-icon aria-hidden="true">{{ weather.icon }}</mat-icon>
+            @if (weather.temperature) {
+              <strong class="conditions-card__temperature">{{ weather.temperature }}</strong>
+            }
+            <span class="mat-body-medium">
+              @if (weather.condition) {
+                {{ weather.condition }} ·
+              }
+              {{ weather.outlook }}
+            </span>
+          </div>
+          <app-precipitation-chart
+            [points]="forecastPoints()"
+            [timeZone]="weather.timeZone"
+          />
+        </mat-card>
+      } @else if (weatherLoading() && hasTrainingArea()) {
+        <mat-card appearance="outlined" class="rail-card">
+          <h2 class="rail-card__title" i18n="@@train.conditions.title">Conditions</h2>
+          <mat-progress-bar mode="indeterminate" />
+        </mat-card>
+      }
+
+      @if (signedIn()) {
+        @if (trainingSessionsLoaded()) {
+          <mat-card appearance="outlined" class="rail-card rhythm-card">
+            <div class="rail-card__header">
+              <h2 class="rail-card__title" i18n="@@train.rhythm.title">Your rhythm</h2>
+              <a matButton routerLink="/train/log" i18n="@@train.rhythm.log">Log</a>
+            </div>
+            <app-training-activity-contribution-graph
+              [days]="trainingActivityDays()"
+              [recoveryPauses]="recoveryPauses()"
+              [weeks]="rhythmWeeks"
+              [showHeader]="false"
+              [interactive]="false"
+            />
+            <div class="rhythm-card__stats">
+              <div>
+                <strong>{{ streaks().currentWeeks }}</strong>
+                <span i18n="@@train.rhythm.weeksInARow">weeks in a row</span>
+              </div>
+              <div>
+                <strong>{{ weekSessionCount() }}</strong>
+                <span i18n="@@train.rhythm.thisWeek">sessions this week</span>
+              </div>
+            </div>
+            @if (showLocalLegendInvite()) {
+              <div class="rhythm-card__ranks">
+                <h3 class="rhythm-card__subtitle" i18n="@@localLegend.invite.title">Become the local legend</h3>
+                <p class="rhythm-card__note" i18n="@@localLegend.invite.trainBody">Opt in to a private monthly rank at the Spots where you check in.</p>
+                <button matButton type="button" (click)="openLocalLegend()">
+                  <mat-icon class="rhythm-card__gold">trophy</mat-icon>
+                  <span i18n="@@localLegend.invite.action">Learn more</span>
+                </button>
+              </div>
+            }
+            @if (topRanks().length > 0) {
+              <div class="rhythm-card__ranks">
+                <h3 class="rhythm-card__subtitle">{{ topRanksTitle() }}</h3>
+                <mat-nav-list class="rank-list">
+                  @for (rank of topRanks(); track rank.spotId) {
+                    <a mat-list-item [routerLink]="['/map', 'spots', rank.spotId]">
+                      <app-spot-rank-icon matListItemIcon [rank]="rank.rank" />
+                      <span matListItemTitle>{{ rank.name }}</span>
+                      @if (rank.detail) {
+                        <span matListItemLine class="rank-list__detail">{{ rank.detail }}</span>
+                      }
+                      <span matListItemMeta class="rank-list__label" [class.is-legend]="rank.legend">{{ rank.label }}</span>
+                    </a>
+                  }
+                </mat-nav-list>
+                <p class="rhythm-card__note" i18n="@@spotRank.note">Ranks update at the end of each day. Only you can see yours.</p>
+              </div>
+            }
+            <a matButton="filled" routerLink="/train/log/new" class="rhythm-card__action">
+              <mat-icon>add</mat-icon>
+              <span i18n="@@train.rhythm.logSession">Log a session</span>
+            </a>
+          </mat-card>
+        }
       } @else {
-        <p class="empty" i18n="@@train.noCommunities">
-          Choose an area above, then follow communities from their pages.
-        </p>
+        <mat-card appearance="outlined" class="rail-card">
+          <h2 class="rail-card__title" i18n="@@train.teaser.title">Keep a training diary</h2>
+          <p class="mat-body-medium rail-card__text" i18n="@@train.teaser.body">
+            Track where and how often you train, keep notes on what you practised, and see your consistency grow.
+          </p>
+          <a matButton="filled" routerLink="/sign-in" class="rhythm-card__action">
+            <mat-icon>login</mat-icon>
+            <span i18n="@@train.teaser.signIn">Sign in to start</span>
+          </a>
+        </mat-card>
+      }
+    </aside>
+  </div>
+
+  @if (signedIn()) {
+    <section class="train-section looking-back" aria-labelledby="train-looking-back-title">
+      <div class="section-heading">
+        <h2 id="train-looking-back-title" i18n="@@train.reflection.title">Looking back</h2>
+        <a matButton routerLink="/train/log" i18n="@@train.history.allLogs">View all logs</a>
+      </div>
+
+      @if (trainingHistoryFailed()) {
+        <div class="empty" role="alert">
+          <p i18n="@@trainingLog.loadError">Your training log could not be loaded.</p>
+          <button matButton="outlined" type="button" (click)="loadTrainingHistory()" i18n="@@notification_center.retry">Retry</button>
+        </div>
+      }
+
+      @if (trainingSessionsLoaded()) {
+        @if (hasTrainingHistory()) {
+          <div class="looking-back__grid">
+            <app-training-activity-contribution-graph
+              class="looking-back__graph"
+              [days]="trainingActivityDays()"
+              [recoveryPauses]="recoveryPauses()"
+              [interactive]="false"
+            />
+
+            <mat-card appearance="outlined" class="month-card">
+              <h3 class="month-card__title">{{ monthName() }}</h3>
+              <div class="month-card__headline">
+                <strong>{{ monthStats().sessions }}</strong>
+                <span i18n="@@trainingLog.summary.sessions">sessions</span>
+              </div>
+              <p class="month-card__delta mat-label-medium" [class.is-up]="monthSessionDelta() > 0">{{ monthDeltaLabel() }}</p>
+              <dl class="month-card__metrics">
+                <div>
+                  <dt i18n="@@trainingLog.summary.trainingTime">training time</dt>
+                  <dd>{{ trainingDurationLabel(monthStats().minutes) }}</dd>
+                </div>
+                <div>
+                  <dt i18n="@@trainingLog.summary.spots">Spots visited</dt>
+                  <dd>{{ monthStats().spots.length }}</dd>
+                </div>
+                <div>
+                  <dt i18n="@@trainingLog.summary.days">active days</dt>
+                  <dd>{{ monthStats().activeDays }}</dd>
+                </div>
+                <div>
+                  <dt i18n="@@train.reflection.longestStreak">longest daily streak</dt>
+                  <dd>
+                    <mat-icon aria-hidden="true">star</mat-icon>
+                    {{ streaks().longestDays }}
+                  </dd>
+                </div>
+              </dl>
+            </mat-card>
+          </div>
+
+          @if (recentEntries().length > 0) {
+            <mat-card appearance="outlined" class="recent-card">
+              <mat-nav-list aria-label="Recent training entries" i18n-aria-label="@@train.reflection.recent">
+                @for (entry of recentEntries(); track entry.id) {
+                  <a mat-list-item [routerLink]="['/train/log', entry.id]">
+                    <span matListItemAvatar class="date-badge" aria-hidden="true">
+                      <span class="date-badge__day date-badge__day--small">{{ entry.weekday }}</span>
+                    </span>
+                    <span matListItemTitle>{{ entry.title }}</span>
+                    <span matListItemLine>{{ entry.detail }}</span>
+                  </a>
+                }
+              </mat-nav-list>
+            </mat-card>
+          }
+        } @else {
+          <div class="empty empty--context">
+            <mat-icon>history_edu</mat-icon>
+            <p i18n="@@train.reflection.empty">Your training history appears here after your first check-in or log entry.</p>
+            <a matButton="tonal" routerLink="/train/log/new" i18n="@@trainingLog.new">New training entry</a>
+          </div>
+        }
       }
     </section>
 
-    <section class="log-prompt">
-      <div class="prompt-icon"><mat-icon>history_edu</mat-icon></div>
-      <div>
-        <p class="eyebrow" i18n="@@train.personalRecord">
-          Your personal record
-        </p>
-        <h2 i18n="@@train.logPrompt">Finished training? Add it to your log.</h2>
-        <p i18n="@@train.logPrivacy">
-          Session records stay private. You choose what a log entry shares.
-        </p>
-      </div>
-      @if (signedIn()) {
-        <a matButton="filled" routerLink="/train/log/new">
-          <mat-icon>add</mat-icon>
-          <span i18n="@@train.addLog">Add log entry</span>
-        </a>
-      } @else {
-        <a matButton="filled" routerLink="/account" i18n="@@train.signInToLog"
-          >Sign in to log</a
-        >
-      }
-    </section>
+    <app-fab-menu
+      id="trainFabMenu"
+      class="app-page-fab train-fab"
+      [actions]="fabActions"
+      [launcherLabel]="fabLabel"
+      (actionSelected)="onFabAction($event)"
+    />
   }
 </main>

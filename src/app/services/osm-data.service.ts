@@ -63,12 +63,20 @@ export interface OsmAmenityTileResponse {
   fetchedAt: string;
   sourceUpdatedAt?: string;
   stale: boolean;
+  status?: "unavailable";
+  retryAfterSeconds?: number;
   amenities: OsmAmenityRecord[];
   attribution: {
     text: string;
     url: string;
     license: string;
   };
+}
+
+export class OsmAmenityUnavailableError extends Error {
+  constructor(readonly retryAfterSeconds = 60) {
+    super("Amenity provider temporarily unavailable");
+  }
 }
 
 @Injectable({
@@ -102,11 +110,17 @@ export class OsmDataService {
     if (pending) return pending;
 
     const request = this.functions
-      .callAppChecked<OsmAmenityTileRequest, OsmAmenityTileResponse>(
+      .callAppChecked<OsmAmenityTileRequest & {acceptUnavailable: true}, OsmAmenityTileResponse>(
         "getOsmAmenityTile",
-        tile,
+        {...tile, acceptUnavailable: true},
       )
-      .then((response) => response.amenities.map((amenity) => this.toMarker(amenity)));
+      .then((response) => {
+        // Never cache an outage as an empty tile or report a complete nearest search.
+        if (response.status === "unavailable") {
+          throw new OsmAmenityUnavailableError(response.retryAfterSeconds);
+        }
+        return response.amenities.map((amenity) => this.toMarker(amenity));
+      });
     this.pendingRequests.set(key, request);
     void request.then(
       (markers) => {
@@ -208,6 +222,7 @@ export class OsmDataService {
         name: element.name,
         description: operator,
         color: OSM_AMENITY_MARKER_COLOR,
+        presentation: "amenity",
         priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
         type: "drinking_water",
       };
@@ -224,6 +239,7 @@ export class OsmDataService {
         name: element.name ?? $localize`Unnamed Drinking Water spot`,
         description: operator,
         color: OSM_AMENITY_MARKER_COLOR,
+        presentation: "amenity",
         priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
         type: "drinking_water",
       };
@@ -255,6 +271,7 @@ export class OsmDataService {
       name: element.name ?? $localize`Unnamed Toilet`,
       description: detailsParts.join(" • "),
       color: OSM_AMENITY_MARKER_COLOR,
+      presentation: "amenity",
       priority: isFree
         ? OSM_AMENITY_MARKER_PRIORITY.toilet.free
         : isPaid

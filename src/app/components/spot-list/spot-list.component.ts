@@ -23,6 +23,7 @@ import {
   animate,
 } from "@angular/animations";
 import { AutoAnimateDirective } from "../../directives/auto-animate.directive";
+import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
 type SpotListViewMode = "grid" | "compact";
 
@@ -30,6 +31,7 @@ type SpotListViewMode = "grid" | "compact";
   selector: "app-spot-list",
   animations: [],
   imports: [
+    AppHrefPipe,
     SpotPreviewCardComponent,
     MatButtonToggleModule,
     MatIconModule,
@@ -113,7 +115,7 @@ export class SpotListComponent {
     spot: SpotPreviewData | Spot | LocalSpot,
     spotIndex: number,
   ): void {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+    if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
       return;
     }
 

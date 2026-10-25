@@ -1,0 +1,7 @@
+PK Spot 1.2: Actualización de entrenamiento
+
+• Haz check-in en Spots y consulta estadísticas privadas, como tus Spots más visitados y tu tiempo de entrenamiento.
+• Únete a Local Legend (opcional) para obtener un ranking mensual privado en los Spots donde entrenas.
+• Lleva un registro privado de entrenamiento con detalles de tus sesiones y gráficos de actividad.
+• Navegación, controles del mapa y panel inferior más fluidos.
+• Correcciones de errores y mejoras de privacidad en toda la app.

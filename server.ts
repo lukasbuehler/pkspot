@@ -1,18 +1,20 @@
 import { APP_BASE_HREF } from "@angular/common";
-import { CommonEngine } from "@angular/ssr/node";
+import {
+  CommonEngine,
+  createWebRequestFromNodeRequest,
+} from "@angular/ssr/node";
 import express from "express";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve, basename } from "node:path";
 import bootstrap from "./src/main.server";
-import { LOCALE_ID } from "@angular/core";
-import { REQUEST, RESPONSE } from "./src/express.token";
+import { LOCALE_ID, REQUEST, RESPONSE_INIT } from "@angular/core";
 import { getLegacySsrRedirectTarget } from "./src/server-redirects";
 
 function getAllowedHosts(): string[] {
   const defaultHosts = ["localhost", "127.0.0.1", "[::1]"];
   const configuredHosts = (process.env["NG_ALLOWED_HOSTS"] ?? "")
     .split(",")
-    .map((host) => host.trim())
+    .map((host) => host.trim().toLowerCase())
     .filter((host) => host.length > 0);
 
   return [...new Set([...defaultHosts, ...configuredHosts])];
@@ -65,7 +67,18 @@ export function app(): express.Express {
 
   // All regular routes use the Angular engine
   server.get("*", (req, res, next) => {
-    const { protocol, originalUrl, baseUrl, headers } = req;
+    // Reject unknown hosts before invoking Angular. Never allow all Cloud Run
+    // hosts or derive the allowlist from an untrusted forwarded header.
+    if (!allowedHosts.includes(req.hostname.toLowerCase())) {
+      res.status(400).send("Invalid request host");
+      return;
+    }
+    const { protocol, originalUrl } = req;
+    const request = createWebRequestFromNodeRequest(req);
+    const responseInit: ResponseInit = {
+      status: 200,
+      headers: new Headers(),
+    };
 
     commonEngine
       .render({
@@ -76,11 +89,17 @@ export function app(): express.Express {
         providers: [
           { provide: APP_BASE_HREF, useValue: langPath },
           { provide: LOCALE_ID, useValue: lang },
-          { provide: RESPONSE, useValue: res },
-          { provide: REQUEST, useValue: req },
+          { provide: REQUEST, useValue: request },
+          { provide: RESPONSE_INIT, useValue: responseInit },
         ],
       })
-      .then((html) => res.send(html))
+      .then((html) => {
+        res.status(responseInit.status ?? 200);
+        new Headers(responseInit.headers).forEach((value, name) => {
+          res.setHeader(name, value);
+        });
+        res.send(html);
+      })
       .catch((err) => next(err));
   });
 

@@ -39,7 +39,7 @@ import {
 const db = admin.firestore();
 const ADMIN_CALLABLE_OPTIONS = {enforceAppCheck: true};
 
-type HoldKind = "media" | "spot" | "profile" | "account" | "warning";
+type HoldKind = "media" | "spot" | "event" | "profile" | "account" | "warning";
 
 interface StoredTreeDocument {
   original_path: string;
@@ -360,6 +360,34 @@ const finishSpotHold = async (
   );
 };
 
+/** Keep the canonical Event for appeal/audit purposes, but remove all public
+ * discovery and open-by-reference access until a moderator restores it. */
+const finishEventHold = async (
+  holdRef: admin.firestore.DocumentReference,
+): Promise<void> => {
+  const targetPath = (await holdRef.get()).data()?.["target_path"];
+  if (typeof targetPath !== "string" || !/^events\/[^/]+$/u.test(targetPath)) {
+    throw new HttpsError("failed-precondition", "Event hold is incomplete.");
+  }
+  const eventRef = db.doc(targetPath);
+  if (!(await eventRef.get()).exists) {
+    throw new HttpsError("not-found", "Event no longer exists.");
+  }
+  await eventRef.set(
+    {
+      published: false,
+      publication_state: "draft",
+      visibility: "private",
+      discoverability: {audience: "none"},
+    },
+    {merge: true},
+  );
+  await holdRef.set(
+    {state: "held", held_at: Timestamp.now()},
+    {merge: true},
+  );
+};
+
 const createHold = async (
   caseRef: admin.firestore.DocumentReference,
   caseData: SafetyCaseSchema,
@@ -384,6 +412,8 @@ const createHold = async (
       await finishMediaHold(holdRef, existingData);
     } else if (existingData["kind"] === "spot") {
       await finishSpotHold(holdRef);
+    } else if (existingData["kind"] === "event") {
+      await finishEventHold(holdRef);
     } else if (
       existingData["kind"] === "profile" ||
       existingData["kind"] === "account"
@@ -493,6 +523,38 @@ const createHold = async (
     return holdRef.path;
   }
 
+  if (decisionType === "unpublish_event") {
+    if (!subject.path || !/^events\/[^/]+$/u.test(subject.path)) {
+      throw new HttpsError(
+        "failed-precondition",
+        "The case does not identify an Event.",
+      );
+    }
+    const eventRef = db.doc(subject.path);
+    const event = await eventRef.get();
+    if (!event.exists) {
+      throw new HttpsError("not-found", "Event no longer exists.");
+    }
+    const data = event.data() ?? {};
+    await holdRef.set({
+      ...base,
+      kind: "event",
+      target_path: subject.path,
+      prior_fields: {
+        had_published: "published" in data,
+        published: data["published"] ?? null,
+        had_publication_state: "publication_state" in data,
+        publication_state: data["publication_state"] ?? null,
+        had_visibility: "visibility" in data,
+        visibility: data["visibility"] ?? null,
+        had_discoverability: "discoverability" in data,
+        discoverability: data["discoverability"] ?? null,
+      },
+    });
+    await finishEventHold(holdRef);
+    return holdRef.path;
+  }
+
   if (
     decisionType === "restrict_profile" ||
     decisionType === "restrict_account"
@@ -564,6 +626,33 @@ const restoreHold = async (
     }
   } else if (kind === "spot") {
     await restoreTree(holdRef);
+  } else if (kind === "event") {
+    const targetPath = data["target_path"];
+    const prior = data["prior_fields"];
+    if (typeof targetPath !== "string" || !isRecord(prior)) {
+      throw new HttpsError("failed-precondition", "Event hold is incomplete.");
+    }
+    await db.doc(targetPath).set(
+      {
+        published:
+          prior["had_published"] === true ?
+            prior["published"] :
+            FieldValue.delete(),
+        publication_state:
+          prior["had_publication_state"] === true ?
+            prior["publication_state"] :
+            FieldValue.delete(),
+        visibility:
+          prior["had_visibility"] === true ?
+            prior["visibility"] :
+            FieldValue.delete(),
+        discoverability:
+          prior["had_discoverability"] === true ?
+            prior["discoverability"] :
+            FieldValue.delete(),
+      },
+      {merge: true},
+    );
   } else if (kind === "profile" || kind === "account") {
     const userId = data["user_id"];
     if (typeof userId !== "string" || !isRecord(data["user_snapshot"])) {
@@ -940,6 +1029,7 @@ export const decideSafetyCase = onCall(
       "publish_warning",
       "restrict_media",
       "unpublish_spot",
+      "unpublish_event",
       "restrict_profile",
       "restrict_account",
     ].includes(decisionType);
@@ -962,6 +1052,7 @@ export const decideSafetyCase = onCall(
         "publish_warning",
         "restrict_media",
         "unpublish_spot",
+        "unpublish_event",
         "restrict_profile",
         "restrict_account",
       ].includes(decisionType)

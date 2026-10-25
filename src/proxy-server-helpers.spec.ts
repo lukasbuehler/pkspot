@@ -10,6 +10,7 @@ import {
   handlePublicCallableRequest,
   handleQrStickerRequest,
   isStaticSsrPath,
+  isSensitiveProbePath,
   LONG_LIVED_ASSET_CACHE_CONTROL,
   MISSING_ASSET_CACHE_CONTROL,
   normalizeClientRegionHeader,
@@ -20,6 +21,25 @@ import {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe("sensitive probe paths", () => {
+  it.each([
+    "/.env", "/app/.env", "/en/.env.production", "/.git/logs/HEAD",
+    "/%2egit/config", "/.aws/credentials", "/.npmrc", "/Dockerfile",
+    "/composer.json", "/_profiler/phpinfo", "/info.php", "/config.php/path",
+    "/wp-content/debug.log", "/credentials", "/env-config.js", "/%zz",
+  ])("rejects %s before SSR or language redirects", (path) => {
+    expect(isSensitiveProbePath(path)).toBe(true);
+  });
+
+  it.each([
+    "/", "/en/map/spots/imax", "/en/map/spots/credentials",
+    "/assets/logo.svg", "/en/main.js", "/en/assets/icons/php.svg",
+    "/.well-known/apple-app-site-association", "/robots.txt", "/sitemap.xml",
+  ])("preserves public route or asset %s", (path) => {
+    expect(isSensitiveProbePath(path)).toBe(false);
+  });
 });
 
 describe("proxy-server client region helpers", () => {

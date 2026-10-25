@@ -19,7 +19,6 @@
 .not-found-state {
   padding: 48px 0;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 // Always 2 columns — works in both the sidebar panel mode (narrow) and the
@@ -50,7 +49,6 @@
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .hero-card {
@@ -88,7 +86,6 @@
   font-size: 0.875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .eyebrow a {
@@ -120,12 +117,10 @@
   font-size: 2rem;
   font-weight: 600;
   line-height: 1;
-  color: var(--mat-sys-on-surface);
 }
 
 .stat-label {
   margin-top: 8px;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .local-info-grid {
@@ -176,7 +171,6 @@
   margin-top: 8px;
   padding: 4px 9px;
   border-radius: 999px;
-  color: var(--mat-sys-on-surface-variant);
   background: var(--mat-sys-surface-container-high);
   font-size: 0.75rem;
   font-weight: 500;
@@ -192,7 +186,6 @@
 
 .local-info-body {
   margin: 0;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .local-info-actions {
@@ -240,7 +233,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .community-locality-merge-error {
@@ -289,10 +281,6 @@
   display: grid;
 }
 
-.community-merged-locality-row small {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .community-danger-zone {
   border-color: var(--mat-sys-error);
   border-radius: 8px;
@@ -304,10 +292,6 @@
   color: var(--mat-sys-error);
   display: flex;
   gap: 8px;
-}
-
-.community-danger-zone .community-admin-settings p {
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .community-knowledge-dialog {
@@ -343,10 +327,6 @@
   border-radius: 15px;
   color: var(--mat-sys-on-primary-container);
   background: var(--mat-sys-primary-container);
-}
-
-.community-knowledge-dialog-header p {
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .community-knowledge-dialog-content {
@@ -418,16 +398,11 @@
   line-height: 1.3;
 }
 
-.community-link-meta {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .manual-state {
   margin-bottom: 24px;
   padding: 16px 20px;
   border-radius: 18px;
   background: var(--mat-sys-surface-container-low);
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .spot-text-directory {
@@ -443,10 +418,6 @@
   padding-left: 20px;
 }
 
-.spot-text-directory-list li {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .spot-text-directory-list a {
   color: var(--mat-sys-primary);
   font-weight: 600;
@@ -457,6 +428,20 @@
   text-decoration: underline;
 }
 
+// Shared secondary text color keeps this component within the mobile CSS budget.
+.not-found-state,
+.section-eyebrow,
+.eyebrow,
+.local-info-disclosure,
+.community-locality-merge-loading,
+.community-merged-locality-row small,
+.community-danger-zone .community-admin-settings p,
+.community-knowledge-dialog-header p,
+.manual-state,
+.spot-text-directory-list li,
+.stat-label,
+.local-info-body,
+.community-link-meta,
 .venue-line,
 .panel-disclaimer,
 .page-updated-text {
@@ -468,16 +453,43 @@
 }
 
 .collapsible {
-  opacity: var(--open-progress, 1);
-  max-height: calc(var(--open-progress, 1) * 200px);
+  opacity: var(--sheet-open-progress, var(--open-progress, 1));
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 200px);
   overflow: hidden;
-  transition:
-    opacity 0.2s ease-out,
-    max-height 0.2s ease-out;
 
   &[data-collapsed="true"] {
-    opacity: 0;
-    max-height: 0;
     pointer-events: none;
+  }
+}
+
+.community-attribution {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35em;
+  margin-block: 24px 8px;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: inherit;
+    text-underline-offset: 2px;
+  }
+}
+
+// Keep intrinsic card height available while the sheet reveals the section.
+// The inner clip includes its spacing, so collapsed cards leave no empty gap.
+.knowledge-reveal {
+  display: grid;
+  transition: grid-template-rows 200ms ease-out, opacity 200ms ease-out;
+}
+
+.knowledge-reveal-content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .knowledge-reveal {
+    transition: none;
   }
 }

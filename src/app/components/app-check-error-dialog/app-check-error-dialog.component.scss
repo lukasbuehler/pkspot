@@ -1,0 +1,20 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+}
+
+mat-dialog-content {
+  min-height: 0;
+  overflow-wrap: anywhere;
+
+  .d-flex > div {
+    min-width: 0;
+  }
+}
+
+mat-dialog-actions {
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}

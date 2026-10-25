@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   AfterViewInit,
   Component,
@@ -45,6 +47,7 @@ import {
   limitCommunityDotsPerTile,
   shouldShowCommunityAreaPresence,
   shouldShowCommunityDot,
+  shouldShowCommunityPin,
 } from "../map/community-dot-marker/community-map-rendering";
 import { VisibleViewport } from "../maps/map-base";
 import {
@@ -97,6 +100,7 @@ import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import {
+  spotEditAwaitsCommunityVote,
   spotEditAwaitsOrganizationReview,
   spotEditAwaitsReviewOutcome,
   spotEditProcessingFailed,
@@ -128,6 +132,8 @@ interface MarkerClickPayload {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly isSavingSpot = signal(false);
   @ViewChild("map") map: GoogleMap2dComponent | undefined;
 
@@ -165,6 +171,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     NonNullable<google.maps.MapOptions["gestureHandling"]>
   >("greedy");
   isClickable = input<boolean>(true);
+  readonly allowLocationSelection = input(false);
   showAmenities = input<boolean>(false);
   centerStart = input<google.maps.LatLngLiteral | null>(null);
   showSpotPreview = input<boolean>(false);
@@ -435,7 +442,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   readonly communityPointMarkers = computed<MapPointMarker[]>(() =>
     this.availableCommunities()
-      .filter((community) => community.pinVisible)
+      .filter((community) => shouldShowCommunityPin(community, this.mapZoom()))
       .map((community) => ({
         id: `community:${community.communityKey}`,
         name: community.displayName,
@@ -1025,8 +1032,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       return spot.id as string;
     }
 
-    const location = spot.location();
-    return `local-${location.lat}-${location.lng}`;
+    return "local";
   }
 
   // Spot loading /////////////////////////////////////////////////////////////
@@ -1079,6 +1085,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
               lng: spot.location.longitude,
             });
           } catch (error) {
+      this.featureTelemetry.failure("spot-map", "openSpotByWhateverMeansNecessary", error);
             console.error(
               "error focusing spot location (seems not to be GeoPoint even though it should be):",
               error,
@@ -1254,7 +1261,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this.mapsAPIService.storeMapStyle(newMapStyle);
   }
 
-  createSpot() {
+  createSpot(initialLocation?: google.maps.LatLngLiteral, initialName?: string) {
     if (!this.authService.isSignedIn) {
       // TODO show sign in dialog
       alert("Please sign in to create a spot"); // TODO
@@ -1273,7 +1280,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (!this.map || !this.map.googleMap) return;
 
     let center_coordinates: google.maps.LatLngLiteral | undefined =
-      this.map.googleMap.getCenter()?.toJSON();
+      initialLocation ?? this.map.googleMap.getCenter()?.toJSON();
 
     if (!isFiniteLatLngLiteral(center_coordinates)) {
       reportInvalidMapCoordinate(
@@ -1301,7 +1308,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this.selectedSpot.set(
       new LocalSpot(
         {
-          name: { [this.locale]: $localize`Unnamed Spot` }, // TODO change to user lang
+          name: { [this.locale]: initialName?.trim().slice(0, 200) || $localize`Unnamed Spot` },
           location: new GeoPoint(
             center_coordinates.lat,
             center_coordinates.lng,
@@ -1398,9 +1405,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         const awaitsOrganizationReview = disposition
           ? spotEditAwaitsOrganizationReview(disposition)
           : false;
+        const awaitsCommunityVote = disposition
+          ? spotEditAwaitsCommunityVote(disposition)
+          : false;
         const saveMessage = awaitsOrganizationReview
           ? $localize`Edit submitted for organization review`
-          : $localize`Spot saved successfully`;
+          : awaitsCommunityVote
+            ? $localize`Edit submitted for community voting`
+            : $localize`Spot saved successfully`;
         this.snackBar.open(saveMessage, $localize`Dismiss`, { duration: 5000 });
         if (
           disposition &&
@@ -1599,7 +1611,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (!this.isDebug()) return;
 
     console.debug("[MapDebug][SpotMap]", event, {
-      ...payload,
+      detailKeys: Object.keys(payload).sort(),
       selectedSpot: this._getSelectedSpotKey(),
       timestamp: Math.round(performance.now()),
     });

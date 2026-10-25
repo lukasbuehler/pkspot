@@ -1,3 +1,4 @@
+import { eventPlaceCopy } from "../../localization/entity-copy";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   AnyMedia,
@@ -98,7 +99,7 @@ export function isRemoteExternalMedia(
 
 export function eventVenueLine(event: PkEvent): string {
   return (
-    [event.venueString, event.localityString].filter(Boolean).join(", ") ||
+    [event.venueString, eventPlaceCopy(event).label].filter(Boolean).join(", ") ||
     $localize`:@@event.venue_tba:Venue to be announced`
   );
 }
@@ -107,6 +108,7 @@ export function eventScheduleLabel(
   event: PkEvent,
   dateTime: DateTimeFormatService,
   dateStyle: "short" | "long" = "long",
+  showUnknownTime = true,
 ): string {
   if (event.timing?.mode === "date_only") {
     const start = utcNoonForDateKey(event.timing.start_date);
@@ -114,6 +116,7 @@ export function eventScheduleLabel(
       event.timing.end_date ?? event.timing.start_date,
     );
     const range = dateTime.formatDateRange(start, end, dateStyle, "UTC");
+    if (!showUnknownTime) return range;
     return $localize`:@@event.timing.date_only_label:${range} · Time to be announced`;
   }
   if (event.timing?.mode === "open_end") {

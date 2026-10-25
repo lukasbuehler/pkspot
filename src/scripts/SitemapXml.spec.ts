@@ -12,6 +12,23 @@ import {
 } from "../../functions/src/sitemapXml";
 
 describe("sitemapXml", () => {
+  it("lists brand images only under the About page", () => {
+    const { xml } = buildSitemapXml({ includeStaticPages: true });
+    const entries = xml.split("<url>").slice(1);
+    const about = entries.find((entry) => entry.includes("<loc>https://pkspot.app/en/about</loc>"));
+    expect(about).toContain("<image:loc>https://pkspot.app/assets/logos/pkspot/pkspot_logo_stacked_dark.png</image:loc>");
+    expect(about).toContain("<image:loc>https://pkspot.app/assets/banner_1200x630.png</image:loc>");
+    const others = entries.filter((entry) => !entry.includes("/about</loc>"));
+    expect(others.some((entry) => entry.includes("/assets/"))).toBe(false);
+  });
+
+  it("keeps account and auth utility pages out of the static entries", () => {
+    const paths = STATIC_PAGES.map((page) => page.path);
+    for (const path of ["/account", "/sign-in", "/sign-up", "/forgot-password"]) {
+      expect(paths).not.toContain(path);
+    }
+  });
+
   it("prefers spot slugs and falls back to the document id", () => {
     expect(
       buildSpotSitemapEntry(
@@ -290,5 +307,24 @@ describe("sitemapXml", () => {
       totalUrls:
         (STATIC_PAGES.length + 2 + 1 + 2 + 1) * SUPPORTED_LOCALES.length,
     });
+  });
+});
+
+describe("crawler privacy and photos", () => {
+  it("includes first-party photos in every localized Spot entry, but never reported/intake/external media", () => {
+    const { xml } = buildSitemapXml({ includeStaticPages: false, spots: [{ id: "photo-spot", data: { media: [
+      { type: "image", isInStorage: true, src: "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/spot_pictures%2Fphoto.jpg?alt=media&token=private" },
+      { type: "image", isInStorage: true, isReported: true, src: "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/spot_pictures%2Fhidden.jpg?alt=media" },
+      { type: "image", isInStorage: true, src: "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/media_intake%2Fpending.jpg?alt=media" },
+      { type: "image", isInStorage: false, src: "https://external.example/photo.jpg" },
+    ] } }] });
+    expect(xml.match(/<image:image>/g)).toHaveLength(SUPPORTED_LOCALES.length);
+    expect(xml).toContain("photo_800x800.jpg?alt=media");
+    expect(xml).not.toMatch(/token=|hidden.jpg|pending.jpg|external.example/);
+  });
+  it("excludes unlisted and private sessions even when published", () => {
+    for (const visibility of ["private", "unlisted"]) {
+      expect(buildEventSitemapEntry("session", { published: true, visibility }, "2026-09-10")).toBeNull();
+    }
   });
 });

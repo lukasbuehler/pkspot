@@ -62,6 +62,9 @@
         </span>
       </mat-card-title>
       <mat-card-subtitle>
+        @if (communityLabel(); as label) {
+          <span class="listing-badge community">{{ label }}</span>
+        }
         @if (event().lifecycleStatus === "cancelled") {
           <span class="cancelled-label" i18n>Cancelled</span>
         }

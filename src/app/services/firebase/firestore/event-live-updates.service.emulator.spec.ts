@@ -14,6 +14,10 @@ import {
   getFirestore,
   initializeFirestore,
   memoryLocalCache,
+  collectionGroup,
+  getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import {
   connectFunctionsEmulator,
@@ -461,6 +465,42 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
     await expect(
       firstValueFrom(service.observeCurrentUserSubscriptions().pipe(take(1))),
     ).resolves.toEqual([{ eventId: "live-event", level: "all" }]);
+  }, timeoutMs);
+
+  it("updates existing subscription levels and reminders without changing ownership or creation time", async () => {
+    const path = `events/live-event/live_update_subscribers/${userId}`;
+    const subscribedAt = new admin.firestore.Timestamp(1791963326, 471000000);
+    await db().doc(path).set({
+      user_id: userId,
+      active: true,
+      event_reminders: true,
+      reminder_offsets_minutes: [1440, 120, 30],
+      subscribed_at: subscribedAt,
+      updated_at: subscribedAt,
+    });
+
+    for (const level of ["none", "reminders", "event_updates", "all"] as const) {
+      await service.setNotificationLevel("live-event", level);
+      const saved = (await db().doc(path).get()).data()!;
+      expect(saved["user_id"]).toBe(userId);
+      expect(saved["subscribed_at"].isEqual(subscribedAt)).toBe(true);
+      expect(saved["reminder_offsets_minutes"]).toEqual([1440, 120, 30]);
+      await expect(firstValueFrom(service.observeNotificationLevel("live-event", userId)))
+        .resolves.toBe(level);
+    }
+    await service.setReminderOffsets("live-event", [30]);
+    expect((await db().doc(path).get()).data()?.["reminder_offsets_minutes"])
+      .toEqual([30]);
+  }, timeoutMs);
+
+  it("denies unfiltered, other-user, and signed-out subscription queries", async () => {
+    const subscriptions = collectionGroup(getFirestore(app), "live_update_subscribers");
+    await expect(getDocs(subscriptions)).rejects.toMatchObject({ code: "permission-denied" });
+    await expect(getDocs(query(subscriptions, where("user_id", "==", "someone-else"))))
+      .rejects.toMatchObject({ code: "permission-denied" });
+    await signOut(auth);
+    await expect(getDocs(query(subscriptions, where("user_id", "==", userId))))
+      .rejects.toMatchObject({ code: "permission-denied" });
   }, timeoutMs);
 
   it("allows reminders for published events without an organizer", async () => {

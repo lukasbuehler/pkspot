@@ -1,0 +1,5 @@
+:host { display: block; min-height: 100%; }
+.embedded-results { padding: 16px; color: var(--mat-sys-on-surface); background: var(--mat-sys-surface); }
+.selection-map { height: 320px; border-radius: 18px; overflow: hidden; margin-bottom: 16px; }
+.event-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
+.community-link { display: block; margin-top: 16px; text-decoration: none; color: inherit; }

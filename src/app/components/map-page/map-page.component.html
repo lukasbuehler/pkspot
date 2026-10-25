@@ -1,7 +1,14 @@
+<div
+  class="map-sheet-peek-measure"
+  aria-hidden="true"
+  appResizeObserver
+  (resize)="mapSheetClosedHeight.set($event.height)"
+></div>
 <ng-template #sidebarContent>
   <app-map-check-in-banner
     @fadeInOut
     [spot]="proximityCheckInSpot()"
+    [pending]="checkInPending()"
     (spotSelect)="selectSpot($event)"
     (checkIn)="spotCheckIn($event)"
     (dismiss)="dismissCheckInSpot($event)"
@@ -25,7 +32,7 @@
         [pendingVoteCount]="pendingSpotEditsCount()"
         [mapQueryParams]="activeMapQueryParams()"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         (isEditingChange)="onSpotPanelEditingChange($event)"
         (dismiss)="closeSpot()"
@@ -64,7 +71,7 @@
         [event]="panel.event"
         [pendingEvent]="panel.pendingEvent"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         [backLabel]="panelBackTarget()?.label ?? null"
         [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
@@ -78,7 +85,7 @@
         [community]="panel.community"
         [pendingCommunity]="panel.pendingCommunity"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         [backLabel]="panelBackTarget()?.label ?? null"
         [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
@@ -109,10 +116,10 @@
         [spotListLimit]="spotListLimit()"
         [mapZoom]="spotMap ? spotMap.mapZoom() : null"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         [enableSpotListAnimation]="
-          !responsiveService.isMobile() || bottomSheetOpen()
+          !usesMapBottomSheet() || bottomSheetOpen()
         "
         (modeChange)="mapObjectModeChanged($event)"
         (spotSelect)="selectSpot($event)"
@@ -129,6 +136,7 @@
   @if (mapsService.isApiLoaded()) {
     @defer {
       <app-spot-map
+        [allowLocationSelection]="true"
         @fadeInOut
         #spotMap
         id="spotMap"
@@ -149,7 +157,7 @@
         (filterBoundsChange)="onFilterBoundsChange($event)"
         (viewportBoundsChange)="onViewportBoundsChange($event)"
         (visibleViewportChange)="onVisibleViewportChange($event)"
-        [bottomSheetOffset]="true"
+        [bottomSheetOffset]="usesMapBottomSheet()"
         [isDebug]="appSettings.debugMode()"
         [showSpots]="showMapSpots()"
         [showVisibleSpotPins]="showVisibleSpotPins()"
@@ -197,32 +205,35 @@
   @if (spotMap) {
     <app-map-floating-controls
       @fastFadeOut
-      [showControls]="!compactTabletSidenavOpen()"
+      [showControls]="true"
       [showResetNorth]="spotMap.headingIsNotNorth()"
       [mapStyle]="mapStyle"
       [geolocationLoading]="spotMap.geolocationLoading()"
       [geolocationIcon]="geolocationIcon()"
+      [locationEnabled]="locationAccess.enabled()"
       [showCreateSpot]="
         isSignedIn() &&
         ageAssurance.canParticipatePublicly() &&
-        !compactTabletSidenavOpen() &&
+        !overlayMapDrawerOpen() &&
         !selectedSpot() &&
         !isEditing() &&
         spotMap.mapZoom() >= 14 &&
         !(
-          responsiveService.isMobile() &&
+          usesMapBottomSheet() &&
           (bottomSheetOpen() || bottomSheetProgress() > 0)
         )
       "
       [showCreateEvent]="
         authService.isAdmin() &&
-        !compactTabletSidenavOpen() &&
+        !overlayMapDrawerOpen() &&
         !selectedSpot() &&
         !isEditing()
       "
       (resetNorth)="onResetNorth()"
       (toggleMapStyle)="onToggleMapStyle()"
       (focusGeolocation)="onFocusGeolocation()"
+      [draftCount]="nativeMapShare.drafts().length"
+      (reviewDrafts)="openSharedDrafts()"
       (createSpot)="onCreateSpot()"
       (createEvent)="onCreateEvent()"
     ></app-map-floating-controls>
@@ -244,11 +255,11 @@
   <!-- Filter chips bar with horizontally scrollable presets and Filters button -->
   <div
     class="filter-chips-switcher"
-    [style.opacity]="
-      responsiveService.isMobile() ? 1 - bottomSheetProgress() : 1
+    [class.filter-chips-switcher--covered]="
+      usesMapBottomSheet() && bottomSheetProgress() > 0.05
     "
     [style.pointer-events]="
-      responsiveService.isMobile() && bottomSheetProgress() > 0.95
+      usesMapBottomSheet() && bottomSheetProgress() > 0.95
         ? 'none'
         : null
     "
@@ -261,7 +272,7 @@
         [showSavedChip]="isSignedIn()"
         [showVisitedChip]="isSignedIn()"
         [customFilterActive]="!!customFilterParams()"
-        (filterChange)="filterChipChanged($event)"
+        (filterChange)="onFilterChipSelected($event)"
         (clearClick)="clearActiveFilter()"
         (filtersClick)="openCustomFilterDialog()"
       ></app-filter-chips-bar>
@@ -273,24 +284,22 @@
         [presetFilters]="eventFilterOptions"
         [showFiltersChip]="false"
         [ariaLabel]="eventFiltersLabel"
-        (filterChange)="eventFilterChanged($event)"
+        (filterChange)="onEventFilterChipSelected($event)"
         (clearClick)="eventFilterChanged('')"
       ></app-filter-chips-bar>
     }
   </div>
 </ng-template>
 
-<!--
-  SEO: a single, crawler-readable <h1> for the map route. Hidden visually
-  with Bootstrap's `.visually-hidden` (see styles.scss bootstrap import) so
-  the layout doesn't shift, but Google + screen readers see "Parkour Spot
-  route's main parkour discovery message as the page heading. Placed outside
-  the responsive branches so it
-  always renders.
--->
-<h1 class="visually-hidden" i18n="@@map.h1">
-  PK Spot — find spots, communities, and events near you
-</h1>
+<!-- Keep one primary heading outside responsive map branches. Community pages
+     provide their own visible H1; Spot routes identify the selected Spot. -->
+@if (selectedSpot(); as headingSpot) {
+  <h1 class="visually-hidden">{{ headingSpot.name() }}</h1>
+} @else if (!selectedCommunityLanding()) {
+  <h1 class="visually-hidden" i18n="@@map.h1">
+    PK Spot — find spots, communities, and events near you
+  </h1>
+}
 
 @if (!responsiveService.isInitialized() && !isServer) {
   <div
@@ -299,12 +308,13 @@
     <mat-icon class="map-status-icon">map</mat-icon>
     <p class="mat-title-medium" i18n>Preparing map layout...</p>
   </div>
-} @else if (responsiveService.isNotMobile()) {
+} @else if (usesMapDrawer()) {
   <div
     class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
+    [class.map-overlay-drawer]="usesOverlayMapDrawer()"
   >
     <div class="d-flex flex-row gap-3">
-      @if (alainMode) {
+      @if (alainMode()) {
         <div class="alain-spacer flex-shrink-0"></div>
       }
       <app-search-field
@@ -329,7 +339,7 @@
     #drawerContainer
     class="h-100 bg-transparent"
     [class.sidenav-open]="sidenavOpen()"
-    [class.compact-sidenav]="compactSidenavRange()"
+    [class.map-overlay-drawer]="usesOverlayMapDrawer()"
     [hasBackdrop]="false"
   >
     <mat-drawer
@@ -337,13 +347,14 @@
       [opened]="sidenavOpen()"
       position="start"
       [mode]="mapSidenavMode()"
-      class="bg-transparent info-panel"
+      class="info-panel"
+      [class.map-overlay-drawer]="usesOverlayMapDrawer()"
     >
       <div [style.height.px]="chipsSpacerHeight()"></div>
       <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
     </mat-drawer>
 
-    <div class="position-relative overflow-hidden h-100 w-100">
+    <div class="map-canvas-container position-relative h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
       @if (visibleIslandContent()) {
         <div class="map-context-host">
@@ -390,7 +401,7 @@
       class="search-bar-overlay position-absolute top-0 start-0 end-0 d-flex flex-column gap-1"
     >
       <div class="d-flex flex-row gap-2 align-items-center">
-        @if (alainMode && responsiveService.isMobile()) {
+        @if (alainMode() && usesMapBottomSheet()) {
           <div class="alain-spacer flex-shrink-0"></div>
         }
         <app-search-field
@@ -424,6 +435,7 @@
     <app-bottom-sheet
       class="map-bottom-sheet d-flex"
       @fadeInOut
+      [closedHeight]="mapSheetClosedHeight()"
       (isAtTopChange)="bottomSheetOpen.set($event)"
       (openProgressChange)="bottomSheetProgress.set($event)"
     >

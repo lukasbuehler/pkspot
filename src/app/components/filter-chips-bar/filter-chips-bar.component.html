@@ -22,6 +22,7 @@
     <div
       #scrollArea
       class="chips-scroll-area"
+      data-horizontal-scroll
       (pointerdown)="onScrollPointerDown($event)"
       (pointermove)="onScrollPointerMove($event)"
       (pointerup)="onScrollPointerEnd($event)"
@@ -29,8 +30,8 @@
       (pointerleave)="onScrollPointerEnd($event)"
     >
       <mat-chip-listbox
-        [multiple]="false"
-        [value]="renderedSelectedFilter()"
+        [multiple]="selectedFilters() !== null"
+        [value]="selectedFilters() ?? renderedSelectedFilter()"
         [attr.aria-label]="ariaLabel() ?? quickFiltersLabel"
       >
         @if (showSavedChip()) {
@@ -64,10 +65,12 @@
             [class.glass]="appearance() === 'glass'"
             [class.solid-chip]="appearance() === 'solid'"
             [value]="filter.urlParam"
-            [selected]="renderedSelectedFilter() === filter.urlParam"
+            [selected]="selectedFilters()?.includes(filter.urlParam) ?? (renderedSelectedFilter() === filter.urlParam)"
             (click)="onPresetChipClick(filter.urlParam, $event)"
           >
-            @if (filter.icon) {
+            @if (filter.imageSrc) {
+              <img matChipAvatar class="preset-image" [src]="filter.imageSrc" [style.background]="filter.imageBackground" alt="" />
+            } @else if (filter.icon) {
               <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
             }
             <span>{{ filter.label }}</span>

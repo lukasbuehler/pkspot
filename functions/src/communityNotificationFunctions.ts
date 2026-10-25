@@ -43,6 +43,11 @@ export const onCommunityEventDiscoveryWrite = onDocumentWritten(
     const end = timestamp(after?.end);
     const eligible = Boolean(
       after &&
+        // Organization Events retain the established community-follower behavior.
+        // Community events only send when the organizer opted in at the
+        // first publication; unlisted Community events never have a projection.
+        (after.listing_tier !== "community" ||
+          after.community_broadcast === "on_publish") &&
         start &&
         end &&
         end.toMillis() > Date.now() &&

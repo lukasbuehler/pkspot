@@ -1,0 +1,39 @@
+{
+  "name": "pkspot-mcp",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "check": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:runtime": "node test/runtime-smoke.mjs",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "deploy": "wrangler deploy",
+    "build:ui": "node scripts/build-ui.mjs",
+    "predev": "npm run build:ui",
+    "precheck": "npm run build:ui",
+    "pretest": "npm run build:ui",
+    "prebuild": "npm run build:ui",
+    "predeploy": "npm run build:ui"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "2.0.3",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.12",
+    "wrangler": "4.132.0"
+  },
+  "overrides": {
+    "sharp": "0.35.5",
+    "source-map-js": "^1.2.2",
+    "undici": "^7.30.1"
+  }
+}

@@ -1,0 +1,121 @@
+<section class="training-stats" aria-labelledby="training-stats-title">
+  <header class="training-stats__header">
+    <h2 id="training-stats-title" i18n="@@trainingStats.title">Your stats</h2>
+    <mat-button-toggle-group
+      hideSingleSelectionIndicator
+      [value]="period()"
+      (change)="setPeriod($event.value)"
+      aria-label="Statistics period"
+      i18n-aria-label="@@trainingStats.periodLabel"
+    >
+      <mat-button-toggle value="month" i18n="@@trainingStats.month">Month</mat-button-toggle>
+      <mat-button-toggle value="year" i18n="@@trainingStats.year">Year</mat-button-toggle>
+      <mat-button-toggle value="all" i18n="@@trainingStats.allTime">All time</mat-button-toggle>
+    </mat-button-toggle-group>
+  </header>
+
+  @if (months.isLoading() && !hasHistory()) {
+    <mat-progress-bar mode="indeterminate" />
+  } @else if (months.error()) {
+    <p class="training-stats__empty" role="alert" i18n="@@trainingStats.loadError">Your statistics could not be loaded.</p>
+  } @else if (!hasHistory()) {
+    <p class="training-stats__empty" i18n="@@trainingStats.empty">Check in at a Spot or log a session, and your statistics start here.</p>
+  } @else {
+    @if (period() !== "all") {
+      <div class="training-stats__nav">
+        <button matIconButton type="button" [disabled]="!canGoBack()" (click)="step(-1)" aria-label="Previous period" i18n-aria-label="@@trainingStats.previous">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="training-stats__period">{{ periodLabel() }}</span>
+        <button matIconButton type="button" [disabled]="!canGoForward()" (click)="step(1)" aria-label="Next period" i18n-aria-label="@@trainingStats.next">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    }
+
+    <dl class="training-stats__headline">
+      <div>
+        <dt i18n="@@trainingLog.summary.sessions">sessions</dt>
+        <dd>{{ summary().sessions }}</dd>
+        @if (sessionDelta(); as delta) {
+          <dd class="training-stats__delta" [class.is-up]="sessionDeltaUp()">{{ delta }}</dd>
+        }
+      </div>
+      <div>
+        <dt i18n="@@trainingLog.summary.days">active days</dt>
+        <dd>{{ summary().activeDays }}</dd>
+      </div>
+      <div>
+        <dt i18n="@@trainingLog.summary.trainingTime">training time</dt>
+        <dd>{{ durationLabel() }}</dd>
+        @if (durationCoverage(); as coverage) {
+          <dd class="training-stats__delta">{{ coverage }}</dd>
+        }
+      </div>
+      <div>
+        <dt i18n="@@trainingLog.summary.spots">Spots visited</dt>
+        <dd>{{ summary().spots.length }}</dd>
+        @if (period() !== "all" && summary().newSpots > 0) {
+          <dd class="training-stats__delta is-up" i18n="@@trainingStats.newSpots">{{ summary().newSpots }} new</dd>
+        }
+      </div>
+    </dl>
+
+    @if (spots().length > 0) {
+      <mat-card appearance="outlined" class="training-stats__spots">
+        <h3 class="training-stats__subtitle" i18n="@@trainingStats.yourSpots">Your Spots</h3>
+        <mat-nav-list>
+          @for (spot of visibleSpots(); track spot.spotId) {
+            <a mat-list-item [routerLink]="['/map', 'spots', spot.spotId]" class="stats-spot">
+              <span matListItemAvatar class="stats-spot__position" aria-hidden="true">{{ spot.position }}</span>
+              <span matListItemTitle>
+                {{ spot.name }}
+                @if (spot.isNew) {
+                  <span class="stats-spot__new" i18n="@@trainingStats.new">New</span>
+                }
+              </span>
+              <span matListItemLine>{{ spot.detail }}</span>
+              @if (spot.rankLabel) {
+                <span matListItemLine>
+                  <span class="stats-spot__rank">
+                    @if (spot.rank) {
+                      <app-spot-rank-icon [rank]="spot.rank" />
+                    }
+                    {{ spot.rankLabel }}
+                  </span>
+                </span>
+              }
+            </a>
+          }
+        </mat-nav-list>
+        @if (hiddenSpotCount() > 0) {
+          <button matButton type="button" class="training-stats__more" (click)="showAllSpots.set(!showAllSpots())">
+            @if (showAllSpots()) {
+              <span i18n="@@event_qualification.show_less">Show less</span>
+            } @else {
+              <span i18n="@@trainingStats.showAllSpots">Show all {{ spots().length }} Spots</span>
+            }
+          </button>
+        }
+        @if (period() === "month" && anchor() === currentMonth && localLegend.enabled()) {
+          <p class="training-stats__note" i18n="@@trainingStats.rankNote">Ranks compare days with a verified check-in at each Spot this month, once at least three people checked in. They update at the end of each day. Only you can see yours.</p>
+        }
+      </mat-card>
+    }
+
+    @if (summary().sessions > 0) {
+      <mat-card appearance="outlined" class="training-stats__weekdays">
+        <h3 class="training-stats__subtitle" i18n="@@trainingStats.whenYouTrain">When you train</h3>
+        <ul class="weekday-list">
+          @for (day of weekdays(); track day.label) {
+            <li>
+              <span class="weekday-list__label">{{ day.label }}</span>
+              <mat-progress-bar mode="determinate" [value]="day.share" aria-hidden="true" />
+              <span class="weekday-list__count">{{ day.count }}</span>
+            </li>
+          }
+        </ul>
+      </mat-card>
+    }
+  }
+</section>

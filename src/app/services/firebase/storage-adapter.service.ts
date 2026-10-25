@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { PlatformService } from "../platform.service";
 
@@ -60,6 +61,8 @@ export interface UploadFileOptions {
   providedIn: "root",
 })
 export class StorageAdapterService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private platformService = inject(PlatformService);
   private appCheckService = inject(FirebaseAppCheckService);
   private storage = inject(FIREBASE_STORAGE);
@@ -84,11 +87,14 @@ export class StorageAdapterService {
    * @returns Promise resolving to the public download URL
    */
   async uploadFile(options: UploadFileOptions): Promise<string> {
-    await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.uploadFileNative(options);
-    }
-    return this.uploadFileWeb(options);
+    return this.telemetry.run("storage", "uploadFile", async () => {
+      await this.ensureAppCheckReady();
+      if (this.platformService.isNative()) {
+        return this.uploadFileNative(options);
+      }
+      return this.uploadFileWeb(options);
+
+    }, false);
   }
 
   buildPublicUrl(path: string): string {
@@ -282,11 +288,14 @@ export class StorageAdapterService {
    * @param path Full path to the file in storage
    */
   async deleteFile(path: string): Promise<void> {
-    await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.deleteFileNative(path);
-    }
-    return this.deleteFileWeb(path);
+    return this.telemetry.run("storage", "deleteFile", async () => {
+      await this.ensureAppCheckReady();
+      if (this.platformService.isNative()) {
+        return this.deleteFileNative(path);
+      }
+      return this.deleteFileWeb(path);
+
+    }, false);
   }
 
   private async deleteFileWeb(path: string): Promise<void> {
@@ -308,11 +317,14 @@ export class StorageAdapterService {
    * @returns Promise resolving to the download URL
    */
   async getDownloadUrl(path: string): Promise<string> {
-    await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.getDownloadUrlNative(path);
-    }
-    return this.getDownloadUrlWeb(path);
+    return this.telemetry.run("storage", "getDownloadUrl", async () => {
+      await this.ensureAppCheckReady();
+      if (this.platformService.isNative()) {
+        return this.getDownloadUrlNative(path);
+      }
+      return this.getDownloadUrlWeb(path);
+
+    }, false);
   }
 
   private async getDownloadUrlWeb(path: string): Promise<string> {

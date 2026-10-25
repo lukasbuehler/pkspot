@@ -1,8 +1,10 @@
+import { RESPONSE_INIT } from "@angular/core";
+import { SpotLoadError } from "../../db/models/SpotLoadError";
 import { DOCUMENT } from "@angular/common";
 import { TestBed } from "@angular/core/testing";
 import { LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
-import { convertToParamMap } from "@angular/router";
+import { ActivatedRouteSnapshot, convertToParamMap } from "@angular/router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { contentResolver } from "./content.resolver";
 import { MetaTagService } from "../services/meta-tag.service";
@@ -159,6 +161,7 @@ describe("contentResolver", () => {
     TestBed.configureTestingModule({
       providers: [
         MetaTagService,
+        { provide: RESPONSE_INIT, useValue: null },
         { provide: DOCUMENT, useValue: testDocument },
         { provide: Meta, useValue: metaMock },
         { provide: Title, useValue: titleMock },
@@ -170,6 +173,91 @@ describe("contentResolver", () => {
         { provide: UsersService, useValue: {} },
         { provide: ConsentService, useValue: consentService },
       ],
+    });
+  });
+
+  it.each([
+    ["not_found", 404],
+    ["missing_location", 503],
+  ] as const)("returns a controlled %s fallback without an application error", async (reason, status) => {
+    const response: ResponseInit = {};
+    TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });
+    slugsService.getSpotIdFromSpotSlug.mockResolvedValue("unavailable-spot");
+    spotsService.getSpotById.mockRejectedValue(new SpotLoadError("unavailable-spot", reason));
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    const warnLog = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const result = await TestBed.runInInjectionContext(() => contentResolver(createRouteSnapshot("unavailable-spot") as ActivatedRouteSnapshot));
+      expect(result).not.toHaveProperty("spot");
+      expect(result.spotLoadFailed).toBe(true);
+      expect(response.status).toBe(status);
+      expect(getMetaContent(testDocument, 'meta[name="robots"]')).toBe("noindex,nofollow");
+      expect(errorLog).not.toHaveBeenCalled();
+    } finally {
+      errorLog.mockRestore();
+      warnLog.mockRestore();
+    }
+  });
+
+  it("keeps backend failures visible and does not misclassify them as missing Spots", async () => {
+    const response: ResponseInit = {};
+    TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });
+    const failure = new Error("Firestore unavailable");
+    spotsService.getSpotById.mockRejectedValue(failure);
+    slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot");
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      await TestBed.runInInjectionContext(() => contentResolver(createRouteSnapshot("spot") as ActivatedRouteSnapshot));
+      expect(response.status).toBe(500);
+      expect(errorLog).toHaveBeenCalledWith("Error resolving spot content:", failure);
+    } finally {
+      errorLog.mockRestore();
+    }
+  });
+
+  describe("in the browser after server rendering", () => {
+    const serverCanonical = "https://pkspot.app/de/map/spots/rwi";
+    const serverRobots = "index,follow";
+
+    beforeEach(() => {
+      TestBed.overrideProvider(PLATFORM_ID, { useValue: "browser" });
+      const canonical = testDocument.createElement("link");
+      canonical.rel = "canonical";
+      canonical.href = serverCanonical;
+      testDocument.head.appendChild(canonical);
+      const robots = testDocument.createElement("meta");
+      robots.setAttribute("name", "robots");
+      robots.setAttribute("content", serverRobots);
+      testDocument.head.appendChild(robots);
+    });
+
+    it("keeps the Spot canonical when crawlers render without consent", async () => {
+      consentService.hasConsent.mockReturnValue(false);
+      const warnLog = vi.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        await TestBed.runInInjectionContext(() =>
+          contentResolver(createRouteSnapshot("rwi") as ActivatedRouteSnapshot),
+        );
+        expect(getLinkHref(testDocument, 'link[rel="canonical"]')).toBe(serverCanonical);
+        expect(spotsService.getSpotById).not.toHaveBeenCalled();
+      } finally {
+        warnLog.mockRestore();
+      }
+    });
+
+    it("does not noindex a server-rendered Spot when the browser load fails", async () => {
+      slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot-rwi");
+      spotsService.getSpotById.mockRejectedValue(new Error("Firestore unavailable"));
+      const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+      try {
+        await TestBed.runInInjectionContext(() =>
+          contentResolver(createRouteSnapshot("rwi") as ActivatedRouteSnapshot),
+        );
+        expect(getLinkHref(testDocument, 'link[rel="canonical"]')).toBe(serverCanonical);
+        expect(getMetaContent(testDocument, 'meta[name="robots"]')).toBe(serverRobots);
+      } finally {
+        errorLog.mockRestore();
+      }
     });
   });
 
@@ -187,13 +275,13 @@ describe("contentResolver", () => {
     expect(result.spot).toBe(imaxSpot);
     expect(slugsService.getSpotIdFromSpotSlug).toHaveBeenCalledWith("imax");
     expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en");
-    expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX - London | PK Spot");
+    expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX: Parkour Spot in London | PK Spot");
 
     expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
-      "IMAX - London | PK Spot"
+      "IMAX: Parkour Spot in London | PK Spot"
     );
     expect(getMetaContent(testDocument, 'meta[name="twitter:title"]')).toBe(
-      "IMAX - London | PK Spot"
+      "IMAX: Parkour Spot in London | PK Spot"
     );
 
     const image = getMetaContent(testDocument, 'meta[property="og:image"]');
@@ -207,9 +295,9 @@ describe("contentResolver", () => {
       testDocument,
       'meta[name="description"]'
     );
-    expect(description).toContain("Parkour spot in London, GB.");
+    expect(description).toContain("Parkour Spot in London.");
     expect(description).toContain("Rated 4.6 out of 5.");
-    expect(description).toContain("Big concrete playground beside the cinema.");
+    expect(description).not.toContain("Big concrete playground beside the cinema.");
     expect(description).not.toContain(
       "Discover photos, details, and training info."
     );
@@ -283,7 +371,7 @@ describe("contentResolver", () => {
 
     expect(result.spot).toBe(imaxSpot);
     expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
-      "IMAX - London | PK Spot"
+      "IMAX: Parkour Spot in London | PK Spot"
     );
     expect(
       getMetaContent(testDocument, 'meta[property="og:url"]')

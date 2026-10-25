@@ -8,7 +8,8 @@
 }
 
 :host(.media-placeholder--event) {
-  background: var(--mat-sys-primary-fixed, var(--mat-sys-on-primary-container));
+  container-type: inline-size;
+  background: color-mix(in srgb, var(--mat-sys-scrim) 88%, var(--mat-sys-primary-fixed-dim));
 }
 
 .placeholder-image {
@@ -76,10 +77,12 @@
 }
 
 :host(.media-placeholder--event) .placeholder-label {
-  color: var(--mat-sys-on-primary-fixed-variant, var(--mat-sys-primary));
-  font-family: "Permanent Marker", cursive;
-  font-size: 1.8rem;
-  line-height: 1.1;
+  color: var(--mat-sys-primary-fixed-dim);
+  font-family: "Roboto", sans-serif;
+  font-size: clamp(1.1rem, 8cqi, 1.8rem);
+  font-weight: 600;
+  line-height: 1.25;
+  text-wrap: balance;
   letter-spacing: 0;
   text-shadow: none;
   overflow-wrap: anywhere;

@@ -1,0 +1,22 @@
+.spot-activity-summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+mat-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.spot-activity-summary__count {
+  color: var(--mat-sys-primary);
+  font-weight: 600;
+}
+
+.spot-activity-summary { margin: 0; }
+.compact { font: inherit; }
+.compact-count { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }

@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper";
 import {
   AfterViewInit,
@@ -80,7 +82,7 @@ import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { createUserReference, generateUUID } from "../../../scripts/Helpers";
 import { languageCodes } from "../../../scripts/Languages";
-import JSZip from "jszip";
+import JSZip from "jszip/dist/jszip.min.js";
 import { MapsApiService } from "../../services/maps-api.service";
 import { AmenitiesMap } from "../../../db/schemas/Amenities";
 import { ImportsService } from "../../services/firebase/firestore/imports.service";
@@ -177,6 +179,8 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
   ],
 })
 export class KmlImportPageComponent implements OnInit, AfterViewInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly responsive = inject(ResponsiveService);
   readonly defaultSpotType = SpotTypes.Other;
   readonly defaultSpotAccess = SpotAccess.Other;
@@ -1474,6 +1478,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         await this.parseKmlString(data);
       }
     } catch (error) {
+      this.featureTelemetry.failure("kml-import-page", "continueToSetup", error);
       console.error("Error preparing import file:", error);
       this._analytics.trackEvent("kml_import_parse_failed", {
         stage: "prepare_file",
@@ -1799,6 +1804,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       this.stepperHorizontal.selected.completed = true;
       this.stepperHorizontal.next();
     } catch (error: unknown) {
+      this.featureTelemetry.failure("kml-import-page", "parseKmlString", error);
       // parsing was not successful
       console.error(error);
       this._analytics.trackEvent("kml_import_parse_failed", {
@@ -2136,6 +2142,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
       this._spotImportSuccessful(importId);
     } catch (error) {
+      this.featureTelemetry.failure("kml-import-page", "importSpots", error);
       console.error("Failed to import spots:", error);
       this._spotImportFailed();
     }

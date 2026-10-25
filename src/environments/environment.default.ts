@@ -1,13 +1,19 @@
+import { ageVerificationProviders } from "./age-verification";
 export const environment = {
   name: "Default",
   production: false,
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
-    training: false,
-    checkIns: false,
+    finances: false,
+    ageVerification: { ...ageVerificationProviders },
+    shareCards: false,
+    plannedSessions: false,
+    training: true,
+    checkIns: true,
+    supportShop: false,
     continuousEventCalendar: true,
-    mapPerformanceProfiling: false,
+    mapPerformanceProfiling: true,
     streetView: {
       preview: false,
       detail: true,

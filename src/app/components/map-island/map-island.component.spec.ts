@@ -33,6 +33,36 @@ describe("MapIslandComponent", () => {
     fixture = TestBed.createComponent(MapIslandComponent);
   });
 
+  it("uses explicit broadcast status even when the Typesense preview has no video URL", () => {
+    const now = Date.now();
+    const event = new PkEvent("broadcast" as EventId, {
+      name: "World Championships", start: new Date(now - 60000).toISOString(),
+      end: new Date(now + 60000).toISOString(),
+      livestream_live: true,
+    } as unknown as EventSchema);
+    fixture.componentRef.setInput("content", {kind: "event", event});
+    fixture.detectChanges();
+    expect(fixture.componentInstance.hasBroadcast()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain("Watch the broadcast");
+    expect(fixture.nativeElement.textContent).not.toContain("Live on YouTube");
+    const replay = new PkEvent("broadcast" as EventId, {
+      name: "World Championships", start: new Date(now - 60000).toISOString(),
+      end: new Date(now + 60000).toISOString(), livestream_live: false,
+      media: [{type: "video", src: "https://youtu.be/uG9SCwcHA7k", isInStorage: false}],
+      event_links: [{kind: "livestream", label: "Watch", url: "https://youtu.be/uG9SCwcHA7k"}],
+    } as unknown as EventSchema);
+    fixture.componentRef.setInput("content", {kind: "event", event: replay});
+    fixture.detectChanges();
+    expect(fixture.componentInstance.hasBroadcast()).toBe(false);
+    expect(replay.media).toHaveLength(1);
+    fixture.componentRef.setInput("content", {kind: "event", event: new PkEvent("past" as EventId, {
+      name: "Ended event", start: new Date(now - 120000).toISOString(),
+      end: new Date(now - 60000).toISOString(), livestream_live: true,
+    } as unknown as EventSchema)});
+    fixture.detectChanges();
+    expect(fixture.componentInstance.hasBroadcast()).toBe(false);
+  });
+
   it("gives a promoted event dismissal an accessible label and tooltip", () => {
     fixture.componentRef.setInput("content", {
       kind: "event",

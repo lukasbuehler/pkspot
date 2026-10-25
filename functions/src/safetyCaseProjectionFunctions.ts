@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import {Timestamp} from "firebase-admin/firestore";
 import {onCall} from "firebase-functions/v2/https";
-import {onDocumentCreated} from "firebase-functions/v2/firestore";
+import {onDocumentCreated, onDocumentWritten} from "firebase-functions/v2/firestore";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import type {
   SafetyCaseCategory,
@@ -269,10 +269,11 @@ export const projectLegacySafetyCase = async (
     category: projection.category,
     priority: projection.priority,
     status:
-      sourceData["status"] === "resolved" ||
-      sourceData["status"] === "dismissed" ?
-        "resolved" :
-        "received",
+      sourceData["status"] === "withdrawn" || sourceData["status"] === "superseded" ?
+        "closed" :
+        sourceData["status"] === "resolved" || sourceData["status"] === "dismissed" ?
+          "resolved" :
+          "received",
     subject: projection.subject,
     summary: projection.summary,
     description: projection.description,
@@ -387,16 +388,42 @@ export const projectLegacySafetyCase = async (
   return {caseId, created: true};
 };
 
-export const onSpotReportSafetyCaseCreate = onDocumentCreated(
+export const onSpotReportSafetyCaseCreate = onDocumentWritten(
   "spots/{spotId}/reports/{reportId}",
   async (event) => {
-    if (!event.data) return;
-    await projectLegacySafetyCase(event.data.ref, event.data.data(), {
+    const change = event.data;
+    if (!change) return;
+    const afterSnapshot = change.after;
+    if (!afterSnapshot?.exists) return;
+    const before = change.before.exists ? change.before.data() : undefined;
+    const after = afterSnapshot.data();
+    if (!after) return;
+    const beforeAccepted = isRecord(before?.["submission"]) &&
+      before?.["submission"]["accepted_at"] !== undefined;
+    const accepted = isRecord(after["submission"]) && after["submission"]["accepted_at"] !== undefined;
+    if (!accepted || beforeAccepted || after["status"] === "superseded") return;
+    await projectLegacySafetyCase(afterSnapshot.ref, after, {
       legacyImport: false,
       notify: true,
     });
   },
 );
+
+export const closeSafetyCaseForWithdrawnSource = async (
+  sourcePath: string,
+): Promise<void> => {
+  const caseRef = db.doc(`${SAFETY_CASES}/${legacyCaseId(sourcePath)}`);
+  await db.runTransaction(async (transaction) => {
+    const existing = await transaction.get(caseRef);
+    if (!existing.exists || existing.data()?.["status"] !== "received") return;
+    transaction.update(caseRef, {
+      status: "closed",
+      closed_reason: "withdrawn_by_reporter",
+      resolved_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    });
+  });
+};
 
 export const onRootReportSafetyCaseCreate = onDocumentCreated(
   "reports/{reportId}",

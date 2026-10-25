@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -14,7 +16,10 @@ import { ProfileButtonComponent } from "../profile-button/profile-button.compone
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditSummaryComponent } from "../spot-edit-summary/spot-edit-summary.component";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import {
+  spotEditAwaitsCommunityVote,
+  SpotEditsService,
+} from "../../services/firebase/firestore/spot-edits.service";
 import { createUserReference } from "../../../scripts/Helpers";
 import { SpotEditVoteValue } from "../../../db/schemas/SpotEditVoteSchema";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
@@ -36,6 +41,8 @@ import { parseFirestoreTimestamp } from "../../../scripts/Helpers";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotEditDetailsComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   spotEdit = input<SpotEdit>();
   spotId = input<string | null>(null);
   private readonly _dateTime = inject(DateTimeFormatService);
@@ -121,10 +128,7 @@ export class SpotEditDetailsComponent {
     if (status === "BLOCKED_VERIFIED_SPOT") {
       return $localize`Pending community vote (verified spot)`;
     }
-    if (status === "VOTING_FORCED_TEST") {
-      return $localize`Voting test mode`;
-    }
-    if (status === "VOTING_OPEN") {
+    if (status === "VOTING_FORCED_TEST" || status === "VOTING_OPEN") {
       return $localize`Voting open`;
     }
     return $localize`Pending`;
@@ -135,7 +139,7 @@ export class SpotEditDetailsComponent {
     return (
       !!edit &&
       edit.type === "UPDATE" &&
-      edit.approved !== true &&
+      spotEditAwaitsCommunityVote(edit) &&
       !this.isOrganizationReviewEdit() &&
       this.authenticationService.isSignedIn
     );
@@ -299,6 +303,7 @@ export class SpotEditDetailsComponent {
         { duration: 2200 }
       );
     } catch (error) {
+      this.featureTelemetry.failure("spot-edit-details", "_reviewOrganizationEdit", error);
       console.error("Failed to review organization edit", error);
       this._snackBar.open(
         $localize`Failed to submit organization review`,
@@ -333,7 +338,12 @@ export class SpotEditDetailsComponent {
         voteValue,
         userReference
       );
+      this.userVoteValue.set(voteValue);
+      this._snackBar.open($localize`Vote recorded`, undefined, {
+        duration: 2200,
+      });
     } catch (error) {
+      this.featureTelemetry.failure("spot-edit-details", "_submitVote", error);
       console.error("Failed to submit spot edit vote", error);
       this._snackBar.open(
         $localize`Failed to submit vote`,

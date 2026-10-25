@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   Inject,
@@ -31,6 +32,7 @@ export interface MediaUploadDialogData {
   allowedMimeTypes?: string[];
   multipleAllowed?: boolean;
   currentMedia?: MediaSchema[];
+  initialFiles?: File[];
 }
 
 @Component({
@@ -66,6 +68,7 @@ export class MediaUploadDialogComponent {
       "image/png",
     ];
     this.multipleAllowed = data.multipleAllowed ?? true;
+    afterNextRender(() => this.mediaUpload()?.stageFiles(data.initialFiles ?? []));
   }
 
   protected uploading = signal(false);
@@ -90,7 +93,7 @@ export class MediaUploadDialogComponent {
     this.mediaUpload()?.cancelBatch();
     this.uploading.set(false);
     this.dialogRef.disableClose = false;
-    this.close();
+    this.close("discarded");
   }
 
   async onMediaBatchUploaded(events: MediaUploadEvent[]) {
@@ -118,7 +121,7 @@ export class MediaUploadDialogComponent {
       }
     );
     if (!(this.mediaUpload()?.hasPendingMedia() ?? false)) {
-      this.close();
+      this.close("completed");
       return;
     }
     this.syncCloseProtection();
@@ -134,8 +137,8 @@ export class MediaUploadDialogComponent {
     this.close();
   }
 
-  close() {
-    this.dialogRef.close();
+  close(result?: "completed" | "discarded") {
+    this.dialogRef.close(result);
   }
 
   private syncCloseProtection(): void {

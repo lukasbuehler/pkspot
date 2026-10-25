@@ -34,6 +34,7 @@ export type AgeAssuranceConfidence =
 export type AgeAssuranceProvider =
   | "google_play"
   | "apple"
+  | "oneid"
   | "external";
 
 export type AgeAssuranceMethodCategory =
@@ -43,6 +44,7 @@ export type AgeAssuranceMethodCategory =
   | "age_estimation"
   | "mobile_network"
   | "financial_attribute"
+  | "external_verification"
   | "digital_identity"
   | "government_id"
   | "email_estimation"
@@ -69,7 +71,8 @@ export interface AgePolicyBuildContext {
   signalVersion: 2 | 3;
   clientIntegrity:
     | "firebase_app_check"
-    | "play_integrity_request_bound";
+    | "play_integrity_request_bound"
+    | "apple_app_attest_request_bound";
   cryptographicallyBound: boolean;
 }
 
@@ -418,10 +421,13 @@ const approvalBasisForSignal = (
   signal: NativeAgeSignal,
   context: AgePolicyBuildContext
 ): string | undefined => {
-  if (!context.cryptographicallyBound) return undefined;
+  if (!context.cryptographicallyBound) {
+    return undefined;
+  }
   const provider = providerForSignal(signal);
   const method = providerMethodForSignal(signal);
-  return `${provider}:platform_age_signal:${method}:request_bound:v1`;
+  const binding = context.cryptographicallyBound ? "request_bound" : "app_check_client_relay";
+  return `${provider}:platform_age_signal:${method}:${binding}:v1`;
 };
 
 export const buildServerAgePolicy = (

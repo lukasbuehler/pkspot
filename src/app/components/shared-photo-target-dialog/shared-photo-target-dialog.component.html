@@ -1,0 +1,18 @@
+<h2 mat-dialog-title i18n>Choose a Spot</h2>
+<mat-dialog-content>
+  @if (data?.failed) {
+    <p role="alert" i18n>Could not prepare shared photos. Share up to 8 JPEG, PNG or WebP photos and try again.</p>
+  } @else {
+  <p i18n>Choose where these photos belong. Nothing is uploaded until you confirm.</p>
+  <app-spot-picker [value]="selected()" (valueChange)="selected.set($event)" [max]="1" label="" />
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="dialog.close()" i18n>Cancel</button>
+  <button mat-button (click)="dialog.close({discard: true})" i18n>Discard</button>
+  @if (data?.failed) {
+    <button mat-flat-button (click)="dialog.close({retry: true})" i18n>Try again</button>
+  } @else {
+  <button mat-flat-button [disabled]="selected().length !== 1" (click)="dialog.close({spotId: selected()[0]})" i18n>Continue</button>
+  }
+</mat-dialog-actions>

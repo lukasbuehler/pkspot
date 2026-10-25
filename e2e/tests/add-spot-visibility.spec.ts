@@ -91,6 +91,40 @@ test.describe("Add Spot Button Visibility", () => {
     ).toBeVisible();
   });
 
+  test("keeps the map Add Spot button clear of the mobile navigation", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator("app-spot-map")).toBeAttached();
+    await mapPage.waitForMapReady();
+    const mockApplied = await setMapCreationState(page, {
+      signedIn: true,
+      zoom: 15,
+      canParticipate: true,
+    });
+
+    test.skip(
+      !mockApplied,
+      "Angular debug APIs are unavailable in the built E2E app.",
+    );
+    const createMenu = page.locator("#mapCreateFabMenu");
+    const navigation = page.locator("mat-toolbar");
+    await expect(createMenu).toBeVisible();
+    await expect(navigation).toBeVisible();
+
+    const [menuBounds, navigationBounds] = await Promise.all([
+      createMenu.boundingBox(),
+      navigation.boundingBox(),
+    ]);
+    expect(menuBounds).not.toBeNull();
+    expect(navigationBounds).not.toBeNull();
+    if (menuBounds && navigationBounds) {
+      expect(menuBounds.y + menuBounds.height + 8).toBeLessThanOrEqual(
+        navigationBounds.y,
+      );
+    }
+  });
+
   test("should hide the Add Spot button when signed in but contribution restricted", async ({
     page,
   }) => {

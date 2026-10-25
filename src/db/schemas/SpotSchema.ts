@@ -1,3 +1,5 @@
+import type { PlaceLabelNames } from "../../scripts/LocalizedPlaceLabels";
+import type { RecentActivityMin30d } from "./CheckInActivitySchema";
 import type { GeoPoint, Timestamp } from "firebase/firestore";
 import { LocaleMap } from "../models/Interfaces";
 import { SpotReviewSchema } from "./SpotReviewSchema";
@@ -34,6 +36,12 @@ export interface SpotManagementSchema {
   managed_by_user_id: string;
   managed_at: Timestamp;
   lock_edits: true;
+}
+
+/** Server-owned routing policy for edits proposed on this Spot. */
+export interface SpotEditPolicySchema {
+  /** External changes are resolved by the community vote instead of organization review. */
+  community_voting?: true;
 }
 
 /** @deprecated Use stewardship for public verification or management for exclusive control. */
@@ -92,10 +100,19 @@ export interface SpotSchema {
   upcoming_events?: EventCardPreviewSchema[];
 
   is_iconic?: boolean;
+  edit_policy?: SpotEditPolicySchema;
   stewardship?: SpotStewardshipStateSchema;
   management?: SpotManagementSchema;
   /** @deprecated Use stewardship or management. Kept for old clients during migration. */
   verification?: SpotVerificationSchema;
+  /** Server-owned distinct-account activity band over the last 30 days. Null clears expired activity. */
+  recent_activity_min_30d?: RecentActivityMin30d | null;
+  /** Server-owned `place_names` key for this location; changes when the town does. */
+  place_key?: string;
+  /** Server-owned localized town and region names for cards and SSR. */
+  place_names?: PlaceLabelNames;
+  /** Server-owned original and localized place names that search matches. */
+  localized_search_names?: string[];
   rating?: number; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   num_reviews?: number; // integer
   rating_histogram?: {

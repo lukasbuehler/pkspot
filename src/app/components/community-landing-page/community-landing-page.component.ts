@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { NgOptimizedImage } from "@angular/common";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
@@ -67,6 +69,7 @@ import {
   CommunityLocalityMergeConfirmDialogComponent,
   CommunityLocalityMergeConfirmData,
 } from "../community-locality-merge-confirm-dialog/community-locality-merge-confirm-dialog.component";
+import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -97,6 +100,7 @@ interface CommunityInfoCardView {
 @Component({
   selector: "app-community-landing-page",
   imports: [
+    AppHrefPipe,
     SystemDatePipe,
     NgOptimizedImage,
     MatCardModule,
@@ -124,6 +128,8 @@ interface CommunityInfoCardView {
   },
 })
 export class CommunityLandingPageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _route = inject(ActivatedRoute);
   private _authService = inject(AuthenticationService);
   private _landingPagesService = inject(LandingPagesService);
@@ -138,6 +144,9 @@ export class CommunityLandingPageComponent {
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
   openProgress = input<number>(1);
+  readonly knowledgeRevealProgress = computed(() =>
+    this.panelMode() ? Math.min(1, Math.max(0, this.openProgress())) : 1,
+  );
   backLabel = input<string | null>(null);
   backTypeLabel = input<string | null>(null);
   loading = input(false);
@@ -294,7 +303,7 @@ export class CommunityLandingPageComponent {
       return "We could not find a PK Spot community page for this route yet.";
     }
 
-    return $localize`Find parkour spots, events, and local community info for ${data.displayName}.`;
+    return data.description;
   });
 
   scopeLabel = computed(() => {
@@ -305,7 +314,11 @@ export class CommunityLandingPageComponent {
       return "Community";
     }
 
-    return `${scope.charAt(0).toUpperCase()}${scope.slice(1)} Community`;
+    switch (scope) {
+      case "country": return $localize`:@@community.scope.country:Country community`;
+      case "region": return $localize`:@@community.scope.region:Regional community`;
+      case "locality": return $localize`:@@community.scope.locality:Local community`;
+    }
   });
 
   parentBreadcrumb = computed(() => {
@@ -412,7 +425,7 @@ export class CommunityLandingPageComponent {
   crawlerSpotDirectoryHeading = computed(() => {
     const data = this.communityData();
     return data
-      ? `Parkour spots in ${data.displayName}`
+      ? data.spotDirectoryHeading ?? `Parkour Spots in ${data.displayName}`
       : "Parkour spot directory";
   });
 
@@ -618,6 +631,7 @@ export class CommunityLandingPageComponent {
         card_count: cards.length,
       });
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "saveKnowledgeCards", error);
       console.error("Failed to save community knowledge cards", error);
       this._analytics.trackEvent("community_knowledge_save_failed", {
         ...this._communityAnalyticsProperties(),
@@ -684,6 +698,7 @@ export class CommunityLandingPageComponent {
         duration: 3000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "saveCommunityMerge", error);
       console.error("Failed to queue community merge", error);
       this._snackbar.open($localize`Failed to queue community merge`, undefined, {
         duration: 5000,
@@ -723,6 +738,7 @@ export class CommunityLandingPageComponent {
         this.selectedLocalityMergeKey.set("");
       }
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "loadLocalityMergeAdminState", error);
       console.error("Failed to load unpublished locality merges", error);
       this.localityMergeLoadFailed.set(true);
       this._snackbar.open("Failed to load unpublished localities", undefined, {
@@ -809,6 +825,7 @@ export class CommunityLandingPageComponent {
         { duration: 4000 },
       );
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "_saveUnpublishedLocalityMerge", error);
       console.error(`Failed to ${action} unpublished locality`, error);
       this._snackbar.open(
         action === "merge"
@@ -1153,6 +1170,7 @@ export class CommunityLandingPageComponent {
 
   private _spotPreviewPriority(spot: SpotPreviewData): number {
     return getSpotPriority({
+      recent_activity_min_30d: spot.recent_activity_min_30d,
       rating: spot.rating,
       access: spot.access,
       isIconic: spot.isIconic,

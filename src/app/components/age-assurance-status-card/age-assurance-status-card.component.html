@@ -5,7 +5,7 @@
   <div class="age-assurance-card__content">
     <div class="age-assurance-card__heading">
       <h4 id="adult-eligibility-title" class="mat-title-medium m-0" i18n>
-        Adult eligibility for public profiles
+        Age verification
       </h4>
       <button
         mat-icon-button
@@ -22,26 +22,37 @@
       {{ statusText() }}
     </p>
 
+    @if (!ageAssurance.hasVerifiedAdultEligibility()) {
+      <div class="age-assurance-card__actions">
+        <button matButton="filled" type="button" (click)="openVerification()">
+          <mat-icon>verified_user</mat-icon>
+          <span i18n>Verify my age</span>
+        </button>
+      </div>
+    }
+
+    <div class="age-assurance-card__actions">
+      <a matButton="text" routerLink="/contact" i18n>
+        Report an incorrect age-assurance decision
+      </a>
+    </div>
+
     @if (isNativeAgeAssuranceApp) {
       <div class="age-assurance-card__actions">
         <button
           matButton="outlined"
           type="button"
           [disabled]="isChecking()"
+          [showProgress]="isChecking()"
           (click)="recheck()"
         >
-          @if (isChecking()) {
-            <mat-spinner diameter="18" strokeWidth="2"></mat-spinner>
-          } @else {
-            <mat-icon>refresh</mat-icon>
-          }
-          @if (isChecking()) {
-            <span i18n>Checking…</span>
-          } @else if (isIosApp && ageAssurance.checkState().status === "idle") {
+          <mat-icon>refresh</mat-icon>
+          @if (isIosApp && ageAssurance.checkState().status === "idle") {
             <span i18n>Check age range</span>
           } @else {
             <span i18n>Check again</span>
           }
+          <mat-spinner progressIndicator diameter="18" strokeWidth="2" />
         </button>
 
         @if (showPlayStoreAction()) {

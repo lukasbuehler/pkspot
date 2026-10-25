@@ -5,6 +5,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import { googleAPIKey } from "./secrets";
+import * as logger from "firebase-functions/logger";
 
 export type WeatherProvider = "google" | "open-meteo";
 export type WeatherCondition =
@@ -688,7 +689,10 @@ async function getCachedGoogleWeatherAlerts(
       expiresAt: expiresAt.toISOString(),
     };
   } catch (error) {
-    console.error("Google weather alerts request failed", error);
+    if (!(error instanceof HttpsError && error.code === "not-found")) {
+      // Coverage gaps are expected; retain diagnostics for actual upstream failures.
+      console.error("Google weather alerts request failed", error);
+    }
     return {
       alerts: [],
       status: "unavailable",
@@ -974,7 +978,7 @@ async function fetchOpenMeteoWeather(
     url.searchParams.set("apikey", apiKey);
   }
 
-  const response = await fetch(url);
+  const response = await fetchWeatherUpstream(url, "open-meteo");
   if (!response.ok) {
     throw new HttpsError(
       "unavailable",
@@ -1011,7 +1015,46 @@ async function fetchOpenMeteoWeather(
   };
 }
 
-async function fetchGoogleJson<T>(
+/** Log upstream status without URL queries, API keys, coordinates or response bodies. */
+export async function fetchWeatherUpstream(
+  url: URL,
+  provider: WeatherProvider,
+  logWarning: typeof logger.warn = logger.warn,
+): Promise<Response> {
+  const context = {provider, endpoint: url.pathname};
+  try {
+    const response = await fetch(url);
+    if (provider === "google" && response.status === 404) {
+      logger.info("Weather coverage unavailable", {...context, upstreamStatus: 404});
+    } else if (!response.ok) {
+      logWarning("Weather upstream rejected request", {...context, upstreamStatus: response.status});
+    }
+    return response;
+  } catch (error) {
+    logWarning("Weather upstream transport failed", {
+      ...context,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
+    throw error;
+  }
+}
+
+/** Google documents 404 as absent location coverage, not a service outage.
+ * Keep the callable error contract for older clients; never cache fabricated forecasts.
+ */
+function assertGoogleWeatherResponse(response: Response): void {
+  if (response.status === 404) {
+    throw new HttpsError("not-found", "Weather coverage is unavailable for this location.", {
+      reason: "coverage-unavailable",
+      provider: "google",
+    });
+  }
+  if (!response.ok) {
+    throw new HttpsError("unavailable", `Google Weather request failed: ${response.status}`);
+  }
+}
+
+export async function fetchGoogleJson<T>(
   endpoint: string,
   apiKey: string,
   location: WeatherLocation,
@@ -1026,13 +1069,8 @@ async function fetchGoogleJson<T>(
     url.searchParams.set(key, value);
   }
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new HttpsError(
-      "unavailable",
-      `Google Weather request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  const response = await fetchWeatherUpstream(url, "google");
+  assertGoogleWeatherResponse(response);
 
   return (await response.json()) as T;
 }
@@ -1058,13 +1096,8 @@ async function fetchGoogleWeatherAlerts(
     url.searchParams.set("languageCode", languageCode);
   }
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new HttpsError(
-      "unavailable",
-      `Google Weather alerts request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  const response = await fetchWeatherUpstream(url, "google");
+  assertGoogleWeatherResponse(response);
 
   const data = (await response.json()) as GoogleWeatherAlertsResponse;
   return {

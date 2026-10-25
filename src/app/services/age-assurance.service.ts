@@ -1,4 +1,8 @@
-import { Injectable, inject, signal } from "@angular/core";
+import { AgeVerificationProvider } from "../../environments/age-verification";
+import { normalizeUiLocale } from "../config/ui-locales";
+import { hasApprovedOneIdAdultPolicy } from "../../db/utils/external-age-policy";
+import { FeatureTelemetryService } from "./feature-telemetry.service";
+import { Injectable, inject, signal, LOCALE_ID } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { PLATFORM_ID } from "@angular/core";
@@ -18,6 +22,10 @@ import { environment } from "../../environments/environment.default";
 
 interface AgeAssurancePlugin {
   getAgeSignal(): Promise<PlatformAgeSignal>;
+  getAppleAttestKey(input: { uid: string }): Promise<{ keyId: string }>;
+  getBoundAppleAgeSignal(input: { uid: string; challengeId: string; challengeNonce: string; keyRegistered: boolean }): Promise<{
+    signal: PlatformAgeSignal; keyId: string; payload: string; proof: string;
+  }>;
   getBoundAgeSignal(input: {
     uid: string;
     challengeId: string;
@@ -26,6 +34,7 @@ interface AgeAssurancePlugin {
     signal: PlatformAgeSignal;
     integrityToken: string;
   }>;
+  openVerificationBrowser(input: {url: string}): Promise<void>;
   openPlayStoreListing(): Promise<void>;
 }
 
@@ -55,6 +64,32 @@ interface UpdateAgePolicyResponse {
   confidence?: AgeAssuranceConfidence;
   evaluated_at?: string;
   verified_at?: string;
+}
+
+export interface ExternalAgeVerificationAvailability {
+  providers: Array<{
+    provider: "oneid";
+    available: boolean;
+    method: "age_check";
+  }>;
+}
+
+export interface ExternalAgeVerificationAttempt {
+  attempt_id: string;
+  provider: "oneid";
+  verification_url: string;
+}
+
+export type ExternalVerificationStatus = "sandbox_verified" | "sandbox_not_verified" | "idle" | "pending" | "processing" | "verified" | "not_verified" | "cancelled" | "expired" | "failed";
+
+/** A lost response does not imply the server stopped. Recover through the status endpoint. */
+export async function externalVerificationRequest<T>(request: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([request, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(Object.assign(new Error("Verification request timed out"), {code: "deadline-exceeded"})), 20_000);
+    })]);
+  } finally { if (timer) clearTimeout(timer); }
 }
 
 export type AgeAssuranceCheckStatus =
@@ -94,11 +129,14 @@ const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
   providedIn: "root",
 })
 export class AgeAssuranceService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   static readonly mockPolicyStateStorageKey = "pkspot.mockAgePolicyState.v1";
 
   private _functionsAdapter = inject(FunctionsAdapterService);
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
+  private readonly uiLocale = inject(LOCALE_ID);
   private _lastSyncedUid: string | null = null;
   private _syncGeneration = 0;
   private _syncInFlight: NativeSyncInFlight | null = null;
@@ -107,6 +145,10 @@ export class AgeAssuranceService {
   });
 
   readonly checkState = this._checkState.asReadonly();
+
+  isProviderEnabled(provider: AgeVerificationProvider): boolean {
+    return environment.features.ageVerification[provider];
+  }
 
   async syncNativeAgePolicyForCurrentUser(): Promise<AgeAssuranceCheckState> {
     return this._syncNativeAgePolicyForCurrentUser(false);
@@ -118,12 +160,39 @@ export class AgeAssuranceService {
 
   async openPlayStoreListing(): Promise<void> {
     if (
+      !this.isProviderEnabled("google_play") ||
       !Capacitor.isNativePlatform() ||
       Capacitor.getPlatform() !== "android"
     ) {
       return;
     }
     await NativeAgeAssurance.openPlayStoreListing();
+  }
+
+  async openOneIdBrowser(url: string): Promise<void> {
+    if (!this.isProviderEnabled("oneid")) return;
+    return this.telemetry.run("age_verification", "open_provider", () => externalVerificationRequest(
+      NativeAgeAssurance.openVerificationBrowser({url})));
+  }
+
+  async externalVerificationAvailability(): Promise<ExternalAgeVerificationAvailability> {
+    if (!this.isProviderEnabled("oneid")) return { providers: [] };
+    return this.telemetry.run("age_verification", "availability", () => externalVerificationRequest(
+      this._functionsAdapter.callAuthenticatedAppChecked<Record<string, never>, ExternalAgeVerificationAvailability>("externalAgeVerificationAvailability", {})), false);
+  }
+
+  async externalVerificationStatus(): Promise<ExternalVerificationStatus> {
+    if (!this.isProviderEnabled("oneid")) return "idle";
+    return this.telemetry.run("age_verification", "status", async () => {
+      const result = await externalVerificationRequest(this._functionsAdapter.callAuthenticatedAppChecked<Record<string, never>, {status: ExternalVerificationStatus}>("externalAgeVerificationStatus", {}));
+      return result.status;
+    }, false);
+  }
+
+  async beginOneIdAgeVerification(): Promise<ExternalAgeVerificationAttempt> {
+    if (!this.isProviderEnabled("oneid")) throw new Error("OneID verification is disabled in this build");
+    return this.telemetry.run("age_verification", "beginOneIdAgeVerification", () => externalVerificationRequest(
+      this._functionsAdapter.callAuthenticatedAppChecked<{provider: "oneid"; locale: string}, ExternalAgeVerificationAttempt>("beginExternalAgeVerification", {provider: "oneid", locale: normalizeUiLocale(this.uiLocale)})));
   }
 
   private async _syncNativeAgePolicyForCurrentUser(
@@ -144,6 +213,10 @@ export class AgeAssuranceService {
 
     const platform = Capacitor.getPlatform();
     if (platform !== "android" && platform !== "ios") {
+      return this._checkState();
+    }
+
+    if (!this.isProviderEnabled(platform === "android" ? "google_play" : "apple")) {
       return this._checkState();
     }
 
@@ -170,7 +243,7 @@ export class AgeAssuranceService {
 
     this._checkState.set({ status: "checking", uid, platform });
     const generation = this._syncGeneration;
-    const promise = this._performNativeSync(uid, platform);
+    const promise = this.telemetry.run("age_verification", "native_sync", () => this._performNativeSync(uid, platform));
     this._syncInFlight = { uid, generation, promise };
     try {
       const state = await promise;
@@ -220,10 +293,22 @@ export class AgeAssuranceService {
     const synced =
       platform === "android"
         ? await this._syncRequestBoundAndroidPolicy(uid)
-        : await this._syncUnboundCompatibilityPolicy(
-            await NativeAgeAssurance.getAgeSignal(),
-          );
+        : await this._syncRequestBoundApplePolicy(uid);
     return this._checkStateForResult(uid, platform, synced);
+  }
+
+  private async _syncRequestBoundApplePolicy(uid: string): Promise<SyncedAgePolicy> {
+    const key = await NativeAgeAssurance.getAppleAttestKey({ uid });
+    const challenge = await this._functionsAdapter.callAuthenticatedAppChecked<
+      { key_id: string }, { challenge_id: string; challenge_nonce: string; key_registered: boolean }
+    >("beginAppleAgeAssurance", { key_id: key.keyId });
+    const bound = await NativeAgeAssurance.getBoundAppleAgeSignal({ uid,
+      challengeId: challenge.challenge_id, challengeNonce: challenge.challenge_nonce,
+      keyRegistered: challenge.key_registered });
+    const response = await this._functionsAdapter.callAuthenticatedAppChecked<
+      { key_id: string; payload: string; proof: string }, UpdateAgePolicyResponse
+    >("finishAppleAgeAssurance", { key_id: bound.keyId, payload: bound.payload, proof: bound.proof });
+    return { signal: bound.signal, response };
   }
 
   private async _syncRequestBoundAndroidPolicy(
@@ -278,6 +363,8 @@ export class AgeAssuranceService {
   }
 
   hasVerifiedAdultEligibility(): boolean {
+    // A completed external fallback can supersede an earlier unavailable native check.
+    if (hasApprovedOneIdAdultPolicy(this._authService.user.data?.data?.age_policy)) return true;
     const checkState = this._checkState();
     if (checkState.uid === this._authService.user.uid) {
       if (checkState.status === "verified") {
@@ -293,12 +380,16 @@ export class AgeAssuranceService {
     }
 
     const policy = this._authService.user.data?.data?.age_policy;
-    return (
-      policy?.adult_eligibility === "verified" &&
-      policy.assurance?.status === "active" &&
-      policy.assurance?.client_integrity ===
-        "play_integrity_request_bound"
-    );
+    const assurance = policy?.assurance;
+    const strongEvidence =
+      assurance?.evidence_strength === "independently_checked" ||
+      assurance?.evidence_strength === "verified_identity";
+    return policy?.adult_eligibility === "verified" &&
+      policy.age_range?.lower !== undefined && policy.age_range.lower >= 18 &&
+      assurance?.status === "active" && typeof assurance.approval_basis === "string" &&
+      (assurance.client_integrity === "play_integrity_request_bound" ||
+        hasApprovedOneIdAdultPolicy(policy) ||
+        (assurance.client_integrity === "apple_app_attest_request_bound" && strongEvidence));
   }
 
   adultEvidenceStrength(): AgeEvidenceStrength {

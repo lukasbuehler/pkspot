@@ -71,6 +71,8 @@ describe("SpotMapComponent lifecycle", () => {
     expect(source).toContain("waitForProcessingDisposition(spotId, editId)");
     expect(source).toContain("spotEditProcessingFailed(disposition)");
     expect(source).toContain("spotEditAwaitsOrganizationReview(disposition)");
+    expect(source).toContain("spotEditAwaitsCommunityVote(disposition)");
+    expect(source).toContain("Edit submitted for community voting");
     expect(source).not.toContain("const requiresOrganizationReview =");
   });
 });

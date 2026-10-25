@@ -74,6 +74,19 @@
   white-space: nowrap;
 }
 
+.listing-badge {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.25rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font: var(--mat-sys-label-small);
+}
+
+.listing-badge.community {
+  border-color: var(--mat-sys-tertiary);
+  color: var(--mat-sys-tertiary);
+}
+
 .event-rsvp {
   display: inline-flex;
   flex: 0 0 auto;
@@ -92,7 +105,8 @@
 }
 
 @container (max-width: 150px) {
-  .event-rsvp {
+  .event-rsvp,
+  .listing-badge {
     display: none;
   }
 }

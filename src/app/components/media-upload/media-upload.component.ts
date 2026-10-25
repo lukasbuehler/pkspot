@@ -25,10 +25,8 @@ import {
   canCropImage,
   type ImageCropPolicy,
 } from "../crop-image/image-crop-policy";
-import {
-  ImageCropDialogComponent,
-  type ImageCropDialogData,
-} from "../crop-image/image-crop-dialog.component";
+import type { ImageCropDialogData } from "../crop-image/image-crop-dialog.component";
+import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
 export type MediaUploadState =
   | "staged"
@@ -67,6 +65,7 @@ export interface MediaUploadEvent {
   styleUrls: ["./media-upload.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AppHrefPipe,
     MatButton,
     MatIconButton,
     MatIcon,
@@ -133,6 +132,10 @@ export class MediaUpload implements OnInit, OnDestroy {
     const files = Array.from(
       (eventTarget as HTMLInputElement | null)?.files ?? [],
     );
+    this.stageFiles(files);
+  }
+
+  stageFiles(files: File[]): void {
     if (files.length === 0) return;
 
     this.hasError = false;
@@ -176,8 +179,11 @@ export class MediaUpload implements OnInit, OnDestroy {
     }
 
     this.updateMedia(id, { state: "editing" });
+    const { ImageCropDialogComponent } = await import(
+      "../crop-image/image-crop-dialog.component"
+    );
     const ref = this.dialog.open<
-      ImageCropDialogComponent,
+      InstanceType<typeof ImageCropDialogComponent>,
       ImageCropDialogData,
       File | undefined
     >(ImageCropDialogComponent, {
@@ -186,6 +192,7 @@ export class MediaUpload implements OnInit, OnDestroy {
         policy: this.imageCropPolicy(),
         title: $localize`Crop image`,
       },
+      width: "720px",
       maxWidth: "100vw",
       maxHeight: "100dvh",
       panelClass: "image-crop-dialog-panel",

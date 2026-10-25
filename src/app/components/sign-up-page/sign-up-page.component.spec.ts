@@ -50,6 +50,17 @@ describe("SignUpPageComponent", () => {
     component.ngOnInit();
   });
 
+  it("shows a mismatched repeat password after blur and clears it when corrected", () => {
+    const form = component.createAccountForm!;
+    form.patchValue({ password: "correct-horse", repeatPassword: "wrong-horse" });
+    const repeated = form.controls["repeatPassword"];
+    expect(component.repeatPasswordMatcher.isErrorState(repeated, null)).toBe(false);
+    repeated.markAsTouched();
+    expect(component.repeatPasswordMatcher.isErrorState(repeated, null)).toBe(true);
+    repeated.setValue("correct-horse");
+    expect(component.repeatPasswordMatcher.isErrorState(repeated, null)).toBe(false);
+  });
+
   it("shows a form-level error for mismatched passwords before account creation", () => {
     const formValue = {
       displayName: "E2E User",

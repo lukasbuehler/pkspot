@@ -10,6 +10,24 @@ export class SpotSelectionDataService {
   private readonly spotsService = inject(SpotsService);
   private readonly cache = new Map<string, Promise<Spot>>();
 
+
+  /** Resolve older session visits without changing their private stored history. */
+  async resolveVisitNames(
+    visits: readonly { spot_id: string; spot_name?: string }[],
+    locale: LocaleCode,
+  ): Promise<ReadonlyMap<string, string>> {
+    const names = new Map(visits.filter(visit => visit.spot_name).map(visit => [visit.spot_id, visit.spot_name!]));
+    const missing = [...new Set(visits.map(visit => visit.spot_id))].filter(id => !names.has(id));
+    // Old training archives can contain many unique Spots. Bound concurrent reads.
+    for (let offset = 0; offset < missing.length; offset += 6) {
+      await Promise.all(missing.slice(offset, offset + 6).map(async id => {
+        try { names.set(id, (await this.resolve(id, locale)).name() || $localize`:@@training.spotUnavailable:Unavailable Spot`); }
+        catch { names.set(id, $localize`:@@training.spotUnavailable:Unavailable Spot`); }
+      }));
+    }
+    return names;
+  }
+
   resolve(id: string, locale: LocaleCode): Promise<Spot> {
     const key = `${locale}:${id}`;
     const cached = this.cache.get(key);

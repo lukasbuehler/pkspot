@@ -6,6 +6,8 @@
           class="spot-img-container"
           [class.contained-preview]="getImagePreviewFit($index) === 'contain'"
           [class.video-preview]="isExternalVideo(mediaObj)"
+          [class.youtube-preview]="!!youtubeIds()[$index]"
+          [style.--image-aspect-ratio]="getImageAspectRatio($index)"
           [style.aspect-ratio]="getImageAspectRatio($index)"
           [attr.data-media-index]="$index"
         >
@@ -13,7 +15,9 @@
             class="spot-img-frame"
             [style.background-color]="getImagePreviewBackgroundColor($index)"
           >
-            @if (isExternalVideo(mediaObj)) {
+            @if (youtubeIds()[$index]) {
+              <app-youtube-player [src]="mediaObj.baseSrc" [active]="!viewerOpen()" />
+            } @else if (isExternalVideo(mediaObj)) {
               <video
                 [src]="mediaObj.getVideoSrc()"
                 [muted]="videoMuted()"
@@ -40,6 +44,7 @@
             ) {
               <img
                 [ngSrc]="getImageSrc($index, mediaObj)"
+                [alt]="imageDescription()"
                 fill
                 [priority]="$index === 0"
                 [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
@@ -50,6 +55,7 @@
             }
           </div>
 
+          @if (!youtubeIds()[$index]) {
           @if (getExternalSourceUrl(mediaObj); as sourceUrl) {
             <a
               mat-stroked-button
@@ -64,6 +70,7 @@
             </a>
           }
 
+          }
           @if (isImageProcessing($index, mediaObj)) {
             <!-- Show processing placeholder while resized image isn't ready -->
             <div class="processing-overlay">

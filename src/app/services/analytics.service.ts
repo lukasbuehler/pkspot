@@ -40,6 +40,28 @@ interface PendingUserIdentity {
   properties?: Record<string, unknown>;
 }
 
+/** A private plan URL must not identify a meeting in analytics or referrers. */
+export function redactPlanningUrl(value: string): string {
+  try {
+    const url = new URL(value, "https://pkspot.app");
+    if (url.searchParams.has("sessionRecord")) return "/train/log/new";
+    if (/\/events\/session(?:\/|$)/.test(url.pathname) || url.searchParams.has("plannedSession")) return "/events/sessions";
+  } catch { /* Not a URL property. */ }
+  return value;
+}
+function redactPlanningProperties(properties: Properties): Properties {
+  const result = { ...properties };
+  let redacted = false;
+  for (const key of ["$current_url", "current_url", "$pathname", "path", "$referrer", "$initial_referrer", "referrer", "url"]) {
+    if (typeof result[key] !== "string") continue;
+    const value = redactPlanningUrl(result[key]);
+    redacted ||= value !== result[key];
+    result[key] = value;
+  }
+  if (redacted) { delete result["$title"]; delete result["title"]; }
+  return result;
+}
+
 const LEGACY_NATIVE_SDK_PROPERTY_KEYS = ["$lib", "$lib_version"] as const;
 
 export function stripUtmParametersFromUrl(url: string): string {
@@ -53,6 +75,8 @@ export function stripUtmParametersFromUrl(url: string): string {
 
   return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
 }
+
+export type AppStoreTarget = "apple" | "google" | "choice";
 
 @Injectable({
   providedIn: "root",
@@ -127,6 +151,7 @@ export class AnalyticsService {
    * Track a screen view (Native only essentially, as Web tracks pageviews automatically)
    */
   trackScreen(screenName: string, properties?: Record<string, unknown>): void {
+    screenName = redactPlanningUrl(screenName);
     if (!this.isAvailable()) return;
 
     if (this.isNative()) {
@@ -381,6 +406,23 @@ export class AnalyticsService {
       cta_label: ctaLabel ?? null,
       destination_domain: this.getDestinationDomain(url),
       url: this.safeAnalyticsUrl(url),
+    });
+  }
+
+  /**
+   * One event for every link to an app store page, so the website-to-store
+   * funnel is a single PostHog insight. `store` is "choice" when the visitor's
+   * device was unknown and the store picker opened instead.
+   */
+  trackAppStoreClick(
+    surface: string,
+    store: AppStoreTarget,
+    ctaId?: string,
+  ): void {
+    this.trackEvent("app_store_cta_clicked", {
+      surface,
+      store,
+      cta_id: ctaId ?? null,
     });
   }
 
@@ -857,7 +899,7 @@ export class AnalyticsService {
   private withRequiredNativeAnalyticsProperties(
     properties?: Record<string, unknown>,
   ): Record<string, unknown> {
-    const nativeProperties = { ...(properties ?? {}) };
+    const nativeProperties = redactPlanningProperties(properties ?? {});
     for (const key of LEGACY_NATIVE_SDK_PROPERTY_KEYS) {
       delete nativeProperties[key];
     }
@@ -1337,6 +1379,7 @@ export class AnalyticsService {
         "$current_url"
       ].replace(/^(https?:\/\/[^/]+)\/(en|de|de-CH|fr|it|es|nl)(\/|$)/, "$1/");
     }
+    event.properties = redactPlanningProperties(event.properties);
     return event;
   }
 

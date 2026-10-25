@@ -38,9 +38,17 @@ div.sheet {
   }
 
   > div.content {
+    // Parents with an overlaying bottom control can reserve scroll space here
+    // without moving the sheet's physical bottom edge.
+    box-sizing: border-box;
     overflow-y: scroll;
     height: calc(100% - $handle-region-height);
     overflow-x: hidden;
+    padding-block-end: var(--bottom-sheet-content-bottom-clearance, 0px);
+    scroll-padding-block-end: var(
+      --bottom-sheet-content-bottom-clearance,
+      0px
+    );
     // Prevent iOS rubber-band/overshoot scrolling which interferes with
     // the ability to drag the bottom sheet down when content is at top
     overscroll-behavior: none;
@@ -53,6 +61,11 @@ div.handle-region {
   justify-content: center;
   align-items: center;
   touch-action: none;
+  // A drag grip must not start WebKit text selection or its long-press loupe.
+  // Keep selection available in the actual sheet content.
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 
   margin-left: 16px;
   margin-right: 16px;
@@ -100,6 +113,20 @@ div.sheet > div.content {
     .mat-mdc-mini-fab,
     .mdc-button {
       touch-action: pan-y !important;
+    }
+
+    // On iOS (app and Safari) a finger that rests on a link or photo for a
+    // moment starts drag-and-drop. The sheet cancels that drag, so the
+    // gesture would neither drag nor scroll. Content is never draggable.
+    a,
+    img {
+      -webkit-user-drag: none;
+    }
+
+    // Material chips contain buttons. Their horizontal scroller must retain
+    // pan-x instead of intersecting it with the vertical button rule above.
+    [data-horizontal-scroll] button {
+      touch-action: pan-x !important;
     }
   }
 }

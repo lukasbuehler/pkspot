@@ -2,7 +2,7 @@
   <div class="container settings-page-content">
     <div class="row">
       <div class="col-md-4">
-        <div class="menu d-flex flex-column rounded border mb-5">
+        <div class="menu d-flex flex-column settings-box border mb-5">
           @for(menuPoint of menuPoints; track menuPoint.id) {
           <button
             mat-button
@@ -80,147 +80,8 @@
             deletion.
           </p>
 
-          <div class="account-id-card my-4">
-            <div class="account-id-card__icon" aria-hidden="true">
-              <mat-icon>badge</mat-icon>
-            </div>
-            <div>
-              <h3 class="mat-title-medium m-0" i18n="@@settings.account.userId">
-                User ID
-              </h3>
-              <p
-                class="mat-body-small m-0"
-                i18n="@@settings.account.userIdDescription"
-              >
-                Your unique account identifier.
-              </p>
-              <code class="account-id-card__value">{{
-                authService.user.uid
-              }}</code>
-            </div>
-          </div>
-
-          <section class="profile-access-card">
-            <header class="profile-access-header">
-              <h3 class="mat-h3 m-0" i18n="@@settings.profileAccess.title">
-                Profile access
-              </h3>
-              <p class="mat-body m-0" i18n="@@settings.profileAccess.description">
-                One privacy setting controls who can see your expanded profile
-                and whether new followers need your approval.
-              </p>
-            </header>
-
-            <div class="profile-access-control">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label i18n="@@settings.profileAccess.privacy">
-                  Profile privacy
-                </mat-label>
-                <mat-select
-                  [ngModel]="profilePrivacy"
-                  (ngModelChange)="setProfilePrivacy($event)"
-                >
-                  <mat-option
-                    value="public"
-                    [disabled]="!canSelectPublicProfile"
-                  >
-                    {{ publicProfilePrivacyLabel }}
-                  </mat-option>
-                  <mat-option value="private">
-                    {{ privateProfilePrivacyLabel }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              @if (profilePrivacy === "public") {
-                <p
-                  class="profile-access-help mat-body-small"
-                  i18n="@@settings.profileAccess.publicHelp"
-                >
-                  Anyone can view your expanded profile and follow you without
-                  approval.
-                </p>
-              } @else {
-                <p
-                  class="profile-access-help mat-body-small"
-                  i18n="@@settings.profileAccess.privateHelp"
-                >
-                  Only approved followers can view your expanded profile.
-                </p>
-              }
-            </div>
-
-            <div class="profile-access-options">
-              <app-age-assurance-status-card />
-
-              <div class="profile-access-option">
-                <div>
-                  <h4 class="mat-title-medium m-0" i18n>
-                    Search engine discovery
-                  </h4>
-                  <p class="mat-body-small m-0 text-muted" i18n>
-                    Include this profile in PK Spot user search and public
-                    sitemaps. This is always off for children and profiles
-                    without independently checked adult eligibility.
-                  </p>
-                </div>
-                <mat-slide-toggle
-                  color="primary"
-                  [checked]="publicSearch"
-                  [disabled]="profilePrivacy !== 'public'"
-                  (change)="setPublicSearch($event.checked)"
-                  aria-label="Allow profile search indexing"
-                  i18n-aria-label
-                ></mat-slide-toggle>
-              </div>
-            </div>
-
-            @if (!ageAssurance.hasVerifiedAdultEligibility()) {
-              <div class="profile-access-eligibility">
-                <p
-                  class="mat-body-small m-0"
-                  i18n="@@settings.profileAccess.publicEligibility"
-                >
-                  Public profiles stay unavailable until the platform supplies
-                  an independently checked result establishing that this account
-                  is 18 or older. A self-declared age range is not enough.
-                </p>
-                <a mat-button routerLink="/contact" i18n>
-                  Report an incorrect age-assurance decision
-                </a>
-              </div>
-            }
-            <button
-              class="profile-access-save"
-              mat-flat-button
-              color="primary"
-              [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
-              (click)="saveProfileAccessSettings()"
-            >
-              @if(isSavingProfileAccess) {
-              <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-              } @else {
-                <span i18n="@@settings.profileAccess.save"
-                  >Save profile access</span
-                >
-              }
-            </button>
-          </section>
-
-          <div class="my-4 p-3 rounded border">
-            <div class="d-flex justify-content-between align-items-center gap-3">
-              <div>
-                <h3 class="mat-h3 m-0" i18n>Session</h3>
-                <p class="mat-body m-0" i18n>Sign out of your account.</p>
-              </div>
-              <button mat-stroked-button color="primary" (click)="logOut()" i18n>
-                Sign out
-              </button>
-            </div>
-          </div>
-
           <!-- Email Section -->
-          <div class="my-4 p-3 rounded border">
+          <div class="my-4 p-3 settings-box border">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h3 class="mat-h3 m-0" i18n>E-Mail address</h3>
               @if(!isEmailExpanded && !isOAuthUser) {
@@ -314,13 +175,11 @@
                   [disabled]="
                     isChangingEmail || !newEmailAddress || !emailChangePassword
                   "
+                  [showProgress]="isChangingEmail"
                   (click)="changeEmailAddress()"
                 >
-                  @if(isChangingEmail) {
-                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                  } @else {
                   <span i18n>Change E-mail address</span>
-                  }
+                  <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
                 </button>
               </div>
             </div>
@@ -329,7 +188,7 @@
 
           <!-- Password Section -->
           @if(!isOAuthUser) {
-          <div class="my-4 p-3 rounded border">
+          <div class="my-4 p-3 settings-box border">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h3 class="mat-h3 m-0" i18n>Password</h3>
               @if(!isPasswordExpanded) {
@@ -384,13 +243,11 @@
                     !newPassword ||
                     !confirmNewPassword
                   "
+                  [showProgress]="isChangingPassword"
                   (click)="changePassword()"
                 >
-                  @if(isChangingPassword) {
-                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                  } @else {
                   <span i18n>Change password</span>
-                  }
+                  <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
                 </button>
               </div>
             </div>
@@ -398,8 +255,136 @@
           </div>
           }
 
+          <app-age-assurance-status-card class="my-4" />
+
+          <section class="profile-access-card">
+            <header class="profile-access-header">
+              <h3 class="mat-h3 m-0" i18n="@@settings.profileAccess.title">
+                Profile access
+              </h3>
+              <p class="mat-body m-0" i18n="@@settings.profileAccess.description">
+                One privacy setting controls who can see your expanded profile
+                and whether new followers need your approval.
+              </p>
+            </header>
+
+            <div class="profile-access-control">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label i18n="@@settings.profileAccess.privacy">
+                  Profile privacy
+                </mat-label>
+                <mat-select
+                  [ngModel]="profilePrivacy"
+                  (ngModelChange)="setProfilePrivacy($event)"
+                >
+                  <mat-option
+                    value="public"
+                    [disabled]="!canSelectPublicProfile"
+                  >
+                    {{ publicProfilePrivacyLabel }}
+                  </mat-option>
+                  <mat-option value="private">
+                    {{ privateProfilePrivacyLabel }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if (!ageAssurance.hasVerifiedAdultEligibility()) {
+                <p class="profile-access-help mat-body-small" i18n="@@settings.profileAccess.verificationRequired">
+                  Verify that you are 18 or older to enable a public profile and search discovery. Your profile stays private until then.
+                </p>
+              }
+
+              @if (profilePrivacy === "public") {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.publicHelp"
+                >
+                  Anyone can view your expanded profile and follow you without
+                  approval.
+                </p>
+              } @else {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.privateHelp"
+                >
+                  Only approved followers can view your expanded profile.
+                </p>
+              }
+            </div>
+
+            <div class="profile-access-options">
+              <div class="profile-access-option">
+                <div>
+                  <h4 class="mat-title-medium m-0" i18n>
+                    Search engine discovery
+                  </h4>
+                  <p class="mat-body-small m-0 text-muted" i18n>
+                    Include this profile in PK Spot user search and public
+                    sitemaps. This is always off for children and profiles
+                    without independently checked adult eligibility.
+                  </p>
+                </div>
+                <mat-slide-toggle
+                  color="primary"
+                  [checked]="publicSearch"
+                  [disabled]="!canSelectPublicProfile || profilePrivacy !== 'public'"
+                  (change)="setPublicSearch($event.checked)"
+                  aria-label="Allow profile search indexing"
+                  i18n-aria-label
+                ></mat-slide-toggle>
+              </div>
+            </div>
+
+            <button
+              class="profile-access-save"
+              mat-flat-button
+              color="primary"
+              [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
+              [showProgress]="isSavingProfileAccess"
+              (click)="saveProfileAccessSettings()"
+            >
+              <span i18n="@@settings.profileAccess.save"
+                >Save profile access</span
+              >
+              <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
+            </button>
+          </section>
+
+          <div class="account-id-card my-4">
+            <div class="account-id-card__icon" aria-hidden="true">
+              <mat-icon>badge</mat-icon>
+            </div>
+            <div>
+              <h3 class="mat-title-medium m-0" i18n="@@settings.account.userId">
+                User ID
+              </h3>
+              <p
+                class="mat-body-small m-0"
+                i18n="@@settings.account.userIdDescription"
+              >
+                Your unique account identifier.
+              </p>
+              <code class="account-id-card__value">{{
+                authService.user.uid
+              }}</code>
+            </div>
+          </div>
+
+          <div class="my-4 p-3 settings-box border">
+            <div class="d-flex justify-content-between align-items-center gap-3">
+              <div>
+                <h3 class="mat-h3 m-0" i18n>Session</h3>
+                <p class="mat-body m-0" i18n>Sign out of your account.</p>
+              </div>
+              <button mat-stroked-button color="primary" (click)="logOut()" i18n>
+                Sign out
+              </button>
+            </div>
+          </div>
+
           <!-- Delete Account Section -->
-          <div class="my-4 p-3 rounded border border-danger">
+          <div class="my-4 p-3 settings-box border border-danger">
             <h3 class="mat-h3 text-danger" i18n>Delete Account</h3>
             <p class="mat-body" i18n>
               Permanently delete your account and all associated data. This
@@ -417,7 +402,7 @@
             </button>
             } @else {
             <div
-              class="d-flex flex-column gap-3 mt-3 p-3 rounded"
+              class="d-flex flex-column gap-3 mt-3 p-3 settings-box"
               style="background: rgba(var(--mat-warn-color), 0.1)"
             >
               @if(isOAuthUser) {
@@ -450,13 +435,11 @@
                     isDeletingAccount ||
                     (!isOAuthUser && !deleteAccountPassword)
                   "
+                  [showProgress]="isDeletingAccount"
                   (click)="deleteAccount()"
                 >
-                  @if(isDeletingAccount) {
-                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                  } @else {
                   <span i18n>Permanently delete</span>
-                  }
+                  <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
                 </button>
               </div>
             </div>
@@ -471,7 +454,41 @@
             General settings to tune your experience on PK Spot.
           </h3>
 
-          <div class="my-4 p-3 rounded border">
+          <app-local-legend-settings class="my-4" />
+          <section class="my-4 p-3 settings-box border">
+            <h3 class="mat-h3 m-0" i18n="@@external_media.settings.title">External media</h3>
+            <p class="mat-body mt-2" i18n="@@external_media.settings.description">These choices are saved on this device. Loading third-party content connects to its provider and may share device and playback data.</p>
+            <div class="d-flex flex-column gap-3">
+              <p class="mat-body-small">
+                <span i18n="@@youtube.settings_agreement">By allowing YouTube, you agree to its Terms of Service.</span>
+                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" i18n="@@youtube.terms">YouTube Terms</a>
+                · <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" i18n="@@youtube.privacy">Google Privacy Policy</a>
+              </p>
+              <mat-slide-toggle [checked]="externalMedia.youtubeAllowed()" (change)="externalMedia.setYoutubeAllowed($event.checked)" i18n="@@external_media.settings.youtube">Always allow YouTube</mat-slide-toggle>
+              <mat-slide-toggle [checked]="externalMedia.external().allowAll" (change)="externalMedia.setOtherAllowed($event.checked)" i18n="@@external_media.settings.other">Always allow other external images and videos</mat-slide-toggle>
+              <p class="mat-body-small" i18n="@@external_media.settings.separate">YouTube is controlled separately. Individual website permissions can also be granted in the media carousel. Resetting clears all saved and temporary permissions.</p>
+              <button mat-stroked-button type="button" (click)="externalMedia.reset()" i18n="@@external_media.settings.reset">Reset external media permissions</button>
+            </div>
+          </section>
+
+
+          <div class="my-4 p-3 settings-box border">
+            <h3 class="mat-h3 m-0" i18n="@@locationAccess.settings.title">Location</h3>
+            <p class="mat-body mt-2 mb-3" i18n="@@locationAccess.settings.description">
+              Use location for the map position and nearby check-ins. It is off until you choose otherwise.
+            </p>
+            <p class="mat-body-small mt-0" i18n="@@locationAccess.settings.current">
+              Current setting: {{ locationAccessLabel() }}
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+              <button matButton="outlined" type="button" (click)="manageLocationAccess()" i18n="@@locationAccess.settings.manage">Manage location</button>
+              @if (locationAccess.enabled()) {
+                <button matButton="outlined" type="button" (click)="disableLocationAccess()" i18n="@@locationAccess.settings.off">Turn off</button>
+              }
+            </div>
+          </div>
+
+          <div class="my-4 p-3 settings-box border">
             <h3 class="mat-h3 m-0" i18n>Language</h3>
             <p class="mat-body mt-2 mb-3" i18n>
               Choose the language used in the app.
@@ -486,7 +503,7 @@
             </button>
           </div>
 
-          <div class="my-4 p-3 rounded border">
+          <div class="my-4 p-3 settings-box border">
             <h3 class="mat-h3 m-0" i18n="@@settings.temperature.heading">
               Temperature
             </h3>
@@ -524,7 +541,33 @@
             </mat-button-toggle-group>
           </div>
 
-          <div class="my-4 p-3 rounded border">
+          <div class="my-4 p-3 settings-box border">
+            <h3 class="mat-h3 m-0" i18n="@@settings.maps_app.heading">
+              Maps app
+            </h3>
+            <p
+              class="mat-body mt-2 mb-3"
+              i18n="@@settings.maps_app.description"
+            >
+              Used for "Open in Maps" and directions. Automatic uses your
+              default navigation app in the iOS app and Google Maps everywhere
+              else.
+            </p>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label i18n="@@settings.maps_app.label">Open locations in</mat-label>
+              <mat-select
+                [value]="appSettings.mapsApp()"
+                (selectionChange)="appSettings.mapsApp.set($event.value)"
+              >
+                <mat-option value="automatic" i18n="@@settings.maps_app.automatic">Automatic</mat-option>
+                <mat-option value="google">Google Maps</mat-option>
+                <mat-option value="apple">Apple Maps</mat-option>
+                <mat-option value="osm">OpenStreetMap</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="my-4 p-3 settings-box border">
             <h3 class="mat-h3 m-0" i18n="@@settings.time_format.heading">
               Time format
             </h3>
@@ -563,13 +606,14 @@
           </div>
 
           <div class="my-4">
-            <h3 class="mat-h3">Vector map rendering</h3>
-            <p class="mat-body">
+            <h3 class="mat-h3" i18n>Vector map rendering</h3>
+            <p class="mat-body" i18n>
               Enable smoother fractional zoom and vector map effects. Raster
               rendering is the default because it is more stable on some mobile
               WebViews.
             </p>
             <mat-slide-toggle
+              i18n
               [checked]="appSettings.enableVectorMaps()"
               (change)="appSettings.enableVectorMaps.set($event.checked)"
               color="primary"
@@ -617,6 +661,17 @@
                 Enable Map Debug Mode
               </mat-slide-toggle>
             </div>
+            @if (mapProfiler.available) {
+              <div class="mt-4">
+                <h3 class="mat-h3">Map performance capture</h3>
+                <p class="mat-body">Record camera, gestures, rendering and performance locally. Captures can include map coordinates. Nothing is uploaded automatically. The previous session is retained after restarting the app.</p>
+                <mat-slide-toggle [checked]="mapProfiler.enabled()" (change)="mapProfiler.setEnabled($event.checked)">Record map diagnostics</mat-slide-toggle>
+                <div class="mt-3 d-flex gap-2">
+                  <button mat-stroked-button (click)="copyMapDiagnostics()">Copy capture</button>
+                  <button mat-button (click)="mapProfiler.clearBreadcrumbs()">Clear capture</button>
+                </div>
+              </div>
+            }
           </mat-expansion-panel>
 
           <!--
@@ -650,7 +705,7 @@
           </p>
 
           <!-- PK Spot Branding / Card -->
-          <div class="my-4 p-4 rounded border d-flex flex-column gap-3">
+          <div class="my-4 p-4 settings-box border d-flex flex-column gap-3">
             <div class="d-flex align-items-center gap-3">
               <img
                 src="assets/icons/icon-128.webp"
@@ -720,13 +775,30 @@
             </div>
           </div>
 
+          <div class="my-4">
+            <h3 class="mat-h3" i18n="@@settings.review.heading">Review PK Spot</h3>
+            <p class="mat-body" i18n="@@settings.review.description">
+              PK Spot grows through its community. An honest store review helps others discover the app.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+              @if (reviewPlatform !== 'android') {
+                <a matButton="outlined" [href]="appleReviewUrl" (click)="trackOutboundLinkClick('app_store_review', appleReviewUrl, 'Review on the App Store')" target="_blank" rel="noopener noreferrer"
+                  i18n="@@settings.review.apple">Review on the App Store</a>
+              }
+              @if (reviewPlatform !== 'ios') {
+                <a matButton="outlined" [href]="googleReviewUrl" (click)="trackOutboundLinkClick('google_play_review', googleReviewUrl, 'Review on Google Play')" target="_blank" rel="noopener noreferrer"
+                  i18n="@@settings.review.google">Review on Google Play</a>
+              }
+            </div>
+          </div>
+
           <!-- Crew Credits Section -->
           <div class="my-4">
             <h3 class="mat-h3 mb-3" i18n>The Crew</h3>
             <div class="row g-3">
               @for (member of crew; track member.name) {
                 <div class="col-sm-6">
-                  <div class="p-3 rounded border h-100">
+                  <div class="p-3 settings-box border h-100">
                     <h4 class="mat-title-small m-0">{{ member.name }}</h4>
                     <p
                       class="mat-body-small m-0"
@@ -741,7 +813,7 @@
           </div>
           
           <!-- Open Data / Licensing details -->
-          <div class="my-4 p-3 rounded border" style="background: var(--mat-sys-surface-container-low)">
+          <div class="my-4 p-3 settings-box border" style="background: var(--mat-sys-surface-container-low)">
             <h3 class="mat-h3 m-0" i18n>Open Data License</h3>
             <p class="mat-body-medium mt-2 mb-0">
               <span i18n="@@settings.about.license_prefix">
@@ -773,6 +845,7 @@
 <app-speed-dial-fab
   #saveSpeedDial
   id="saveSpeedDial"
+  class="app-page-fab"
   [buttonConfig]="speedDialButtonConfig"
   [openOnHover]="true"
   [rotationDegrees]="0"

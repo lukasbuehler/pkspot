@@ -30,6 +30,7 @@ export class AppCheckFailureWarningService {
     this.warningShown = true;
     this.dialog.open(AppCheckErrorDialogComponent, {
       data: status,
+      panelClass: "app-check-safe-dialog",
       maxWidth: "560px",
       width: "calc(100vw - 32px)",
     });

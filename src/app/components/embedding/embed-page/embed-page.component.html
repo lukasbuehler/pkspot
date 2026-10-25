@@ -16,6 +16,14 @@
         (selectedValueChange)="onEmbedTypeChange($event)"
       ></app-chip-selector>
 
+      @if (tab() === "spot") {
+        <app-spot-picker [value]="spotIds()" [max]="10" (valueChange)="spotIds.set($event)" />
+        <mat-slide-toggle [checked]="showSelectionMap()" (change)="showSelectionMap.set($event.checked)" i18n>Show map</mat-slide-toggle>
+      }
+      @if (tab() === "community") {
+        <app-entity-reference-autocomplete kind="community" [value]="communityId()"
+          (selectionChange)="onCommunitySelection($event)" />
+      }
       @if(tab() == "event" || tab() == "event-map") {
         <mat-form-field class="w-100 mb-3" appearance="outline">
           <mat-label i18n>Event</mat-label>
@@ -88,11 +96,13 @@
     </div>
     <div class="col-md-6">
       <div class="embed-preview shadow-lg border">
+        @if (unsafeIframeUrl()) {
         <iframe
           class="bg-black overflow-hidden d-block"
           [src]="safeIframeUrl()"
           [title]="embedCreditText().iframeTitle"
         ></iframe>
+        } @else { <p class="p-4" role="status" i18n>Select content to preview your embed.</p> }
         @if (publicContentUrl()) {
           <div class="embed-preview__credit">
             <span>{{ embedCreditText().interactiveLabel }}</span>
@@ -121,11 +131,13 @@
         consent banner or terms that users agree to before viewing embedded
         content.
       </div>
+      @if (iframeCode()) {
       <app-code-block
         [code]="iframeCode()"
         analyticsEventName="embed_code_copied"
         [analyticsProperties]="embedAnalyticsProperties()"
       ></app-code-block>
+      }
     </div>
   </div>
 </div>

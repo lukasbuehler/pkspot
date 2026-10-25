@@ -13,7 +13,11 @@ import {
 
 export function eventProgramLocationColor(
   visit: EventProgramLocationVisit,
+  selectedDay?: string | null,
 ): MapMarkerColor {
+  if (selectedDay && !visit.occurrences.some((item) => item.day === selectedDay)) {
+    return "gray";
+  }
   return visit.kind === "custom_marker" && visit.marker.color
     ? visit.marker.color
     : visit.representative.isActive

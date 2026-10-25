@@ -160,6 +160,7 @@
           },
           "configurations": {
             "dev": {
+              "browser": "src/main.dev.ts",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.default.ts",
@@ -182,6 +183,7 @@
               "baseHref": "/de/"
             },
             "store-screenshots": {
+              "outputPath": "dist/store-screenshots",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.default.ts",
@@ -232,6 +234,45 @@
               "sourceMap": false,
               "outputHashing": "all",
 
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "4mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "8kb"
+                }
+              ]
+            },
+            "cloudflare": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.default.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ],
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": {
+                  "inline": true
+                }
+              },
+              "sourceMap": false,
+              "outputHashing": "all",
+              "outputPath": "dist/pkspot-cloudflare",
+              "outputMode": "server",
+              "server": "src/main.cloudflare.ts",
+              "ssr": {
+                "entry": "server.cloudflare.ts",
+                "platform": "neutral"
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -507,7 +548,7 @@
         "extract-i18n": {
           "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",
           "options": {
-            "buildTarget": "pkspot:build:dev",
+            "buildTarget": "pkspot:build:production",
             "format": "xlf2",
             "outputPath": "src/locale",
             "targetFiles": [

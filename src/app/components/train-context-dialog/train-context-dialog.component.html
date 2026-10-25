@@ -1,0 +1,66 @@
+<header class="context-dialog__header">
+  <div>
+    <p class="context-dialog__eyebrow" i18n="@@train.context.eyebrow">
+      Training area
+    </p>
+    <h2 mat-dialog-title i18n="@@train.context.title">Choose your training area</h2>
+  </div>
+  <button
+    matIconButton
+    type="button"
+    mat-dialog-close
+    aria-label="Close training area"
+    i18n-aria-label="@@train.context.close"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</header>
+
+<mat-dialog-content>
+  <p class="context-dialog__intro" i18n="@@train.context.intro">
+    Use your location for nearby ideas, or search for a community to plan a session somewhere else.
+  </p>
+
+  <button matButton="tonal" type="button" (click)="useLocation()">
+    <mat-icon>my_location</mat-icon>
+    <span i18n="@@train.useLocation">Use my location</span>
+  </button>
+
+  <div class="context-dialog__divider" aria-hidden="true"><span></span><em i18n="@@common.or">or</em><span></span></div>
+
+  <app-search-field
+    appearance="outline"
+    [contextLabel]="data.area?.displayName ?? null"
+    (spotSelected)="selectArea($event)"
+    (contextClear)="clearArea()"
+  />
+
+  @if (data.area) {
+    <button matButton type="button" (click)="clearArea()">
+      <mat-icon>close</mat-icon>
+      <span i18n="@@train.context.clearArea">Clear training area</span>
+    </button>
+  }
+
+  @if (data.weather; as weather) {
+    <section class="weather-summary">
+      <mat-icon aria-hidden="true">{{ weather.icon }}</mat-icon>
+      <div>
+        <strong>
+          @if (weather.temperature) {
+            {{ weather.temperature }} ·
+          }
+          {{ weather.summary }}
+        </strong>
+        <span i18n="@@train.context.weatherHint">See the next few hours before you head out.</span>
+      </div>
+      <button matButton type="button" (click)="showWeather()" i18n="@@train.context.weatherAction">
+        View forecast
+      </button>
+    </section>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" mat-dialog-close i18n="@@common.close">Close</button>
+</mat-dialog-actions>

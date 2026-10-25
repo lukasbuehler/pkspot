@@ -1,0 +1,45 @@
+<h2 mat-dialog-title i18n="@@localLegend.data.title">Manage Local Legend data</h2>
+<mat-dialog-content>
+  <p i18n="@@localLegend.data.explanation">Only verified check-ins made after you turn Local Legend on count. Ranks update overnight. Your check-ins and training history are kept when you leave or delete a past rank.</p>
+  @if (localLegend.enabled()) {
+    @if (confirmingWithdrawal()) {
+      <p i18n="@@localLegend.data.withdrawConfirm">Leave Local Legend? Your current-month ranks and comparison data will be deleted across all Spots. Past ranks stay. If you join again, only new check-ins will count.</p>
+      <button matButton type="button" (click)="confirmingWithdrawal.set(false)" i18n="@@common.cancel">Cancel</button>
+      <button matButton="tonal" class="legend-settings__remove" type="button" [disabled]="localLegend.saving()" (click)="withdraw()" i18n="@@localLegend.data.confirmLeave">Leave and delete current ranks</button>
+    } @else {
+      <button matButton="outlined" type="button" (click)="confirmingWithdrawal.set(true)" i18n="@@localLegend.data.leave">Leave Local Legend</button>
+    }
+  }
+  @if (entries().length > 0) {
+    <h4 class="mat-title-small legend-settings__subtitle" i18n="@@localLegend.history.title">Your past ranks</h4>
+    <mat-list class="legend-settings__list">
+      @for (entry of entries(); track entry.key) {
+        <mat-list-item>
+          <app-spot-rank-icon matListItemIcon [rank]="entry.rank" />
+          <span matListItemTitle>{{ entry.spotName }} · {{ entry.label }}</span>
+          <span matListItemLine>{{ entry.monthLabel }}</span>
+          <button matListItemMeta mat-icon-button type="button" (click)="confirming.set(entry.key)" [disabled]="removing() === entry.key" aria-label="Remove this rank" i18n-aria-label="@@localLegend.history.removeLabel">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-list-item>
+        @if (confirming() === entry.key) {
+          <div class="legend-settings__confirmation">
+            <button matButton type="button" (click)="confirming.set(null)" i18n="@@common.cancel">Cancel</button>
+            <button matButton="tonal" type="button" class="legend-settings__remove" [disabled]="removing() === entry.key" (click)="remove(entry)" i18n="@@localLegend.history.remove">Remove</button>
+          </div>
+        }
+      }
+    </mat-list>
+    <p class="mat-body-small legend-settings__help" i18n="@@localLegend.history.help">Removing a rank deletes it from your history for good.</p>
+  }
+  @if (history.error()) {
+    <p i18n="@@localLegend.data.loadFailed">Couldn't load your rank history.</p>
+    <button matButton type="button" (click)="history.reload()" i18n="@@localLegend.data.retry">Try again</button>
+  }
+  @if (!history.isLoading() && !history.error() && entries().length === 0) {
+    <p i18n="@@localLegend.data.empty">No past ranks to manage.</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button matButton mat-dialog-close type="button" i18n="@@common.close">Close</button>
+</mat-dialog-actions>

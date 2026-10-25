@@ -26,6 +26,7 @@ import { FirebaseAppCheckStatus } from "../../services/firebase/app-check.servic
     MatIcon,
   ],
   templateUrl: "./app-check-error-dialog.component.html",
+  styleUrl: "./app-check-error-dialog.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppCheckErrorDialogComponent {

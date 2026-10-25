@@ -1,0 +1,8 @@
+.verification-dialog__privacy, .verification-dialog__option--unavailable { color: var(--mat-sys-on-surface-variant); }
+.verification-dialog__options { display: grid; gap: 12px; margin-block: 20px 8px; }
+.verification-dialog__option { align-items: center; border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; display: grid; gap: 12px; grid-template-columns: 40px minmax(0, 1fr) auto; padding: 14px; }
+.verification-dialog__icon { align-items: center; background: var(--mat-sys-primary-container); border-radius: 13px; color: var(--mat-sys-on-primary-container); display: grid; height: 40px; justify-content: center; width: 40px; }
+.verification-dialog__copy h3, .verification-dialog__copy p { margin: 0; }
+.verification-dialog__copy p + p { margin-top: 4px; }
+.verification-dialog__error { color: var(--mat-sys-error); }
+@media (max-width: 520px) { .verification-dialog__option { align-items: start; grid-template-columns: 40px minmax(0, 1fr); } .verification-dialog__option button { grid-column: 2; justify-self: start; } }

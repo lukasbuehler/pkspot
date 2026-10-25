@@ -14,7 +14,10 @@ import {
   FabMenuComponent,
 } from "../../fab-menu/fab-menu.component";
 
+import {MatBadgeModule} from "@angular/material/badge";
+
 type MapCreateAction =
+  | "drafts"
   | "spot"
   | "import-spots"
   | "event"
@@ -28,6 +31,7 @@ interface MapFabMenuAction extends FabMenuAction {
   selector: "app-map-floating-controls",
   imports: [
     MatButtonModule,
+    MatBadgeModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
@@ -38,6 +42,8 @@ interface MapFabMenuAction extends FabMenuAction {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapFloatingControlsComponent {
+  readonly draftCount = input(0);
+  readonly reviewDrafts = output<void>();
   readonly showControls = input(false);
   readonly showCreateSpot = input(false);
   readonly showImportSpots = input(false);
@@ -49,6 +55,7 @@ export class MapFloatingControlsComponent {
   );
   readonly geolocationLoading = input(false);
   readonly geolocationIcon = input("my_location");
+  readonly locationEnabled = input(true);
 
   readonly resetNorth = output<void>();
   readonly toggleMapStyle = output<void>();
@@ -59,8 +66,16 @@ export class MapFloatingControlsComponent {
   readonly planSession = output<void>();
 
   readonly createMenuLabel = $localize`:@@map.create.open_tooltip:Create on the map`;
+  readonly geolocationTooltip = computed(() =>
+    this.locationEnabled()
+      ? $localize`:@@map.geolocation.tooltip:Go to your location`
+      : $localize`:@@map.geolocation.disabled.tooltip:Location is off`,
+  );
   readonly createActions = computed(() => {
     const actions: MapFabMenuAction[] = [];
+    if (this.draftCount()) {
+      actions.push({id: "drafts", icon: "edit", label: $localize`Spot drafts`});
+    }
     if (this.showCreateSpot()) {
       actions.push({
         id: "spot",
@@ -94,6 +109,9 @@ export class MapFloatingControlsComponent {
 
   onCreateAction(action: string): void {
     switch (action) {
+      case "drafts":
+        this.reviewDrafts.emit();
+        break;
       case "spot":
         this.createSpot.emit();
         break;

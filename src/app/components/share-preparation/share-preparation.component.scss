@@ -1,0 +1,19 @@
+:host {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--mat-sys-on-surface);
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+[role="status"] {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+p { margin: 0; }

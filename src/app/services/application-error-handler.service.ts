@@ -76,7 +76,15 @@ export class ApplicationErrorHandler implements ErrorHandler {
       this.reloadOnceForRecoverableModuleError();
     }
 
-    console.error(error);
+    // Error properties are non-enumerable, so Capacitor's console bridge can
+    // reduce them to {}. Send readable text while retaining the original above.
+    // WebKit stacks can contain only frames, without the error name/message.
+    const description = error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : collectErrorSignals(error).join("\n") || String(error);
+    console.error("[AppError]", error instanceof Error && error.stack
+      ? error.stack.includes(description) ? error.stack : `${description}\n${error.stack}`
+      : description);
   }
 
   private reloadOnceForRecoverableModuleError(): void {
@@ -95,6 +103,7 @@ export class ApplicationErrorHandler implements ErrorHandler {
       }
 
       view.sessionStorage.setItem(dynamicImportReloadStorageKey, "1");
+      console.warn("[AppError] Reloading once to recover from a module-load error");
       view.setTimeout(() => view.location.reload(), 0);
     } catch (error) {
       console.warn("Failed to schedule stale app reload", error);

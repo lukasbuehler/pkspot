@@ -1,37 +1,245 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import { LocalLegendService } from "../../services/local-legend.service";
+import { LOCALE_ID } from "@angular/core";
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
+import { CheckInLogPromptComponent } from '../check-in-log-prompt/check-in-log-prompt.component';
+import { environment } from "../../../environments/environment.default";
+import { DestroyRef } from "@angular/core";
+import { StoreReviewService } from "../../reviews/store-review.service";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
+import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
+import { FabMenuComponent, type FabMenuAction } from "../fab-menu/fab-menu.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
+import {
+  type LogEntryDocument,
+} from "../../../db/schemas/LogEntrySchema";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
+import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
+import type { CheckInHistoryItem } from "../../services/firebase/firestore/session-records.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import {
+  buildSessionActivityDays,
+  buildTrainingTimeline,
+  dateKeyToMs,
+  formatDuration,
+  type TrainingContributionSelection,
+} from "../../features/training-log-activity";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
+import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
 import { SessionRecordsService } from "../../services/firebase/firestore/session-records.service";
+import { TrainingStatsComponent } from "../training-stats/training-stats.component";
+import { TrainingActivityContributionGraphComponent } from "../training-activity-contribution-graph/training-activity-contribution-graph.component";
+import {
+  RecoveryPauseDialogComponent,
+  type RecoveryPauseDialogData,
+  type RecoveryPauseDialogResult,
+} from "../recovery-pause-dialog/recovery-pause-dialog.component";
+
+interface TrainingTimelineSession {
+  kind: "training";
+  id: string;
+  entry: LogEntryDocument;
+  durationMinutes: number;
+  spotCount: number;
+  sessionCount: number;
+  includesCheckIn: boolean;
+}
+
+interface TrainingTimelineRecovery {
+  kind: "recovery";
+  id: string;
+  pause: RecoveryPauseDocument;
+  startedOnMs: number;
+  endedOnMs?: number;
+}
+
+type TrainingTimelineItem = TrainingTimelineSession | TrainingTimelineRecovery;
+
+interface TrainingTimelineGroup {
+  key: string;
+  dateMs: number;
+  entries: readonly TrainingTimelineItem[];
+}
 
 @Component({
   selector: "app-training-log-page",
-  imports: [SystemDatePipe, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    CheckInLogPromptComponent,
+    SystemDatePipe,
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    FabMenuComponent,
+    MatProgressSpinnerModule,
+    TrainingActivityContributionGraphComponent,
+    TrainingStatsComponent,
+  ],
   templateUrl: "./training-log-page.component.html",
   styleUrl: "./training-log-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainingLogPageComponent {
+  private readonly localLegend = inject(LocalLegendService);
+  private readonly router = inject(Router);
+  private readonly spotData = inject(SpotSelectionDataService);
+  private readonly locale = inject(LOCALE_ID);
+  readonly spotNames = signal<ReadonlyMap<string, string>>(new Map());
+  readonly loadingSpotLabel = $localize`:@@training.loadingSpot:Loading Spot…`;
+  readonly addLabel = $localize`:@@trainingLog.add:Add to training log`;
+  readonly addActions: readonly FabMenuAction[] = [
+    ...(environment.features.plannedSessions ? [{ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` }] : []),
+    { id: "activity", icon: "add", label: $localize`:@@trainingLog.new:New training entry` },
+    { id: "recovery", icon: "event_busy", label: $localize`:@@recoveryPause.add:Log recovery pause` },
+  ];
+
+  onAddAction(action: string): void {
+    if (action === "session") void this.router.navigateByUrl("/events/session/new");
+    if (action === "activity") void this.router.navigateByUrl("/train/log/new");
+    if (action === "recovery") this.openRecoveryDialog();
+  }
+
   private readonly auth = inject(AuthenticationService);
   private readonly logsService = inject(LogEntriesService);
+  private readonly recoveryPausesService = inject(RecoveryPausesService);
   private readonly sessionsService = inject(SessionRecordsService);
+  private readonly dialog = inject(MatDialog);
+  private loadGeneration = 0;
 
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
+  readonly sessionsLoaded = signal(false);
   readonly logs = signal<LogEntryDocument[]>([]);
+  readonly recoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly sessions = signal<SessionRecordDocument[]>([]);
+  readonly checkIns = signal<CheckInHistoryItem[]>([]);
   readonly signedIn = signal(!!this.auth.user.uid);
+  readonly selection = signal<TrainingContributionSelection | null>(null);
+  readonly logBySession = computed(() => new Map(
+    this.logs().flatMap(log => log.session_record_ids.map(id => [id, log.id] as const)),
+  ));
+  readonly activityDays = computed(() => buildSessionActivityDays(this.sessions(), this.logs()));
+  /** Bumped on every load so the statistics reload with the history. */
+  readonly statsReload = signal(0);
+  readonly timeline = computed(() => {
+    const sourceBySessionId = new Map(
+      this.sessions().map((session) => [session.id, session.source]),
+    );
+    const selection = this.selection();
+    const groups = new Map<string, TrainingTimelineItem[]>();
+    if (selection?.kind !== "recovery-pause") {
+      const selectedDay = selection?.kind === "training-day"
+        ? selection.dayKey
+        : null;
+      for (const group of buildTrainingTimeline(this.logs(), selectedDay)) {
+        groups.set(
+          group.key,
+          group.entries.map((entry): TrainingTimelineSession => ({
+            kind: "training",
+            id: entry.id,
+            entry,
+            durationMinutes: entry.session_summaries.reduce(
+              (total, session) => total + (session.duration_minutes ?? 0),
+              0,
+            ),
+            spotCount: entry.session_summaries.reduce(
+              (total, session) => total + session.spot_count,
+              0,
+            ),
+            sessionCount: entry.session_summaries.length,
+            includesCheckIn: entry.session_record_ids.some(
+              (id) => sourceBySessionId.get(id) === "check_in",
+            ),
+          })),
+        );
+      }
+    }
+    for (const pause of this.recoveryPauses()) {
+      if (selection?.kind === "training-day") continue;
+      if (
+        selection?.kind === "recovery-pause" &&
+        selection.recoveryPauseId !== pause.id
+      ) {
+        continue;
+      }
+      const entry: TrainingTimelineRecovery = {
+        kind: "recovery",
+        id: pause.id,
+        pause,
+        startedOnMs: dateKeyToMs(pause.started_on),
+        ...(pause.ended_on ? { endedOnMs: dateKeyToMs(pause.ended_on) } : {}),
+      };
+      groups.set(pause.started_on, [...(groups.get(pause.started_on) ?? []), entry]);
+    }
+    return [...groups.entries()]
+      .map(([key, entries]): TrainingTimelineGroup => ({
+        key,
+        dateMs: dateKeyToMs(key),
+        entries,
+      }))
+      .sort((left, right) => right.key.localeCompare(left.key));
+  });
 
   constructor() {
-    this.auth.authState$.subscribe((user) => {
+    const unregister = inject(StoreReviewService).registerCompletionSurface(() =>
+      this.signedIn() && !this.loading() && !this.loadFailed() &&
+      this.sessions().every(session => !!session.ended_at_raw_ms),
+    );
+    inject(DestroyRef).onDestroy(unregister);
+    this.auth.authState$.pipe(takeUntilDestroyed()).subscribe((user) => {
       this.signedIn.set(!!user?.uid);
       void this.load();
     });
+  }
+
+  clearHistorySelection(): void {
+    this.selection.set(null);
+  }
+
+  openRecoveryDialog(pause?: RecoveryPauseDocument): void {
+    this.dialog
+      .open<
+        RecoveryPauseDialogComponent,
+        RecoveryPauseDialogData,
+        RecoveryPauseDialogResult
+      >(RecoveryPauseDialogComponent, {
+        data: pause ? { pause } : {},
+        width: "520px",
+        maxWidth: "calc(100vw - 24px)",
+        maxHeight: "calc(100dvh - 24px)",
+        autoFocus: "dialog",
+        restoreFocus: true,
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result?.changed) void this.load();
+      });
+  }
+
+  durationLabel(minutes: number): string {
+    return formatDuration(minutes);
+  }
+
+  recoveryReasonLabel(pause: RecoveryPauseDocument): string {
+    switch (pause.reason) {
+      case "illness":
+        return $localize`:@@recoveryPause.reason.illness:Illness`;
+      case "personal_break":
+        return $localize`:@@recoveryPause.reason.personalBreak:Personal break`;
+      case "other":
+        return $localize`:@@recoveryPause.reason.other:Other`;
+      default:
+        return $localize`:@@recoveryPause.reason.injury:Injury`;
+    }
   }
 
   async removeLog(id: string): Promise<void> {
@@ -40,18 +248,98 @@ export class TrainingLogPageComponent {
     this.logs.update((logs) => logs.filter((log) => log.id !== id));
   }
 
-  private async load(): Promise<void> {
-    if (!this.auth.user.uid) {
+  private affectsLocalLegend(checkIn: CheckInHistoryItem): boolean {
+    return this.localLegend.enabled() && checkIn.verified !== false &&
+      checkIn.arrivedAtRawMs >= this.localLegend.enabledSinceMs();
+  }
+
+  async removeCheckIn(checkIn: CheckInHistoryItem): Promise<void> {
+    const warning = this.affectsLocalLegend(checkIn)
+      ? "\n\n" + $localize`:@@trainingLog.checkIns.legendImpact:Deleted check-ins no longer contribute to Local Legend. Your rank may change after the overnight update.`
+      : "";
+    if (!confirm($localize`:@@trainingLog.checkIns.deleteConfirm:Delete this check-in from your private history?` + warning)) return;
+    await this.sessionsService.deleteCheckIn(checkIn.checkInId);
+    await this.load();
+  }
+
+  async clearCheckIns(): Promise<void> {
+    const warning = this.checkIns().some((checkIn) => this.affectsLocalLegend(checkIn))
+      ? "\n\n" + $localize`:@@trainingLog.checkIns.legendImpact:Deleted check-ins no longer contribute to Local Legend. Your rank may change after the overnight update.`
+      : "";
+    if (!confirm($localize`:@@trainingLog.checkIns.clearConfirm:Delete all check-ins from your private history? This cannot be undone.` + warning)) return;
+    await this.sessionsService.deleteAllCheckIns();
+    await this.load();
+  }
+
+  async exportCheckIns(): Promise<void> {
+    const exportJson = await this.sessionsService.exportCheckIns();
+    const file = new Blob([exportJson], { type: "application/json" });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `pkspot-check-ins-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async load(): Promise<void> {
+    const generation = ++this.loadGeneration;
+    this.statsReload.update((value) => value + 1);
+    const uid = this.auth.user.uid;
+    this.loadFailed.set(false);
+    this.sessionsLoaded.set(false);
+    this.logs.set([]);
+    this.sessions.set([]);
+    this.recoveryPauses.set([]);
+    this.checkIns.set([]);
+    this.spotNames.set(new Map());
+    if (!uid) {
       this.loading.set(false);
       return;
     }
     this.loading.set(true);
-    const [logs, sessions] = await Promise.all([
-      this.logsService.listMine(),
-      this.sessionsService.listMine(),
-    ]);
-    this.logs.set(logs);
-    this.sessions.set(sessions);
-    this.loading.set(false);
+    try {
+      const [logs, sessionResult, recoveryPauses] = await Promise.allSettled([
+        this.logsService.listMine(),
+        this.sessionsService.listMine(null),
+        this.recoveryPausesService.listMine(),
+      ]);
+      // An earlier account's private history must never replace a newer load.
+      if (generation !== this.loadGeneration || uid !== this.auth.user.uid) return;
+      this.loadFailed.set([logs, sessionResult, recoveryPauses].some(result => result.status === "rejected"));
+      if (logs.status === "fulfilled") this.logs.set(logs.value);
+      if (recoveryPauses.status === "fulfilled") this.recoveryPauses.set(recoveryPauses.value);
+      if (sessionResult.status === "rejected") return;
+      const sessions = sessionResult.value;
+      this.sessionsLoaded.set(true);
+      this.sessions.set(sessions);
+      void this.spotData.resolveVisitNames(sessions.flatMap(session => session.spot_visits), this.locale)
+        .then(names => {
+          if (generation === this.loadGeneration && uid === this.auth.user.uid) this.spotNames.set(names);
+        });
+      this.checkIns.set(
+        sessions
+          .flatMap((session) =>
+            (session.spot_visits ?? []).flatMap((visit) =>
+              visit.check_in_id
+                ? [{
+                    checkInId: visit.check_in_id,
+                    sessionRecordId: session.id,
+                    spotId: visit.spot_id,
+                    ...(visit.spot_name ? { spotName: visit.spot_name } : {}),
+                    arrivedAtRawMs: visit.arrived_at_raw_ms,
+                  }]
+                : [],
+            ),
+          )
+          .sort((first, second) => second.arrivedAtRawMs - first.arrivedAtRawMs),
+      );
+    } catch {
+      if (generation === this.loadGeneration && uid === this.auth.user.uid) {
+        this.loadFailed.set(true);
+      }
+    } finally {
+      if (generation === this.loadGeneration) this.loading.set(false);
+    }
   }
 }

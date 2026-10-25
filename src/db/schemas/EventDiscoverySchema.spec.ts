@@ -21,6 +21,10 @@ const event = (patch: Partial<EventSchema> = {}): EventSchema =>
   }) as unknown as EventSchema;
 
 describe("event discovery projection", () => {
+  it.each([true, false])("forwards explicit livestream state %s for Typesense", (live) => {
+    expect(buildEventDiscoveryProjection(event({livestream_live: live}))?.livestream_live).toBe(live);
+  });
+
   it("keeps legacy published events publicly discoverable by default", () => {
     expect(isEventPubliclyDiscoverable(event())).toBe(true);
   });

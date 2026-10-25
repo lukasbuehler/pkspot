@@ -64,6 +64,6 @@
   [gmpClickable]="true"
   [zIndex]="zIndex()"
   [options]="markerOptions()"
-  (gmpClick)="markerClick.emit(marker())"
+  (appNativeMarkerClick)="markerClick.emit(marker())"
   (markerInitialized)="centerMarkerAnchor($event)"
 ></map-advanced-marker>

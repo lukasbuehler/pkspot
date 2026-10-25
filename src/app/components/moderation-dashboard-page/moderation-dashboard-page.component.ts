@@ -1,3 +1,6 @@
+import { financesFeatureEnabled } from "../../features/finances-feature";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -64,6 +67,9 @@ import { AgeAssuranceAdminService } from "../../services/age-assurance-admin.ser
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationDashboardPageComponent implements OnDestroy {
+  readonly financesEnabled = financesFeatureEnabled;
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _reportsService = inject(ModerationReportsService);
   private readonly _communityEditsService = inject(CommunityEditsService);
   private readonly _spotEditsService = inject(SpotEditsService);
@@ -87,7 +93,6 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly organizationSpotEdits = signal<ModerationSpotEditQueueItem[]>([]);
   readonly spotCreationDiagnostics = signal<SpotCreationDiagnosticsResponse | null>(null);
   readonly duplicateSpotGroups = signal<ModerationDuplicateGroup[]>([]);
-  readonly showAllDuplicateGroups = signal(false);
   private readonly _authSubscription: Subscription;
 
   readonly openReportCount = computed(
@@ -128,11 +133,6 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       this.openReportCount() +
       this.pendingCommunityQueueCount() +
       this.duplicateSpotGroups().length,
-  );
-  readonly visibleDuplicateSpotGroups = computed(() =>
-    this.showAllDuplicateGroups()
-      ? this.duplicateSpotGroups()
-      : this.duplicateSpotGroups().slice(0, 8),
   );
   readonly openDuplicateReportCount = computed(
     () =>
@@ -201,6 +201,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       this.spotCreationDiagnostics.set(spotCreationDiagnostics);
       this.duplicateSpotGroups.set(duplicateSpotGroups);
     } catch (error) {
+      this.featureTelemetry.failure("moderation-dashboard-page", "reload", error);
       console.error("Failed to load moderation dashboard", error);
       this._snackbar.open($localize`Failed to load moderation dashboard`, undefined, {
         duration: 4000,
@@ -234,6 +235,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       );
       this.invalidationPreviewCount.set(count);
     } catch (error) {
+      this.featureTelemetry.failure("moderation-dashboard-page", "previewAgeAssuranceInvalidation", error);
       console.error("Failed to preview age assurance invalidation", error);
       this._snackbar.open(
         $localize`Could not preview the age-assurance rollback`,
@@ -278,6 +280,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
         { duration: 5000 },
       );
     } catch (error) {
+      this.featureTelemetry.failure("moderation-dashboard-page", "applyAgeAssuranceInvalidation", error);
       console.error("Failed to invalidate age assurance approvals", error);
       this._snackbar.open(
         $localize`Could not complete the age-assurance rollback`,
@@ -327,6 +330,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
         duration: 3000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("moderation-dashboard-page", "handleContactMessage", error);
       console.error("Failed to handle contact message", error);
       this._analytics.trackEvent("moderation_contact_action_failed", {
         action_type: actionType,
@@ -442,6 +446,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
         { duration: 3000 },
       );
     } catch (error) {
+      this.featureTelemetry.failure("moderation-dashboard-page", "_handleCommunityCardSuggestionAction", error);
       console.error("Failed to update community card suggestion", error);
       this._analytics.trackEvent("community_card_suggestion_action_failed", {
         action,

@@ -46,6 +46,7 @@ mat-card-content {
 .image-wrap {
   position: relative;
   height: 200px;
+  flex-shrink: 0;
   filter: none;
   transition:
     filter 200ms ease,
@@ -125,6 +126,17 @@ mat-card-content {
 .event-card-rsvp {
   display: block;
   margin-top: 0.75rem;
+}
+
+:host(:not(.compact)) mat-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  .event-card-rsvp {
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
 }
 
 :host(.compact) {

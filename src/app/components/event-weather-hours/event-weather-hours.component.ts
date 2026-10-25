@@ -15,7 +15,6 @@ import {
   getWeatherForecastIconTone,
   getWeatherForecastState,
   getWeatherForecastStateIcon,
-  type WeatherForecastIconTone,
 } from "../../weather/weather-display";
 import {
   eventHoursForDate,
@@ -26,21 +25,14 @@ import type {
   WeatherResponse,
 } from "../../weather/weather.models";
 import { formatTemperature } from "../../weather/weather-temperature";
-
-interface EventWeatherHourView {
-  key: string;
-  time: string;
-  icon: string;
-  condition: string;
-  temperature?: string;
-  rainProbability?: number;
-  tone: WeatherForecastIconTone;
-  highlighted: boolean;
-}
+import {
+  HourlyForecastStripComponent,
+  type HourlyForecastColumn,
+} from "../hourly-forecast-strip/hourly-forecast-strip.component";
 
 @Component({
   selector: "app-event-weather-hours",
-  imports: [MatButton, MatIcon],
+  imports: [MatButton, MatIcon, HourlyForecastStripComponent],
   templateUrl: "./event-weather-hours.component.html",
   styleUrl: "./event-weather-hours.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,7 +49,7 @@ export class EventWeatherHoursComponent {
   readonly timeZone = input<string>();
   readonly highlightedTime = input<Date>();
 
-  protected readonly hours = computed<EventWeatherHourView[]>(() => {
+  protected readonly hours = computed<HourlyForecastColumn[]>(() => {
     const response = this.response();
     const highlightedTime = this.highlightedTime();
     const highlightedPoint = highlightedTime
@@ -102,7 +94,7 @@ export class EventWeatherHoursComponent {
   private toHourView(
     point: WeatherPoint,
     highlighted: boolean,
-  ): EventWeatherHourView {
+  ): HourlyForecastColumn {
     const response = this.response();
     const condition = point.condition ?? "unknown";
     const context = { ...point, condition };
@@ -121,8 +113,9 @@ export class EventWeatherHoursComponent {
         point.temperatureC === undefined
           ? undefined
           : formatTemperature(point.temperatureC, unit, false),
-      rainProbability: point.precipitationProbabilityPercent,
-      tone: getWeatherForecastIconTone(context),
+      precipitationMm: point.precipitationMm,
+      precipitationProbabilityPercent: point.precipitationProbabilityPercent,
+      iconTone: getWeatherForecastIconTone(context),
       highlighted,
     };
   }

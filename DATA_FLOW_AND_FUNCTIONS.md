@@ -14,6 +14,68 @@ backend can differ until Functions, rules, indexes, Typesense configuration, and
 data migrations are released. Deployment order and outstanding production work
 remain in [`DEPLOYMENT_TASKS.md`](DEPLOYMENT_TASKS.md).
 
+### Planned Sessions and Activities boundary (not current implementation)
+
+The private 9 September 2026 child-risk and DPIA/data-flow addenda record a
+proposed significant change. The following is an architectural constraint, not
+a description of deployed code and not evidence of legal compliance:
+
+```text
+adult-only Community Session discovery
+  <- server-authorized restricted projection
+  <- canonical Community Session
+       |-- field-limited public/forwardable share projection
+       |     (description + location/time + lifecycle only)
+       |-- per-user private Saves -> personal reminders only
+       |-- separate restricted adult attendance records
+       `-- no participant/save/check-in/activity joins in public output
+
+specific-account private Session grants
+  `-- no bearer-link or friendship-derived access
+
+private explicit check-in ----\
+                              +--> optional draft/reference for private Activity
+manual Activity --------------/     (never automatic publication)
+```
+
+Terminology for that planned model: an **Event** is an organized occasion; a
+**Session** is a planned training block/meetup independent of an Event; an
+**Activity** records what actually happened. `Training log` is planned to
+become `Activity log`, with Training, Competition, Workshop, Event attendance
+and Other types. Event/Session references are optional and manual Activities
+remain possible.
+
+The current branch does not yet satisfy that contract in all paths:
+
+- `event_discovery` is universally readable and therefore cannot carry the
+  adult-discovery-only Community Session projection;
+- the existing Session planner uses the Event model and a client-visible public
+  participation check, which is not proof of server enforcement for the new
+  design;
+- current `log_entries` support public/follower/friend visibility, with some
+  read eligibility derived from follow relationships, and require session
+  records rather than optional references;
+- Event Save, RSVP, registration and reminder mechanisms already exist and
+  must not be reused in a way that turns a private Session Save into attendance,
+  an organizer signal or a public count;
+- OneID remains disabled and all adult-only consumers must use the same active,
+  provider-neutral server-confirmed eligibility predicate. App Check, App
+  Attest or Play Integrity provenance alone is not an authenticated age result.
+
+Before launch, verify the canonical read/write paths and every projection:
+Firestore, callables, SSR, link previews, Typesense/search, notifications,
+calendars, exports, analytics, caches and moderator tooling. Tests must include
+signed-out, age-unknown, expired/revoked evidence, blocked/unfriended accounts,
+forwarded URLs, role removal, privacy changes, old clients and cross-account
+attempts. Saves, attendance, check-ins and Activities must use separate storage
+and authorization decisions; a Save must be owner-facing only and must not
+produce an organizer-visible identity, count or signal.
+
+The public Terms and Privacy Policy still describe the current product. They
+must be reconciled with the implemented Session/Save/attendance/Activity facts
+before release, but are intentionally not rewritten by this documentation-only
+design review.
+
 ## 1. How to read the operation counts
 
 The counts below are **logical document operations performed by PK Spot code**,
@@ -104,15 +166,47 @@ CPU, timeout, and instance limits.
 | Community | Spot addresses/landing data, events' `community_keys`, authored community knowledge, and merge docs | `community_pages/{key}`, `community_slugs/{slug}` | Generated sections are disposable; authored cards/links are preserved and merged into regenerated pages. |
 | User profile | `users/{uid}` | adult opt-in `public_user_profiles/{uid}`, sitemap/search data | Public projection is field-limited. `getUserProfile` is the viewer-aware read boundary. |
 | Private user state | `users/{uid}/private_data/main` and private subcollections | selected public counters such as `visited_spots_count` | Never copy private arrays or notification preferences into public profiles. |
+| Explicit check-in | server-owned `users/{uid}/session_records/{id}` occurrence plus `check_in_lookup` / per-Spot reference count | private `visited_spots`, daily `spot_activity_public/{spotId}` bucket | Raw device coordinates are transient callable input only. The public document has no user IDs, exact count, timestamp, or live state. Legacy check-ins retain a server marker so their visited state cannot be removed by a new-style deletion. |
+| Private training summaries | `users/{uid}/session_records/{id}` (check-in and manual sessions) | owner-read-only `users/{uid}/training_months/{YYYY-MM}` and `training_spots/{spotId}`; server-only `spot_legend_tallies/{month}_{spotId}_{uid}` for open months | `onSessionRecordWrittenUpdateTrainingSummary` recomputes the affected month in a transaction. Only proximity-verified check-ins (`verified` on the visit, or `check_in_lookup.accepted_for_aggregate` for older visits) produce verified days and tallies; manual sessions and self-reported durations never do. Tallies exist only for the current month and, for two grace days, the previous one. Removing your own visits withdraws a published rank immediately. |
+| Private Spot ranks (Local Legend, opt-in) | `spot_legend_tallies` for open months, only for participants | owner-read-only `users/{uid}/training_ranks/{YYYY-MM}` | Participation lives in owner-read-only `users/{uid}/training_settings/local_legend`, written only by `setLocalLegendParticipation`: joining copies the person's open-month tallies from their summaries, leaving deletes all their tallies (published ranks stay as hidden private history). Session triggers write tallies only for participants. `deleteMySpotRank` removes one finished month's rank from the owner's history. `publishSpotRanksNightly` (03:30 Europe/Zurich) ranks each Spot and writes only changed entries. A rank needs two verified days and at least three accounts with a verified day at the Spot that month; otherwise the entry says `too_few_people`. Ranks are Olympic-style with a tie count and never name or count other people. After the grace days the month is published as `final` and its tallies are deleted; the person's own document stays as rank history. |
 | Follow graph | `users/{uid}/following`, `followers`, and `follow_requests` | `users.follower_count`, `following_count`, notification intents | Both edge directions are intentionally stored; actions must keep them consistent. |
 | Organization relationships | Spot `stewardship` / `management` | embedded organization snapshot and `organizations/{id}/verified_spots` / `managed_spots` | Organization name/logo changes fan out to every linked Spot and index entry. |
 | Import provenance | private `imports/{importId}` metadata | sanitized `spots.public_import_provenance` | The Spot projection is the public read path. The callable is a cached compatibility fallback. |
 | Media upload | quarantined `media_intake/...` object and metadata | review/status docs, approved Storage object, Spot edit or profile URL, resized derivatives | Intake is not public until scanning/approval and side effects complete. |
 | Notifications | deterministic `notification_intents/{intentId}` | `users/{uid}/notifications/{intentId}` plus FCM delivery | The intent is durable/cancelable. The user feed is a projection; FCM acceptance is not proof of display. |
 | Safety case | `safety_cases/{caseId}` plus private intake/events | projections from legacy reports/actions, outbox and hold docs | Case actions can deliberately mutate or hold the reported target; inspect the case event trail before repairing target data. |
+| Development-only support shop | server-owned `support_orders/{orderId}` | Stripe Checkout Session, signed webhook receipt in `support_shop_webhook_events/{eventId}` | Prices, customer data, payment status, and shipping addresses are server-owned. Customer history is returned only through the App-Check-protected callable and never includes address or email. |
 | Sitemap | Firestore sources at generation time | public Storage `sitemap.xml` and IndexNow submissions | The file is a snapshot, regenerated nightly or by the manual HTTP handler. |
 | Weather/OSM | upstream APIs | bounded Firestore cache docs | Cache documents are disposable. A cache hit avoids the upstream request, not the initial cache document read. |
 | Search | Firestore documents selected by the installed extension | Typesense collections | The extension's live configuration is external to this repo; JSON schemas and alignment tests are the checked-in field contract, but the deployed source collection must be verified separately. |
+
+### Geographic name enrichment
+
+Geographic labels are optional derived data. They never replace canonical names,
+addresses, IDs, slugs or contributor descriptions. Angular renders localized copy
+from stored facts and XLIFF; it does not call GeoNames during SSR.
+
+| Functions | Data flow and operations |
+| --- | --- |
+| `enqueueCommunityPlaceLocalization`, `backfillCommunityPlaceLocalizations` | Every community page write first derives `localized_search_names` from the original name, current localized names, reviewed overrides and region (towns) or the country name in the app languages (countries), writing only when the list changes. Eligible locality and first-level region community writes or explicit admin pagination then enqueue `community_place_localization_jobs`. The backfill scans at most 50 community documents per call. Each enqueue reads the page and job, and writes a job only when needed. The backfill also fills missing or changed `localized_search_names` (`1 W` per changed page). |
+| `enrichCommunityPlaceLocalizations` | Processes at most 20 due jobs per hour using transactional leases and delayed retries. Reads a shared `place_names` entry first. A cache miss uses at most four GeoNames requests: town search/details, hierarchy and region details. Shared `region_place_names/{geonamesId}` records cache all region languages, with client access denied. Version 2 records mark a completed hierarchy lookup; rebuilds upgrade older records. Updates community enrichment and any existing parent child-summary entries; preserves overrides and unrelated counts. |
+| `queueSpotPlaceNames`, `queueEventPlaceNames`, `backfillEntityPlaceNames` | Canonical country/locality and a coarse geographic key select a private `place_name_sources` document and `place_name_jobs` entry. A source is created once per key; subsequent enqueues are idempotent. When an entity's key changes (or it has none yet), the trigger reads `place_names/{key}` once and writes the server-owned `place_key`, `place_names` (localized town and region) and `localized_search_names`, removing stale values; it queues a lookup only when no names are cached. Writes that keep the key cost nothing. Explicit admin backfill scans 50 Spots or Events per call, reuses cached names first and reports `updated` and `queued`. Draft, private, viewer-restricted and community Events do not seed the cache and carry none of these fields. |
+| `enrichEntityPlaceNames` | Uses the same lease/retry processor, with at most 20 jobs per hour. Reuses the public town-name cache before contacting GeoNames. Exact lookup coordinates remain in private source records. |
+| `publishEntityPlaceNames` | Projects a completed private source to `place_names/{key}`. Publishes only the key, provider, GeoNames ID, names, optional first-level region labels and provider town centroid. No entity IDs, source coordinates, participant data or job metadata are published. |
+| `applyEntityPlaceNames` | When `place_names/{key}` changes, queries Spots and Events by `place_key` (200 per page, at most 5,000 per collection per run) and copies the names onto each one whose fields differ. Unchanged names write nothing. Spot and Event previews, the Event discovery projection and Typesense carry the copied names, so cards render localized towns without a lookup per card. |
+
+Each worker queries at most 20 due jobs, reads the source/job to claim a lease,
+and reads them again before committing a result. GeoNames failures store a
+sanitized category and a future retry time; ambiguous matches wait for review.
+The two workers can make up to 160 provider requests per hour in total before
+cache reuse. Concurrent misses or trigger redelivery can repeat a lookup.
+
+A Spot or public Event detail load performs at most one additional single-document
+Firestore read per uncached geographic key in the app service cache. No lookup is
+performed without enough location information. The client checks the provider town
+centroid against the entity and falls back to the recorded name for missing,
+ambiguous or distant matches. Public list/write access to `place_names` is denied;
+`place_name_sources`, `place_name_jobs` and community jobs remain server-only.
 
 ## 4. Client interaction boundaries
 
@@ -149,7 +243,7 @@ Firebase Web app. If it is absent, SSR deliberately retains the current
 unattested behavior so the provider can be deployed and observed before
 enforcement; a configured app ID without a usable token minter fails closed.
 
-#### Future Cloudflare Workers + static assets adapter
+#### Cloudflare Workers + static assets adapter
 
 Static assets do not require SSR App Check: Cloudflare can serve them directly.
 Only requests rendered by the Angular SSR Worker need a token. Running Angular
@@ -158,13 +252,34 @@ runtime identity, so the Worker must supply its own implementation of
 `SsrAppCheckTokenMinter`; it must not import the App Hosting
 `firebase-admin`/ADC adapter.
 
+The Cloudflare build uses `src/main.cloudflare.ts` and
+`provideFirebaseCloudflareClient()` as a compile-time boundary from the normal
+App Hosting bootstrap. Wrangler enables `nodejs_compat`, which exposes encrypted
+Worker bindings through `process.env`. `PKSPOT_SSR_FIREBASE_APP_ID` selects the
+dedicated Cloudflare SSR app; `PKSPOT_SSR_APP_CHECK_BROKER_URL` and
+`PKSPOT_SSR_APP_CHECK_BROKER_SECRET` configure its token broker. If the app ID
+is absent, SSR remains unattested for the pre-enforcement trial. If the app ID
+is present but either broker binding is absent, initialization fails closed.
+
+One `pkspot-web` Worker packages Angular's six-locale SSR output and localized
+static assets. Angular's generated server entry redirects unprefixed requests
+to the preferred supported locale from `Accept-Language` and resolves
+locale-prefixed requests with the matching localized server bundle. This keeps
+Git integration, runtime secrets, routing, logs, and deployment ownership in
+one Cloudflare project.
+
 The Cloudflare adapter must obtain a trusted signing capability without putting
 a private key in the static bundle. Preferred order:
 
 1. Workload Identity Federation or another short-lived identity exchange that
    can authorize the Worker to sign the Firebase custom assertion.
 2. A narrowly scoped Google-hosted token broker that authenticates the Worker
-   and returns only a short-lived App Check token.
+   and returns only a short-lived App Check token. PK Spot implements this as
+   `mintCloudflareSsrAppCheckToken`: it accepts only the configured dedicated
+   SSR Firebase app ID, compares the Worker bearer secret in constant time, and
+   returns `{ token, expireTimeMillis }` with `Cache-Control: no-store`. The
+   Function is capped at two instances to limit runaway compute while the edge
+   caches and deduplicates short-lived tokens.
 3. A Cloudflare runtime secret containing signing material only as a last
    resort, with rotation and leak response documented before use.
 
@@ -197,6 +312,9 @@ enabled in a non-production project.
 | Mark notification read/action | notification document or `performNotificationAction` | action can atomically change follow edges or RSVP/private event arrays |
 | Upload media | Storage `media_intake/{uid}/{uploadId}/...` | moderation, release, status/review docs, then Spot edit or profile update |
 | Contact message | `contact_messages/{id}` | Discord webhook |
+| Confirm/delete a check-in | `confirmCheckIn`, `deleteCheckIn`, `deleteAllCheckIns` App-Check-enforced callables | private session/visited state and deferred Spot-activity rollup |
+| Log a check-in duration | `setCheckInSessionDuration` App-Check-enforced callable | private session `ended_at`, then the training-summary trigger |
+| Read your own Spot ranks | owner-only `users/{uid}/training_ranks/{YYYY-MM}` document | one cached document read; published nightly, never on demand |
 
 Direct writes cost one client write per changed document before rules-dependent
 reads and trigger cascades. The native adapter writes mobile-safe plain coordinate
@@ -205,14 +323,23 @@ supported.
 
 ### Client-visible callables
 
-The shipped app currently calls: `getWeather`, `getOsmAmenityTile`,
-`resolveMapShortLink`, `beginAgeAssuranceV3`, `updateAgePolicyV3`, legacy
+The current source calls (deployment must be verified separately): `getWeather`, `getOsmAmenityTile`,
+`resolveMapShortLink`, `beginAgeAssuranceV3`, `updateAgePolicyV3`,
+`externalAgeVerificationAvailability`, `beginExternalAgeVerification`, legacy
 `updateAgePolicyV2`, `getUserProfile`, `getPublicImportProvenance`, event
 registration/ownership/live-update callables, community edit/merge callables,
 Spot creation/edit/duplicate callables, notification migration/actions, media
-report/moderation callables, and public/admin safety-case callables. Callables not
-used by normal UI are maintenance or administrator tools; they remain listed in
-the complete inventory below.
+report/moderation callables, the private check-in callables `confirmCheckIn`,
+`deleteCheckIn`, `deleteAllCheckIns` and `setCheckInSessionDuration`, the Local
+Legend callables `setLocalLegendParticipation` and `deleteMySpotRank`, and
+public/admin safety-case callables.
+`backfillTrainingSummaries` is an administrator maintenance callable.
+The development-only Stripe shop additionally calls `createSupportCheckout` and,
+for a signed-in customer, `listMySupportOrders`. The shop stays disabled for
+production and native clients.
+`recomputeCheckInActivity` and `publishSpotRanksNightly` are daily schedulers, not client callables.
+Callables not used by normal UI are maintenance or administrator tools; they
+remain listed in the complete inventory below.
 
 ## 5. Spot write normalization and fan-out
 
@@ -451,12 +578,47 @@ communities independently while the chunk is loading.
   there. Restricted signed-in viewers add the viewer read and, depending on
   audience, follower and reciprocal-follow reads: maximum `4 R` total.
 
-### Counts and check-ins
+### Counts and explicit check-ins
 
 - Like write: `L_post R + 1 W` for `posts.like_count`.
 - Follower write: `F_u R + 1 W` for `users.follower_count`.
 - Following write: `F_u R + 1 W` for `users.following_count`.
-- Check-in create: `1 W` using `arrayUnion` on private `visited_spots`.
+- Legacy `users/{uid}/check_ins` documents continue to maintain old visited
+  markers. New check-ins do not use that direct client write path.
+- `confirmCheckIn` requires Auth and App Check, reads the user, Spot, dedupe,
+  hourly-rate, private-data, per-Spot count, integrity record, and up to 20
+  recent sessions. It writes or extends one private `source: check_in` session,
+  a lookup, per-Spot reference count, dedupe/rate state, an aggregate
+  contribution, and a rollup request. The client location is used only in the
+  transaction to apply the 50 m / 50 m-accuracy check and is never written.
+  The prior accepted Spot and server time enforce the impossible-travel check;
+  no prior device coordinate is retained.
+- `deleteCheckIn` removes one opaque occurrence from the private session and
+  deletes its lookup/contribution. It reads the per-Spot and legacy marker plus
+  a bounded legacy-check-in query, decrements the new-style reference count,
+  and removes `visited_spots` only after the last new-style occurrence while
+  preserving a legacy marker. `deleteAllCheckIns` repeats that same deletion
+  for the user's lookup documents. Neither operation changes an authored
+  training-log entry.
+- `recomputeCheckInActivity` runs once daily at 03:30 Europe/Zurich. For each
+  affected Spot it scans accepted contributions in the last 30 days, counts
+  distinct accounts, and writes only `2–4`, `5–9`, `10–24`, or `25+` to
+  `spot_activity_public/{spotId}` when at least two accounts qualify. It deletes
+  the public summary otherwise and deletes expired contribution documents. The
+  public summary is a one-time `get` client read, never a listener.
+- Training summaries: every session write triggers one transaction per affected
+  month: one range query over that month's sessions (about `S_month R`), up to
+  one lookup read per older check-in visit without a `verified` flag, then
+  `1 W` for the month plus `1 W` per affected Spot tally. Afterwards it reads all
+  of the person's month summaries (`M R`) and writes `1 W` per affected Spot in
+  `training_spots`. If the month has published ranks it reads that document
+  (`1 R`) and rewrites it only when a rank must be withdrawn.
+- Spot ranks: the nightly job reads every open-month tally once (`T R`), writes
+  `1 W` per tally whose published rank changed plus `1 W` per affected person's
+  `training_ranks` month, and on finalization `1 W` per ranked person and one
+  delete per tally. Clients read their own rank documents (`1 R` per month).
+  Account deletion removes check-ins through the regular deletion path, then
+  the private training collections, summaries, rank history and tallies.
 - Private-data write: computes unique visited IDs from the trigger payload and
   performs `1 W` to `users.visited_spots_count`.
 
@@ -468,10 +630,25 @@ distributed counters. Their cost grows linearly with the relationship count.
 Age-policy callables read the authenticated user and platform signal/evidence
 documents, then write `users.age_policy` plus short-lived challenge/evidence
 state as applicable. The v3 flow keeps ranges/evidence strength, not exact
-birthdays, in the product model. `cleanupAgeAssuranceChallenges` deletes expired
-challenge documents; `invalidateAgeAssuranceApprovals` is an admin dry-run/apply
-maintenance path. Legacy `updateAgePolicy` and `updateAgePolicyV2` remain exported
-for released-client compatibility.
+birthdays, in the product model. The OneID implementation is an unreleased,
+disabled-by-default foundation with unresolved review blockers tracked in
+`DEPLOYMENT_TASKS.md`; this description is not evidence of production readiness.
+The configured OneID hosted product can offer multiple methods and fallbacks.
+Only threshold scopes are requested; underlying document/bank/mobile/eID steps
+stay with the provider. New records label the configured product as external
+verification rather than guessing a bank evidence category. Structured backend
+logs contain stage/outcome/safe error code only. Owner-only status recovery handles
+browser closure and lost responses; no callback query value grants client eligibility.
+
+The optional OneID boundary creates a private,
+single-use attempt bound to the Firebase UID and sends only opaque state to
+OneID. Its HTTPS callback validates OIDC issuer/audience/nonce and PKCE, obtains
+the authoritative `age_over_18` result server-to-server, and stores only the
+outcome, policy metadata, and a hashed transaction reference. A browser redirect
+cannot grant access. `cleanupAgeAssuranceChallenges` deletes expired challenge
+documents; `invalidateAgeAssuranceApprovals` is an admin dry-run/apply maintenance
+path. Legacy `updateAgePolicy` and `updateAgePolicyV2` remain exported for
+released-client compatibility.
 
 ## 9. Media Storage pipeline
 
@@ -516,6 +693,13 @@ approved/quarantine objects, prevents release of reportable matches, applies a
 missing target side effect, updates review/status/report, creates a moderation
 action, and deletes quarantine. The exact operation count depends on audit vs.
 intake and whether the approved object or side effect already exists.
+
+`markMediaUploadFalsePositive` records an administrator's false-positive decision
+and resolves the scanner report transactionally, without writing Storage, target,
+profile, or publication state. The review becomes `dismissed`. Incident escalation
+links the review and report to one incident; normal release and preview are then
+blocked. Release holds a review lock so it cannot race those decisions. Automated
+retries and audits retain manual decisions and incident holds.
 
 ## 10. Notifications
 
@@ -587,18 +771,18 @@ Legacy report sources are:
 - `user_reports/{reportId}`
 - `moderation_actions/{actionId}`
 
-Each create can independently invoke a report handler, a notification producer,
-and a safety-case projection. Projection handlers use deterministic case IDs and
-transactions so redelivery does not create duplicate cases. A newly projected
-case normally writes the public case, private intake, first event, optional
-access token, and optional email outbox entry. Existing cases are read and
-skipped or amended.
+New authenticated Spot and media reports use a canonical open-report claim keyed
+by `(uid, target)`. A retry or edit updates that record; a withdrawal, resolution,
+or dismissal makes a later new report possible. During the compatibility window,
+direct older-client Spot writes are folded into that same canonical record and
+the extra documents are marked `superseded`. Only the canonical-acceptance
+transition sends the moderation intake signal and creates its safety case.
 
-Spot reports additionally write public warning fields onto the Spot. Resolving a
-report reads all reports for that Spot before removing the warning, so the cost
-is `R_reports + 1 report W + 0..1 Spot W`. Media report processing can
-transactionally remove the reported media item from its Spot or event. Those
-target writes then invoke normal Spot/event projections.
+Report reasons and private details are never exposed to other users. A Spot's
+public warning is rebuilt from all active reports using a fixed severity order;
+one report update costs the claim/report transaction, `R_reports`, and one Spot
+projection write. Withdrawing closes only a pending linked safety case as
+reporter-withdrawn; it never restores moderated or scanner-removed media.
 
 Safety administration is intentionally variable and potentially destructive:
 case decisions can create moderation actions, update subject documents, remove
@@ -646,16 +830,48 @@ Checked-in contracts:
 The schemas live in [`typesense/`](typesense/) and are verified against Firestore
 field maps by
 [`typesense-alignment.spec.ts`](src/db/schemas/typesense-alignment.spec.ts).
-The Firebase extension installation/configuration is **not checked into this
-repository**, so its deployed source collections, allowlist, retry settings, and
-exact Typesense request counts must be verified in Firebase Extensions/Function
-logs. In particular, the schema/alignment code treats `event_discovery` as the
-public search shape while comments in `eventFunctions.ts` still describe the
-canonical Event as extension input. The repository alone cannot prove which
-collection production watches; verify it before debugging privacy or indexing
-behavior. Every watched Firestore create/update/delete can cause one extension
-invocation and one corresponding Typesense upsert/delete, including
-server-derived writebacks.
+
+### Production extension inventory (observed 2026-09-17)
+
+The currently installed `typesense/firestore-typesense-search@2.1.0`
+extensions all use the Typesense Cloud Zurich host
+`g5re3ouiqm0j8bc9p-1.a1.typesense.net`, Firestore database `(default)` in
+`eur3`, and run their own Functions in `europe-west6`. Their admin API key is
+external secret state and is deliberately not recorded here.
+
+`search.pkspot.app` is the Cloudflare-proxied stable hostname for that same
+Cloud cluster. It returned `GET /health` as HTTP 200 through Cloudflare's Zurich
+edge on 2026-09-17. The checked-in production and CI client configurations use
+this hostname; already-released clients still use the direct Cloud hostname
+until their normal update path reaches them.
+
+| Extension instance | Firestore source | Typesense collection | Field selection |
+| --- | --- | --- | --- |
+| `firestore-typesense-search` | `spots` | `spots_v2` | Explicit public/search helper allowlist: name, search text, thumbnails, rating, address, amenities, type, access, geometry, report state and force-sync fields. |
+| `firestore-typesense-events` | `event_discovery` | `events_v1` | Unset, so the extension receives every field from the public disposable discovery projection. |
+| `firestore-typesense-search-communities` | `community_pages` | `communities_v1` | Unset, so the extension receives every field from the generated public community page. |
+
+There is no production user-index extension. Any future `users_v1` sync must
+read only `public_user_profiles`, and index only profiles with explicit
+`public_search == true`; it must never read from `users` or private
+subcollections.
+
+The custom Functions replacement will preserve those source boundaries and use
+explicit typed projections rather than forwarding arbitrary Firestore fields.
+It must remain idempotent for at-least-once, unordered Firestore events and
+support a checkpointed backfill and reconciliation pass. The managed Firebase
+Extensions service is being sunset, so this is planned migration work rather
+than an assumption that the installed instances can be reconfigured forever.
+
+Community localization needs distinct display and search contracts. Add
+`place_localization.names: object` and `place_name_overrides: object` to the
+Typesense collection as returned, `index: false` fields, alongside the existing
+`place_localization.region.names` object. This preserves each locale-to-name
+mapping so clients can choose the active locale, with reviewed overrides taking
+precedence. Add a separate bounded `localized_search_names: string[]` indexed
+field containing only the approved localized locality and region strings used
+for matching. It must not replace canonical names/slugs or index the full
+localization object.
 
 ### Weather and OSM caches
 
@@ -794,6 +1010,13 @@ Source modules: [`spotCreationFunctions.ts`](functions/src/spotCreationFunctions
 | `applyEventOperationalChange` | manager callable | Transactionally updates canonical operational fields and operation metadata. |
 | `publishEventLiveUpdate` | manager callable | Creates a published live-update document and subscriber notification fan-out source. |
 | `onEventLiveUpdateCreate` | create `events/{eventId}/live_updates/{updateId}` | Queries subscribers/relationships and creates deterministic notification intents. |
+| `createCommunityEvent` | verified-adult App-Check callable | Reads the caller profile and, in a transaction, active public listings; writes one RSVP-only Community event and its immutable slug. |
+| `updateCommunityEvent` | verified-adult organizer App-Check callable | Transactionally verifies user ownership and rewrites the constrained Community event fields without changing tier, owner, slug, or prior broadcast choice. |
+| `cancelCommunityEvent` | verified-adult organizer App-Check callable | Transactionally verifies ownership and marks the Community event cancelled. |
+| `createFormalEvent` | verified-adult organization-leader/admin App-Check callable | Reads the caller/profile and organization authority where supplied; atomically writes an organization Event with immutable owner/organizer and slug. |
+| `submitEventSuggestion` | verified-adult App-Check callable | Validates input and writes one private `event_suggestions/{id}` review record. |
+| `reviewEventSuggestion` | verified-adult admin App-Check callable | Transactionally records rejection or creates one canonical organization Event and slug on approval. |
+| `demoteCommunityEventsWhenProfileBecomesPrivate` | update `users/{uid}` | When unlisted authoring is enabled, converts affected public Community events to unlisted and removes discovery/broadcast fields. |
 
 Source modules: [`eventFunctions.ts`](functions/src/eventFunctions.ts),
 [`eventDiscoveryFunctions.ts`](functions/src/eventDiscoveryFunctions.ts),
@@ -801,7 +1024,8 @@ Source modules: [`eventFunctions.ts`](functions/src/eventFunctions.ts),
 [`eventTimingMaintenanceFunctions.ts`](functions/src/eventTimingMaintenanceFunctions.ts),
 [`eventTimeZoneFunctions.ts`](functions/src/eventTimeZoneFunctions.ts),
 [`eventOwnershipClaimFunctions.ts`](functions/src/eventOwnershipClaimFunctions.ts), and
-[`eventLiveUpdateFunctions.ts`](functions/src/eventLiveUpdateFunctions.ts).
+[`eventLiveUpdateFunctions.ts`](functions/src/eventLiveUpdateFunctions.ts), and
+[`eventAuthoringFunctions.ts`](functions/src/eventAuthoringFunctions.ts).
 
 ### Event registration
 
@@ -850,6 +1074,7 @@ Source modules: [`importFunctions.ts`](functions/src/importFunctions.ts),
 | --- | --- | --- |
 | `processMediaIntakeUpload` | finalize `media_intake/...` | Moderation/release pipeline in section 9. |
 | `markMediaUploadSafe` | admin callable | Releases eligible quarantine/audit media and repairs target/report/action state. |
+| `markMediaUploadFalsePositive` | admin callable | Closes an ordinary scanner false positive without publishing or changing its target. |
 | `runMediaIntakeBackfill` | create maintenance doc | Lists intake objects, processes up to requested limit, writes summary, deletes trigger. |
 | `reconcilePublishedMediaReviews` | create maintenance doc | Two review queries, object existence/metadata checks, repair writes, summary, trigger delete. |
 | `runMediaModerationAudit` | create maintenance doc | Lists configured public prefixes, downloads/scans each eligible object, writes audit review/report/incident records and summary. |
@@ -868,8 +1093,14 @@ Source modules: [`mediaModerationFunctions.ts`](functions/src/mediaModerationFun
 | Export | Trigger/interface | Primary interaction and cost shape |
 | --- | --- | --- |
 | `onSpotReportCreate` | create nested Spot report | Reads reporter/Spot context, writes public warning fields, sends Discord. |
-| `resolveSpotReport` | admin callable | Updates report, reads all Spot reports, conditionally clears warning fields. |
+| `submitSpotReport` | authenticated callable | Transactionally creates or edits the caller's canonical open Spot report, then refreshes the neutral public warning. |
+| `getOwnReportForTarget` | authenticated callable | Returns the caller's private open Spot-report projection for the target. |
+| `withdrawOwnSpotReport` | authenticated callable | Closes the caller's open report, releases its claim, rebuilds the public warning, and closes only a pending safety case. |
+| `listMyReports` | authenticated callable | Returns the caller's safe open/history projections across Spot and media reports. |
+| `resolveSpotReport` | admin callable | Transitions report status, preserves evidence, and rebuilds the affected Spot warning. |
 | `submitMediaReport` | public callable | Validates/rate-limits context and writes canonical report plus private submission metadata. |
+| `getOwnMediaReport` | authenticated callable | Returns the caller's private open media-report projection for one target. |
+| `withdrawOwnMediaReport` | authenticated callable | Transitions the caller's report to withdrawn without reversing scanner or moderator media action. |
 | `onMediaReportCreate` | create `media_reports/{id}` | Legacy media report handling; may transactionally remove media from Spot/event. |
 | `onRootMediaReportCreate` | create `reports/{id}` | Root media/scanner report handling with the same target-removal policy. |
 | `cleanupMediaReportSubmissionMetadata` | daily schedule | Bounded expiry queries; strips/deletes private submission metadata. |
@@ -922,12 +1153,17 @@ Source modules: [`spotReportFunctions.ts`](functions/src/spotReportFunctions.ts)
 | `backfillPublicUserProfiles` | admin callable | Reads all users and all existing projections; apply writes desired profiles, deletes stale, writes state. |
 | `activateUserProfilePrivacyCutover` | admin callable | Reads projection state and writes cutover state after exact confirmation. |
 | `cleanupOnUserDelete` | Auth user delete | Reads deleted user's `following` and `followers`; deletes every reciprocal edge, then deletes `users/{uid}`: `(F_following + F_followers) R + same number D + 1 user D`. It does not delete the deleted user's own remaining subcollections. The current batch implementation is only safe below 450 edges per direction and must be fixed before relying on larger-account cleanup. |
-| `onCheckInCreate` | create user check-in | One private-data `arrayUnion` write. |
+| `onCheckInCreate` | create legacy user check-in | Private-data `arrayUnion` plus a permanent server-only legacy-Spot marker. |
 | `syncVisitedSpotsCountOnPrivateDataWrite` | write private data | One public user counter write. |
 | `updateAgePolicy` | legacy authenticated callable | Reads/writes legacy age policy for old clients. |
 | `updateAgePolicyV2` | App Check authenticated callable | Reads/writes v2 policy/evidence-compatible profile state. |
 | `beginAgeAssuranceV3` | App Check authenticated callable | Reads user/policy and writes short-lived challenge/evidence state. |
 | `updateAgePolicyV3` | App Check authenticated callable | Reads user/challenge/platform signal and writes v3 policy/profile privacy consequences. |
+| `externalAgeVerificationAvailability` | App Check callable | Returns whether the server-side OneID fallback is configured; no identity data. |
+| `beginExternalAgeVerification` | App Check authenticated callable | Creates one opaque, expiring UID-bound OneID OIDC attempt and returns the hosted URL. |
+| `externalAgeVerificationStatus` | App Check authenticated callable | Returns only the caller’s latest attempt status; clears expired attempts and interrupted callbacks without granting eligibility. |
+| `oneIdAgeVerificationCallback` | OneID HTTPS redirect/callback | Validates PKCE and signed OIDC response, obtains only `age_over_18` server-to-server, then transactionally consumes the attempt and updates policy/audit state. |
+| `cleanupExternalAgeVerificationAttempts` | daily schedule | Deletes bounded expired external attempts, including temporary nonce and PKCE verifier material. |
 | `invalidateAgeAssuranceApprovals` | admin callable | Dry-run/apply scan of affected users; conditional policy writes. |
 | `cleanupAgeAssuranceChallenges` | daily schedule | Reads bounded expired challenges and deletes them. |
 | `fixSpotLocations` | create legacy fix doc | Full Spot repair migration for coordinate shape; writes affected Spots. |
@@ -993,13 +1229,27 @@ Source modules: [`notificationFunctions.ts`](functions/src/notificationFunctions
 | `getOsmAmenityTile` | App Check callable | Cache read + lease transaction; optional Overpass and success/failure cache write. |
 | `cleanupExpiredOsmAmenityCache` | daily schedule | Up to four queries <=300, delete every result. |
 | `resolveMapShortLink` | App Check callable | No Firestore; bounded, allowlisted redirect requests. |
-| `generateSitemapOnSchedule` | daily 03:00 UTC | Full projection/source streams, Storage write, IndexNow. |
-| `generateSitemapManual` | public HTTP request | Same full sitemap work; endpoint itself does not add authorization. |
+| `generateSitemapOnSchedule` | daily 03:00 UTC; run its Scheduler job for an on-demand rebuild | Full projection/source streams, Storage write, IndexNow. |
 
 Source modules: [`weatherFunctions.ts`](functions/src/weatherFunctions.ts),
 [`osmAmenityFunctions.ts`](functions/src/osmAmenityFunctions.ts),
 [`mapLinkFunctions.ts`](functions/src/mapLinkFunctions.ts), and
 [`sitemapFunctions.ts`](functions/src/sitemapFunctions.ts).
+
+### Development-only Stripe support shop
+
+| Export | Trigger/interface | Primary interaction and cost shape |
+| --- | --- | --- |
+| `createSupportCheckout` | App Check callable; optional authenticated user | Validates a trusted donation or sticker-pack choice, creates one `support_orders` document, creates a Stripe Checkout Session, then records the session ID. A signed-in caller's UID is recorded only for their future history. |
+| `listMySupportOrders` | signed-in App Check callable | Queries the caller's `support_orders` by `user_id` and `created_at`, returning at most 100 non-PII summaries. It intentionally omits Stripe customer email and postal address. |
+| `listSupportOrders` | admin App Check callable | Reads up to 100 paid physical orders by `paid_at`; returns shipping address and email solely to the authenticated fulfilment administrator. |
+| `markSupportOrderFulfilled` | admin App Check callable | Transactionally reads one paid physical order and writes the server-owned fulfilment status and actor/timestamp. |
+| `stripeSupportWebhook` | signed Stripe HTTPS webhook | Retrieves the Stripe session, transactionally reads/writes the order and a webhook receipt. Payment confirmation, failure, and customer/shipping fields are webhook-owned rather than browser-controlled. |
+
+Source modules: [`supportShopFunctions.ts`](functions/src/supportShopFunctions.ts),
+[`supportShopCheckout.ts`](functions/src/supportShopCheckout.ts), and
+[`SupportShopSchema.ts`](src/db/schemas/SupportShopSchema.ts). The callable and
+webhook reject or ignore all requests while `SUPPORT_SHOP_ENABLED` is false.
 
 ## 15. Non-exported and external behavior
 
@@ -1023,3 +1273,64 @@ Not every important interaction is a Function export:
 When adding a Function, projection, aggregate, or client write path, update this
 document in the same change. Include the canonical source, trigger, fan-out
 variables, retry/idempotency behavior, compatibility impact, and repair trail.
+
+### Additional v1.2 support and Apple assurance functions
+
+| Export | Boundary | Data flow |
+| --- | --- | --- |
+| `onContactMessageEmailCreate` | contact creation trigger | Sends support email through Resend; records delivery state in `contact_email_delivery`. Support delivery deployed; sender receipt deploy tracked separately. |
+| `beginAppleAgeAssurance` | authenticated iOS App Check callable | Creates a short-lived age challenge and checks registered App Attest key state. Disabled pending device validation. |
+| `finishAppleAgeAssurance` | authenticated iOS App Check callable | Verifies the bound App Attest response, consumes the challenge, and stores only key/counter and derived policy/evidence. Disabled pending device validation. |
+
+### Planned sessions
+
+Planned meetings use `planned_sessions/{id}` and private
+`users/{uid}/session_plans/{id}` indexes, separate from performed SessionRecords
+and the legacy Event model. The `plannedSessions` callable owns all reads and
+writes. Every private read checks an explicit invitation and reciprocal blocks;
+community link reads expose only meeting details. Only verified adults may use
+community discovery or opt into its visible attendance. Private attendance is
+shared with the host only after an explicit opt-in. Invitations require mutual
+following and do not imply attendance. Ending mutual following also ends private
+invitation access.
+
+Private saves have no public counters or host notifications. The reminder trigger
+queues generic notification intents from the private plan. The dispatcher checks
+access, current revision, cancellation, participation and reminder preferences
+again before sending. Edits refresh private indexes and queue generic updates;
+account deletion removes owned meetings and private plans. Analytics redact
+session-specific routes and suppress save-outcome events. Planning and saving do
+not create check-ins, Spot activity statistics or activity-log entries; the log
+editor only offers a user-confirmed prefill.
+
+| Export | Boundary | Data flow |
+| --- | --- | --- |
+| `schedulePlannedSessionReminder` | `users/{uid}/session_plans/{id}` write trigger | When a saved private plan enables reminders, reads the current session and idempotently queues a generic reminder intent. It skips cancelled or past sessions and never derives reminders from RSVPs or public counters. |
+| `refreshPlannedSessionPlans` | `planned_sessions/{id}` update trigger | Pages through matching private session plans, refreshes their start time and revision from current session state, and idempotently queues generic update intents only for saved plans. It never exposes saver identities to the host. |
+
+### On-demand share cards
+
+| Function | Trigger and data flow |
+| --- | --- |
+| `prepareShareCard` | App Check-protected Share action. Reads canonical public presentation and source image metadata, applies a private rate limit, and acquires a `share_cards` lease. Reuses a matching card or renders a PNG into private `share_cards/` Storage. Rechecks source eligibility before publishing metadata. Does not write to canonical entities. |
+| `shareCardImage` | Read-only HTTP endpoint. Resolves an optional slug, reads canonical public eligibility and card metadata, and checks source media generations. Serves the stored image or bundled fallback; private/missing entities return 404. Never renders or writes. |
+| `invalidateSpotShareCard` | Spot write. Changed public presentation invalidates stale card metadata and deletes its stored image. |
+| `invalidateEventShareCard` | Event write. Same invalidation, including loss of public discovery eligibility. |
+| `invalidateCommunityShareCard` | Community write. Same invalidation, including unpublishing or merging. |
+| `invalidateProfileShareCard` | User write. Same invalidation, including loss of public-search eligibility. |
+| `cleanupShareCards` | Daily schedule. Scans old card objects, checks current references and eligibility, removes invalid/orphaned images and metadata, and deletes expired rate-limit documents. |
+
+Preparation uses bounded canonical/card/rate-limit document reads and transactional
+writes, plus Storage metadata checks for at most three selected images. Rendering
+adds source downloads and one PNG upload. Invalidation uses canonical/card reads,
+then a metadata delete and Storage delete when stale. Cleanup costs scale with the
+number of old Storage objects examined. Retries can repeat those operations.
+No entity, Typesense or sitemap write is triggered by preparation. Image responses
+are not cacheable at the origin; external recipients may retain their own previews.
+
+### Contact receipt and health probe
+
+| Export | Boundary | Data flow |
+| --- | --- | --- |
+| `onContactMessageReceiptCreate` | New `contact_messages/{messageId}` | Independent Resend acknowledgement, validated recipient, hashed recipient cooldown in `contact_receipt_limits`, and delivery state in `contact_receipt_delivery`. Provider idempotency uses the message ID; events older than 23 hours require review. Automatic retries are disabled; no historical backfill. |
+| `monitoringHealth` | Token-authenticated HTTP GET/HEAD | Reads the Firestore health probe document. Returns uncached health status, never cached success on a failed read. It is an operational canary, not a client write path. |

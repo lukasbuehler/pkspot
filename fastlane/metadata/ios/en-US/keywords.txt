@@ -1,1 +1,1 @@
-freerun,traceur,training,map,locations,community,events,checkin,jam,street workout
+map,training,traceur,freerun,outdoor,indoor,gym,locations,events,session,log,practice

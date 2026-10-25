@@ -1,3 +1,4 @@
+import { ErrorStateMatcher } from "@angular/material/core";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -23,7 +24,7 @@ import {
 import { NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatInput } from "@angular/material/input";
-import { MatFormField, MatLabel, MatHint } from "@angular/material/form-field";
+import { MatFormField, MatLabel, MatHint, MatError } from "@angular/material/form-field";
 import { MatButton } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatDividerModule } from "@angular/material/divider";
@@ -45,6 +46,7 @@ import { AnalyticsService } from "../../services/analytics.service";
     MatLabel,
     MatInput,
     MatHint,
+    MatError,
     MatCheckbox,
     MatIconModule,
     NgOptimizedImage,
@@ -54,6 +56,12 @@ import { AnalyticsService } from "../../services/analytics.service";
 })
 export class SignUpPageComponent implements OnInit, OnDestroy {
   createAccountForm: UntypedFormGroup | undefined;
+  readonly repeatPasswordMatcher: ErrorStateMatcher = {
+    isErrorState: (control, form) => !!(
+      (control?.touched || form?.submitted) &&
+      (control?.invalid || control?.parent?.hasError("repeatedPasswordDoesNotMatchPassword"))
+    ),
+  };
   readonly signUpError = signal("");
   readonly isSubmitting = signal(false);
   private _returnUrl: string = "/profile";

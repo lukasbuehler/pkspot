@@ -1,0 +1,189 @@
+const {test, before, after} = require('node:test');
+const assert = require('node:assert/strict');
+const {createRequire} = require('node:module');
+const load = createRequire(require('node:path').resolve('functions/package.json'));
+const admin = load('firebase-admin');
+if (!process.env.FIRESTORE_EMULATOR_HOST) throw new Error('Firestore emulator required');
+Object.assign(process.env, {ONEID_ENVIRONMENT: 'production', ONEID_PRODUCT: 'age_check', ONEID_AGE_VERIFICATION_ENABLED: 'true', ONEID_AGE_CHECK_METHOD_APPROVED: 'true', ONEID_CLIENT_ID: 'test-client', ONEID_CLIENT_SECRET: 'test-secret', ONEID_REDIRECT_URI: 'https://pkspot.example/callback'});
+admin.initializeApp({projectId: 'demo-pkspot'});
+const jose = load('jose');
+let issuer = 'https://controller.myoneid.co.uk';
+const db = admin.firestore();
+const originalFetch = global.fetch;
+let server, base, keys, jwk, current, nonce, subject = 'same-subject', result = true, failToken = false, expiredToken = false, failStage = '', invalidSignature = false, wrongNonce = false;
+// JOSE v5 uses Node HTTP rather than global.fetch for remote keys. Supply a
+// local key resolver only; jwtVerify still checks real signatures and claims.
+require.cache[load.resolve('jose')].exports = {
+  ...jose, createRemoteJWKSet: () => jose.createLocalJWKSet({keys: [jwk]}),
+};
+const {beginExternalAgeVerification, oneIdAgeVerificationCallback, oneIdAgeResult, externalAgeVerificationStatus, externalVerificationReturnUrl} = require('../functions/lib/functions/src/externalAgeVerificationFunctions.js');
+before(async () => {
+  keys = await jose.generateKeyPair('PS256');
+  jwk = {...await jose.exportJWK(keys.publicKey), kid: 'test', alg: 'PS256', use: 'sig'};
+  const app = load('express')();
+  app.get('/callback', oneIdAgeVerificationCallback);
+  server = await new Promise(resolve => { const listening = app.listen(0, '127.0.0.1', () => resolve(listening)); });
+  base = `http://127.0.0.1:${server.address().port}`;
+  global.fetch = async (url, options) => {
+    const address = String(url);
+    if (failStage && address === `${issuer}/${failStage}`) throw new DOMException('test timeout', 'TimeoutError');
+    if (address === `${issuer}/.well-known/openid-configuration`) return Response.json({issuer, token_endpoint: `${issuer}/token`, userinfo_endpoint: `${issuer}/userinfo`, jwks_uri: `${issuer}/jwks`});
+    if (address === `${issuer}/jwks`) return Response.json({keys: [jwk]});
+    if (address === `${issuer}/token`) {
+      if (failToken) return Response.json({}, {status: 400});
+      const idToken = await new jose.SignJWT({nonce: wrongNonce ? "wrong-nonce" : nonce}).setProtectedHeader({alg: 'PS256', kid: 'test'}).setIssuer(issuer).setAudience('test-client').setSubject('same-subject').setIssuedAt().setExpirationTime(expiredToken ? '0s' : '5m').sign(keys.privateKey);
+      return Response.json({access_token: 'test-access', id_token: invalidSignature ? `${idToken.slice(0, idToken.lastIndexOf(".") + 1)}AAAA` : idToken});
+    }
+    if (address === `${issuer}/userinfo`) return Response.json({sub: subject, age_over_18: result});
+    if (address.startsWith(base)) return originalFetch(url, options);
+    throw new Error('Unexpected network request');
+  };
+});
+after(async () => { global.fetch = originalFetch; server.closeAllConnections(); server.close(); await db.terminate(); await admin.app().delete(); });
+async function begin(uid, age_policy = {}, locale = "en") {
+  await db.doc(`users/${uid}`).set({age_policy});
+  current = await beginExternalAgeVerification.run({auth: {uid}, data: {provider: 'oneid', locale}});
+  nonce = new URL(current.verification_url).searchParams.get('nonce');
+  subject = 'same-subject'; result = true; failToken = false; expiredToken = false; failStage = ''; invalidSignature = false; wrongNonce = false;
+  return current;
+}
+function callback(state = new URL(current.verification_url).searchParams.get('state')) {
+  return fetch(`${base}/callback?state=${encodeURIComponent(state)}&code=abcdefghijklmnop`);
+}
+test('OIDC validation accepts a genuinely signed test token with a local key source', async () => {
+  await begin('transport');
+  const attempt = (await db.doc(`age_assurance_external_attempts/${current.attempt_id}`).get()).data();
+  const value = await oneIdAgeResult({clientId: 'test-client', clientSecret: 'test-secret', redirectUri: 'https://pkspot.example/callback', issuer}, nonce, 'abcdefghijklmnop', attempt.code_verifier);
+  assert.equal(value.verified, true);
+});
+test('signed callback preserves participation restrictions and consumes PKCE state', async () => {
+  await begin('restricted', {participation_state: 'read_only_age_restricted', required_regulatory_features: ['parental_consent']});
+  { const response = await callback(); const body = await response.text(); if (response.status !== 200) console.error(body); assert.equal(response.status, 200, body); assert.match(body, /<h1>Age verification<\/h1>/); assert.match(response.headers.get('content-security-policy'), /style-src 'unsafe-inline'/); assert.equal(response.headers.get('referrer-policy'), 'no-referrer'); }
+  const policy = (await db.doc('users/restricted').get()).data().age_policy;
+  assert.equal(policy.participation_state, 'read_only_age_restricted');
+  assert.deepEqual(policy.required_regulatory_features, ['parental_consent']);
+  assert.equal(policy.adult_eligibility, 'verified');
+  const attempt = (await db.doc(`age_assurance_external_attempts/${current.attempt_id}`).get()).data();
+  assert.equal(attempt.code_verifier, undefined); assert.equal(attempt.nonce, undefined);
+  { const response = await callback(); const body = await response.text(); if (response.status !== 200) console.error(body); assert.equal(response.status, 200, body); }
+  assert.equal((await db.collection('users/restricted/age_assurance_records').get()).size, 1);
+});
+test('subject mismatch is rejected and failed attempts can no longer exchange tokens', async () => {
+  await begin('mismatch'); subject = 'different-subject';
+  assert.equal((await callback()).status, 400);
+  assert.equal((await db.doc('users/mismatch').get()).data().age_policy.adult_eligibility, undefined);
+  const attempt = (await db.doc(`age_assurance_external_attempts/${current.attempt_id}`).get()).data();
+  assert.equal(attempt.outcome, 'failed'); assert.equal(attempt.code_verifier, undefined);
+});
+test('inconclusive result preserves independent native evidence', async () => {
+  const previous = {source: 'ios_declared_age_range', adult_eligibility: 'verified', age_range: {lower: 18}, assurance: {status: 'active', client_integrity: 'apple_app_attest_request_bound', verification_id: 'native-proof'}};
+  await begin('native', previous); result = false;
+  { const response = await callback(); const body = await response.text(); if (response.status !== 200) console.error(body); assert.equal(response.status, 200, body); }
+  assert.deepEqual((await db.doc('users/native').get()).data().age_policy, previous);
+  assert.equal((await db.doc('users/native/age_assurance_records/native-proof').get()).exists, false);
+});
+test('unknown state, expired attempts, expired tokens and token failures cannot grant eligibility', async () => {
+  await begin('unknown'); assert.equal((await callback('unknown-state-long-enough')).status, 400);
+  await begin('expired-attempt');
+  await db.doc(`age_assurance_external_attempts/${current.attempt_id}`).update({expires_at: admin.firestore.Timestamp.fromMillis(0)});
+  assert.equal((await callback()).status, 400);
+  await begin('expired-token'); expiredToken = true; assert.equal((await callback()).status, 400);
+  await begin('token-failure'); failToken = true; assert.equal((await callback()).status, 400);
+});
+test('invalid signatures and mismatched nonces cannot grant eligibility', async () => {
+  await begin('invalid-signature'); invalidSignature = true;
+  assert.equal((await callback()).status, 400);
+  assert.equal((await db.doc('users/invalid-signature').get()).data().age_policy.adult_eligibility, undefined);
+  await begin('wrong-nonce'); wrongNonce = true;
+  assert.equal((await callback()).status, 400);
+  assert.equal((await db.doc('users/wrong-nonce').get()).data().age_policy.adult_eligibility, undefined);
+});
+test('callback does not recreate a deleted account', async () => {
+  await begin('deleted'); await db.doc('users/deleted').delete();
+  assert.equal((await callback()).status, 400);
+  assert.equal((await db.doc('users/deleted').get()).exists, false);
+});
+test('configured products keep threshold-only scopes and do not claim a bank method', async () => {
+  process.env.ONEID_PRODUCT = 'age_verification';
+  await begin('multiple-methods');
+  assert.equal(new URL(current.verification_url).searchParams.get('scope'), 'openid age_over_18 product:age_verification');
+  assert.equal((await callback()).status, 200);
+  const assurance = (await db.doc('users/multiple-methods').get()).data().age_policy.assurance;
+  assert.equal(assurance.method.category, 'external_verification');
+  assert.equal(assurance.method.provider_method, 'age_verification');
+  process.env.ONEID_PRODUCT = 'age_check';
+});
+test('provider cancellation consumes the attempt without granting age eligibility', async () => {
+  await begin('cancelled');
+  const state = new URL(current.verification_url).searchParams.get('state');
+  const response = await fetch(`${base}/callback?state=${state}&error=access_denied&error_oneid=OneID.OIDC.Redirect.UserCancelled`);
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /Verification was cancelled/);
+  assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid: 'cancelled'}}), {status: 'cancelled'});
+  assert.equal((await db.doc('users/cancelled').get()).data().age_policy.adult_eligibility, undefined);
+});
+test('status recovery is owner-only and terminates stuck callbacks', async () => {
+  await begin('recovery');
+  assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid: 'recovery'}}), {status: 'pending'});
+  assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid: 'stranger'}, data: {attempt_id: current.attempt_id}}), {status: 'idle'});
+  await assert.rejects(externalAgeVerificationStatus.run({}), {code: 'unauthenticated'});
+  await db.doc(`age_assurance_external_attempts/${current.attempt_id}`).update({processing_at: admin.firestore.Timestamp.fromMillis(Date.now() - 100000)});
+  assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid: 'recovery'}}), {status: 'failed'});
+  assert.equal((await db.doc(`age_assurance_external_attempts/${current.attempt_id}`).get()).data().code_verifier, undefined);
+});
+test('timeouts at discovery, token exchange and UserInfo fail cleanly and allow recovery', async () => {
+  for (const [index, stage] of ['.well-known/openid-configuration', 'token', 'userinfo'].entries()) {
+    const uid = `timeout-${index}`;
+    await begin(uid); failStage = stage;
+    assert.equal((await callback()).status, 400);
+    assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid}}), {status: 'failed'});
+    const stored = (await db.doc(`age_assurance_external_attempts/${current.attempt_id}`).get()).data();
+    assert.equal(stored.code_verifier, undefined);
+    assert.equal((await db.doc(`users/${uid}`).get()).data().age_policy.adult_eligibility, undefined);
+  }
+  failStage = '';
+});
+test('sandbox results are isolated and only allowlisted accounts can start', async () => {
+  process.env.ONEID_ENVIRONMENT = 'sandbox';
+  issuer = 'https://controller.sandbox.myoneid.co.uk';
+  process.env.ONEID_SANDBOX_TEST_UIDS = 'sandbox-tester,sandbox-negative';
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'outsider'}, data: {provider: 'oneid'}}), {code: 'permission-denied'});
+  for (const [uid, confirmed] of [['sandbox-tester', true], ['sandbox-negative', false]]) {
+    const previous = {participation_state: 'read_only_age_restricted'};
+    await begin(uid, previous); result = confirmed;
+    assert.equal((await callback()).status, 200);
+    assert.deepEqual((await db.doc(`users/${uid}`).get()).data().age_policy, previous);
+    assert.equal((await db.collection(`users/${uid}/age_assurance_records`).get()).size, 0);
+    assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid}}), {status: confirmed ? 'sandbox_verified' : 'sandbox_not_verified'});
+  }
+  const day = Math.floor(Date.now() / 86400000);
+  const rateRef = db.doc('age_assurance_external_limits/sandbox-tester');
+  await rateRef.set({day, count: 5, last_started_ms: Date.now() - 11_000});
+  await begin('sandbox-tester');
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'sandbox-tester'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
+  await rateRef.set({day, count: 100, last_started_ms: 0});
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'sandbox-tester'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
+  await begin('sandbox-tester-2').then(() => assert.fail('not allowlisted'), error => assert.equal(error.code, 'permission-denied'));
+  process.env.ONEID_ENVIRONMENT = 'production';
+  issuer = 'https://controller.myoneid.co.uk';
+});
+test('authenticated start is rate limited and requires method approval', async () => {
+  await begin('rate');
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'rate'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
+  await db.doc('age_assurance_external_limits/rate').set({day: Math.floor(Date.now() / 86400000), count: 5, last_started_ms: 0});
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'rate'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
+  process.env.ONEID_AGE_CHECK_METHOD_APPROVED = 'false';
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'other'}, data: {provider: 'oneid'}}), {code: 'failed-precondition'});
+  process.env.ONEID_AGE_CHECK_METHOD_APPROVED = 'true';
+});
+
+test('returns to the originating locale and account tab, including replay and cancellation', async () => {
+  await begin('localized-return', {}, 'de');
+  assert.match(await (await callback()).text(), /https:\/\/pkspot.app\/de\/settings\/account\?oneid=return/);
+  assert.match(await (await callback()).text(), /\/de\/settings\/account/);
+  await begin('localized-cancel', {}, 'fr');
+  const state = new URL(current.verification_url).searchParams.get('state');
+  const response = await fetch(`${base}/callback?state=${encodeURIComponent(state)}&error=OneID.OIDC.Redirect.UserCancelled`);
+  assert.match(await response.text(), /\/fr\/settings\/account/);
+  assert.equal(externalVerificationReturnUrl('https://attacker.example'), 'https://pkspot.app/en/settings/account?oneid=return');
+});

@@ -74,31 +74,31 @@
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="/assets/icons/apple-touch-icon.png"
+      href="assets/icons/apple-touch-icon.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="96x96"
-      href="/assets/icons/favicon-96x96.png"
+      href="assets/icons/favicon-96x96.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="48x48"
-      href="/assets/icons/favicon-48x48.png"
+      href="assets/icons/favicon-48x48.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="/assets/icons/favicon-32x32.png"
+      href="assets/icons/favicon-32x32.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="/assets/icons/favicon-16x16.png"
+      href="assets/icons/favicon-16x16.png"
     />
 
     <!--
@@ -108,7 +108,7 @@
       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
     ></script>-->
 
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
     <!-- Load font stylesheet (Inlined to avoid blocking request) -->
     <style>
@@ -118,7 +118,7 @@
         font-style: normal;
         font-weight: 100 700;
         font-display: swap;
-        src: url("assets/fonts/material-symbols-optimized.woff2?v=176cf1c0c9")
+        src: url("assets/fonts/material-symbols-optimized.woff2?v=4454cec585")
           format("woff2");
       }
 
@@ -127,7 +127,7 @@
         font-style: normal;
         font-weight: 400;
         font-display: swap;
-        src: url("assets/fonts/material-symbols-rounded-outline.woff2?v=4ee199b971")
+        src: url("assets/fonts/material-symbols-rounded-outline.woff2?v=0c07a916c9")
           format("woff2");
       }
 
@@ -206,7 +206,7 @@
     <link
       rel="preload"
       as="image"
-      href="assets/logos/pkspot/pkspot_logo_stacked_dark.png"
+      href="assets/logos/pkspot/pkspot_logo_stacked_dark.webp"
       fetchpriority="high"
     />
 
@@ -257,46 +257,12 @@
   <body>
     <div id="app-splash-screen">
       <img
-        src="assets/logos/pkspot/pkspot_logo_stacked_dark.png"
+        src="assets/logos/pkspot/pkspot_logo_stacked_dark.webp"
         alt="PK Spot"
         fetchpriority="high"
       />
     </div>
-    <app-root>
-      <!-- Map Skeleton / Placeholder to improve LCP -->
-      <div
-        style="
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: #1f1f23;
-          z-index: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        "
-      >
-        <div
-          style="
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #ffffff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          "
-        ></div>
-        <style>
-          @keyframes spin {
-            to {
-              transform: rotate(360deg);
-            }
-          }
-        </style>
-      </div>
-    </app-root>
+    <app-root></app-root>
     <noscript i18n
       >Please enable JavaScript to continue using this application.</noscript
     >

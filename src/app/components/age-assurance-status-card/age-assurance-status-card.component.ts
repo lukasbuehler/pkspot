@@ -1,3 +1,4 @@
+import { RouterLink } from "@angular/router";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,10 +14,11 @@ import { firstValueFrom } from "rxjs";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { PlatformService } from "../../services/platform.service";
 import { AgeAssuranceInfoDialogComponent } from "../age-assurance-info-dialog/age-assurance-info-dialog.component";
+import { AdultVerificationDialogComponent } from "../adult-verification-dialog/adult-verification-dialog.component";
 
 @Component({
   selector: "app-age-assurance-status-card",
-  imports: [MatButtonModule, MatIcon, MatProgressSpinner],
+  imports: [MatButtonModule, MatIcon, MatProgressSpinner, RouterLink],
   templateUrl: "./age-assurance-status-card.component.html",
   styleUrl: "./age-assurance-status-card.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,12 +33,14 @@ export class AgeAssuranceStatusCardComponent {
     this._platform.isNative() && this._platform.getPlatform() === "android";
   readonly isIosApp =
     this._platform.isNative() && this._platform.getPlatform() === "ios";
-  readonly isNativeAgeAssuranceApp = this.isAndroidApp || this.isIosApp;
+  readonly isNativeAgeAssuranceApp =
+    (this.isAndroidApp && this.ageAssurance.isProviderEnabled("google_play")) ||
+    (this.isIosApp && this.ageAssurance.isProviderEnabled("apple"));
   readonly isChecking = computed(
     () => this.ageAssurance.checkState().status === "checking",
   );
   readonly showPlayStoreAction = computed(() => {
-    if (!this.isAndroidApp) return false;
+    if (!this.isAndroidApp || !this.ageAssurance.isProviderEnabled("google_play")) return false;
     const status = this.ageAssurance.checkState().status;
     return (
       status === "idle" ||
@@ -63,8 +67,8 @@ export class AgeAssuranceStatusCardComponent {
           : $localize`The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.`;
       case "self_declared":
         return isGooglePlay
-          ? $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.`
-          : $localize`The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.`;
+          ? $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it does not confirm adult eligibility.`
+          : $localize`The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it does not confirm adult eligibility.`;
       case "guardian_managed":
         return isGooglePlay
           ? $localize`Google Play reports a guardian-managed age range. A parent can manage age sharing in Family Link.`
@@ -95,7 +99,7 @@ export class AgeAssuranceStatusCardComponent {
         }
         switch (this.ageAssurance.adultEvidenceStrength()) {
           case "self_declared":
-            return $localize`A self-declared age range is stored, but it does not unlock a public profile.`;
+            return $localize`A self-declared age range is stored, but it does not confirm adult eligibility.`;
           case "guardian_managed":
             return $localize`The platform reports a guardian-managed age range.`;
           case "independently_checked":
@@ -114,6 +118,7 @@ export class AgeAssuranceStatusCardComponent {
   });
 
   async recheck(): Promise<void> {
+    if (!this.isNativeAgeAssuranceApp) return;
     this._storeOpenFailed.set(false);
 
     if (this.isIosApp) {
@@ -148,6 +153,15 @@ export class AgeAssuranceStatusCardComponent {
 
   openInfo(): void {
     this._dialog.open(AgeAssuranceInfoDialogComponent, {
+      width: "min(680px, calc(100vw - 32px))",
+      maxWidth: "100vw",
+      maxHeight: "calc(100vh - 32px)",
+      autoFocus: false,
+    });
+  }
+
+  openVerification(): void {
+    this._dialog.open(AdultVerificationDialogComponent, {
       width: "min(680px, calc(100vw - 32px))",
       maxWidth: "100vw",
       maxHeight: "calc(100vh - 32px)",

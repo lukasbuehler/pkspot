@@ -1,6 +1,8 @@
-import { describe, expect, it, afterEach } from "vitest";
+import { describe, expect, it, afterEach, vi } from "vitest";
 import {
   buildEventInsights,
+  fetchWeatherUpstream,
+  fetchGoogleJson,
   buildWeatherAlertCacheKey,
   buildWeatherCacheKey,
   buildWeatherInsights,
@@ -20,6 +22,37 @@ import type { WeatherPoint } from "../functions/src/weatherFunctions";
 describe("weather functions", () => {
   afterEach(() => {
     delete process.env.WEATHER_PROVIDER;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("records provider and status without logging sensitive weather request parameters", async () => {
+    const warn = vi.fn();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("private body", {status: 403})));
+    const result = await fetchWeatherUpstream(new URL("https://weather.googleapis.com/v1/currentConditions:lookup?key=secret&location.latitude=47"), "google", warn);
+    expect(result.status).toBe(403);
+    expect(warn).toHaveBeenCalledWith("Weather upstream rejected request", {
+      provider: "google", endpoint: "/v1/currentConditions:lookup", upstreamStatus: 403,
+    });
+    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/secret|latitude|private body/);
+  });
+
+  it("classifies Google coverage gaps without warning logs or successful empty forecasts", async () => {
+    const warn = vi.fn();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("private body", {status: 404})));
+    await fetchWeatherUpstream(new URL("https://weather.googleapis.com/v1/currentConditions:lookup"), "google", warn);
+    expect(warn).not.toHaveBeenCalled();
+    await expect(fetchGoogleJson("https://weather.googleapis.com/v1/forecast/hours:lookup", "secret", {lat: 47, lng: 8}))
+      .rejects.toMatchObject({code: "not-found", details: {reason: "coverage-unavailable", provider: "google"}});
+  });
+
+  it("retains the upstream outage error and can recover on a subsequent request", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(new Response("unavailable", {status: 503}))
+      .mockResolvedValueOnce(Response.json({forecastHours: []})));
+    const load = () => fetchGoogleJson("https://weather.googleapis.com/v1/forecast/hours:lookup", "secret", {lat: 47, lng: 8});
+    await expect(load()).rejects.toMatchObject({code: "unavailable"});
+    await expect(load()).resolves.toEqual({forecastHours: []});
   });
 
   it("normalizes weather response country codes", () => {

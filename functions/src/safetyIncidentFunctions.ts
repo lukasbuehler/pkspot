@@ -3,6 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
+import { assertMediaReviewAvailable } from "./mediaReviewState";
 
 interface CreateSafetyIncidentRequest {
   report_path: string;
@@ -114,70 +115,53 @@ export const createSafetyIncident = onCall<CreateSafetyIncidentRequest>(
     assertReportPath(reportPath);
 
     const reportRef = db.doc(reportPath);
-    const report = await reportRef.get();
-    if (!report.exists) {
-      throw new HttpsError("not-found", "Media report not found.");
-    }
-    const data = report.data() ?? {};
-    const existingPath = data["incident_path"];
-    if (
-      typeof existingPath === "string" &&
-      /^safety_incidents\/[^/]+$/.test(existingPath)
-    ) {
-      return { incident_path: existingPath };
-    }
-
-    const media = data["media"];
-    const incidentRef = db.collection("safety_incidents").doc();
-    const timestamp = FieldValue.serverTimestamp();
-    await db.runTransaction(async (transaction) => {
+    return db.runTransaction(async (transaction) => {
+      // Read the report inside the transaction so simultaneous escalations reuse one incident.
+      const report = await transaction.get(reportRef);
+      if (!report.exists) throw new HttpsError("not-found", "Media report not found.");
+      const data = report.data() ?? {};
+      const media = data["media"];
+      if (!media || typeof media !== "object") {
+        throw new HttpsError("invalid-argument", "A media report is required.");
+      }
+      const reviewPath = data["review_path"];
+      const reviewRef = typeof reviewPath === "string" &&
+        /^media_upload_reviews\/[A-Za-z0-9_-]+$/.test(reviewPath)
+        ? db.doc(reviewPath) : undefined;
+      const review = reviewRef ? await transaction.get(reviewRef) : undefined;
+      const existingPath = data["incident_path"] ?? review?.data()?.["incident_path"];
+      if (typeof existingPath === "string" && /^safety_incidents\/[^/]+$/.test(existingPath)) {
+        if (review?.exists) transaction.update(review.ref, { incident_path: existingPath });
+        transaction.update(reportRef, { incident_path: existingPath });
+        return { incident_path: existingPath };
+      }
+      if (review?.exists) assertMediaReviewAvailable(review.data() ?? {}, data);
+      const incidentRef = db.collection("safety_incidents").doc();
+      const timestamp = FieldValue.serverTimestamp();
       transaction.create(incidentRef, {
-        status: "triage",
-        classification: "undetermined",
-        uk_link: "unknown",
-        retention_state: "triage_hold",
-        reporting_route: "pending",
+        status: "triage", classification: "undetermined", uk_link: "unknown",
+        retention_state: "triage_hold", reporting_route: "pending",
         reporting_status: "not_assessed",
         runbook: {
-          evidence_preserved: false,
-          access_restricted: false,
-          context_collected: false,
-          uk_link_assessed: false,
-          reporting_route_assessed: false,
-          external_action_recorded: false,
+          evidence_preserved: false, access_restricted: false,
+          context_collected: false, uk_link_assessed: false,
+          reporting_route_assessed: false, external_action_recorded: false,
         },
         source_report_path: reportPath,
-        ...(typeof data["review_path"] === "string"
-          ? { review_path: data["review_path"] }
-          : {}),
-        ...(media &&
-        typeof media === "object" &&
-        typeof media["storage_path"] === "string"
-          ? { storage_path: media["storage_path"] }
-          : {}),
-        ...(media &&
-        typeof media === "object" &&
-        typeof media["sha256"] === "string"
-          ? { sha256: media["sha256"] }
-          : {}),
-        ...(data["scanner"] && typeof data["scanner"] === "object"
-          ? { scanner: data["scanner"] }
-          : {}),
-        created_at: timestamp,
-        created_by: uid,
-        updated_at: timestamp,
-        updated_by: uid,
+        ...(reviewRef ? { review_path: reviewRef.path } : {}),
+        ...(typeof media["storage_path"] === "string" ? { storage_path: media["storage_path"] } : {}),
+        ...(typeof media["sha256"] === "string" ? { sha256: media["sha256"] } : {}),
+        ...(data["scanner"] && typeof data["scanner"] === "object" ? { scanner: data["scanner"] } : {}),
+        created_at: timestamp, created_by: uid, updated_at: timestamp, updated_by: uid,
       });
       transaction.update(reportRef, { incident_path: incidentRef.path });
+      if (review?.exists) transaction.update(review.ref, { incident_path: incidentRef.path });
       transaction.create(incidentRef.collection("events").doc(), {
-        type: "incident_created",
-        created_at: timestamp,
-        created_by: uid,
+        type: "incident_created", created_at: timestamp, created_by: uid,
         source_report_path: reportPath,
       });
+      return { incident_path: incidentRef.path };
     });
-
-    return { incident_path: incidentRef.path };
   },
 );
 
@@ -193,6 +177,10 @@ export const getModerationMediaPreview = onCall<GetModerationMediaPreviewRequest
       const reviewData = review.data() ?? {};
       if (!review.exists) {
         throw new HttpsError("not-found", "Media review not found.");
+      }
+      const report = await db.doc(`reports/scanner_${reviewId}`).get();
+      if (reviewData["incident_path"] || report.data()?.["incident_path"]) {
+        throw new HttpsError("failed-precondition", "Continue this review in its safety incident.");
       }
       if (isRestrictedScannerResult(reviewData["scan_result"])) {
         throw new HttpsError(
@@ -232,6 +220,9 @@ export const getModerationMediaPreview = onCall<GetModerationMediaPreviewRequest
           : undefined;
     if (!report.exists || typeof storagePath !== "string") {
       throw new HttpsError("not-found", "Quarantined media was not found.");
+    }
+    if (reportData["incident_path"]) {
+      throw new HttpsError("failed-precondition", "Continue this review in its safety incident.");
     }
     if (isRestrictedScannerResult(scanner)) {
       throw new HttpsError(

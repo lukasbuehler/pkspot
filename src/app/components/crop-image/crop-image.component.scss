@@ -10,9 +10,10 @@
 }
 
 .cropper-wrapper {
+  box-sizing: border-box;
   width: 100%;
-  height: min(58vh, 560px);
-  min-height: 280px;
+  height: min(48dvh, 480px);
+  min-height: 160px;
   overflow: hidden;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 18px;
@@ -120,7 +121,8 @@ image-cropper {
 }
 
 .crop-controls mat-slider {
-  flex: 1 1 180px;
+  min-width: 0;
+  flex: 1 1 120px;
 }
 
 .crop-error {
@@ -135,7 +137,13 @@ image-cropper {
 .crop-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
+}
+
+.crop-actions > button {
+  flex-shrink: 0;
+  max-width: 100%;
 }
 
 .crop-save-content {
@@ -146,8 +154,8 @@ image-cropper {
 
 @media (max-width: 600px) {
   .cropper-wrapper {
-    height: min(54vh, 520px);
-    min-height: 240px;
+    height: min(42dvh, 420px);
+    min-height: 160px;
   }
 
   .crop-controls {

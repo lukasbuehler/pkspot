@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -58,6 +60,8 @@ interface NotificationThreadViewModel {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationCenterPageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly center = inject(NotificationCenterService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -159,6 +163,7 @@ export class NotificationCenterPageComponent {
         duration: 4000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("notification-center-page", "performAction", error);
       console.error("Notification action failed", error);
       this._showError();
     } finally {

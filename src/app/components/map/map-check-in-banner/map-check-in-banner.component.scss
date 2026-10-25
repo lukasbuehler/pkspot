@@ -39,3 +39,9 @@
   flex-shrink: 0;
   gap: 0.25rem;
 }
+
+// White-on-filled spinner inside the Check In button while it waits.
+// Match the accent button's text instead of the filled-button default.
+.check-in-spinner {
+  --mat-progress-spinner-active-indicator-color: currentColor;
+}

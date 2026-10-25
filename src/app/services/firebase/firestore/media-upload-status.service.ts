@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../../feature-telemetry.service";
 import { Injectable, OnDestroy, inject, signal } from "@angular/core";
 import { firstValueFrom, filter, map, Subscription, take, timeout } from "rxjs";
 import { MediaType } from "../../../../db/models/Interfaces";
@@ -24,6 +25,8 @@ type MediaUploadStatusDocument = MediaUploadStatusSchema & { id: string };
   providedIn: "root",
 })
 export class MediaUploadStatusService implements OnDestroy {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private readonly firestoreAdapter = inject(FirestoreAdapterService);
   private readonly authService = inject(AuthenticationService);
   private readonly subscriptions = new Map<string, Subscription>();
@@ -51,40 +54,43 @@ export class MediaUploadStatusService implements OnDestroy {
     uploadId: string,
     timeoutMs = 120_000,
   ): Promise<string> {
-    const uid = this.currentUid();
-    if (!uid) {
-      throw new Error("User is not signed in.");
-    }
+    return this.telemetry.run("media_processing", "waitForPublishedUpload", async () => {
+      const uid = this.currentUid();
+      if (!uid) {
+        throw new Error("User is not signed in.");
+      }
 
-    return firstValueFrom(
-      this.firestoreAdapter
-        .collectionSnapshots<MediaUploadStatusDocument>(
-          "media_upload_status",
-          [
-            { fieldPath: "uid", opStr: "==", value: uid },
-            { fieldPath: "upload_id", opStr: "==", value: uploadId },
-          ],
-          [{ type: "limit", limit: 1 }],
-        )
-        .pipe(
-          map((statuses) => statuses[0]),
-          filter(
-            (status): status is MediaUploadStatusDocument =>
-              status?.status === "published" || status?.status === "failed",
+      return firstValueFrom(
+        this.firestoreAdapter
+          .collectionSnapshots<MediaUploadStatusDocument>(
+            "media_upload_status",
+            [
+              { fieldPath: "uid", opStr: "==", value: uid },
+              { fieldPath: "upload_id", opStr: "==", value: uploadId },
+            ],
+            [{ type: "limit", limit: 1 }],
+          )
+          .pipe(
+            map((statuses) => statuses[0]),
+            filter(
+              (status): status is MediaUploadStatusDocument =>
+                status?.status === "published" || status?.status === "failed",
+            ),
+            take(1),
+            timeout({ first: timeoutMs }),
+            map((status) => {
+              if (status.status === "failed") {
+                throw new Error("Media processing failed.");
+              }
+              if (!status.public_url) {
+                throw new Error("Published media is missing its public URL.");
+              }
+              return status.public_url;
+            }),
           ),
-          take(1),
-          timeout({ first: timeoutMs }),
-          map((status) => {
-            if (status.status === "failed") {
-              throw new Error("Media processing failed.");
-            }
-            if (!status.public_url) {
-              throw new Error("Published media is missing its public URL.");
-            }
-            return status.public_url;
-          }),
-        ),
-    );
+      );
+
+    }, true);
   }
 
   watchTarget(targetKind: MediaUploadTargetKind, targetId?: string): void {
@@ -208,6 +214,17 @@ export class MediaUploadStatusService implements OnDestroy {
     const byUploadId = new Map(
       statuses.map((status) => [status.upload_id, status.status]),
     );
+    // Only transitions for uploads from this client are new outcomes. Loading
+    // historical statuses or repeated snapshots must not inflate the funnel.
+    for (const upload of this.localUploads()) {
+      const next = byUploadId.get(upload.uploadId);
+      if (next !== upload.status && (next === "published" || next === "failed")) {
+        this.telemetry.outcome("media_processing", "publish", next === "published");
+        if (next === "failed") {
+          this.telemetry.failure("media_processing", "publish", new Error("Processing failed"));
+        }
+      }
+    }
     this.localUploads.update((uploads) =>
       uploads
         .filter((upload) => byUploadId.get(upload.uploadId) !== "published")

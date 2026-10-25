@@ -1,0 +1,55 @@
+.my-reports-page {
+  margin: 0 auto;
+  max-width: 760px;
+  padding: 32px 16px 64px;
+}
+
+header {
+  margin-bottom: 24px;
+}
+
+h1, h2, p {
+  margin-top: 0;
+}
+
+section + section {
+  margin-top: 32px;
+}
+
+.report-card, .loading-state, .state-card mat-card-content {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+.report-card {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  color: inherit;
+  margin: 10px 0;
+  padding: 14px;
+  text-decoration: none;
+}
+
+.report-card > div {
+  flex: 1;
+}
+
+.report-card p {
+  margin: 4px 0;
+}
+
+.report-card span {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.state-card mat-card-content {
+  flex-direction: column;
+  padding: 28px;
+  text-align: center;
+}
+
+.loading-state {
+  justify-content: center;
+  min-height: 180px;
+}

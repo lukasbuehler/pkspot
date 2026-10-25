@@ -79,6 +79,8 @@ interface SearchSpotHitDocument {
   type?: string;
   access?: string;
   amenities?: AmenitiesMap;
+  /** Server-copied localized town names. */
+  place_names?: { locality?: Record<string, string> } | null;
   address?: {
     locality?: string;
     country?: {
@@ -126,6 +128,7 @@ interface NamedSearchResultLike {
   name?: unknown;
 }
 
+import { LocalizedPlacePipe } from "../../pipes/localized-place.pipe";
 @Component({
   selector: "app-search-field",
   imports: [
@@ -141,6 +144,7 @@ interface NamedSearchResultLike {
     MatSuffix,
     MatProgressSpinnerModule,
     AsyncPipe,
+    LocalizedPlacePipe,
     SpotRatingComponent,
     AutocompleteOverlayRepositionDirective,
   ],
@@ -223,7 +227,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         debounceTime(250),
         distinctUntilChanged(),
         switchMap((query) => {
-          if (query.length < this._minSearchQueryLength) {
+          if (query.length < this._minSearchQueryLength || (!this.onlySpots() && this._mapLinkResolver.isSupportedUrl(query))) {
             return of(this.buildShortQueryResults(query));
           }
 
@@ -440,14 +444,17 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     this.spotSelected.emit(event.option.value as SearchSelection);
   }
 
-  handleSearchInput(): void {
+  handleSearchInput(event?: Event): void {
     this._mapLinkRequestId += 1;
     this.mapLinkLoading.set(false);
+    const value = event?.target instanceof HTMLInputElement ? event.target.value : "";
+    if (value && !this.onlySpots() && this._mapLinkResolver.isSupportedUrl(value)) {
+      this.openMapLink(value);
+    }
   }
 
   handlePaste(event: ClipboardEvent): void {
     if (this.onlySpots()) return;
-    const requestId = ++this._mapLinkRequestId;
     const value = event.clipboardData?.getData("text/plain")?.trim() ?? "";
     if (!this._mapLinkResolver.isSupportedUrl(value)) {
       this.mapLinkLoading.set(false);
@@ -455,6 +462,11 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     }
 
     event.preventDefault();
+    this.openMapLink(value);
+  }
+
+  private openMapLink(value: string): void {
+    const requestId = ++this._mapLinkRequestId;
     this.mapLinkLoading.set(true);
     this.spotSearchControl.setValue(value, { emitEvent: false });
     queueMicrotask(() => {
@@ -787,9 +799,10 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
    */
   getSpotImportantAmenities(
     amenities?: AmenitiesMap,
-    spotType?: string
+    spotType?: string,
+    spotAccess?: string
   ): { name?: string; icon?: string }[] {
     if (!amenities) return [];
-    return getImportantAmenities(amenities, spotType);
+    return getImportantAmenities(amenities, spotType, spotAccess);
   }
 }

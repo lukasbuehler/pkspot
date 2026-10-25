@@ -12,10 +12,15 @@ import {
   resource,
   signal,
   viewChild,
+  untracked,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import type { EventCategory } from "../../../db/schemas/EventSchema";
+import type {
+  EventCategory,
+  EventListingTier,
+  EventRegionKey,
+} from "../../../db/schemas/EventSchema";
 import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import type {
   EventDiscoverySearchResult,
@@ -25,7 +30,7 @@ import { DateTimeFormatService } from "../../services/date-time-format.service";
 import {
   calendarWeekdayLabels,
   eventLocalDateKey,
-  isMonthKey,
+  isDayKey,
 } from "./event-calendar.model";
 import {
   appendCalendarMonths,
@@ -41,6 +46,8 @@ export interface ContinuousEventCalendarLoadRequest {
   query: string;
   areaKeys: string[];
   categories: EventCategory[];
+  listingTiers: EventListingTier[];
+  regionKeys: EventRegionKey[];
   seriesIds: string[];
   startsBeforeSeconds: number;
   endsAfterSeconds: number;
@@ -73,6 +80,7 @@ export class ContinuousEventCalendarComponent {
   private readonly _scrollViewport =
     viewChild.required<ElementRef<HTMLDivElement>>("scrollViewport");
   private _expandingWindow = false;
+  private _selectionFromGrid: string | null = null;
 
   readonly anchorMonth = input.required<string>();
   readonly selectedDay = input("");
@@ -80,6 +88,8 @@ export class ContinuousEventCalendarComponent {
   readonly query = input("");
   readonly areaKeys = input<readonly string[]>([]);
   readonly categories = input<readonly EventCategory[]>([]);
+  readonly listingTiers = input<readonly EventListingTier[]>([]);
+  readonly regionKeys = input<readonly EventRegionKey[]>([]);
   readonly seriesIds = input<readonly string[]>([]);
   readonly seriesById = input<Record<string, SeriesDocument>>({});
   readonly loadEvents = input.required<ContinuousEventCalendarLoader>();
@@ -89,9 +99,14 @@ export class ContinuousEventCalendarComponent {
   readonly resultLoaded = output<EventDiscoverySearchResult>();
 
   readonly now = signal(new Date());
-  readonly monthKeys = linkedSignal(() =>
-    calendarMonthsAround(this.anchorMonth()),
-  );
+  readonly monthKeys = linkedSignal(() => {
+    const months = calendarMonthsAround(this.anchorMonth());
+    // Restore shared URLs from an extended grid without resetting it on each tap.
+    const selected = untracked(this.selectedDay);
+    return isDayKey(selected) && !months.includes(selected.slice(0, 7))
+      ? calendarMonthsAround(selected.slice(0, 7))
+      : months;
+  });
   readonly queryCalendar = computed(() =>
     buildContinuousEventCalendar(
       this.monthKeys(),
@@ -106,6 +121,8 @@ export class ContinuousEventCalendarComponent {
       query: this.query(),
       areaKeys: [...this.areaKeys()],
       categories: [...this.categories()],
+      listingTiers: [...this.listingTiers()],
+      regionKeys: [...this.regionKeys()],
       seriesIds: [...this.seriesIds()],
       startsBeforeSeconds: this.queryCalendar().queryEndSeconds,
       endsAfterSeconds: this.queryCalendar().queryStartSeconds,
@@ -115,6 +132,8 @@ export class ContinuousEventCalendarComponent {
         query: params.query,
         areaKeys: params.areaKeys,
         categories: params.categories,
+        listingTiers: params.listingTiers,
+        regionKeys: params.regionKeys,
         seriesIds: params.seriesIds,
         startsBeforeSeconds: params.startsBeforeSeconds,
         endsAfterSeconds: params.endsAfterSeconds,
@@ -191,8 +210,21 @@ export class ContinuousEventCalendarComponent {
 
   constructor() {
     afterRenderEffect(() => {
-      this._scheduleScrollToDay(this.dateJumpValue(), this.wide());
+      const day = this.dateJumpValue();
+      const wide = this.wide();
+      // A tap updates the agenda in place; only external date changes reposition
+      // the grid. Otherwise the tapped row jumps to the top on every selection.
+      if (this._selectionFromGrid === day) {
+        this._selectionFromGrid = null;
+        return;
+      }
+      this._scheduleScrollToDay(day, wide);
     });
+  }
+
+  selectDay(day: string): void {
+    this._selectionFromGrid = day;
+    this.daySelected.emit(day);
   }
 
   onScroll(event: Event): void {
@@ -223,12 +255,12 @@ export class ContinuousEventCalendarComponent {
   jumpFromInput(event: Event): void {
     const value =
       event.target instanceof HTMLInputElement ? event.target.value : "";
-    if (/^\d{4}-\d{2}-\d{2}$/u.test(value)) this._jumpToDate(value);
+    if (isDayKey(value)) this._jumpToDate(value);
   }
 
   private _jumpToDate(day: string): void {
     const month = day.slice(0, 7);
-    if (!isMonthKey(month)) return;
+    if (!isDayKey(day)) return;
     this.monthKeys.set(calendarMonthsAround(month));
     this.dateJumped.emit(day);
     this._scheduleScrollToDay(day);

@@ -13,6 +13,11 @@ export function resolveNotificationPath(
   const payload = data.payload ?? (data as Record<string, unknown>);
   const path = safeAppPath(data.path);
 
+  if (data.type === "follow_request") {
+    const requesterId = stringValue(payload["requester_id"]);
+    if (requesterId) return `/u/${encodeURIComponent(requesterId)}`;
+  }
+
   if (data.type === "community_spot_digest") {
     const topSpotPath = safeAppPath(payload["top_spot_path"]);
     if (topSpotPath) return topSpotPath;
@@ -27,6 +32,10 @@ export function resolveNotificationPath(
   }
 
   return path ?? "/notifications";
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === "string" && value ? value : null;
 }
 
 function safeAppPath(value: unknown): string | null {

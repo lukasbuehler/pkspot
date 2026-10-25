@@ -1,7 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { LOCALE_ID, PLATFORM_ID, TransferState } from "@angular/core";
+import { LOCALE_ID, PLATFORM_ID, REQUEST, TransferState } from "@angular/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { REQUEST } from "../../express.token";
 import {
   DEFAULT_START_REGION_PRESET,
   SERVER_COUNTRY_STATE_KEY,
@@ -87,9 +86,9 @@ describe("StartRegionService", () => {
         },
         {
           provide: REQUEST,
-          useValue: {
-            headers: options?.requestHeaders ?? {},
-          },
+          useValue: new Request("https://pkspot.app/en/map", {
+            headers: options?.requestHeaders as HeadersInit,
+          }),
         },
       ],
     });

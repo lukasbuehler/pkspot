@@ -30,6 +30,11 @@ interface FollowRequestLoader {
 }
 
 describe("ProfilePageComponent", () => {
+  it("offers the private training log only on the owner's profile", () => {
+    const template = readFileSync(join(process.cwd(), "src/app/components/profile-page/profile-page.component.html"), "utf8");
+    expect(template).toMatch(/@if \(trainingFeatureEnabled && isMyProfile\)[\s\S]*?routerLink="\/train\/log"/);
+    expect(template).not.toContain("['/u', userId, 'logs']");
+  });
   const authState = new BehaviorSubject<{ uid: string } | null>({
     uid: "profile-user",
   });

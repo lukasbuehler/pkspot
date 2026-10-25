@@ -34,21 +34,21 @@
       mat-mini-fab
       type="button"
       color="primary"
-      i18n-matTooltip
-      matTooltip="Go to your location"
+      class="map-location-control"
+      [class.map-location-control--disabled]="!locationEnabled()"
+      [matTooltip]="geolocationTooltip()"
       matTooltipPosition="left"
       matTooltipShowDelay="500"
+      [showProgress]="geolocationLoading() && locationEnabled()"
       (click)="focusGeolocation.emit()"
     >
-      @if (geolocationLoading()) {
-        <mat-progress-spinner
-          mode="indeterminate"
-          diameter="20"
-          color="accent"
-        ></mat-progress-spinner>
-      } @else {
-        <mat-icon>{{ geolocationIcon() }}</mat-icon>
-      }
+      <mat-icon>{{ geolocationIcon() }}</mat-icon>
+      <mat-progress-spinner
+        progressIndicator
+        mode="indeterminate"
+        diameter="20"
+        color="accent"
+      />
     </button>
   </div>
 
@@ -58,6 +58,9 @@
       class="create-fab-menu"
       alignment="start"
       [actions]="createActions()"
+      [matBadge]="draftCount()"
+      [matBadgeHidden]="!draftCount()"
+      [collapseSingleAction]="false"
       [launcherLabel]="createMenuLabel"
       (actionSelected)="onCreateAction($event)"
     />

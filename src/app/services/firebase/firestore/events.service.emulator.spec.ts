@@ -578,6 +578,41 @@ runWithEmulator("EventsService emulator integration", () => {
     await waitForInAppNotification(uid!, intentId, false);
   }, rsvpIntegrationTimeoutMs);
 
+  it("toggles livestream status through the real client write and discovery projection", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    authService.user.data.isAdmin = true;
+    await adminDb().doc(`users/${uid}`).set({ is_admin: true });
+    const eventId = `livestream-toggle-${uid}`;
+    const media = [{
+      type: "video",
+      src: "https://youtu.be/uG9SCwcHA7k",
+      isInStorage: false,
+    }];
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Broadcast integration",
+      start: admin.firestore.Timestamp.now(),
+      end: admin.firestore.Timestamp.fromMillis(Date.now() + 3600000),
+      published: true,
+      publication_state: "published",
+      visibility: "public",
+      notification_policy: "none",
+      media,
+    });
+    for (const live of [true, false]) {
+      await service.updateEvent(eventId, { livestream_live: live });
+      const stored = (await adminDb().doc(`events/${eventId}`).get()).data();
+      expect(stored?.livestream_live).toBe(live);
+      expect(stored?.media).toEqual(media);
+      const projection = await waitForEventDiscovery(
+        eventId,
+        true,
+        data => data?.livestream_live === live,
+      );
+      expect(projection?.livestream_live).toBe(live);
+    }
+  }, eventTypesenseIntegrationTimeoutMs);
+
   it("updates event edit fields through the real web Firestore adapter", async () => {
     const uid = authService.user.uid;
     expect(uid).toBeTruthy();
@@ -589,6 +624,8 @@ runWithEmulator("EventsService emulator integration", () => {
       .doc(`events/${eventId}`)
       .set({
         name: "Editable emulator event",
+        kind: "other",
+        event_categories: ["jam", "other"],
         venue_string: "Old venue",
         locality_string: "Zurich, Switzerland",
         location_raw: { lat: 47.3769, lng: 8.5417 },
@@ -603,6 +640,8 @@ runWithEmulator("EventsService emulator integration", () => {
 
     await service.updateEvent(eventId, {
       name: "Updated emulator event",
+      event_categories: ["jam"],
+      is_outdoor: false,
       venue_string: "New venue",
       locality_string: "Zurich, Switzerland",
       location_raw: { lat: 47.4, lng: 8.5 },
@@ -660,6 +699,8 @@ runWithEmulator("EventsService emulator integration", () => {
     expect(data).toEqual(
       expect.objectContaining({
         name: "Updated emulator event",
+        event_categories: ["jam"],
+        is_outdoor: false,
         venue_string: "New venue",
         location_raw: { lat: 47.4, lng: 8.5 },
         publication_state: "published",

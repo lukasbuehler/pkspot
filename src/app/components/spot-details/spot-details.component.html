@@ -14,17 +14,20 @@
   style="box-shadow: none"
 >
   @if (loading()) {
-    <mat-card-header class="pb-2 px-3 d-flex flex-column-reverse">
+    <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column-reverse">
       <mat-card-title class="d-flex align-items-center w-100 gap-1">
         <span
           class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
         >
-          <span
-            [matTooltip]="loadingTitle()"
-            class="text-truncate d-block spot-title-text"
-          >
-            {{ loadingTitle() || "Spot" }}
-          </span>
+          @if (loadingTitle()) {
+            <span
+              [matTooltip]="loadingTitle()"
+              class="d-block spot-title-text spot-loading-name"
+              >{{ loadingTitle() }}</span
+            >
+          } @else {
+            <span class="spot-loading-title" aria-hidden="true"></span>
+          }
           <span
             i18n
             class="mat-label-small px-1 border rounded spot-kind-label"
@@ -54,41 +57,52 @@
             class="collapsible-header-info"
             [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
           >
+            <span class="spot-loading-header-reserve" aria-hidden="true"></span>
             @if (loadingSubtitle()) {
-              <span class="mat-label-large text-truncate">
+              <span class="text-truncate d-flex align-items-center gap-1">
                 {{ loadingSubtitle() }}
               </span>
+            } @else {
+              <span
+                class="spot-loading-header-reserve"
+                aria-hidden="true"
+              ></span>
             }
           </div>
         </div>
       </mat-card-subtitle>
     </mat-card-header>
 
-    <div class="spot-loading-body p-3">
+    <mat-card-content class="pt-0">
       @if (loadingImageSrc()) {
-        <div class="spot-loading-media">
-          <img [src]="loadingImageSrc()!" [alt]="loadingTitle() || 'Spot'" />
-        </div>
+        <img
+          class="spot-loading-media mb-3 mt-1"
+          data-testid="spot-loading-media"
+          [src]="loadingImageSrc()!"
+          [alt]="loadingTitle() || 'Spot'"
+        />
       }
-      <div class="d-flex align-items-center gap-2">
-        <mat-progress-spinner
-          mode="indeterminate"
-          diameter="24"
-          aria-label="Loading spot"
-        ></mat-progress-spinner>
-        <span class="mat-body-medium" i18n="@@map.spot_loading_label">
-          Loading spot details
-        </span>
+      <div class="spot-loading-body pb-3">
+        <div class="d-flex align-items-center gap-2">
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="24"
+            aria-label="Loading spot"
+          ></mat-progress-spinner>
+          <span class="mat-body-medium" i18n="@@map.spot_loading_label">
+            Loading spot details
+          </span>
+        </div>
+        <div class="panel-skeleton-lines" aria-hidden="true">
+          <span class="panel-skeleton-line" style="width: 92%"></span>
+          <span class="panel-skeleton-line" style="width: 76%"></span>
+          <span class="panel-skeleton-line" style="width: 84%"></span>
+        </div>
       </div>
-      <div class="panel-skeleton-lines" aria-hidden="true">
-        <span class="panel-skeleton-line" style="width: 92%"></span>
-        <span class="panel-skeleton-line" style="width: 76%"></span>
-        <span class="panel-skeleton-line" style="width: 84%"></span>
-      </div>
-    </div>
+    </mat-card-content>
   } @else if (spot()) {
     @if (!isEditing()) {
-      <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column-reverse">
+      <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column">
         <mat-card-title class="d-flex align-items-center w-100 gap-1">
           <span
             class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
@@ -106,7 +120,7 @@
             <span
               [@fadeSlideOnChange]="nameAnimKey()"
               [matTooltip]="spot()!.name()"
-              class="text-truncate d-block spot-title-text"
+              class="d-block spot-title-text"
               >{{ spot()!.name() }}</span
             >
             <span
@@ -383,6 +397,8 @@
                   i18n-aria-label="
                     Share spot aria label|The aria label of the share spot icon
                     button@@share_spot_aria_label"
+                  [disabled]="shareCards.preparing()"
+                  [attr.aria-busy]="shareCards.preparing()"
                   (click)="shareSpot(); $event.stopPropagation()"
                 >
                   <mat-icon>share</mat-icon>
@@ -406,21 +422,26 @@
             </div>
           }
         </mat-card-subtitle>
+        <div
+          class="spot-activity-reveal collapsible-header-info"
+          [attr.data-collapsed]="openProgress() < 0.1"
+          [attr.aria-hidden]="openProgress() < 0.1"
+        >
+          <div class="pt-1">
+            <app-spot-activity-summary [spotId]="spotActivitySpotId()" [activityMin]="spotActivityMin()" />
+          </div>
+        </div>
       </mat-card-header>
     }
-    @if (currentReport(); as report) {
-      <div class="report-info" role="status">
-        <mat-icon>warning</mat-icon>
-        <span class="mat-h3 m-0">
-          <strong i18n>Spot warning:</strong>
-          {{ report.reason }}
-        </span>
-      </div>
-    }
-
     <mat-card-content class="pt-0">
       @if (!isEditing()) {
         <div class="mb-1 mt-1">
+          @if (currentReport(); as report) {
+            <div class="spot-access-warning mb-3" role="status">
+              <mat-icon>warning</mat-icon>
+              <span>{{ report.reason }}</span>
+            </div>
+          }
           @if (spot()?.access() === "off-limits") {
             <div class="spot-access-warning mb-3" role="alert">
               <mat-icon>warning</mat-icon>
@@ -436,6 +457,7 @@
             processingSpotMedia().length > 0
           ) {
             <app-img-carousel
+              [imageDescription]="spot()?.name() ?? 'PK Spot'"
               [media]="$safeNavigationMigration(spot()?.media())"
               [processingMedia]="processingSpotMedia()"
               [spotId]="getSpotId()"
@@ -469,6 +491,9 @@
 
         <ng-content select="[spotDetailsAfterMedia]" />
 
+        <!-- The signed-in person's private record and monthly rank at this Spot. -->
+        <app-spot-personal-stats [spotId]="spotActivitySpotId()" />
+
         <!--
         @if (
         !isLocalSpot() &&
@@ -484,50 +509,18 @@
         </div>
         } -->
 
-        <!-- Navigate and open in google buttons -->
-        <div class="d-flex flex-column flex-xl-row gap-2 mb-4">
+        <div class="d-flex mb-4">
           <button
             mat-stroked-button
             color="primary"
-            class="flex-grow-1 flex-basis-0 py-2"
-            i18n-matTooltip="
-              Open in Google maps button tooltip|Tooltip of button to open the
-              spot in Google Maps
-            "
-            matTooltip="Open the location of this spot in Maps"
-            (click)="openSpotInMaps('google')"
+            class="flex-grow-1 py-2"
+            i18n-matTooltip="@@spot.open_maps.tooltip"
+            matTooltip="Open the location of this Spot in Maps"
+            (click)="openSpotInMaps()"
           >
             <mat-icon>place</mat-icon>
-            <span
-              i18n="
-                Open in Google maps button|Button to open the spot in Google
-                Maps
-              "
-              >Open in Google Maps</span
-            >
+            <span i18n="@@spot.open_maps.label">Open in Maps</span>
           </button>
-          @if (isAppleMaps) {
-            <button
-              mat-stroked-button
-              color="primary"
-              class="flex-grow-1 flex-basis-0 py-2"
-              i18n-matTooltip="
-                Open in Apple maps button tooltip|Tooltip of button to open the
-                spot in Apple Maps
-              "
-              matTooltip="Open the location of this spot in Maps"
-              (click)="openSpotInMaps('apple')"
-            >
-              <mat-icon>place</mat-icon>
-              <span
-                i18n="
-                  Open in Apple maps button|Button to open the spot in Apple
-                  Maps
-                "
-                >Open in Apple Maps</span
-              >
-            </button>
-          }
         </div>
 
         <!-- Google place (reusable component) -->
@@ -667,6 +660,19 @@
               }
             </mat-chip-set>
           </div>
+        }
+
+        <p class="mat-body-medium">{{ localizedCopy()?.description }}</p>
+        @if (spot()?.placeNames()) {
+          <p class="mat-body-small">
+            <span i18n="@@community.placeNames.attribution">Place names:</span>
+            <a
+              href="https://www.geonames.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >GeoNames</a
+            >
+          </p>
         }
 
         <!-- Spot Description -->
@@ -925,12 +931,16 @@
               (click)="openSpotReportDialog()"
             >
               <mat-icon>report</mat-icon>
-              <span
-                i18n="
-                  report button label|Label of the button to report the spot
-                "
-                >Report</span
-              >
+              @if (ownReport()) {
+                <span i18n>Edit your report</span>
+              } @else {
+                <span
+                  i18n="
+                    report button label|Label of the button to report the spot
+                  "
+                  >Report</span
+                >
+              }
             </button>
             @if (isAdmin()) {
               <button
@@ -958,6 +968,26 @@
               </button>
             }
           </div>
+          @if (ownReport()) {
+            <div class="reporter-report-state mb-3" role="status">
+              <mat-icon>flag</mat-icon>
+              <div>
+                <strong i18n>Your report is open</strong>
+                <p class="mb-0" i18n>
+                  Only you and moderators can see it. You can edit or withdraw
+                  it.
+                </p>
+              </div>
+              <button
+                matButton="text"
+                type="button"
+                (click)="openSpotReportDialog()"
+                i18n
+              >
+                Edit
+              </button>
+            </div>
+          }
           <mat-divider class="mb-3"></mat-divider>
         }
 
@@ -1130,12 +1160,13 @@
             >
               You can re-order the spot media below using drag-and-drop.
             </p>
-            <app-media-preview-grid
-              [media]="spot()!.userMedia()"
-              [spotId]="getSpotId()"
-              (mediaChanged)="mediaChanged($event)"
-            ></app-media-preview-grid>
           }
+          <app-media-preview-grid
+            [media]="spot()!.userMedia()"
+            [processingMedia]="processingSpotMedia()"
+            [spotId]="getSpotId()"
+            (mediaChanged)="mediaChanged($event)"
+          ></app-media-preview-grid>
           @if (processingSpotMedia().length > 0) {
             <div class="media-processing-note mat-body-small mt-2 mb-2" i18n>
               Media is processing and will appear here when it is ready.

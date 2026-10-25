@@ -1,4 +1,8 @@
-<mat-form-field [appearance]="appearance()" class="w-100 spot-search-field">
+<mat-form-field
+  [appearance]="appearance()"
+  class="w-100 spot-search-field"
+  [class.spot-search-field--outline]="appearance() === 'outline'"
+>
   @if (contextLabel()) {
     <button
       matIconButton
@@ -31,14 +35,14 @@
     [placeholder]="placeholderText()"
     [formControl]="spotSearchControl"
     [matAutocomplete]="spotAutocomplete"
-    (input)="handleSearchInput()"
+    (input)="handleSearchInput($event)"
     (paste)="handlePaste($event)"
   />
   <mat-autocomplete
     #spotAutocomplete="matAutocomplete"
     [autoActiveFirstOption]="true"
     (optionSelected)="optionSelected($event)"
-    class="mt-2"
+    class="mt-2 spot-search-results"
   >
     @if (mapLinkLoading()) {
       <mat-option class="searchStatusOption" disabled>
@@ -106,23 +110,10 @@
               [value]="{ type: 'community', id: community.slug, community }"
             >
               <div class="d-flex flex-row align-items-center p-1 gap-2">
-                @if (community.imageUrl) {
-                  <img
-                    [src]="community.imageUrl"
-                    class="rounded"
-                    alt=""
-                    width="50px"
-                    height="50px"
-                    style="width: 50px; height: 50px; object-fit: cover"
-                  />
-                } @else {
-                  <div
-                    class="rounded border d-flex justify-content-center align-items-center"
-                    style="width: 50px; height: 50px"
-                  >
-                    <mat-icon>{{ getCommunityIcon(community) }}</mat-icon>
-                  </div>
-                }
+                <!-- Community share-card images are generic, so show the scope icon. -->
+                <div class="community-result-icon" aria-hidden="true">
+                  <mat-icon>{{ getCommunityIcon(community) }}</mat-icon>
+                </div>
                 <div
                   class="d-flex flex-column gap-0 min-w-0"
                   style="flex: 1; min-width: 0"
@@ -361,7 +352,8 @@
                   @for (
                     amenity of getSpotImportantAmenities(
                       hit.preview?.amenities || hit.document.amenities,
-                      hit.document.type
+                      hit.document.type,
+                      hit.document.access
                     );
                     track $index
                   ) {
@@ -404,7 +396,7 @@
                 style="flex-shrink: 0; max-width: 100px"
               >
                 <span class="mat-title-small text-truncate">{{
-                  hit.document.address?.locality
+                  hit.document.address?.locality | localizedPlace: hit.document.place_names?.locality
                 }}</span
                 >,
                 <span class="mat-title-small ms-1">

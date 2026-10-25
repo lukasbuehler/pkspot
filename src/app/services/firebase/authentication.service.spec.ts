@@ -19,6 +19,7 @@ import {
   AccountCreationError,
   AuthenticationService,
 } from "./authentication.service";
+import { RestoreCredentialsService } from "../restore-credentials.service";
 import { FIREBASE_APP } from "./firebase-client.providers";
 
 const authMock = vi.hoisted(() => ({
@@ -83,6 +84,11 @@ describe("AuthenticationService", () => {
     trackEvent: Mock;
     reportError: Mock;
   };
+  let restoreCredentialsSpy: {
+    restoreSignedOutSession: Mock;
+    provisionAfterUserAction: Mock;
+    clearForSignedOutUser: Mock;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -112,6 +118,11 @@ describe("AuthenticationService", () => {
       trackEvent: vi.fn(),
       reportError: vi.fn(),
     };
+    restoreCredentialsSpy = {
+      restoreSignedOutSession: vi.fn().mockResolvedValue(undefined),
+      provisionAfterUserAction: vi.fn().mockResolvedValue(undefined),
+      clearForSignedOutUser: vi.fn().mockResolvedValue(undefined),
+    };
 
     TestBed.configureTestingModule({
       providers: [
@@ -127,6 +138,7 @@ describe("AuthenticationService", () => {
         },
         { provide: ConsentService, useValue: consentServiceSpy },
         { provide: AnalyticsService, useValue: analyticsServiceSpy },
+        { provide: RestoreCredentialsService, useValue: restoreCredentialsSpy },
         { provide: PLATFORM_ID, useValue: "browser" },
       ],
     });
@@ -170,6 +182,7 @@ describe("AuthenticationService", () => {
         },
         { provide: ConsentService, useValue: consentServiceSpy },
         { provide: AnalyticsService, useValue: analyticsServiceSpy },
+        { provide: RestoreCredentialsService, useValue: restoreCredentialsSpy },
         { provide: PLATFORM_ID, useValue: "browser" },
       ],
     });

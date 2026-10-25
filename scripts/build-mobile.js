@@ -1,3 +1,4 @@
+const { redirectMobileEntry, restoreMobileRoute } = require("./mobile-entry.cjs");
 const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -56,19 +57,12 @@ languages.forEach((lang) => {
     }
   }
 
-  // Patch base href
+  // A fixed locale base keeps assets valid after restoring a nested SPA route.
   let content = fs.readFileSync(indexHtmlPath, "utf8");
-  if (
-    content.includes('<base href="/">') ||
-    content.includes('<base href="">')
-  ) {
-    console.log(`[${lang}] Patching base href in index.html`);
-    // Replace both / and empty string with ./
-    content = content.replace(/<base href="\/">/g, '<base href="./">');
-    content = content.replace(/<base href="">/g, '<base href="./">');
+  content = content.replace(/<base href="[^"]*">/, `<base href="/${lang}/">`);
+  content = content.replace('</head>', `<script>(${restoreMobileRoute.toString()})(${JSON.stringify(lang)});</script></head>`);
+  fs.writeFileSync(indexHtmlPath, content);
 
-    fs.writeFileSync(indexHtmlPath, content);
-  }
 });
 
 // 3. Generate Root index.html for Language Redirection
@@ -108,77 +102,29 @@ const redirectionScript = `
         }
     </style>
     <script>
-        function redirect() {
-            var supportedLangs = ['en', 'de', 'it', 'fr', 'es', 'nl'];
-            var targetLang = 'en';
-
-            try {
-                // Check if we have a saved language preference
-                var savedLang = localStorage.getItem('language');
-                if (savedLang) {
-                    var hasSavedLanguage = false;
-
-                    if (supportedLangs.includes(savedLang)) {
-                        targetLang = savedLang;
-                        hasSavedLanguage = true;
-                    } else if (savedLang.startsWith('de')) {
-                        targetLang = 'de';
-                        hasSavedLanguage = true;
-                    } else {
-                        var shortSaved = savedLang.split('-')[0];
-                        if (supportedLangs.includes(shortSaved)) {
-                            targetLang = shortSaved;
-                            hasSavedLanguage = true;
-                        }
-                    }
-
-                    if (hasSavedLanguage) {
-                        localStorage.setItem('language', targetLang);
-                        console.log("Redirecting to saved language: " + targetLang);
-                        window.location.replace('./' + targetLang + '/index.html');
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.error("Error reading language preference", e);
-            }
-
-            // Fallback to browser language
-            var lang = navigator.language || navigator.userLanguage;
-            
-            if (lang.startsWith('de')) {
-                targetLang = 'de';
-            } else {
-                var shortLang = lang.split('-')[0];
-                if (supportedLangs.includes(shortLang)) {
-                    targetLang = shortLang;
-                }
-            }
-
-            // Redirect to the language directory
-            // Use replace to not keep this intermediate page in history (optional)
-            window.location.replace('./' + targetLang + '/index.html');
-        }
-        
-        // Wait for device ready if needed, or run immediately
-        window.onload = redirect;
+        window.onload = ${redirectMobileEntry.toString()};
+        window.setTimeout(function () {
+            document.querySelector('.loader').hidden = true;
+            document.getElementById('mobile-entry-recovery').hidden = false;
+        }, 8000);
     </script>
 </head>
 <body>
     <div class="loader"></div>
+    <noscript><a href="/en/index.html">Open PK Spot in English</a></noscript>
     <!-- Fallback manual selection if JS fails or redirect is slow -->
-    <noscript>
-        <p>Select Language:</p>
+    <div id="mobile-entry-recovery" hidden role="alert">
+        <p>PK Spot could not open this page. Try opening the app again:</p>
         <ul>
-            <li><a href="./en/index.html">English</a></li>
-            <li><a href="./de/index.html">Deutsch</a></li>
-            <li><a href="./it/index.html">Italiano</a></li>
-            <li><a href="./fr/index.html">Français</a></li>
-            <li><a href="./es/index.html">Español</a></li>
-            <li><a href="./nl/index.html">Nederlands</a></li>
+            <li><a href="/en/index.html">English</a></li>
+            <li><a href="/de/index.html">Deutsch</a></li>
+            <li><a href="/it/index.html">Italiano</a></li>
+            <li><a href="/fr/index.html">Français</a></li>
+            <li><a href="/es/index.html">Español</a></li>
+            <li><a href="/nl/index.html">Nederlands</a></li>
             <!-- Add others -->
         </ul>
-    </noscript>
+    </div>
 </body>
 </html>
 `;

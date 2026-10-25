@@ -2,6 +2,8 @@
   <div
     #handleRegion
     class="handle-region"
+    (selectstart)="$event.preventDefault()"
+    (contextmenu)="$event.preventDefault()"
     [class.content-at-top]="isContentAtTop()"
   >
     <div class="handle"></div>

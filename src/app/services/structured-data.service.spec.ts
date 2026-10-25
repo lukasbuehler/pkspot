@@ -301,6 +301,7 @@ describe("StructuredDataService", () => {
     const parsed = JSON.parse(script?.text ?? "{}") as Record<string, any>;
 
     expect(parsed["@type"]).toBe("BreadcrumbList");
+    expect(parsed["name"]).toBe(pageData.breadcrumbs.map((item) => item.name).join(" > "));
     expect(Array.isArray(parsed["itemListElement"])).toBe(true);
     expect(parsed["itemListElement"]).toHaveLength(3);
   });
@@ -356,7 +357,15 @@ describe("StructuredDataService", () => {
     expect(placeData.aggregateRating).toBeUndefined();
   });
 
-  it("should emit Google-compatible spot list item ratings only with review counts", () => {
+  it("should omit directory ratings for full Spot models without affecting detail ratings", () => {
+    const spot = buildSpot();
+    const list = service.generateSpotItemList([spot]);
+    const items = list["itemListElement"] as Array<{ item: Record<string, unknown> }>;
+    expect(items[0].item["aggregateRating"]).toBeUndefined();
+    expectGoogleAggregateRating(service.generateSpotPlaceData(spot), 4.7, 9);
+  });
+
+  it("should omit review markup from directory previews while preserving place details", () => {
     const itemList = service.generateSpotItemList([
       {
         id: "rated-with-count",
@@ -407,7 +416,7 @@ describe("StructuredDataService", () => {
     const secondItem = listItems[1].item;
     const thirdItem = listItems[2].item;
 
-    expectGoogleAggregateRating(firstItem, 4.8, 12);
+    expect(firstItem["aggregateRating"]).toBeUndefined();
     expect(firstItem["keywords"]).toBe("parkour,freerunning,spot,training");
     expect(firstItem["additionalProperty"]).toEqual([
       {

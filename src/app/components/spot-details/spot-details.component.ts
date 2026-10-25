@@ -1,11 +1,17 @@
+import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
+import { SpotPersonalStatsComponent } from "../spot-personal-stats/spot-personal-stats.component";
+import { ShareCardService } from "../../services/share-card.service";
+import { spotCopy } from "../../localization/entity-copy";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
+  DestroyRef,
   OnInit,
   ViewChild,
   OnChanges,
   ElementRef,
   LOCALE_ID,
-  AfterViewInit,
   Pipe,
   PipeTransform,
   Signal,
@@ -94,12 +100,15 @@ import {
 } from "@angular/animations";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { SpotReportDialogComponent } from "../spot-report-dialog/spot-report-dialog.component";
+import {
+  SpotReportDialogComponent,
+  type SpotReportDialogResult,
+} from "../spot-report-dialog/spot-report-dialog.component";
 import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dialog.component";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../../db/schemas/SpotReportSchema";
-import { publicSpotNoticeTypeForReportReason } from "../../../db/schemas/SpotPublicNotice";
+import type { OwnReportSummary } from "../../../db/schemas/ReportLifecycleSchema";
 import { localizedPublicSpotWarning } from "./spot-public-warning";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
 import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-grid.component";
@@ -178,7 +187,7 @@ import { Timestamp } from "firebase/firestore";
 import { Router, RouterLink } from "@angular/router";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
-import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
+import type { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
@@ -208,6 +217,7 @@ import {
 } from "../weather-forecast-dialog/weather-forecast-dialog.component";
 import { SpotAccessPickerComponent } from "../spot-access-picker/spot-access-picker.component";
 import { SpotTypePickerComponent } from "../spot-type-picker/spot-type-picker.component";
+import { SpotActivitySummaryComponent } from "../spot-activity-summary/spot-activity-summary.component";
 
 @Pipe({ name: "reverse" })
 export class ReversePipe implements PipeTransform {
@@ -276,6 +286,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     ]),
   ],
   imports: [
+    SpotPersonalStatsComponent,
     MatCard,
     MatRipple,
     MatCardHeader,
@@ -323,6 +334,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     WeatherIconButtonComponent,
     SpotAccessPickerComponent,
     SpotTypePickerComponent,
+    SpotActivitySummaryComponent,
   ],
   host: {
     "[style.--open-progress]": "openProgressStyle",
@@ -332,9 +344,16 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
   schemas: [],
 })
 export class SpotDetailsComponent
-  implements OnInit, AfterViewInit, OnChanges, OnDestroy
+  implements OnInit, OnChanges, OnDestroy
 {
+  readonly shareCards = inject(ShareCardService);
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   public locale: LocaleCode = inject(LOCALE_ID);
+  readonly localizedCopy = computed(() => {
+    const spot = this.spot();
+    return spot ? spotCopy(spot, this.locale) : null;
+  });
   private _challengeService = inject(SpotChallengesService);
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
@@ -421,6 +440,11 @@ export class SpotDetailsComponent
     } else {
       return null;
     }
+  });
+  readonly spotActivityMin = computed(() => this.spot()?.recent_activity_min_30d);
+  readonly spotActivitySpotId = computed(() => {
+    const spot = this.spot();
+    return spot instanceof Spot ? spot.id : null;
   });
   spotSlugOrId = computed(() => {
     const spot = this.spot();
@@ -698,12 +722,9 @@ export class SpotDetailsComponent
   stateCtrl = new UntypedFormControl();
 
   report = signal<SpotReportSchema | null>(null);
+  ownReport = signal<OwnReportSummary | null>(null);
+  private _latestOwnReportRequestSpotId: string | null = null;
   currentReport = computed(() => {
-    const privateReport = this.report();
-    if (this.isAdmin() && privateReport) {
-      return privateReport;
-    }
-
     const spot = this.spot();
     if (spot instanceof Spot && spot.isReported) {
       return {
@@ -726,8 +747,6 @@ export class SpotDetailsComponent
   private _latestReportRequestSpotId: string | null = null;
 
   automaticallyDetermineAddress: boolean = true;
-
-  isAppleMaps: boolean = false;
 
   mediaStorageFolder: StorageBucket = StorageBucket.SpotPictures;
 
@@ -1243,10 +1262,6 @@ export class SpotDetailsComponent
       });
   }
 
-  ngAfterViewInit() {
-    this.isAppleMaps = this._mapsApiService.isMacOSOriOS();
-  }
-
   ngOnChanges() {
     //console.log(this._element.nativeElement.clientHeight);
 
@@ -1435,6 +1450,7 @@ export class SpotDetailsComponent
 
       return hasChanges ? "changed" : "unchanged";
     } catch (error) {
+      this.featureTelemetry.failure("spot-details", "_saveOrganizationRelationshipChangesIfNeeded", error);
       console.error("Failed to update spot organization relationship", error);
       this._snackbar.open(
         $localize`Failed to update spot organization settings`,
@@ -1461,6 +1477,7 @@ export class SpotDetailsComponent
         duration: 2200,
       });
     } catch (error) {
+      this.featureTelemetry.failure("spot-details", "removeStewardedOrganization", error);
       console.error("Failed to remove stewarded organization", error);
       this._snackbar.open(
         $localize`Failed to remove verified organization`,
@@ -1691,64 +1708,13 @@ export class SpotDetailsComponent
     this.spot()?.userMedia.set(newSpotMedia);
   }
 
-  async shareSpot() {
+  async shareSpot(): Promise<void> {
     const spot = this.spot();
-    if (!(spot instanceof Spot)) {
-      console.error($localize`Cannot share a spot that hasn't been saved yet`);
-      return;
-    }
-
-    // Build domain-agnostic share link without locale prefix
-    const { buildAbsoluteUrlNoLocale } =
-      await import("../../../scripts/Helpers");
-    const idOrSlug = spot.slug ?? spot.id;
-    const link = buildAbsoluteUrlNoLocale(buildSpotCanonicalPath(idOrSlug));
-
-    const shareData = {
-      title: "Spot: " + spot.name(),
-      text: `PK Spot: ${spot.name()}`,
-      url: link,
-    };
-
-    // Use Capacitor Share on native iOS/Android, navigator.share on web browser
-    const { Capacitor } = await import("@capacitor/core");
-    const isNative = Capacitor.isNativePlatform();
-
-    if (isNative) {
-      // Use Capacitor Share plugin for native apps
-      const { Share } = await import("@capacitor/share");
-      try {
-        await Share.share({
-          ...shareData,
-          dialogTitle: "Share Spot",
-        });
-      } catch (err) {
-        console.error("Couldn't share this spot");
-        console.error(err);
-      }
-    } else if (navigator.share) {
-      // Use Web Share API on browser
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.error("Couldn't share this spot");
-        console.error(err);
-      }
-    } else {
-      // Fallback to clipboard
-      navigator.clipboard.writeText(`${spot.name()} Spot - PK Spot \n${link}`);
-      this._snackbar.open(
-        $localize`Link to spot copied to clipboard`,
-        "Dismiss",
-        {
-          duration: 3000,
-          horizontalPosition: "center",
-          verticalPosition: "top",
-        },
-      );
-    }
-
+    if (!spot || !(spot instanceof Spot)) return;
+    const { buildAbsoluteUrlNoLocale } = await import("../../../scripts/Helpers");
     this._analyticsService.trackEvent("Share Spot", { spotId: spot.id });
+    await this.shareCards.share({ kind: "spot", id: String(spot.id) },
+      buildAbsoluteUrlNoLocale(buildSpotCanonicalPath(spot.slug ?? spot.id)), spot.name());
   }
 
   openSpotInMaps(mapsType?: "google" | "apple") {
@@ -1812,6 +1778,8 @@ export class SpotDetailsComponent
 
     if (!(spot instanceof Spot)) {
       this._latestReportRequestSpotId = null;
+      this._latestOwnReportRequestSpotId = null;
+      this.ownReport.set(null);
       this._resetReportState();
       return;
     }
@@ -1821,6 +1789,22 @@ export class SpotDetailsComponent
     if (!this.isAdmin()) {
       this._latestReportRequestSpotId = spotId;
       this.report.set(null);
+      if (!this.authenticationService.isSignedIn) {
+        this.ownReport.set(null);
+        return;
+      }
+      this._latestOwnReportRequestSpotId = spotId;
+      try {
+        const report = await this._spotReportsService.getOwnSpotReport(spotId);
+        if (this._latestOwnReportRequestSpotId === spotId) {
+          this.ownReport.set(report);
+        }
+      } catch (error) {
+        console.warn("Failed to load own report for Spot", spotId, error);
+        if (this._latestOwnReportRequestSpotId === spotId) {
+          this.ownReport.set(null);
+        }
+      }
       return;
     }
 
@@ -1915,55 +1899,52 @@ export class SpotDetailsComponent
     )
       return;
 
-    const spotReportData: SpotReportSchema = {
-      spot: {
-        id: spot.id,
-        name: spot.name(),
-      },
-      user: {
-        uid: this.authenticationService.user.uid,
-        display_name: this.authenticationService.user.data.displayName,
-      },
-      reason: "",
-    };
     this._analyticsService.trackEvent("spot_report_opened", {
       spot_id: spot.id,
       report_count: spot.reportCount,
     });
     const dialogRef = this.dialog.open(SpotReportDialogComponent, {
-      data: spotReportData,
+      width: "560px",
+      maxWidth: "calc(100vw - 32px)",
+      height: "min(780px, calc(100dvh - 32px))",
+      data: {
+        spotId: spot.id,
+        spotName: spot.name(),
+        report: this.ownReport(),
+      },
     });
     dialogRef
       .afterClosed()
       .subscribe(
-        (result?: { report?: SpotReportSchema; reportId?: string }) => {
-          if (!result?.report) {
+        (result?: SpotReportDialogResult) => {
+          if (!result?.reportId && !result?.withdrawn) {
             return;
           }
-
-          this.report.set(this.isAdmin() ? result.report : null);
-          spot.isReported = true;
-          spot.reportReason = undefined;
-          spot.publicNotice = {
-            type: publicSpotNoticeTypeForReportReason(result.report.reason),
-            message: "",
-            source: "community_report",
-          };
-          spot.reportCount += 1;
-          this.reportSubmitted.emit(spot);
+          void this.loadReportForSpot();
+          if (result.withdrawn) {
+            this._snackbar.open($localize`Your report was withdrawn.`, undefined, {duration: 4000});
+            return;
+          }
+          if (result.created) {
+            spot.isReported = true;
+            spot.reportCount += 1;
+            this.reportSubmitted.emit(spot);
+          }
           this._analyticsService.trackEvent("spot_report_submitted", {
             spot_id: spot.id,
             report_id: result.reportId,
-            reason: result.report.reason,
+            created: result.created,
           });
           this._snackbar.open(
-            $localize`Report submitted. Thanks for helping keep spots accurate.`,
+            result.created ?
+              $localize`Your report is pending. You can edit or withdraw it at any time.` :
+              $localize`Your report was updated.`,
             undefined,
             {
               duration: 4000,
             },
           );
-          void this._notificationOptIn.maybePrompt("report_updates");
+          if (result.created) void this._notificationOptIn.maybePrompt("report_updates");
         },
       );
   }
@@ -2299,11 +2280,20 @@ export class SpotDetailsComponent
     });
   }
 
-  openSpotAmenitiesDialog() {
+  readonly openSpotAmenitiesDialog = createLazyDialogOpener(
+    async () =>
+      (await import("../spot-amenities-dialog/spot-amenities-dialog.component")).SpotAmenitiesDialogComponent,
+    (component) => this._showSpotAmenitiesDialog(component),
+    inject(DestroyRef),
+  );
+
+  private _showSpotAmenitiesDialog(
+    dialogComponent: typeof SpotAmenitiesDialogComponent,
+  ) {
     const spot = this.spot();
     if (!spot) return;
 
-    const ref = this.dialog.open(SpotAmenitiesDialogComponent, {
+    const ref = this.dialog.open(dialogComponent, {
       data: { amenities: spot.amenities() },
       width: "640px",
     });

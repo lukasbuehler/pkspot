@@ -59,6 +59,15 @@ export {
   submitEventOwnershipClaim,
 } from "./eventOwnershipClaimFunctions";
 export {
+  cancelCommunityEvent,
+  createCommunityEvent,
+  createFormalEvent,
+  demoteCommunityEventsWhenProfileBecomesPrivate,
+  reviewEventSuggestion,
+  submitEventSuggestion,
+  updateCommunityEvent,
+} from "./eventAuthoringFunctions";
+export {
   rebuildEventDiscovery,
   rebuildEventDiscoveryOnCreate,
   syncEventDiscoveryOnEventWrite,
@@ -130,6 +139,7 @@ export {
   runMediaIntakeBackfill,
   runMediaModerationAudit,
 } from "./mediaModerationFunctions";
+export { markMediaUploadFalsePositive } from "./mediaReviewActionFunctions";
 
 // spot challenge functions
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
@@ -141,7 +151,9 @@ export {
 } from "./mediaReportFunctions";
 export {
   cleanupMediaReportSubmissionMetadata,
+  getOwnMediaReport,
   submitMediaReport,
+  withdrawOwnMediaReport,
 } from "./mediaReportSubmissionFunctions";
 export {
   addSafetyCaseMessage,
@@ -170,9 +182,18 @@ export {
 
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";
+export { onContactMessageEmailCreate } from "./contactEmailFunctions";
+export { onContactMessageReceiptCreate } from "./contactReceiptFunctions";
 
 // spot report functions
-export { onSpotReportCreate, resolveSpotReport } from "./spotReportFunctions";
+export {
+  getOwnReportForTarget,
+  listMyReports,
+  onSpotReportCreate,
+  resolveSpotReport,
+  submitSpotReport,
+  withdrawOwnSpotReport,
+} from "./spotReportFunctions";
 
 // moderation action functions
 export { handleModerationAction } from "./moderationActionFunctions";
@@ -192,10 +213,7 @@ export {
 export { onUserReportCreate } from "./userReportFunctions";
 
 // sitemap functions
-export {
-  generateSitemapOnSchedule,
-  generateSitemapManual,
-} from "./sitemapFunctions";
+export { generateSitemapOnSchedule } from "./sitemapFunctions";
 
 // social card functions
 // export {
@@ -205,6 +223,9 @@ export {
 
 export { cleanupOnUserDelete } from "./authFunctions";
 export { assignSignupNumberOnCreate } from "./userSignupFunctions";
+// Restore Credentials are intentionally not exported until the security and
+// device-transfer checks in DEPLOYMENT_TASKS.md are complete.
+
 
 export {
   onCheckInCreate,
@@ -213,11 +234,32 @@ export {
   updateAgePolicyV2,
 } from "./userFunctions";
 export {
+  confirmCheckIn,
+  deleteAllCheckIns,
+  deleteCheckIn,
+  recomputeCheckInActivity,
+  setCheckInSessionDuration,
+} from "./checkInFunctions";
+export {
+  backfillTrainingSummaries,
+  deleteMySpotRank,
+  onSessionRecordWrittenUpdateTrainingSummary,
+  publishSpotRanksNightly,
+  setLocalLegendParticipation,
+} from "./trainingSummaryFunctions";
+export {
   beginAgeAssuranceV3,
   cleanupAgeAssuranceChallenges,
   invalidateAgeAssuranceApprovals,
   updateAgePolicyV3,
 } from "./ageAssuranceFunctions";
+export {
+  beginExternalAgeVerification,
+  cleanupExternalAgeVerificationAttempts,
+  externalAgeVerificationAvailability,
+  externalAgeVerificationStatus,
+  oneIdAgeVerificationCallback,
+} from "./externalAgeVerificationFunctions";
 export {
   activateUserProfilePrivacyCutover,
   backfillPublicUserProfiles,
@@ -233,6 +275,25 @@ export {
   getOsmAmenityTile,
 } from "./osmAmenityFunctions";
 export { resolveMapShortLink } from "./mapLinkFunctions";
+// The development-only Stripe shop declares Stripe secrets, and the Firebase
+// CLI asks for every secret declared by loaded code, even in a filtered deploy.
+// Load the shop only where its Functions config sets SUPPORT_SHOP_ENABLED=true,
+// so projects without a store never need (or get prompted for) Stripe keys.
+if (process.env["SUPPORT_SHOP_ENABLED"] === "true") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const shop = require("./supportShopFunctions") as typeof import("./supportShopFunctions");
+  Object.assign(exports, {
+    createSupportCheckout: shop.createSupportCheckout,
+    listMySupportOrders: shop.listMySupportOrders,
+    listSupportOrders: shop.listSupportOrders,
+    markSupportOrderFulfilled: shop.markSupportOrderFulfilled,
+    stripeSupportWebhook: shop.stripeSupportWebhook,
+  });
+}
+export {
+  mintCloudflareSsrAppCheckToken,
+} from "./cloudflareSsrAppCheckFunctions";
+export { monitoringHealth } from "./monitoringHealthFunction";
 
 export {
   onEventNotificationSourceWrite,
@@ -260,3 +321,19 @@ export {
   onCommunitySpotRecommendationWrite,
   sendCommunitySpotDigests,
 } from "./communityNotificationFunctions";
+
+export {beginAppleAgeAssurance, finishAppleAgeAssurance} from "./appleAgeAssuranceFunctions";
+
+export {
+  enqueueCommunityPlaceLocalization,
+  enrichCommunityPlaceLocalizations,
+  backfillCommunityPlaceLocalizations,
+} from "./communityPlaceLocalizationFunctions";
+
+export { queueSpotPlaceNames, queueEventPlaceNames, enrichEntityPlaceNames, applyEntityPlaceNames,
+  publishEntityPlaceNames, backfillEntityPlaceNames } from "./entityPlaceLocalization";
+
+export { plannedSessions, schedulePlannedSessionReminder, refreshPlannedSessionPlans } from "./plannedSessionFunctions";
+
+export { prepareShareCard, shareCardImage, cleanupShareCards, invalidateSpotShareCard, invalidateEventShareCard,
+  invalidateCommunityShareCard, invalidateProfileShareCard } from "./shareCards/functions";

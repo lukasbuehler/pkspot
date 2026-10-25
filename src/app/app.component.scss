@@ -35,8 +35,57 @@ mat-toolbar {
   }
 }
 
-.spacer {
-  flex: 1 1 auto;
+.floating-bottom-navigation {
+  box-sizing: border-box;
+  width: auto;
+  position: fixed;
+  z-index: 1000;
+  inset-inline-start: max(
+    12px,
+    calc(12px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)))
+  );
+  inset-inline-end: max(
+    12px,
+    calc(12px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
+  );
+  inset-block-end: var(--navigation-bottom-offset, 12px);
+  height: auto;
+  min-height: 72px;
+  padding: 4px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 36px;
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 94%,
+    transparent
+  );
+  box-shadow: 0px 50px 40px 40px
+    color-mix(in srgb, var(--mat-sys-shadow) 88%, transparent);
+  backdrop-filter: blur(16px);
+
+  &.native-platform {
+    // Fit the icon and label plus 4px above/below, without flex overflow.
+    height: auto;
+    min-height: 72px;
+    padding: 4px;
+    --nav-bar-height: var(--navigation-bottom-clearance, 0px);
+  }
+
+  > a,
+  > app-mat3-nav-button {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  > .mobile-more-button {
+    order: 1;
+  }
+
+  > .mobile-trailing-nav-button {
+    order: 2;
+  }
 }
 
 .profile-icon-button {
@@ -59,31 +108,76 @@ mat-toolbar {
 
 .login-fab {
   position: absolute;
-  right: 20px;
-  top: 20px;
+  right: calc(20px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  top: calc(20px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
   z-index: 2;
 }
 
 #alainMenuButton {
-  position: absolute;
+  --fab-menu-inline-start-offset: calc(
+    8px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
+  );
+  --fab-menu-inline-end-offset: calc(
+    8px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
+  );
+  --fab-menu-top-offset: calc(
+    8px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px))
+  );
+  position: fixed;
   // Add safe area left to prevent overlap with camera cutout in landscape
   left: calc(8px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
   z-index: 101;
 
-  top: 8px;
+  top: var(--fab-menu-top-offset);
 
   // On larger screens (sidepanel layout), use more padding to match the search container
   @media (min-width: 600px) {
+    --fab-menu-inline-start-offset: calc(
+      16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
+    );
+    --fab-menu-inline-end-offset: calc(
+      16px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
+    );
     left: calc(
       16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
     );
-    top: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+    --fab-menu-top-offset: calc(16px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px)));
+    top: var(--fab-menu-top-offset);
   }
 }
 
 #alainMenuButton.native-platform {
   @media (max-width: 599.99px) {
-    top: var(--safe-area-inset-top, env(safe-area-inset-top, 8px));
+    top: calc(8px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px)));
+  }
+}
+
+// Short immersive maps use an overlay drawer whose search field has a 16px
+// panel inset. Align the app-level menu FAB with that field without changing
+// the compact portrait bottom-sheet presentation.
+:host.immersive-map-route #alainMenuButton {
+  // The portrait search row uses 8px, including on native platforms.
+  --fab-menu-inline-start-offset: calc(8px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  --fab-menu-inline-end-offset: calc(8px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  --fab-menu-top-offset: calc(8px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px)));
+  left: var(--fab-menu-inline-start-offset);
+  top: var(--fab-menu-top-offset);
+  @media (max-height: 499.98px) {
+    --fab-menu-inline-start-offset: calc(
+      16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
+    );
+    --fab-menu-inline-end-offset: calc(
+      16px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
+    );
+    --fab-menu-top-offset: calc(
+      16px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px))
+    );
+    left: calc(
+      16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
+    );
+    top: calc(
+      16px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px))
+    );
   }
 }
 
@@ -124,20 +218,32 @@ a {
   }
 }
 
-// Terms/Policy footer that appears for non-signed-in users on mobile
-// This sets a CSS variable that child components (like map-page) can use
-// to offset their content when the footer is visible
+// Keep the signed-out web links above the floating bar's shadow.
 .terms-footer {
-  height: 24px;
-  z-index: 999; // Below nav but above map
-  flex-shrink: 0;
-}
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 8px;
+  height: var(--terms-footer-offset, 24px);
+  padding-inline: calc(12px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)))
+    calc(12px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  z-index: 1001;
+  background: transparent;
+  color: var(--mat-sys-on-surface, white);
+  font-size: 10px;
+  line-height: 16px;
+  white-space: nowrap;
 
-// When the terms footer is present, set a CSS variable on the body
-// that descendant components (like map-page) can use to add extra bottom offset
-// Using body:has() so the variable is inherited by all components
-body:has(.terms-footer) {
-  --terms-footer-offset: 24px;
+  a {
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
 }
 
 .check-in-chip {
@@ -167,7 +273,9 @@ body:has(.terms-footer) {
   z-index: 1;
   gap: 12px;
   min-height: 48px;
-  padding: 6px 12px;
+  padding: 6px calc(12px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
+    calc(6px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+    calc(12px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
   border-top: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
@@ -209,4 +317,37 @@ body:has(.terms-footer) {
     height: 18px;
     max-width: 92px;
   }
+}
+
+// Legal links at the bottom of the navigation rail. Labels such as
+// "Conditions" and "Confidentialité" wrap onto their own lines in the
+// narrow rail instead of running into each other.
+.rail-legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 6px;
+  width: 100%;
+  padding-inline: 4px;
+  padding-block-end: 4px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+
+  > * {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+// White-on-filled spinner inside the Check In button while it waits.
+// Match the accent button's text instead of the filled-button default.
+.check-in-spinner {
+  --mat-progress-spinner-active-indicator-color: currentColor;
 }

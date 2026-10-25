@@ -155,3 +155,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-height: 499.98px), (max-width: 767.98px) and (max-height: 699.98px) {
+  .contact-page {
+    padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))));
+  }
+}
