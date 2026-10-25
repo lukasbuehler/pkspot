@@ -13,7 +13,7 @@ Rejoignez votre communauté
 Découvrez les communautés locales et suivez celles qui vous intéressent. Ajoutez des Spots, contribuez avec vos photos et aidez à garder les informations utiles pour les autres.
 
 Gardez une trace de vos entraînements
-Tenez un journal privé de vos séances avec des notes, des graphiques d'activité et des pauses de récupération. Retrouvez où et comment vous vous êtes entraîné, à votre rythme.
+Faites un check-in sur les Spots et consultez vos statistiques privées, comme vos Spots les plus visités et votre temps d'entraînement. Tenez un journal privé de vos séances avec des notes, des graphiques d'activité et des pauses de récupération. Retrouvez où et comment vous vous êtes entraîné, à votre rythme.
 
 Développé avec la communauté
 PK Spot est open source et façonné par les personnes qui l'utilisent. Né à Zurich, développé avec la communauté Parkour.

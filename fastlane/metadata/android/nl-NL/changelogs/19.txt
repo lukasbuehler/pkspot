@@ -1,5 +1,8 @@
-PK Spot 1.2
+PK Spot 1.2: Trainingsupdate
 
-Verbeterde navigatie op telefoons, tablets en vouwbare schermen.
-Betere veilige marges, kaartbediening en gebaren voor het onderste paneel.
-Betrouwbaardere links in de app en duidelijkere meldingen bij app-verificatie.
+• Check in bij Spots en bekijk privéstatistieken zoals je meest bezochte Spots en je trainingstijd.
+• Doe optioneel mee met Local Legend voor een privé maandelijkse ranking bij de Spots waar je traint.
+• Houd een privétrainingslogboek bij met sessiedetails en activiteitengrafieken.
+• Voeg herstelpauzes toe wanneer je die nodig hebt.
+• Soepelere navigatie, kaartbediening en onderpaneel.
+• Bugfixes en privacyverbeteringen in de hele app.

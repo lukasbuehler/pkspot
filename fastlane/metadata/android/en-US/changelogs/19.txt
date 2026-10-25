@@ -1,5 +1,8 @@
-PK Spot 1.2
+PK Spot 1.2: Training Update
 
-Improved navigation for phones, tablets and foldable screens.
-Better safe-area spacing, map controls and bottom-sheet gestures.
-More reliable in-app links and clearer app-verification errors.
+• Check in at Spots and see private stats like your most visited Spots and training time.
+• Join Local Legend (optional) for a private monthly rank at the Spots where you train.
+• Keep a private training log with session details and activity graphs.
+• Add recovery pauses when you need time away from training.
+• Smoother navigation, map controls and bottom sheet.
+• Bug fixes and privacy improvements throughout the app.

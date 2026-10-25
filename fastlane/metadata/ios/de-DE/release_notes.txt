@@ -2,9 +2,10 @@ PK Spot 1.2: Trainingsupdate
 
 Dein Training hat jetzt seinen eigenen Platz in PK Spot.
 
+• Checke an Spots ein und sieh private Statistiken wie deine meistbesuchten Spots und deine Trainingszeit.
+• Mach optional bei Local Legend mit und erhalte einen privaten Monatsrang an den Spots, an denen du trainierst.
 • Führe ein privates Trainingstagebuch mit Details zu deinen Einheiten und Aktivitätsdiagrammen.
 • Trage Erholungspausen ein, wenn du eine Auszeit vom Training brauchst.
-• Checke an Spots ein und entdecke die jüngsten Aktivitäten an Spots.
-• Profitiere von einer flüssigeren Navigation und einer verbesserten Kartenbedienung.
-• Verbesserungen bei Events, Community-Abstimmungen, der Spot-Bearbeitung, dem Folgen und bei Meldungen.
-• Fehlerbehebungen und Verbesserungen beim Datenschutz in der gesamten App.
+• Flüssigere Navigation, Kartenbedienung und Bottom Sheet.
+• Verbesserungen bei Events, Community-Abstimmungen, Spot-Bearbeitung, Folgen und Meldungen.
+• Fehlerbehebungen und Datenschutzverbesserungen in der ganzen App.

@@ -1,5 +1,7 @@
-PK Spot 1.2
+PK Spot 1.2 : Mise à jour entraînement
 
-Navigation améliorée sur les téléphones, tablettes et écrans pliables.
-Meilleurs espacements aux bords de l’écran, commandes de carte et gestes du panneau inférieur.
-Liens internes plus fiables et messages de vérification de l’application plus clairs.
+• Faites un check-in sur les Spots et consultez vos statistiques privées : Spots les plus visités, temps d’entraînement.
+• Rejoignez Local Legend (facultatif) pour un classement mensuel privé sur vos Spots.
+• Tenez un journal d’entraînement privé avec les détails de vos séances et des graphiques d’activité.
+• Navigation, commandes de carte et panneau inférieur plus fluides.
+• Corrections de bugs et améliorations de la confidentialité dans toute l’app.

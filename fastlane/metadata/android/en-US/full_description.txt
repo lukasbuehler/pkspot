@@ -13,7 +13,7 @@ Connect with your community
 Discover local communities and follow the ones that matter to you. Add Spots, contribute photos and help keep information useful for the next person.
 
 Keep your training story
-Keep a private log of your sessions with notes, activity graphs and recovery pauses. Look back at where and how you've trained, at your own pace.
+Check in at Spots and see private stats like your most visited Spots and training time. Keep a private log of your sessions with notes, activity graphs and recovery pauses. Look back at where and how you've trained, at your own pace.
 
 Built with the community
 PK Spot is open source and shaped by the people who use it. Started in Zurich, built with the Parkour community.
