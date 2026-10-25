@@ -26,6 +26,7 @@ describe("LocalLegendJoinDialogComponent", () => {
     expect(element.textContent).toContain("compare participating accounts");
     expect(element.textContent).toContain("Ranks count days, not hours");
     expect(element.textContent).toContain("Participation is optional");
+    expect(element.textContent).toContain("Local Legend is for people aged 16 and older.");
   });
 
   it("keeps the dialog open until the server saves the choice and prevents duplicate saves", async () => {
@@ -35,6 +36,11 @@ describe("LocalLegendJoinDialogComponent", () => {
     const choosing = fixture.componentInstance.choose(true);
     expect(close).not.toHaveBeenCalled();
     expect(TestBed.inject(MatDialogRef).disableClose).toBe(true);
+    // The Enable button shows Material's in-button progress state, keeping its size.
+    await fixture.whenStable();
+    const enable = (fixture.nativeElement as HTMLElement).querySelectorAll("button")[1];
+    expect(enable.classList).toContain("mat-mdc-button-progress-indicator-shown");
+    expect(enable.querySelector(".mat-mdc-button-progress-indicator-container mat-spinner")).not.toBeNull();
     await fixture.componentInstance.choose(false);
     expect(setEnabled).toHaveBeenCalledOnce();
     finish();

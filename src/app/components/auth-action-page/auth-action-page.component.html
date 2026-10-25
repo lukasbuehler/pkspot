@@ -155,23 +155,17 @@
             mat-flat-button
             type="submit"
             [disabled]="passwordResetForm.invalid || isResettingPassword()"
+            [showProgress]="isResettingPassword()"
             class="full-width"
           >
-            @if (isResettingPassword()) {
-            <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
-            } @else {
-            <ng-container
-              class="d-flex flex-row align-items-center gap-1 justify-content-center"
+            <mat-icon>lock</mat-icon>
+            <span
+              i18n="
+                reset password|Button to reset
+                password@@auth_action.reset_password"
+              >Reset Password</span
             >
-              <mat-icon>lock</mat-icon>
-              <span
-                i18n="
-                  reset password|Button to reset
-                  password@@auth_action.reset_password"
-                >Reset Password</span
-              >
-            </ng-container>
-            }
+            <mat-spinner progressIndicator diameter="20" />
           </button>
         </form>
       </div>

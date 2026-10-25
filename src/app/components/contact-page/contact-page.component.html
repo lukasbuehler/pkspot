@@ -91,13 +91,11 @@
             color="primary"
             type="submit"
             [disabled]="isSubmitting()"
+            [showProgress]="isSubmitting()"
           >
-            @if (isSubmitting()) {
-              <mat-spinner diameter="20" strokeWidth="3"></mat-spinner>
-            } @else {
-              <mat-icon>email</mat-icon>
-            }
+            <mat-icon>email</mat-icon>
             <span i18n="@@contact.submit">Send message</span>
+            <mat-spinner progressIndicator diameter="20" strokeWidth="3" />
           </button>
         </form>
       }

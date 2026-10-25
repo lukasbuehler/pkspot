@@ -52,8 +52,8 @@
     </button>
   }
   <button matButton type="button" mat-dialog-close [disabled]="saving()" i18n="@@common.cancel">Cancel</button>
-  <button matButton="filled" type="submit" form="recovery-pause-form" [disabled]="saving()">
-    @if (saving()) { <mat-progress-spinner diameter="18" mode="indeterminate" /> }
+  <button matButton="filled" type="submit" form="recovery-pause-form" [disabled]="saving()" [showProgress]="saving()">
     <span i18n="@@recoveryPause.save">Save recovery pause</span>
+    <mat-progress-spinner progressIndicator diameter="18" mode="indeterminate" />
   </button>
 </mat-dialog-actions>

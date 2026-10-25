@@ -83,7 +83,18 @@ html.native-platform {
   a,
   img {
     -webkit-touch-callout: none;
+    // A finger resting on a link or photo would otherwise start iOS
+    // drag-and-drop, which swallows the gesture instead of scrolling.
+    -webkit-user-drag: none;
   }
+}
+
+// See AppComponent: on map routes only the panels scroll, never the page.
+html.map-route-active,
+html.map-route-active body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 html.native-platform body {

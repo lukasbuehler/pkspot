@@ -39,17 +39,16 @@
       [matTooltip]="geolocationTooltip()"
       matTooltipPosition="left"
       matTooltipShowDelay="500"
+      [showProgress]="geolocationLoading() && locationEnabled()"
       (click)="focusGeolocation.emit()"
     >
-      @if (geolocationLoading() && locationEnabled()) {
-        <mat-progress-spinner
-          mode="indeterminate"
-          diameter="20"
-          color="accent"
-        ></mat-progress-spinner>
-      } @else {
-        <mat-icon>{{ geolocationIcon() }}</mat-icon>
-      }
+      <mat-icon>{{ geolocationIcon() }}</mat-icon>
+      <mat-progress-spinner
+        progressIndicator
+        mode="indeterminate"
+        diameter="20"
+        color="accent"
+      />
     </button>
   </div>
 

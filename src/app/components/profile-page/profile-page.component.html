@@ -338,23 +338,17 @@
                     data-testid="follow-action"
                     [disabled]="loadingFollowing || loadingIncomingFollowRequest"
                     [attr.aria-busy]="loadingFollowing || loadingIncomingFollowRequest"
+                    [showProgress]="loadingFollowing || loadingIncomingFollowRequest"
                     (click)="followButtonClick()"
                   >
-                    @if (loadingFollowing || loadingIncomingFollowRequest) {
-                      <mat-spinner
-                        diameter="20"
-                        strokeWidth="3"
-                        class="profile-overview__action-spinner"
-                        aria-label="Updating follow status"
-                        i18n-aria-label="@@profile.actions.updatingFollowStatus"
-                      ></mat-spinner>
-                    }
-                    <span
-                      class="profile-overview__action-label"
-                      [class.profile-overview__action-label--loading]="
-                        loadingFollowing || loadingIncomingFollowRequest
-                      "
-                    >
+                    <mat-spinner
+                      progressIndicator
+                      diameter="20"
+                      strokeWidth="3"
+                      aria-label="Updating follow status"
+                      i18n-aria-label="@@profile.actions.updatingFollowStatus"
+                    />
+                    <span>
                       @if (isFollowing) {
                         <span i18n="@@profile.actions.unfollow">Unfollow</span>
                       } @else if (isIncomingFollowRequest) {

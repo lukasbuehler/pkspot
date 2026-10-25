@@ -14,6 +14,9 @@
     />
   </div>
 
-  <p class="mat-body-small legend-settings__help" i18n="@@localLegend.settings.participationHelp">Only new verified check-ins count after you turn it on. Ranks update overnight. Leaving removes your current-month ranks; past ranks stay private.</p>
+  <p class="mat-body-small legend-settings__help">
+    <span i18n="@@localLegend.settings.participationHelp">Only new verified check-ins count after you turn it on. Ranks update overnight. Leaving removes your current-month ranks; past ranks stay private.</span>
+    <span i18n="@@localLegend.ageRequirement">Local Legend is for people aged 16 and older.</span>
+  </p>
   <button matButton="outlined" type="button" [disabled]="localLegend.state() === 'unavailable'" (click)="manage()" i18n="@@localLegend.settings.manage">Manage Local Legend data</button>
 </section>

@@ -90,9 +90,9 @@
 
       <div class="actions">
         <a mat-button routerLink="/events" i18n>Cancel</a>
-        <button mat-flat-button type="submit" [disabled]="saving()">
-          @if (saving()) { <mat-spinner diameter="20" /> }
+        <button mat-flat-button type="submit" [disabled]="saving()" [showProgress]="saving()">
           <span i18n>{{ editing ? "Save" : "Publish" }} community event</span>
+          <mat-spinner progressIndicator diameter="20" />
         </button>
         @if (editing) {
           <button

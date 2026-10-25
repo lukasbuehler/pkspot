@@ -91,14 +91,12 @@
                 color="primary"
                 type="button"
                 [disabled]="fulfillingOrderId() !== ''"
+                [showProgress]="fulfillingOrderId() === order.id"
                 (click)="markFulfilled(order)"
               >
-                @if (fulfillingOrderId() === order.id) {
-                  <mat-spinner diameter="20" strokeWidth="3" />
-                } @else {
-                  <mat-icon>done</mat-icon>
-                }
+                <mat-icon>done</mat-icon>
                 <span>Mark fulfilled</span>
+                <mat-spinner progressIndicator diameter="20" strokeWidth="3" />
               </button>
             }
           </div>

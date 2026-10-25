@@ -1204,6 +1204,19 @@ html.pkspot-roboto-loaded body {
     );
   });
 
+  // Map routes fill the viewport and scroll only inside their panels. A
+  // document that can still scroll (even by a few pixels) gives iOS a second
+  // scroller that competes with the bottom sheet's content for each swipe.
+  private readonly _mapRouteDocumentScrollEffect = effect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    document.documentElement.classList.toggle(
+      "map-route-active",
+      this.isImmersiveMapRoute() || this.isEventMapRoute(),
+    );
+  });
+
   private installNavigationPerformanceLogging(): void {
     if (!this.isNativePlatform || typeof window === "undefined") {
       return;

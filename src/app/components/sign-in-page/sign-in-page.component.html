@@ -114,15 +114,13 @@
               color="primary"
               type="submit"
               [disabled]="isSubmitting()"
+              [showProgress]="isSubmitting()"
             >
-              @if (isSubmitting()) {
-                <mat-spinner diameter="20" strokeWidth="3"></mat-spinner>
-              } @else {
-                <mat-icon>login</mat-icon>
-              }
+              <mat-icon>login</mat-icon>
               <span i18n="sign in button|Button to sign in@@signin.button">
                 Sign in
               </span>
+              <mat-spinner progressIndicator diameter="20" strokeWidth="3" />
             </button>
             <a mat-stroked-button routerLink="/forgot-password">
               <mat-icon>lock_reset</mat-icon>

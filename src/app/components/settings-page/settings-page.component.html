@@ -175,13 +175,11 @@
                   [disabled]="
                     isChangingEmail || !newEmailAddress || !emailChangePassword
                   "
+                  [showProgress]="isChangingEmail"
                   (click)="changeEmailAddress()"
                 >
-                  @if(isChangingEmail) {
-                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                  } @else {
                   <span i18n>Change E-mail address</span>
-                  }
+                  <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
                 </button>
               </div>
             </div>
@@ -245,13 +243,11 @@
                     !newPassword ||
                     !confirmNewPassword
                   "
+                  [showProgress]="isChangingPassword"
                   (click)="changePassword()"
                 >
-                  @if(isChangingPassword) {
-                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                  } @else {
                   <span i18n>Change password</span>
-                  }
+                  <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
                 </button>
               </div>
             </div>
@@ -345,15 +341,13 @@
               mat-flat-button
               color="primary"
               [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
+              [showProgress]="isSavingProfileAccess"
               (click)="saveProfileAccessSettings()"
             >
-              @if(isSavingProfileAccess) {
-              <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-              } @else {
-                <span i18n="@@settings.profileAccess.save"
-                  >Save profile access</span
-                >
-              }
+              <span i18n="@@settings.profileAccess.save"
+                >Save profile access</span
+              >
+              <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
             </button>
           </section>
 
@@ -441,13 +435,11 @@
                     isDeletingAccount ||
                     (!isOAuthUser && !deleteAccountPassword)
                   "
+                  [showProgress]="isDeletingAccount"
                   (click)="deleteAccount()"
                 >
-                  @if(isDeletingAccount) {
-                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                  } @else {
                   <span i18n>Permanently delete</span>
-                  }
+                  <mat-spinner progressIndicator diameter="20" strokeWidth="2" />
                 </button>
               </div>
             </div>

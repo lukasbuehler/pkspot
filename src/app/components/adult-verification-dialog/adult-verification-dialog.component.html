@@ -18,9 +18,10 @@
           <p class="mat-body-small">{{ option.description }}</p>
           @if (option.state === "unavailable") { <p class="mat-body-small" i18n>Not available on this installation yet.</p> }
         </div>
-        <button matButton="outlined" type="button" [disabled]="option.state === 'unavailable' || activeProvider() !== null" (click)="start(option.id)">
-          @if (activeProvider() === option.id) { <mat-spinner diameter="18" strokeWidth="2" /> <span i18n>Starting…</span> }
-          @else { <span i18n>Verify</span> }
+        <button matButton="outlined" type="button" [disabled]="option.state === 'unavailable' || activeProvider() !== null"
+          [showProgress]="activeProvider() === option.id" (click)="start(option.id)">
+          <span i18n>Verify</span>
+          <mat-spinner progressIndicator diameter="18" strokeWidth="2" />
         </button>
       </section>
     }

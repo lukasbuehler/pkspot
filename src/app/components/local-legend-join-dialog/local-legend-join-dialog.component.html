@@ -31,16 +31,16 @@
   <p class="join__optional mat-body-small" i18n="@@localLegend.join.optional">
     Participation is optional. Only new verified check-ins count after you turn it on. You can leave in Settings and keep using private check-ins.
   </p>
+  <p class="join__optional mat-body-small" i18n="@@localLegend.ageRequirement">Local Legend is for people aged 16 and older.</p>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button matButton type="button" [disabled]="choosing() !== null" (click)="choose(false)" i18n="@@localLegend.join.notNow">Not now</button>
-  <button matButton="filled" type="button" [disabled]="choosing() !== null" (click)="choose(true)">
-    @if (choosing() === true) {
-      <mat-spinner diameter="18" />
-    } @else {
-      <mat-icon>trophy</mat-icon>
-    }
+  <!-- showProgress keeps the button's size and centres the spinner over the hidden label. -->
+  <button matButton="filled" type="button" [disabled]="choosing() !== null" [showProgress]="choosing() === true"
+    (click)="choose(true)">
+    <mat-icon>trophy</mat-icon>
     <span i18n="@@localLegend.join.enable">Enable Local Legend</span>
+    <mat-spinner progressIndicator diameter="18" />
   </button>
 </mat-dialog-actions>

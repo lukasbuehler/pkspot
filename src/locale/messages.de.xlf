@@ -38,7 +38,7 @@
     </unit>
     <unit id="3789771835244333891">
       <segment state="initial">
-        <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot; (click)=&quot;trackOutboundLinkClick(&apos;github&apos;, &apos;https://github.com/lukasbuehler/pkspot&apos;, &apos;View on GitHub&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
+        <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot; (click)=&quot; trackOutboundLinkClick( &apos;github&apos;, &apos;https://github.com/lukasbuehler/pkspot&apos;, &apos;View on GitHub&apos; ) &quot; &gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
         <target> — Keine Blackbox-Algorithmen, kein verstecktes Tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot;&gt;" dispEnd="&lt;/a &gt;">Auf GitHub ansehen</pc>. </target>
       </segment>
     </unit>
@@ -2629,8 +2629,8 @@
     </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </source>
-        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </target>
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ member.background }}"/> </source>
+        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ member.background }}"/> </target>
       </segment>
     </unit>
     <unit id="7724618434121262533">
@@ -3708,12 +3708,6 @@
       <segment state="initial">
         <source> Some uploads could not be processed. </source>
         <target> Einige Uploads konnten nicht verarbeitet werden. </target>
-      </segment>
-    </unit>
-    <unit id="8412870208077922475">
-      <segment state="initial">
-        <source>Checking…</source>
-        <target>Wird geprüft…</target>
       </segment>
     </unit>
     <unit id="8417842421847722492">
@@ -12918,7 +12912,7 @@
     </unit>
     <unit id="2496919597985327178">
       <segment state="initial">
-        <source> — We never sell your data. No tracking cookies, no shady ad networks. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot; (click)=&quot;trackInternalCtaClick(&apos;about_privacy_policy&apos;, &apos;/privacy-policy&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Privacy Policy</pc>. </source>
+        <source> — We never sell your data. No tracking cookies, no shady ad networks. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot; (click)=&quot; trackInternalCtaClick( &apos;about_privacy_policy&apos;, &apos;/privacy-policy&apos; ) &quot; &gt;" dispEnd="&lt;/a &gt;">Privacy Policy</pc>. </source>
         <target> — Wir verkaufen deine Daten niemals. Keine Tracking-Cookies, keine fragwürdigen Werbenetzwerke. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;"> Datenschutzerklärung</pc>. </target>
       </segment>
     </unit>
@@ -12969,7 +12963,7 @@
     </unit>
     <unit id="5982693261061871155">
       <segment state="initial">
-        <source> — All community spot data is <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; (click)=&quot;trackOutboundLinkClick(&apos;license&apos;, &apos;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&apos;, &apos;CC BY-NC-SA 4.0&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> licensed. Open, shareable, yours forever. </source>
+        <source> — All community spot data is <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; (click)=&quot; trackOutboundLinkClick( &apos;license&apos;, &apos;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&apos;, &apos;CC BY-NC-SA 4.0&apos; ) &quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> licensed. Open, shareable, yours forever. </source>
         <target> — Alle Community-Spot-Daten sind unter <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> lizenziert. Offen, teilbar und für immer eure. </target>
       </segment>
     </unit>
@@ -16916,12 +16910,6 @@
         <target> Bist du sicher? Gib dein Passwort ein, um das Löschen zu bestätigen. </target>
       </segment>
     </unit>
-    <unit id="3741605829844535332">
-      <segment state="initial">
-        <source>Starting…</source>
-        <target>Wird gestartet…</target>
-      </segment>
-    </unit>
     <unit id="3742557968359744247">
       <segment state="initial">
         <source>Password Reset Failed</source>
@@ -19958,6 +19946,12 @@
       <segment state="initial">
         <source>Use device location?</source>
         <target>Gerätestandort verwenden?</target>
+      </segment>
+    </unit>
+    <unit id="localLegend.ageRequirement">
+      <segment state="translated">
+        <source>Local Legend is for people aged 16 and older.</source>
+        <target>Local Legend ist für Personen ab 16 Jahren.</target>
       </segment>
     </unit>
     <unit id="localLegend.data.confirmLeave">

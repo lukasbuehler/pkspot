@@ -27,7 +27,7 @@
         <mat-form-field appearance="outline"><mat-label i18n>Ends</mat-label><input matInput type="datetime-local" formControlName="endsAt" required /></mat-form-field>
       </div>
       <mat-form-field appearance="outline"><mat-label i18n>Official link</mat-label><input matInput type="url" formControlName="sourceUrl" /></mat-form-field>
-      <div class="actions"><a mat-button routerLink="/events" i18n>Cancel</a><button mat-flat-button type="submit" [disabled]="saving()">@if (saving()) { <mat-spinner diameter="20" /> }<span i18n>Send suggestion</span></button></div>
+      <div class="actions"><a mat-button routerLink="/events" i18n>Cancel</a><button mat-flat-button type="submit" [disabled]="saving()" [showProgress]="saving()"><span i18n>Send suggestion</span><mat-spinner progressIndicator diameter="20" /></button></div>
     </form>
   }
 </main>

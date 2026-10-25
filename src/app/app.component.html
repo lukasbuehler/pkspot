@@ -307,13 +307,12 @@
             color="accent"
             style="height: 32px; line-height: 32px"
             [disabled]="checkInPending()"
+            [showProgress]="checkInPending()"
             [attr.aria-busy]="checkInPending()"
             (click)="$event.stopPropagation(); spotCheckIn(spot.id, spot.name)"
           >
-            @if (checkInPending()) {
-              <mat-spinner diameter="18" class="check-in-spinner"></mat-spinner>
-            }
             <span i18n="@@checkin.check_in">Check In</span>
+            <mat-spinner progressIndicator diameter="18" class="check-in-spinner" />
           </button>
           <button
             mat-icon-button

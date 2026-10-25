@@ -43,20 +43,16 @@
           matButton="outlined"
           type="button"
           [disabled]="isChecking()"
+          [showProgress]="isChecking()"
           (click)="recheck()"
         >
-          @if (isChecking()) {
-            <mat-spinner diameter="18" strokeWidth="2"></mat-spinner>
-          } @else {
-            <mat-icon>refresh</mat-icon>
-          }
-          @if (isChecking()) {
-            <span i18n>Checking…</span>
-          } @else if (isIosApp && ageAssurance.checkState().status === "idle") {
+          <mat-icon>refresh</mat-icon>
+          @if (isIosApp && ageAssurance.checkState().status === "idle") {
             <span i18n>Check age range</span>
           } @else {
             <span i18n>Check again</span>
           }
+          <mat-spinner progressIndicator diameter="18" strokeWidth="2" />
         </button>
 
         @if (showPlayStoreAction()) {

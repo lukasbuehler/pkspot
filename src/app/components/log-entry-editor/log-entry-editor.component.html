@@ -108,9 +108,9 @@
       @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
       <footer>
         <a matButton routerLink="/train/log" i18n="@@common.cancel">Cancel</a>
-        <button matButton="filled" type="submit" [disabled]="saving()">
-          @if (saving()) { <mat-progress-spinner diameter="18" mode="indeterminate" /> }
+        <button matButton="filled" type="submit" [disabled]="saving()" [showProgress]="saving()">
           <span i18n="@@logEditor.save">Save entry</span>
+          <mat-progress-spinner progressIndicator diameter="18" mode="indeterminate" />
         </button>
       </footer>
     </form>

@@ -103,9 +103,9 @@
 <mat-dialog-actions align="end">
   @if (previewing()) {
     <button mat-button type="button" [disabled]="saving()" (click)="previewing.set(false)" i18n>Back</button>
-    <button mat-flat-button type="button" [disabled]="saving()" (click)="apply()">
-      @if (saving()) { <mat-spinner diameter="20" /> }
+    <button mat-flat-button type="button" [disabled]="saving()" [showProgress]="saving()" (click)="apply()">
       <span i18n>Apply operation</span>
+      <mat-spinner progressIndicator diameter="20" />
     </button>
   } @else {
     <button mat-button type="button" [mat-dialog-close]="false" i18n>Cancel</button>

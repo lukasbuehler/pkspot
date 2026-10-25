@@ -115,6 +115,14 @@ div.sheet > div.content {
       touch-action: pan-y !important;
     }
 
+    // On iOS (app and Safari) a finger that rests on a link or photo for a
+    // moment starts drag-and-drop. The sheet cancels that drag, so the
+    // gesture would neither drag nor scroll. Content is never draggable.
+    a,
+    img {
+      -webkit-user-drag: none;
+    }
+
     // Material chips contain buttons. Their horizontal scroller must retain
     // pan-x instead of intersecting it with the vertical button rule above.
     [data-horizontal-scroll] button {

@@ -75,6 +75,39 @@ describe("BottomSheetComponent touch gestures", () => {
     expect(sheet.style.touchAction).toBe("");
   });
 
+  it("lets the content scroll as soon as an opening sheet nearly reaches the top", () => {
+    fixture.componentInstance.maximize();
+    frame(1);
+    // Opening already allows native vertical panning for the next touch.
+    expect(sheet.style.touchAction).toBe("");
+    frame(301);
+    const offset = Number(sheet.style.transform.match(/[\d.]+/)![0]);
+    expect(offset).toBeGreaterThan(0);
+    expect(offset).toBeLessThan(48);
+
+    touch("touchstart", 300);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+    expect(content.style.overflowY).toBe("scroll");
+    // An upward swipe scrolls the content natively.
+    expect(touch("touchmove", 297).defaultPrevented).toBe(false);
+    touch("touchmove", 240);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+    // The finished animation does not move the sheet afterwards.
+    frame(501);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
+  it("keeps dragging a sheet that is still far from the top", () => {
+    fixture.componentInstance.maximize();
+    frame(1);
+    frame(51);
+    const offset = Number(sheet.style.transform.match(/[\d.]+/)![0]);
+    expect(offset).toBeGreaterThan(48);
+    touch("touchstart", 400);
+    expect(sheet.style.transform).toBe(`translateY(${offset}px)`);
+    expect(touch("touchmove", 397).defaultPrevented).toBe(true);
+  });
+
   it("reserves the first small move before Android commits native scrolling", () => {
     touch("touchstart", 550);
     expect(touch("touchmove", 547).defaultPrevented).toBe(true);
@@ -106,6 +139,39 @@ describe("BottomSheetComponent touch gestures", () => {
     expect(touch("touchmove", 303).defaultPrevented).toBe(true);
     touch("touchmove", 340);
     expect(sheet.style.transform).toBe("translateY(40px)");
+  });
+
+  it("scrolls the content itself when a reserved jitter turns into a scroll", () => {
+    // A resting finger jitters downward first; reserving that move cancels
+    // native scrolling, so the upward swipe that follows must not freeze.
+    openSheet();
+    touch("touchstart", 300);
+    expect(touch("touchmove", 302).defaultPrevented).toBe(true);
+    expect(touch("touchmove", 280).defaultPrevented).toBe(true);
+    expect(content.scrollTop).toBe(22);
+    touch("touchmove", 240);
+    expect(content.scrollTop).toBe(62);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+
+    // Releasing continues with a short momentum glide.
+    touch("touchend", 240);
+    frame(1000);
+    frame(1016);
+    expect(content.scrollTop).toBeGreaterThan(62);
+    expect(sheet.style.transform).toBe("translateY(0px)");
+  });
+
+  it("stops a momentum glide when a new touch starts", () => {
+    openSheet();
+    touch("touchstart", 300);
+    touch("touchmove", 302);
+    touch("touchmove", 240);
+    touch("touchend", 240);
+    touch("touchstart", 300);
+    const scrolled = content.scrollTop;
+    frame(1000);
+    frame(1016);
+    expect(content.scrollTop).toBe(scrolled);
   });
 
   it.each([-12, 0.4, 1])("accepts a fresh pull at a WebKit top offset of %s", async (offset) => {

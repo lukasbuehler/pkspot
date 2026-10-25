@@ -15,6 +15,7 @@ describe("LocalLegendSettingsComponent", () => {
     ]});
     const fixture = TestBed.createComponent(LocalLegendSettingsComponent);
     fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain("Local Legend is for people aged 16 and older.");
     const button = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll("button"))
       .find((item) => item.textContent?.includes("Manage Local Legend data"))!;
     expect(button.disabled).toBe(false);
