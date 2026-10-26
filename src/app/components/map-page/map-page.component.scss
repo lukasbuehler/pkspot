@@ -31,6 +31,27 @@ app-spot-map {
   inset: 0;
 }
 
+// Panels move between the drawer and the bottom sheet; the outlet must not
+// add a layout box of its own between a host and its panel components.
+.map-panel-outlet,
+.map-sheet-layout {
+  display: contents;
+}
+
+// The bottom-sheet layout shares the drawer container so the map is never
+// re-parented. Without a drawer, the container must behave like a plain
+// wrapper: no scroll container under the sheet (iOS would chain touch
+// scrolling into it) and no stacking context capping the sheet's layers.
+mat-drawer-container.map-panel-container--sheet {
+  overflow: visible;
+  z-index: auto;
+
+  ::ng-deep > .mat-drawer-content {
+    overflow: visible;
+    z-index: auto;
+  }
+}
+
 .map-container {
   overflow: hidden;
   height: 100%;

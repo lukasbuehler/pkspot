@@ -3,6 +3,10 @@ import { mapCentre, relevantMapCommunities, type CountryEvidence } from "./visib
 import {NativeMapShareService} from "../../services/native-map-share.service";
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
+import {
+  MovableViewHostDirective,
+  MovableViewOutletDirective,
+} from "./movable-view.directive";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -310,6 +314,8 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     MapCommunityLandingPanelComponent,
     MapCheckInBannerComponent,
     MapFloatingControlsComponent,
+    MovableViewHostDirective,
+    MovableViewOutletDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
