@@ -47,7 +47,7 @@ import {
   RouterModule,
 } from "@angular/router";
 import { filter, map } from "rxjs/operators";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { AuthenticationService } from "./services/firebase/authentication.service";
 import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
@@ -112,6 +112,8 @@ import {
   type NavigationOverflow,
 } from "./features/navbar-overflow";
 import { MyEventContextService } from "./services/my-event-context.service";
+import { NativeTabBarService } from "./services/native-tab-bar.service";
+import { nativeTabBarOwnsNavigation } from "./features/native-tab-bar";
 
 interface ButtonBase {
   id: string;
@@ -327,11 +329,24 @@ export class AppComponent implements OnInit, AfterViewInit {
    * use a rail without being treated as a desktop page everywhere else.
    */
   readonly navigationLayout = this.responsive.navigationLayout;
+  private readonly _nativeTabBar = inject(NativeTabBarService);
+  /**
+   * On iPhone a native tab bar provides the navigation instead of the web bar
+   * or rail. Map panels and Alain mode still follow `navigationLayout()`.
+   */
+  readonly usesNativeTabBar = computed(
+    () =>
+      this.isEmbedded() !== true &&
+      nativeTabBarOwnsNavigation(
+        this._nativeTabBar.available(),
+        this.navigationLayout(),
+      ),
+  );
   readonly usesNavigationRail = computed(
-    () => this.navigationLayout() === "rail",
+    () => this.navigationLayout() === "rail" && !this.usesNativeTabBar(),
   );
   readonly usesFloatingBottomNavigation = computed(
-    () => this.navigationLayout() === "bottom",
+    () => this.navigationLayout() === "bottom" && !this.usesNativeTabBar(),
   );
 
   /** True when running as a native iOS or Android app via Capacitor */
@@ -343,6 +358,27 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.responsive.refreshViewport();
     this.scheduleDesktopNavigationMeasurement();
   }
+
+  /** Mirrors the destinations and the route's selection into the native bar. */
+  private readonly _nativeTabBarBinding = this._nativeTabBar.bind({
+    destinations: () =>
+      (this.navbarConfig() ?? []).map((button) => ({
+        id: button.id,
+        name: button.name,
+        icon: button.icon,
+        alwaysVisible: button.alwaysVisible,
+        liveIndicator: button.liveIndicator,
+        active:
+          !!button.active ||
+          (!!button.link && this.isNavbarLinkActive(button.link)),
+      })),
+    ownsNavigation: () => this.usesNativeTabBar(),
+    moreTitle: () => this.moreNavigationLabel,
+  });
+
+  private readonly _nativeTabSelections = this._nativeTabBar.selections
+    .pipe(takeUntilDestroyed())
+    .subscribe((id) => this.onNavigationFabAction(id));
 
   private readonly trackNavigationMode = effect(() => {
     const alainMode = this.alainMode();
