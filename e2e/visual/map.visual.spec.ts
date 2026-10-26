@@ -69,6 +69,62 @@ test.describe("Map Page Visual Regression @visual", () => {
     });
   });
 
+  test("keeps one map and panel across layout switches", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await mapPage.goto("de");
+    await mapPage.waitForMapReady();
+    await expect(page.locator("mat-drawer app-map-object-panel")).toBeVisible();
+    await expect(page.locator("app-spot-map .gm-style")).toBeAttached();
+
+    // Tag the live instances; a recreated map or panel would lose the marks.
+    await page.evaluate(() => {
+      document.querySelector("app-spot-map .gm-style")?.setAttribute("data-visual-map", "");
+      document.querySelector("app-map-object-panel")?.setAttribute("data-visual-panel", "");
+    });
+    const map = page.locator("app-spot-map .gm-style[data-visual-map]");
+    const panel = page.locator("app-map-object-panel[data-visual-panel]");
+    // Live pins, counts and photos change independently of the layout.
+    await page.addStyleTag({
+      content: "gmp-advanced-marker { visibility: hidden !important; }",
+    });
+    const dynamicPanelContent = page.locator(
+      [
+        "app-map-object-panel app-filter-chips-bar",
+        "app-map-object-panel app-map-event-list",
+        "app-map-object-panel app-map-community-list",
+        "app-map-object-panel app-spot-list",
+        "app-map-object-panel .show-more-spots",
+      ].join(", "),
+    );
+    // The desktop map sits beside the drawer and keeps its masked edge as in
+    // the desktop baseline; on mobile it fills the viewport behind the sheet.
+    const mapSurface = page.locator("app-google-map-2d");
+
+    for (const step of [
+      { viewport: { width: 375, height: 667 }, host: "app-bottom-sheet", shot: "map-page-resized-mobile.png", mask: [dynamicPanelContent] },
+      { viewport: { width: 844, height: 390 }, host: "mat-drawer.map-overlay-drawer" },
+      { viewport: { width: 1280, height: 800 }, host: "mat-drawer", shot: "map-page-resized-desktop.png", mask: [mapSurface, dynamicPanelContent] },
+    ]) {
+      await page.setViewportSize(step.viewport);
+      await expect(page.locator(`${step.host} app-map-object-panel[data-visual-panel]`)).toBeAttached();
+      await expect(map).toHaveCount(1);
+      await expect(panel).toHaveCount(1);
+      await expect(page.locator("app-map-object-panel")).toHaveCount(1);
+      // The map snaps to the new layout instead of sliding from the old margin.
+      const mapBox = (await page.locator("app-spot-map").boundingBox())!;
+      expect(mapBox.x + mapBox.width).toBeCloseTo(step.viewport.width, 0);
+      if (step.shot) {
+        await page.waitForTimeout(1000);
+        await expect(page).toHaveScreenshot(step.shot, {
+          maxDiffPixels: 3_000,
+          fullPage: false,
+          animations: "disabled",
+          mask: step.mask,
+        });
+      }
+    }
+  });
+
   test("should match filter chips area", async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
 
