@@ -58,6 +58,27 @@ describe("SearchFieldComponent", () => {
     expect(fixture.debugElement.query(By.css("button"))).toBeNull();
   });
 
+  it("searches only communities in community mode", async () => {
+    vi.useFakeTimers();
+    try {
+      fixture.componentRef.setInput("onlyCommunities", true);
+      fixture.detectChanges();
+      const input = fixture.debugElement.query(By.css("input")).nativeElement as HTMLInputElement;
+      expect(input.placeholder).toBe("Search for a community");
+
+      fixture.componentInstance.spotSearchControl.setValue("zurich");
+      await vi.advanceTimersByTimeAsync(300);
+
+      const search = TestBed.inject(SearchService) as unknown as Record<string, ReturnType<typeof vi.fn>>;
+      expect(search["searchCommunities"]).toHaveBeenCalledWith("zurich");
+      expect(search["searchSpots"]).not.toHaveBeenCalled();
+      expect(search["searchEvents"]).not.toHaveBeenCalled();
+      expect(search["searchPlaces"]).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("keeps the search status suffix inset from the field edge", () => {
     const styles = readFileSync(
       "src/app/components/search-field/search-field.component.scss",

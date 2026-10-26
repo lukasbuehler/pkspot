@@ -16022,6 +16022,11 @@
         <source>Clear search filters</source>
       </segment>
     </unit>
+    <unit id="search_field_community_placeholder">
+      <segment>
+        <source>Search for a community</source>
+      </segment>
+    </unit>
     <unit id="search_field_default_placeholder">
       <segment>
         <source>Find spots and more</source>

@@ -4404,6 +4404,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedPoi.set(null);
       this.pendingSpotPreview.set(null);
       this.selectedSpot.set(spot);
+      // A selected Spot should stay visible on the map: leave an Events or
+      // Communities filter, but keep a Spots filter.
+      const mode = this.mapObjectMode();
+      if (mode === "events" || mode === "communities") {
+        this.mapObjectModeChanged("all");
+      }
       this.resetPanelContentToTop();
 
       this._openInfoPanel();

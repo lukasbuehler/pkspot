@@ -220,12 +220,18 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   );
 
   onlySpots = input(false);
+  /** Search communities only, for example to choose a training area. */
+  onlyCommunities = input(false);
+  /** Map links and Google Places need the full search. */
+  private readonly fullSearch = computed(() => !this.onlySpots() && !this.onlyCommunities());
   readonly defaultPlaceholder = $localize`:@@search_field_default_placeholder:Find spots and more`;
+  private readonly communityPlaceholder = $localize`:@@search_field_community_placeholder:Search for a community`;
   readonly clearContextLabel = $localize`:@@search_field_clear_context:Clear search filters`;
   readonly openingMapLinkLabel = $localize`:@@searchField.openingMapsLink:Opening Maps link...`;
   protected readonly mapLinkLoading = signal(false);
   readonly placeholderText = computed(
-    () => this.contextLabel() || this.defaultPlaceholder
+    () => this.contextLabel() ||
+      (this.onlyCommunities() ? this.communityPlaceholder : this.defaultPlaceholder)
   );
 
   ngOnInit() {
@@ -240,11 +246,13 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         debounceTime(250),
         distinctUntilChanged(),
         switchMap((query) => {
-          if (query.length < this._minSearchQueryLength || (!this.onlySpots() && this._mapLinkResolver.isSupportedUrl(query))) {
+          if (query.length < this._minSearchQueryLength || (this.fullSearch() && this._mapLinkResolver.isSupportedUrl(query))) {
             return of(this.buildShortQueryResults(query));
           }
 
           const onlySpots = this.onlySpots();
+          const onlyCommunities = this.onlyCommunities();
+          const skipPlacesAndEvents = onlySpots || onlyCommunities;
 
           const communities$ = onlySpots
             ? of<{ kind: "communities"; data: CommunitySearchPreview[] }>({
@@ -258,7 +266,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
                 )
               );
 
-          const events$ = onlySpots
+          const events$ = skipPlacesAndEvents
             ? of<{ kind: "events"; data: EventSearchPreview[] }>({
                 kind: "events",
                 data: [],
@@ -268,17 +276,19 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
                 catchError(() => of({ kind: "events" as const, data: [] }))
               );
 
-          const spots$ = from(this._searchService.searchSpots(query)).pipe(
-            map((data) => ({ kind: "spots" as const, data })),
-            catchError(() =>
-              of({
-                kind: "spots" as const,
-                data: { hits: [], found: 0 },
-              })
-            )
-          );
+          const spots$ = onlyCommunities
+            ? of({ kind: "spots" as const, data: { hits: [], found: 0 } as SearchSpotResults })
+            : from(this._searchService.searchSpots(query)).pipe(
+                map((data) => ({ kind: "spots" as const, data })),
+                catchError(() =>
+                  of({
+                    kind: "spots" as const,
+                    data: { hits: [], found: 0 },
+                  })
+                )
+              );
 
-          const places$ = onlySpots
+          const places$ = skipPlacesAndEvents
             ? of<{
                 kind: "places";
                 data: google.maps.places.AutocompletePrediction[];
@@ -313,11 +323,11 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
             query,
             communitiesLoaded: onlySpots,
             communities: [],
-            eventsLoaded: onlySpots,
+            eventsLoaded: skipPlacesAndEvents,
             events: [],
-            spotsLoaded: false,
+            spotsLoaded: onlyCommunities,
             spots: null,
-            placesLoaded: onlySpots,
+            placesLoaded: skipPlacesAndEvents,
             places: [],
           };
 
@@ -523,13 +533,13 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     this._mapLinkRequestId += 1;
     this.mapLinkLoading.set(false);
     const value = event?.target instanceof HTMLInputElement ? event.target.value : "";
-    if (value && !this.onlySpots() && this._mapLinkResolver.isSupportedUrl(value)) {
+    if (value && this.fullSearch() && this._mapLinkResolver.isSupportedUrl(value)) {
       this.openMapLink(value);
     }
   }
 
   handlePaste(event: ClipboardEvent): void {
-    if (this.onlySpots()) return;
+    if (!this.fullSearch()) return;
     const value = event.clipboardData?.getData("text/plain")?.trim() ?? "";
     if (!this._mapLinkResolver.isSupportedUrl(value)) {
       this.mapLinkLoading.set(false);

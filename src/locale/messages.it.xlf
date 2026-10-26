@@ -18046,6 +18046,12 @@
         <target>Cancella filtri di ricerca</target>
       </segment>
     </unit>
+    <unit id="search_field_community_placeholder">
+      <segment state="translated">
+        <source>Search for a community</source>
+        <target>Cerca una community</target>
+      </segment>
+    </unit>
     <unit id="search_field_default_placeholder">
       <segment state="initial">
         <source>Find spots and more</source>
