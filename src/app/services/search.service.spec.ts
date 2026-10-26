@@ -898,10 +898,51 @@ describe("SearchService", () => {
   });
 
   describe("sort order fallback", () => {
-    it("should ask Typesense for the existing rating sort and apply priority client-side", () => {
+    it("should rank Spots by text relevance before rating", () => {
       expect(service.spotSearchParameters.sort_by).toBe(
-        "rating:desc",
+        "_text_match:desc,rating:desc",
       );
+    });
+
+    it("should rank Events by text relevance before start time", () => {
+      expect(service.eventSearchParameters.sort_by).toBe(
+        "_text_match:desc,start_seconds:desc",
+      );
+    });
+
+    it("should require every query word to match instead of dropping words", () => {
+      expect(service.spotSearchParameters.drop_tokens_threshold).toBe(0);
+      expect(service.communitySearchParameters.drop_tokens_threshold).toBe(0);
+      expect(service.eventSearchParameters.drop_tokens_threshold).toBe(0);
+    });
+
+    it("should keep a weaker text match below a stronger one despite rating", () => {
+      const strong = {
+        text_match_info: {
+          tokens_matched: 2,
+          best_field_weight: 10,
+          typo_prefix_score: 0,
+        },
+        document: { id: "menlo-skatepark", rating: 0 },
+      };
+      const weak = {
+        text_match_info: {
+          tokens_matched: 1,
+          best_field_weight: 4,
+          typo_prefix_score: 0,
+        },
+        document: { id: "loosely-related", rating: 5 },
+      };
+
+      const ordered = (service as any).sortHitsByPriorityThenMedia([
+        strong,
+        weak,
+      ]);
+
+      expect(ordered.map((hit: any) => hit.document.id)).toEqual([
+        "menlo-skatepark",
+        "loosely-related",
+      ]);
     });
 
     it("should use spot count as the community search relevance tiebreaker", () => {

@@ -29,6 +29,16 @@ import {
   EventSearchPreview,
   SearchService,
 } from "../../services/search.service";
+import {
+  countQueryTokens,
+  GOOD_PLACE_MATCH_STRENGTH,
+  LAST_SECTION_STRENGTH,
+  orderSearchSections,
+  readTextMatch,
+  textMatchStrength,
+  type SearchSectionCandidate,
+  type SearchSectionKind,
+} from "../../services/search-ranking";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { LocaleCode } from "../../../db/models/Interfaces";
@@ -122,7 +132,10 @@ interface SearchFieldResults {
   previewCommunity: CommunitySearchPreview | null;
   spotsLoaded: boolean;
   spots: SearchSpotResults | null;
+  /** Sections in display order: the section with the best match comes first. */
+  sectionOrder: SearchSectionKind[];
 }
+
 
 interface NamedSearchResultLike {
   name?: unknown;
@@ -367,6 +380,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       previewCommunity: null,
       spotsLoaded: true,
       spots: null,
+      sectionOrder: [],
     };
   }
 
@@ -403,6 +417,71 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         ? communities[0]
         : null;
 
+    const displayedPlacePlacement =
+      displayedPlace &&
+      hasSpotHits &&
+      !this.isGoodLocationMatch(displayedPlace, state.query)
+        ? "bottom"
+        : "top";
+
+    // Each collection is already ordered by text relevance, so its first hit
+    // is its strongest. Sections are then ordered by that strongest hit.
+    const tokenCount = countQueryTokens(state.query);
+    const placeStrength = !displayedPlace
+      ? null // still loading
+      : displayedPlacePlacement === "bottom"
+        ? LAST_SECTION_STRENGTH
+        : this.isGoodLocationMatch(displayedPlace, state.query)
+          ? GOOD_PLACE_MATCH_STRENGTH
+          : 50;
+    // Only sections that render something (results or a loading row) take part.
+    const candidates: SearchSectionCandidate[] = [];
+    if (communities.length > 0 || !state.communitiesLoaded) {
+      candidates.push({
+        kind: "communities",
+        strength: state.communitiesLoaded
+          ? textMatchStrength(
+              communities[0]?.textMatch,
+              tokenCount,
+              state.query,
+              communities[0]?.displayName,
+            )
+          : null,
+      });
+    }
+    if (events.length > 0 || !state.eventsLoaded) {
+      candidates.push({
+        kind: "events",
+        strength: state.eventsLoaded
+          ? textMatchStrength(
+              events[0]?.textMatch,
+              tokenCount,
+              state.query,
+              events[0]?.name,
+            )
+          : null,
+      });
+    }
+    if (displayedPlace || !state.placesLoaded) {
+      candidates.push({ kind: "places", strength: placeStrength });
+    }
+    if (hasSpotHits || !state.spotsLoaded) {
+      candidates.push({
+        kind: "spots",
+        strength: state.spotsLoaded
+          ? textMatchStrength(
+              readTextMatch(spotResults?.hits?.[0]),
+              tokenCount,
+              state.query,
+              this.getSpotName(
+                spotResults?.hits?.[0]?.preview ?? spotResults?.hits?.[0]?.document,
+              ),
+            )
+          : null,
+      });
+    }
+    const sectionOrder = orderSearchSections(candidates);
+
     return {
       query: state.query,
       isShortQuery: false,
@@ -414,15 +493,11 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       events,
       placesLoaded: state.placesLoaded,
       displayedPlace,
-      displayedPlacePlacement:
-        displayedPlace &&
-        hasSpotHits &&
-        !this.isGoodLocationMatch(displayedPlace, state.query)
-          ? "bottom"
-          : "top",
+      displayedPlacePlacement,
       previewCommunity,
       spotsLoaded: state.spotsLoaded,
       spots: spotResults,
+      sectionOrder,
     };
   }
 

@@ -110,6 +110,7 @@ describe("SearchFieldComponent", () => {
       previewCommunity: null,
       spotsLoaded: true,
       spots: null,
+      sectionOrder: [],
     };
 
     fixture.componentInstance.spotAndPlaceSearchResults$.next(emptyResults);
@@ -122,6 +123,54 @@ describe("SearchFieldComponent", () => {
     fixture.detectChanges();
 
     expect(document.body.textContent).toContain("No results found");
+  });
+
+  it("renders the sections in the order of their strongest match", () => {
+    fixture.detectChanges();
+
+    fixture.componentInstance.spotAndPlaceSearchResults$.next({
+      query: "menlo skate",
+      isShortQuery: false,
+      typesenseLoading: false,
+      communitiesLoaded: true,
+      communities: [
+        {
+          id: "c1",
+          communityKey: "c1",
+          slug: "menlo-park",
+          displayName: "Menlo Park",
+          totalSpots: 3,
+        },
+      ],
+      eventsLoaded: true,
+      events: [],
+      placesLoaded: true,
+      displayedPlace: null,
+      displayedPlacePlacement: "top",
+      previewCommunity: null,
+      spotsLoaded: true,
+      spots: {
+        hits: [
+          {
+            document: { id: "s1", name: "Menlo Skatepark" },
+            preview: { name: "Menlo Skatepark" },
+          },
+        ],
+      },
+      sectionOrder: ["spots", "communities"],
+    });
+    fixture.detectChanges();
+    fixture.debugElement
+      .query(By.directive(MatAutocompleteTrigger))
+      .injector.get(MatAutocompleteTrigger)
+      .openPanel();
+    fixture.detectChanges();
+
+    const text = document.body.textContent ?? "";
+    expect(text.indexOf("Menlo Skatepark")).toBeGreaterThan(-1);
+    expect(text.indexOf("Menlo Skatepark")).toBeLessThan(
+      text.indexOf("Menlo Park"),
+    );
   });
 
   it("opens a supported Maps link directly from paste without searching the URL", async () => {

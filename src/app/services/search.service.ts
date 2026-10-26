@@ -36,6 +36,13 @@ import type {
 } from "../../db/schemas/EventSchema";
 import type { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
+import {
+  compareEventsByTiming,
+  readTextMatch,
+  reorderWithinTiers,
+  textMatchTier,
+  type SearchTextMatch,
+} from "./search-ranking";
 
 export function getMapSpotSearchLimit(viewportZoom: number | undefined): number {
   if (typeof viewportZoom !== "number" || !Number.isFinite(viewportZoom)) {
@@ -63,8 +70,28 @@ export class SearchService {
   readonly TYPESENSE_COLLECTION_EVENTS = "events_v1";
   readonly TYPESENSE_COLLECTION_USERS = "users_v1";
   readonly SPOT_SORT_BY_RATING = "rating:desc";
+  /** Text relevance first; rating only separates equally relevant Spots. */
+  readonly SPOT_SORT_BY_RELEVANCE_AND_RATING = "_text_match:desc,rating:desc";
   readonly COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE =
     "_text_match:desc,counts.totalSpots:desc";
+  /** Text relevance first; newest start only separates equally relevant Events. */
+  readonly EVENT_SORT_BY_RELEVANCE_AND_START =
+    "_text_match:desc,start_seconds:desc";
+  /**
+   * Every query word has to match somewhere in a result (words may match in
+   * different fields). Typesense's default drops words until something
+   * matches, which is what put loosely related results into the dropdown.
+   */
+  private readonly STRICT_TOKEN_MATCHING = 0;
+  /**
+   * Community and Event names are short, and a single typo in a four-letter
+   * word ("Bern") matched unrelated descriptions. Typos start at five letters
+   * and two typos at eight; Spot search keeps Typesense's defaults.
+   */
+  private readonly NAME_TYPO_TOLERANCE = {
+    min_len_1typo: 5,
+    min_len_2typo: 8,
+  };
   private readonly MAP_GROUP_LIMIT = 2;
   private readonly SPOT_GROUP_LIMIT = 5;
   private readonly SPOT_OVERVIEW_GROUP_LIMIT = 1;
@@ -83,7 +110,9 @@ export class SearchService {
   spotSearchParameters = {
     // Localized town names come last, so a Spot's own name always ranks first.
     query_by: "name_search,description_search,address.formatted,localized_search_names",
-    sort_by: this.SPOT_SORT_BY_RATING,
+    query_by_weights: "10,2,4,6",
+    sort_by: this.SPOT_SORT_BY_RELEVANCE_AND_RATING,
+    drop_tokens_threshold: this.STRICT_TOKEN_MATCHING,
     per_page: 5,
     page: 1,
   };
@@ -94,6 +123,8 @@ export class SearchService {
     query_by_weights: "6,6,5,5,4,3,3,2,1",
     filter_by: "published:!=false",
     sort_by: this.COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE,
+    drop_tokens_threshold: this.STRICT_TOKEN_MATCHING,
+    ...this.NAME_TYPO_TOLERANCE,
     per_page: 3,
     page: 1,
   };
@@ -102,7 +133,9 @@ export class SearchService {
     query_by: "name,slug,locality_string,localized_search_names,venue_string,description",
     query_by_weights: "6,5,4,4,3,1",
     filter_by: "published:!=false",
-    sort_by: "start_seconds:desc",
+    sort_by: this.EVENT_SORT_BY_RELEVANCE_AND_START,
+    drop_tokens_threshold: this.STRICT_TOKEN_MATCHING,
+    ...this.NAME_TYPO_TOLERANCE,
     per_page: 3,
     page: 1,
   };
@@ -127,22 +160,27 @@ export class SearchService {
   }
 
   /**
-   * Sort spots by derived priority (desc), including the shared media boost.
+   * Typesense returns Spots best text match first. Within a run of equally
+   * relevant hits, order by derived priority (rating, activity, media boost).
    */
   private sortHitsByPriorityThenMedia(hits: any[]): any[] {
-    return hits.sort((a, b) => {
-      const priorityDifference =
-        this.getSpotPriorityFromHit(b) - this.getSpotPriorityFromHit(a);
-      if (priorityDifference !== 0) {
-        return priorityDifference;
-      }
+    return reorderWithinTiers(
+      hits,
+      (hit) => textMatchTier(readTextMatch(hit)),
+      (a, b) => {
+        const priorityDifference =
+          this.getSpotPriorityFromHit(b) - this.getSpotPriorityFromHit(a);
+        if (priorityDifference !== 0) {
+          return priorityDifference;
+        }
 
-      const hasMediaA = this.hasSpotMedia(a);
-      const hasMediaB = this.hasSpotMedia(b);
+        const hasMediaA = this.hasSpotMedia(a);
+        const hasMediaB = this.hasSpotMedia(b);
 
-      if (hasMediaA === hasMediaB) return 0;
-      return hasMediaA ? -1 : 1;
-    });
+        if (hasMediaA === hasMediaB) return 0;
+        return hasMediaA ? -1 : 1;
+      },
+    );
   }
 
   private getSpotPriorityFromHit(hit: any): number {
@@ -378,6 +416,7 @@ export class SearchService {
       boundsCenter,
       boundsRadiusM,
       googleMapsPlaceId: doc?.google_maps_place_id ?? undefined,
+      textMatch: readTextMatch(hit),
     };
   }
 
@@ -1285,6 +1324,7 @@ export class SearchService {
       requiredQualifierKeys: Array.isArray(doc?.required_qualifier_keys)
         ? doc.required_qualifier_keys
         : [],
+      textMatch: readTextMatch(hit),
     };
   }
 
@@ -1405,8 +1445,9 @@ export class SearchService {
   }
 
   /**
-   * Text search across `events_v1`. Sorted newest-start first so a single
-   * "Swiss Jam" query surfaces the upcoming year ahead of past editions.
+   * Text search across `events_v1`. Text relevance decides first; among
+   * equally relevant Events, running and upcoming ones come before past
+   * editions so a "Swiss Jam" query surfaces the coming year first.
    */
   public async searchEvents(query: string): Promise<EventSearchPreview[]> {
     try {
@@ -1416,9 +1457,15 @@ export class SearchService {
         .search({ q: query, ...this.eventSearchParameters }, {});
 
       const hits = (result as any)?.hits ?? [];
-      return hits
+      const previews: EventSearchPreview[] = hits
         .map((hit: any) => this.getEventPreviewFromHit(hit))
         .filter((p: EventSearchPreview) => p.id);
+      const nowSeconds = Date.now() / 1000;
+      return reorderWithinTiers(
+        previews,
+        (preview) => textMatchTier(preview.textMatch),
+        (a, b) => compareEventsByTiming(a, b, nowSeconds),
+      );
     } catch (error) {
       console.error("typesense events error:", error);
       return [];
@@ -2738,6 +2785,8 @@ export interface CommunitySearchPreview {
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
   googleMapsPlaceId?: string;
+  /** Present on search hits only; used to compare relevance across sections. */
+  textMatch?: SearchTextMatch;
 }
 
 export interface MapViewportObjectCounts {
@@ -2810,6 +2859,8 @@ export interface EventSearchPreview {
   seriesRoles: string[];
   qualifiesToKeys: string[];
   requiredQualifierKeys: string[];
+  /** Present on search hits only; used to compare relevance across sections. */
+  textMatch?: SearchTextMatch;
 }
 
 type TypesenseEventDocument = Record<string, unknown> & {
