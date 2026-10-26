@@ -3517,10 +3517,22 @@
         <target>Winkel</target>
       </segment>
     </unit>
+    <unit id="share_card.close">
+      <segment state="translated">
+        <source>Close</source>
+        <target>Sluiten</target>
+      </segment>
+    </unit>
     <unit id="share_card.copied">
       <segment state="initial">
         <source>Link copied.</source>
         <target>Link gekopieerd.</target>
+      </segment>
+    </unit>
+    <unit id="share_card.copy">
+      <segment state="translated">
+        <source>Copy link</source>
+        <target>Link kopiëren</target>
       </segment>
     </unit>
     <unit id="share_card.failed">
@@ -3529,16 +3541,16 @@
         <target>De link kon niet worden gedeeld. Probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="share_card.image_alt">
+      <segment state="translated">
+        <source>Preview of the share card</source>
+        <target>Voorbeeld van de deelkaart</target>
+      </segment>
+    </unit>
     <unit id="share_card.preparing">
       <segment state="initial">
         <source>Preparing your link…</source>
         <target>Je link wordt voorbereid…</target>
-      </segment>
-    </unit>
-    <unit id="share_card.ready">
-      <segment state="initial">
-        <source>Your link is ready.</source>
-        <target>Je link is klaar.</target>
       </segment>
     </unit>
     <unit id="share_card.share">

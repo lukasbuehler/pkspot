@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<mat-dialog-content>
+  @switch (data.state().status) {
+    @case ("preparing") {
+      <div class="preparing" role="status" aria-live="polite">
+        <mat-spinner diameter="48" aria-hidden="true" />
+        <p i18n="@@share_card.preparing">Preparing your link…</p>
+      </div>
+    }
+  }
+  @if (imageUrl(); as src) {
+    <img
+      class="card"
+      [src]="src"
+      i18n-alt="@@share_card.image_alt"
+      alt="Preview of the share card"
+      (error)="imageFailed.set(true)"
+    />
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button matButton mat-dialog-close i18n="@@share_card.close">Close</button>
+  <button
+    matButton="outlined"
+    type="button"
+    [disabled]="data.state().status === 'preparing'"
+    (click)="copy()"
+  >
+    <mat-icon>link</mat-icon>
+    <ng-container i18n="@@share_card.copy">Copy link</ng-container>
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="data.state().status === 'preparing' || sharing()"
+    [showProgress]="sharing()"
+    (click)="share()"
+  >
+    <mat-icon>share</mat-icon>
+    <ng-container i18n="@@share_card.share">Share</ng-container>
+    <mat-spinner progressIndicator diameter="20" />
+  </button>
+</mat-dialog-actions>
