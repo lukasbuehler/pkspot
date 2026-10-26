@@ -69,17 +69,26 @@ test.describe("Map Page Visual Regression @visual", () => {
     });
   });
 
-  test("keeps one map and panel across layout switches", async ({ page }) => {
+  test("keeps one map, panel, search field and chip row across layout switches", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await mapPage.goto("de");
     await mapPage.waitForMapReady();
     await expect(page.locator("mat-drawer app-map-object-panel")).toBeVisible();
     await expect(page.locator("app-spot-map .gm-style")).toBeAttached();
 
-    // Tag the live instances; a recreated map or panel would lose the marks.
+    // Typed but unsubmitted search text must survive with the field.
+    const searchInput = page.locator("app-search-field input");
+    await searchInput.fill("qxzv");
+    await searchInput.press("Escape");
+    await searchInput.blur();
+
+    // Tag the live instances; a recreated map, panel, search field or chip
+    // row would lose the marks.
     await page.evaluate(() => {
       document.querySelector("app-spot-map .gm-style")?.setAttribute("data-visual-map", "");
       document.querySelector("app-map-object-panel")?.setAttribute("data-visual-panel", "");
+      document.querySelector("app-search-field")?.setAttribute("data-visual-search", "");
+      document.querySelector(".filter-chips-switcher")?.setAttribute("data-visual-chips", "");
     });
     const map = page.locator("app-spot-map .gm-style[data-visual-map]");
     const panel = page.locator("app-map-object-panel[data-visual-panel]");
@@ -110,6 +119,10 @@ test.describe("Map Page Visual Regression @visual", () => {
       await expect(map).toHaveCount(1);
       await expect(panel).toHaveCount(1);
       await expect(page.locator("app-map-object-panel")).toHaveCount(1);
+      await expect(page.locator("app-search-field[data-visual-search]")).toHaveCount(1);
+      await expect(page.locator(".filter-chips-switcher[data-visual-chips]")).toHaveCount(1);
+      await expect(page.locator("app-map-island")).toHaveCount(1);
+      await expect(searchInput).toHaveValue("qxzv");
       // The map snaps to the new layout instead of sliding from the old margin.
       const mapBox = (await page.locator("app-spot-map").boundingBox())!;
       expect(mapBox.x + mapBox.width).toBeCloseTo(step.viewport.width, 0);

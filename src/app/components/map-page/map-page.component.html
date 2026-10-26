@@ -240,6 +240,16 @@
   }
 </ng-template>
 
+<ng-template #searchField>
+  <app-search-field
+    class="map-search-field position-relative w-100 flex-grow-1 mat-elevation-z3 overflow-hidden"
+    [contextLabel]="searchContextLabel()"
+    (spotSelected)="openSpotOrGooglePlace($event)"
+    (contextClear)="onSearchContextClear()"
+    (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
+  ></app-search-field>
+</ng-template>
+
 <ng-template #mapIsland>
   <app-map-island
     [content]="visibleIslandContent()"
@@ -301,22 +311,36 @@
   </h1>
 }
 
-<!-- One set of panel components for every layout. The drawer and the bottom
-     sheet show it through `appMovableViewOutlet`, so crossing the layout
-     breakpoint moves the panels instead of recreating them (and refetching
-     their data). On the server the panels render in place instead. -->
+<!-- One instance of the panels, search field, filter chips and map island for
+     every layout. The drawer and bottom-sheet layouts show them through
+     `appMovableViewOutlet`, so crossing the layout breakpoint moves them
+     instead of recreating them: panels keep their loaded data, the search
+     field its typed text and the chips and island their state. On the server
+     they render in place instead. -->
 <div class="map-panel-home" hidden>
   <ng-container
     [appMovableViewHost]="sidebarContent"
     #panelView="movableViewHost"
   ></ng-container>
+  <ng-container
+    [appMovableViewHost]="searchField"
+    #searchView="movableViewHost"
+  ></ng-container>
+  <ng-container
+    [appMovableViewHost]="chips"
+    #chipsView="movableViewHost"
+  ></ng-container>
+  <ng-container
+    [appMovableViewHost]="mapIsland"
+    #islandView="movableViewHost"
+  ></ng-container>
 </div>
 
-<ng-template #panelOutlet>
+<ng-template #movableOutlet let-view>
   @if (isServer) {
-    <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
+    <ng-container *ngTemplateOutlet="view.template()"></ng-container>
   } @else {
-    <div class="map-panel-outlet" [appMovableViewOutlet]="panelView"></div>
+    <div class="map-movable-outlet" [appMovableViewOutlet]="view"></div>
   }
 </ng-template>
 
@@ -337,13 +361,9 @@
         @if (alainMode()) {
           <div class="alain-spacer flex-shrink-0"></div>
         }
-        <app-search-field
-          class="map-search-field position-relative w-100 mat-elevation-z3 overflow-hidden"
-          [contextLabel]="searchContextLabel()"
-          (spotSelected)="openSpotOrGooglePlace($event)"
-          (contextClear)="onSearchContextClear()"
-          (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
-        ></app-search-field>
+        <ng-container
+          *ngTemplateOutlet="movableOutlet; context: { $implicit: searchView }"
+        ></ng-container>
       </div>
       <div
         class="desktop-filter-chips-host"
@@ -351,7 +371,9 @@
           sidebarContentIsScrolling() && sidenavOpen()
         "
       >
-        <ng-container *ngTemplateOutlet="chips"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="movableOutlet; context: { $implicit: chipsView }"
+        ></ng-container>
       </div>
     </div>
   }
@@ -377,7 +399,9 @@
         [class.map-overlay-drawer]="usesOverlayMapDrawer()"
       >
         <div [style.height.px]="chipsSpacerHeight()"></div>
-        <ng-container *ngTemplateOutlet="panelOutlet"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="movableOutlet; context: { $implicit: panelView }"
+        ></ng-container>
       </mat-drawer>
     }
 
@@ -385,13 +409,14 @@
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
 
       @if (usesMapDrawer()) {
-        @if (visibleIslandContent()) {
-          <div class="map-context-host">
-            <div @fadeInOut class="map-island-host">
-              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-            </div>
+        <!-- Stays mounted: the island animates its own content in and out. -->
+        <div class="map-context-host">
+          <div class="map-island-host">
+            <ng-container
+              *ngTemplateOutlet="movableOutlet; context: { $implicit: islandView }"
+            ></ng-container>
           </div>
-        }
+        </div>
 
         <!-- sidenav toggle button -->
         <div class="sidenav-toggle">
@@ -418,24 +443,24 @@
               @if (alainMode()) {
                 <div class="alain-spacer flex-shrink-0"></div>
               }
-              <app-search-field
-                class="map-search-field flex-grow-1 mat-elevation-z3 overflow-hidden"
-                [contextLabel]="searchContextLabel()"
-                (spotSelected)="openSpotOrGooglePlace($event)"
-                (contextClear)="onSearchContextClear()"
-                (communityPreviewChange)="
-                  onSearchCommunityPreviewChange($event)
-                "
-              ></app-search-field>
+              <ng-container
+                *ngTemplateOutlet="movableOutlet; context: { $implicit: searchView }"
+              ></ng-container>
             </div>
-            <ng-container *ngTemplateOutlet="chips"></ng-container>
-            @if (visibleIslandContent()) {
-              <div class="map-context-mobile-host">
-                <div @fadeInOut class="map-island-mobile-host">
-                  <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-                </div>
+            <ng-container
+              *ngTemplateOutlet="movableOutlet; context: { $implicit: chipsView }"
+            ></ng-container>
+            <!-- Stays mounted: the island animates its own content in and out. -->
+            <div
+              class="map-context-mobile-host"
+              [class.map-context-mobile-host--empty]="!visibleIslandContent()"
+            >
+              <div class="map-island-mobile-host">
+                <ng-container
+                  *ngTemplateOutlet="movableOutlet; context: { $implicit: islandView }"
+                ></ng-container>
               </div>
-            }
+            </div>
           </div>
 
           <app-bottom-sheet
@@ -445,7 +470,9 @@
             (isAtTopChange)="bottomSheetOpen.set($event)"
             (openProgressChange)="bottomSheetProgress.set($event)"
           >
-            <ng-container *ngTemplateOutlet="panelOutlet"></ng-container>
+            <ng-container
+              *ngTemplateOutlet="movableOutlet; context: { $implicit: panelView }"
+            ></ng-container>
           </app-bottom-sheet>
         </div>
       }

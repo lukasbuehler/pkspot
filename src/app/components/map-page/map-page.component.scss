@@ -31,9 +31,9 @@ app-spot-map {
   inset: 0;
 }
 
-// Panels move between the drawer and the bottom sheet; the outlet must not
-// add a layout box of its own between a host and its panel components.
-.map-panel-outlet,
+// Panels, search, chips and island move between layouts; the outlet must not
+// add a layout box of its own between a host and the moved components.
+.map-movable-outlet,
 .map-sheet-layout {
   display: contents;
 }
@@ -257,6 +257,12 @@ mat-drawer-container.sidenav-open .map-context-host {
     right: 20px;
     justify-content: center;
   }
+}
+
+// The host stays mounted while the island is empty; cancel the overlay's
+// column gap then so an empty island adds no height.
+.map-context-mobile-host--empty {
+  margin-top: -4px;
 }
 
 .map-context-mobile-host {
