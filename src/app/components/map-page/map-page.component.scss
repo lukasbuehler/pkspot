@@ -52,6 +52,15 @@ mat-drawer-container.map-panel-container--sheet {
   }
 }
 
+// Crossing the layout breakpoint must not slide the map from the old drawer
+// margin; the sidenav toggle keeps Material's content transition.
+:host.map-panel-layout-switching mat-drawer-container,
+mat-drawer-container.map-panel-container--sheet {
+  ::ng-deep > .mat-drawer-content {
+    transition: none;
+  }
+}
+
 .map-container {
   overflow: hidden;
   height: 100%;
