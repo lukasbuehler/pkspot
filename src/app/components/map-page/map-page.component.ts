@@ -3,6 +3,10 @@ import { mapCentre, relevantMapCommunities, type CountryEvidence } from "./visib
 import {NativeMapShareService} from "../../services/native-map-share.service";
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
+import {
+  MovableViewHostDirective,
+  MovableViewOutletDirective,
+} from "./movable-view.directive";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -310,6 +314,8 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     MapCommunityLandingPanelComponent,
     MapCheckInBannerComponent,
     MapFloatingControlsComponent,
+    MovableViewHostDirective,
+    MovableViewOutletDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -323,6 +329,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
   @ViewChild("drawerContainer") drawerContainer?: MatDrawerContainer;
+  private readonly _hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private _panelLayoutSwitchTimer?: ReturnType<typeof setTimeout>;
   @ViewChild("infoDrawer", { read: ElementRef })
   private _infoDrawerElement?: ElementRef<HTMLElement>;
   @ViewChild(BottomSheetComponent) bottomSheet?: BottomSheetComponent;
@@ -2568,6 +2576,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
+    // A layout switch should place the map at once, like a fresh layout.
+    // Only the sidenav toggle animates the drawer content margin.
+    effect(() => {
+      this.mapPanelLayout();
+      untracked(() => this._suppressDrawerContentTransition());
+    });
+
     effect(() => {
       this.responsiveService.isInitialized();
       this.sidenavOpen();
@@ -4312,6 +4327,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._scheduleDrawerContentMarginRefresh();
   }
 
+  private _suppressDrawerContentTransition(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const host = this._hostElement.nativeElement;
+    host.classList.add("map-panel-layout-switching");
+    clearTimeout(this._panelLayoutSwitchTimer);
+    // Outlasts the margin refreshes scheduled for the same layout change.
+    this._panelLayoutSwitchTimer = setTimeout(() => {
+      host.classList.remove("map-panel-layout-switching");
+    }, 500);
+  }
+
   private _scheduleDrawerContentMarginRefresh(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -5501,6 +5530,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     console.debug("destroying map page");
+    clearTimeout(this._panelLayoutSwitchTimer);
     if (this.checkInEnabled) {
       this.checkInService.showGlobalChip.set(true);
     }

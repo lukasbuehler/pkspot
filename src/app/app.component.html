@@ -1,7 +1,7 @@
 @if(!isEmbedded()) {
 <!-- is not embedded  -->
 <app-nav-rail-container>
-  @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'rail') {
+  @defer (when responsive.isInitialized()) { @if(usesNavigationRail()) {
   <app-nav-rail #desktopNavigationRail class="mat-elevation-z3">
     <a
       routerLink="/"
@@ -158,7 +158,7 @@
     />
     } @else {
     <!-- Bottom navigation is a floating compact-phone affordance. -->
-    @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'bottom') {
+    @defer (when responsive.isInitialized()) { @if(usesFloatingBottomNavigation()) {
     <mat-toolbar
       class="floating-bottom-navigation mat-elevation-z2"
       [class.native-platform]="isNativePlatform"
@@ -271,7 +271,7 @@
     checkInService.currentProximitySpot(); as spot) {
     <div
       class="check-in-chip-container d-flex justify-content-center w-100 p-2 overflow-hidden"
-      [style.bottom]="usesNavigationRail() ? 'auto' : 'var(--navigation-bottom-clearance, 0px)'"
+      [style.bottom]="usesNavigationRail() ? 'auto' : usesNativeTabBar() ? 'var(--safe-area-inset-bottom, 0px)' : 'var(--navigation-bottom-clearance, 0px)'"
       [style.top]="usesNavigationRail() ? '10px' : 'auto'"
       style="position: fixed; z-index: 1000; pointer-events: none"
       [@slideVertical]="{
