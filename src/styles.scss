@@ -367,6 +367,21 @@ app-root:not(.has-navigation-rail) {
 }
 app-root.has-navigation-rail { --map-leading-safe-area: 0px; }
 
+// Google sizes each advanced marker (and, in newer Maps versions, its content
+// container) to the marker content we pass, which includes collision padding
+// and unscaled layout space. Only the visible marker element takes taps:
+// clicks still bubble to the marker for gmp-click, and keyboard focus and
+// dragging stay on the marker element itself. Google writes an inline
+// `pointer-events: auto` on clickable markers, hence `!important`; a marker
+// Google switches off inline stays off.
+gmp-advanced-marker:has(.map-marker-hit-target),
+gmp-advanced-marker:has(.map-marker-hit-target) [class*="content-container"] {
+  pointer-events: none !important;
+}
+gmp-advanced-marker:not([style*="pointer-events: none"]) .map-marker-hit-target {
+  pointer-events: auto;
+}
+
 // Map workspaces need a definite viewport height; document routes scroll freely.
 app-root.immersive-map-route,
 app-root.event-map-route {

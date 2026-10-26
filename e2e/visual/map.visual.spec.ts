@@ -138,6 +138,53 @@ test.describe("Map Page Visual Regression @visual", () => {
     }
   });
 
+  test("limits marker taps to the visible marker", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await mapPage.goto("de");
+    await mapPage.waitForMapReady();
+    const pills = page.locator("gmp-advanced-marker .pin-marker.map-marker-hit-target");
+    await expect(pills.first()).toBeVisible({ timeout: 20_000 });
+
+    // Sample each marker box (Google sizes it to our content, including
+    // collision padding) and require hits only on the visible element.
+    const report = await page.evaluate(() => {
+      const misses: string[] = [];
+      let checked = 0;
+      for (const marker of Array.from(document.querySelectorAll("gmp-advanced-marker"))) {
+        const target = marker.querySelector(".map-marker-hit-target");
+        const box = marker.getBoundingClientRect();
+        if (!target || box.width === 0 || box.top < 0 || box.bottom > innerHeight) continue;
+        const visible = target.getBoundingClientRect();
+        checked++;
+        for (let x = box.left + 1; x < box.right; x += 3) {
+          for (let y = box.top + 1; y < box.bottom; y += 3) {
+            const hit = document.elementFromPoint(x, y);
+            if (!hit || !marker.contains(hit)) continue;
+            const inside = x >= visible.left - 1 && x <= visible.right + 1 &&
+              y >= visible.top - 1 && y <= visible.bottom + 1;
+            if (!inside) misses.push(`${target.className}: ${hit.tagName} hit at ${Math.round(x)},${Math.round(y)}`);
+          }
+        }
+        const center = document.elementFromPoint(
+          visible.left + visible.width / 2, visible.top + visible.height / 2);
+        // Dense markers overlap, and page UI or Google's own layers can cover
+        // a low marker. Only a marker swallowing the tap without its pill
+        // (the old oversized box) is a failure.
+        if (center?.closest("gmp-advanced-marker") && !center.closest(".map-marker-hit-target")) {
+          misses.push(`${target.className} center not tappable`);
+        }
+      }
+      return { checked, misses: misses.slice(0, 10) };
+    });
+    expect(report.checked).toBeGreaterThan(0);
+    expect(report.misses).toEqual([]);
+
+    // Taps on the pill still reach Google's marker and open the Spot.
+    const pill = (await pills.first().boundingBox())!;
+    await page.mouse.click(pill.x + pill.width / 2, pill.y + pill.height / 2);
+    await expect(page).toHaveURL(/\/map\/spots\//u);
+  });
+
   test("should match filter chips area", async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
 
