@@ -3373,10 +3373,22 @@
         <target>Boutique</target>
       </segment>
     </unit>
+    <unit id="share_card.close">
+      <segment state="translated">
+        <source>Close</source>
+        <target>Fermer</target>
+      </segment>
+    </unit>
     <unit id="share_card.copied">
       <segment state="initial">
         <source>Link copied.</source>
         <target>Lien copié.</target>
+      </segment>
+    </unit>
+    <unit id="share_card.copy">
+      <segment state="translated">
+        <source>Copy link</source>
+        <target>Copier le lien</target>
       </segment>
     </unit>
     <unit id="share_card.failed">
@@ -3385,16 +3397,16 @@
         <target>Impossible de partager le lien. Réessaie.</target>
       </segment>
     </unit>
+    <unit id="share_card.image_alt">
+      <segment state="translated">
+        <source>Preview of the share card</source>
+        <target>Aperçu de la carte de partage</target>
+      </segment>
+    </unit>
     <unit id="share_card.preparing">
       <segment state="initial">
         <source>Preparing your link…</source>
         <target>Préparation de ton lien…</target>
-      </segment>
-    </unit>
-    <unit id="share_card.ready">
-      <segment state="initial">
-        <source>Your link is ready.</source>
-        <target>Ton lien est prêt.</target>
       </segment>
     </unit>
     <unit id="share_card.share">
