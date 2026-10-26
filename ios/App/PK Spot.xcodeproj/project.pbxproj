@@ -12,6 +12,8 @@
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4583FF6436EC42C1BEE20BFF /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */; };
 		46D27AE99FD745D7AFCF7022 /* MapsLauncherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */; };
+		0FBFBBA7DBF1303BAE63C585 /* NativeTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4785B3DF1BB2E990EAD3B4F0 /* NativeTabBarController.swift */; };
+		91AF3BF2E024F5D688262BD4 /* NativeTabBarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00D8C17797B57454F10C7A4 /* NativeTabBarPlugin.swift */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -54,6 +56,8 @@
 /* Begin PBXFileReference section */
 		043D99B9C0E24748910D487B /* MapSharePlugin.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = MapSharePlugin.swift; path = App/MapSharePlugin.swift; sourceTree = "<group>"; };
 		257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsLauncherPlugin.swift; sourceTree = "<group>"; };
+		4785B3DF1BB2E990EAD3B4F0 /* NativeTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeTabBarController.swift; sourceTree = "<group>"; };
+		D00D8C17797B57454F10C7A4 /* NativeTabBarPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeTabBarPlugin.swift; sourceTree = "<group>"; };
 		2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = SharedMapStore.swift; path = MapShareExtension/SharedMapStore.swift; sourceTree = "<group>"; };
 		2F92A2B323D3431B87939641 /* Localizable.xcstrings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = text.json.xcstrings; name = Localizable.xcstrings; path = MapShareExtension/Localizable.xcstrings; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -135,6 +139,8 @@
 				80A610072F1F000100000007 /* AppViewController.swift */,
 				80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */,
 				257B62F077D04A8E87232B38 /* MapsLauncherPlugin.swift */,
+				4785B3DF1BB2E990EAD3B4F0 /* NativeTabBarController.swift */,
+				D00D8C17797B57454F10C7A4 /* NativeTabBarPlugin.swift */,
 				80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */,
 				81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */,
 				91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */,
@@ -279,6 +285,8 @@
 				80A610082F1F000100000008 /* AppViewController.swift in Sources */,
 				80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */,
 				46D27AE99FD745D7AFCF7022 /* MapsLauncherPlugin.swift in Sources */,
+				0FBFBBA7DBF1303BAE63C585 /* NativeTabBarController.swift in Sources */,
+				91AF3BF2E024F5D688262BD4 /* NativeTabBarPlugin.swift in Sources */,
 				80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */,
 				81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */,
 				91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */,
