@@ -37,7 +37,7 @@ const state: NativeTabBarState = {
   overflow: [],
   selectedId: "map",
   hidden: false,
-  tintColor: "#8bd88b",
+  colors: { selected: "#b4c5ff", unselected: "#c4c6d0", background: "#1d2024" },
 };
 
 describe("NativeTabBarService", () => {

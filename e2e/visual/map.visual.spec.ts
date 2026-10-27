@@ -185,6 +185,29 @@ test.describe("Map Page Visual Regression @visual", () => {
     await expect(page).toHaveURL(/\/map\/spots\//u);
   });
 
+  test("exposes the theme colours the native iOS tab bar uses", async ({ page }) => {
+    await mapPage.goto("de");
+    // NativeTabBarService reads these tokens through a probe element and
+    // sends them to UITabBarAppearance; they must resolve to real colours.
+    const colors = await page.evaluate(() => {
+      const probe = document.createElement("span");
+      probe.style.display = "none";
+      document.body.appendChild(probe);
+      const read = (token: string) => {
+        probe.style.color = `var(${token})`;
+        return getComputedStyle(probe).color;
+      };
+      const result = ["--mat-sys-primary", "--mat-sys-on-surface-variant", "--mat-sys-surface-container"].map(read);
+      probe.remove();
+      return result;
+    });
+    for (const color of colors) {
+      expect(color).toMatch(/^rgb\(/u);
+      expect(color).not.toBe("rgb(0, 0, 0)");
+    }
+    expect(new Set(colors).size).toBe(3);
+  });
+
   test("should match filter chips area", async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
 

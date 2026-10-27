@@ -19,8 +19,10 @@ import {
 } from "@capacitor/core";
 import { Subject } from "rxjs";
 import {
+  NATIVE_TAB_BAR_THEME_TOKENS,
   buildNativeTabBarState,
   cssColorToHex,
+  type NativeTabBarColors,
   type NativeTabBarState,
   type NativeTabDestination,
 } from "../features/native-tab-bar";
@@ -92,7 +94,7 @@ export class NativeTabBarService {
   readonly selections = this._selections.asObservable();
 
   private _lastConfiguration: string | null = null;
-  private _tintColor: string | undefined;
+  private _themeColors: NativeTabBarColors | null | undefined;
 
   constructor() {
     if (!this._isIos) return;
@@ -163,8 +165,8 @@ export class NativeTabBarService {
   configure(state: NativeTabBarState): void {
     if (!this._available()) return;
 
-    const tintColor = state.tintColor ?? this._themeTintColor();
-    const configuration = tintColor ? { ...state, tintColor } : state;
+    const colors = state.colors ?? this._readThemeColors();
+    const configuration = colors ? { ...state, colors } : state;
     const serialized = JSON.stringify(configuration);
     if (serialized === this._lastConfiguration) return;
     this._lastConfiguration = serialized;
@@ -174,19 +176,29 @@ export class NativeTabBarService {
     });
   }
 
-  /** The web navigation's active color, so both bars highlight alike. */
-  private _themeTintColor(): string | undefined {
-    if (this._tintColor !== undefined) return this._tintColor || undefined;
+  /** The web theme's colours, read once, so both navigations look alike. */
+  private _readThemeColors(): NativeTabBarColors | undefined {
+    if (this._themeColors !== undefined) return this._themeColors ?? undefined;
 
     const body = this._document.body;
     const view = this._document.defaultView;
     if (!body || !view) return undefined;
     const probe = this._document.createElement("span");
-    probe.style.color = "var(--mat-sys-secondary)";
     probe.style.display = "none";
     body.appendChild(probe);
-    this._tintColor = cssColorToHex(view.getComputedStyle(probe).color) ?? "";
+    const read = (token: string) => {
+      probe.style.color = `var(${token})`;
+      return cssColorToHex(view.getComputedStyle(probe).color);
+    };
+    const selected = read(NATIVE_TAB_BAR_THEME_TOKENS.selected);
+    const unselected = read(NATIVE_TAB_BAR_THEME_TOKENS.unselected);
+    const background = read(NATIVE_TAB_BAR_THEME_TOKENS.background);
     probe.remove();
-    return this._tintColor || undefined;
+    this._themeColors =
+      selected && unselected && background
+        ? { selected, unselected, background }
+        : null;
+    return this._themeColors ?? undefined;
   }
+
 }

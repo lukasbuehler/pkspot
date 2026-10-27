@@ -20,12 +20,31 @@ export interface NativeTabItem {
   badge: boolean;
 }
 
+/** `#rrggbb` colours from the web theme, so both navigations look alike. */
+export interface NativeTabBarColors {
+  /** Selected item: the Material 3 primary highlight. */
+  selected: string;
+  /** Other items: on-surface-variant. */
+  unselected: string;
+  /** Bar surface where the system does not draw glass. */
+  background: string;
+}
+
+/** Theme tokens read for `NativeTabBarColors`. */
+export const NATIVE_TAB_BAR_THEME_TOKENS: Readonly<
+  Record<keyof NativeTabBarColors, string>
+> = {
+  selected: "--mat-sys-primary",
+  unselected: "--mat-sys-on-surface-variant",
+  background: "--mat-sys-surface-container",
+};
+
 export interface NativeTabBarState {
   items: NativeTabItem[];
   overflow: NativeTabItem[];
   selectedId: string | null;
   hidden: boolean;
-  tintColor?: string;
+  colors?: NativeTabBarColors;
 }
 
 export const NATIVE_TAB_BAR_MORE_ID = "more";
@@ -70,7 +89,7 @@ export function nativeTabBarOwnsNavigation(
  */
 export function buildNativeTabBarState(
   destinations: readonly NativeTabDestination[],
-  options: { moreTitle: string; hidden: boolean; tintColor?: string },
+  options: { moreTitle: string; hidden: boolean },
 ): NativeTabBarState {
   const regular = destinations.filter((item) => !item.alwaysVisible);
   const pinned = destinations.filter((item) => item.alwaysVisible);
@@ -115,7 +134,6 @@ export function buildNativeTabBarState(
     overflow,
     selectedId,
     hidden: options.hidden,
-    ...(options.tintColor ? { tintColor: options.tintColor } : {}),
   };
 }
 
