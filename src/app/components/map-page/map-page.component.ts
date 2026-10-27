@@ -7,6 +7,7 @@ import {
   MovableViewHostDirective,
   MovableViewOutletDirective,
 } from "./movable-view.directive";
+import { NativeTabBarService } from "../../services/native-tab-bar.service";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -486,7 +487,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.spotMapData.updatePreviewFromSpot(spot);
   }
 
-  readonly alainMode = this.responsiveService.alainMode;
+  private readonly _nativeTabBar = inject(NativeTabBarService);
+  /** Reserves room for the web Alain menu, which the native iOS bar replaces. */
+  readonly alainMode = computed(
+    () =>
+      this.responsiveService.alainMode() && !this._nativeTabBar.available(),
+  );
 
   isServer: boolean;
 

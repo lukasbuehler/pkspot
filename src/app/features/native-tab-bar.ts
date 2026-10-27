@@ -1,5 +1,3 @@
-import type { NavigationLayout } from "./navigation-layout";
-
 /** A navigation destination as the app shell describes it. */
 export interface NativeTabDestination {
   id: string;
@@ -71,15 +69,16 @@ export function nativeTabSymbol(materialIcon: string): string {
 }
 
 /**
- * The native bar replaces the web navigation wherever the web app would show
- * a bottom bar or a rail. The short "menu" layout keeps the web Alain menu,
- * whose clearance every page already reserves.
+ * Where the native bar exists it replaces every web navigation: the bottom
+ * bar, the rail and the short-layout Alain menu. iOS keeps the bar visible in
+ * landscape and moves it into the iPhone Duo's vertical bar, so the web
+ * never needs its fallback menu there.
  */
 export function nativeTabBarOwnsNavigation(
   available: boolean,
-  layout: NavigationLayout,
+  embedded: boolean,
 ): boolean {
-  return available && layout !== "menu";
+  return available && !embedded;
 }
 
 /**

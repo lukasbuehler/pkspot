@@ -162,6 +162,7 @@ type NavigationPerfDetails = Record<string, unknown>;
     "(window:resize)": "onResize()",
     "[class.has-floating-bottom-navigation]": "usesFloatingBottomNavigation()",
     "[class.has-navigation-rail]": "usesNavigationRail()",
+    "[class.has-native-tab-bar]": "usesNativeTabBar()",
     "[class.immersive-map-route]": "isImmersiveMapRoute()",
     "[class.event-map-route]": "isEventMapRoute()",
   },
@@ -331,16 +332,19 @@ export class AppComponent implements OnInit, AfterViewInit {
   readonly navigationLayout = this.responsive.navigationLayout;
   private readonly _nativeTabBar = inject(NativeTabBarService);
   /**
-   * On iPhone a native tab bar provides the navigation instead of the web bar
-   * or rail. Map panels and Alain mode still follow `navigationLayout()`.
+   * On iPhone a native tab bar provides the navigation in every layout,
+   * instead of the web bar, rail or Alain menu. Map panels still follow
+   * `navigationLayout()`.
    */
-  readonly usesNativeTabBar = computed(
-    () =>
-      this.isEmbedded() !== true &&
-      nativeTabBarOwnsNavigation(
-        this._nativeTabBar.available(),
-        this.navigationLayout(),
-      ),
+  readonly usesNativeTabBar = computed(() =>
+    nativeTabBarOwnsNavigation(
+      this._nativeTabBar.available(),
+      this.isEmbedded() === true,
+    ),
+  );
+  /** The web Alain menu, unless the native tab bar replaces it. */
+  readonly showsAlainMenu = computed(
+    () => this.alainMode() && !this.usesNativeTabBar(),
   );
   readonly usesNavigationRail = computed(
     () => this.navigationLayout() === "rail" && !this.usesNativeTabBar(),
