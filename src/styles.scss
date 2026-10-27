@@ -340,6 +340,14 @@ app-root {
     --nav-bar-height: var(--navigation-bottom-clearance);
   }
 
+  // The native iOS tab bar floats over the web view like the web bar did. Its
+  // overlap arrives in the bottom safe area that AppViewController publishes,
+  // so documents, the map sheet and floating chips clear it in every layout.
+  &.has-native-tab-bar {
+    --navigation-bottom-clearance: var(--safe-area-inset-bottom, 0px);
+    --nav-bar-height: var(--navigation-bottom-clearance);
+  }
+
   // Only apply status bar height on Android native - not on iOS or macOS
   .native-platform.platform-android:not(.running-on-macos-or-ipad) & {
     @media (orientation: portrait) {

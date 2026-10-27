@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   NATIVE_TAB_BAR_MORE_ID,
@@ -67,16 +69,43 @@ describe("native tab bar state", () => {
     expect(nativeTabSymbol("unknown_icon")).toBe("circle");
   });
 
-  it("leaves the short Alain layout to the web menu", () => {
-    expect(nativeTabBarOwnsNavigation(true, "bottom")).toBe(true);
-    expect(nativeTabBarOwnsNavigation(true, "rail")).toBe(true);
-    expect(nativeTabBarOwnsNavigation(true, "menu")).toBe(false);
-    expect(nativeTabBarOwnsNavigation(false, "bottom")).toBe(false);
+  it("owns navigation wherever the native bar exists, except embedded views", () => {
+    expect(nativeTabBarOwnsNavigation(true, false)).toBe(true);
+    expect(nativeTabBarOwnsNavigation(true, true)).toBe(false);
+    expect(nativeTabBarOwnsNavigation(false, false)).toBe(false);
   });
 
   it("converts computed theme colors for native", () => {
     expect(cssColorToHex("rgb(139, 216, 139)")).toBe("#8bd88b");
     expect(cssColorToHex("rgba(0, 10, 255, 0.5)")).toBe("#000aff");
     expect(cssColorToHex("transparent")).toBeUndefined();
+  });
+});
+
+describe("native tab bar layout contract", () => {
+  const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+
+  it("skips the Alain menu clearance on pages when the native bar navigates", () => {
+    const alainRule = /@media \(max-height: 499[^{]*\{\s*([^{]+)\{/gu;
+    const scoped: string[] = [];
+    for (const file of readdirSync(join(process.cwd(), "src/app/components"), { recursive: true })) {
+      const path = `src/app/components/${String(file)}`;
+      // Embedded views never get the native bar.
+      if (!path.endsWith(".scss") || path.includes("embed-page")) continue;
+      for (const match of read(path).matchAll(alainRule)) {
+        expect(match[1], path).toContain(":host-context(app-root:not(.has-native-tab-bar))");
+        scoped.push(path);
+      }
+    }
+    expect(scoped.length).toBeGreaterThan(5);
+  });
+
+  it("clears the native bar through the published bottom safe area", () => {
+    expect(read("src/styles.scss")).toMatch(
+      /&\.has-native-tab-bar\s*\{[^}]*--navigation-bottom-clearance:\s*var\(--safe-area-inset-bottom,\s*0px\)/su,
+    );
+    const app = read("src/app/app.component.ts");
+    expect(app).toContain('"[class.has-native-tab-bar]": "usesNativeTabBar()"');
+    expect(read("src/app/app.component.html")).toContain("@if(showsAlainMenu())");
   });
 });
