@@ -577,9 +577,6 @@ h2 {
 @media (max-height: 499.98px),
   (max-width: 767.98px) and (max-height: 699.98px) {
   :host-context(app-root:not(.has-native-tab-bar)) .train-page {
-    padding-block-start: max(
-      80px,
-      calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-    );
+    padding-block-start: var(--alain-menu-block-start);
   }
 }

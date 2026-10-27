@@ -11,6 +11,13 @@ button:focus {
 }
 
 html {
+  /* Space pages reserve above their content for the Alain menu FAB in short
+     layouts (see AGENTS.md, "Floating navigation clearance"). */
+  --alain-menu-block-start: max(
+    80px,
+    calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+  );
+
   /* Native Safe Area Padding for iOS/Android notch and navigation */
   /* On Android, our MainActivity injects --safe-area-inset-* with correct orientation values.
      On iOS, AppViewController supplies UIKit insets after load and rotation.

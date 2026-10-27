@@ -59,7 +59,7 @@ app-training-activity-contribution-graph { display: block; margin-top: 16px; }
 // The native iOS tab bar replaces the Alain menu, so no clearance there.
 @media (max-height: 499.99px), (max-width: 767.99px) and (max-height: 699.99px) {
   :host-context(app-root:not(.has-native-tab-bar)) .log-page {
-    padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))));
+    padding-block-start: var(--alain-menu-block-start);
   }
 }
 
