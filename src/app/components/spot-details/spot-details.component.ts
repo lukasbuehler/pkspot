@@ -1,4 +1,6 @@
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
+import { CommunityLinksComponent } from "../community-links/community-links.component";
+import { getSpotCommunityCandidates } from "../../../scripts/CommunityHelpers";
 import { SpotPersonalStatsComponent } from "../spot-personal-stats/spot-personal-stats.component";
 import { ShareCardService } from "../../services/share-card.service";
 import { spotCopy } from "../../localization/entity-copy";
@@ -286,6 +288,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     ]),
   ],
   imports: [
+    CommunityLinksComponent,
     SpotPersonalStatsComponent,
     MatCard,
     MatRipple,
@@ -378,6 +381,16 @@ export class SpotDetailsComponent
   readonly spotWeatherContext = computed(() =>
     getSpotWeatherContext(this.spot()?.amenities()),
   );
+  /** Country and locality community keys derived from the Spot's address. */
+  readonly communityKeys = computed(() => {
+    const spot = this.spot();
+    if (!spot || this.isLocalSpot()) return [];
+    return getSpotCommunityCandidates({
+      address: spot.address(),
+      landing: spot.data().landing,
+    }).map((candidate) => candidate.communityKey);
+  });
+
   readonly weatherResource = resource({
     params: () => {
       const location = this.spot()?.location();

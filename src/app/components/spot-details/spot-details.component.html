@@ -714,6 +714,13 @@
               {{ spot()!.locationString() }}
             </p>
           }
+          @if (communityKeys().length > 0) {
+            <app-community-links
+              class="mt-2"
+              kind="spot"
+              [communityKeys]="communityKeys()"
+            />
+          }
         </div>
 
         <p

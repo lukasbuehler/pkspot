@@ -71,6 +71,7 @@ import {
   EventEditFormComponent,
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
+import { CommunityLinksComponent } from "../community-links/community-links.component";
 import { EventAttendeeActionsComponent } from "../event-attendee-actions/event-attendee-actions.component";
 import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
@@ -147,6 +148,7 @@ type ProgramMapMarker = MarkerSchema & {
   selector: "app-event-info-page",
   imports: [
     RouterLink,
+    CommunityLinksComponent,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,

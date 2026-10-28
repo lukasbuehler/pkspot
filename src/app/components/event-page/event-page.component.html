@@ -294,6 +294,15 @@
         </section>
       }
 
+      @if (event.communityKeys.length > 0) {
+        <section class="event-section event-communities">
+          <app-community-links
+            kind="event"
+            [communityKeys]="event.communityKeys"
+          />
+        </section>
+      }
+
       <section class="event-section action-row">
         @if (event.published && !event.isPast(now()) && !showRsvp()) {
           <button mat-flat-button type="button" (click)="openAddDialog()">

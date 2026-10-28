@@ -13031,6 +13031,12 @@
         <target> Aggiungi un confine modificabile per questo spot. Dopo l&apos;aggiunta, puoi regolare la forma del poligono sulla mappa. </target>
       </segment>
     </unit>
+    <unit id="212451686427567100">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Questo evento si può scoprire in questa community:} other {Questo evento si può scoprire in queste community:}}</target>
+      </segment>
+    </unit>
     <unit id="212841987551167718">
       <segment state="initial">
         <source>Mark safe and release</source>
@@ -15350,6 +15356,12 @@
       <segment state="initial">
         <source>Date</source>
         <target>Data</target>
+      </segment>
+    </unit>
+    <unit id="3977243832602167967">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {Community} other {Communities}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Community} other {Community}}</target>
       </segment>
     </unit>
     <unit id="8497528947328199741">
@@ -20240,6 +20252,18 @@
       <segment state="initial">
         <source>Your community event is updated.</source>
         <target>Il tuo evento della community è stato aggiornato.</target>
+      </segment>
+    </unit>
+    <unit id="community_links.event_heading">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </target>
+      </segment>
+    </unit>
+    <unit id="community_links.spot_heading">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </target>
       </segment>
     </unit>
     <unit id="community_event.created">
