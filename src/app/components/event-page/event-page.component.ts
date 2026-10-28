@@ -1162,8 +1162,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         error: (err) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           console.warn("EventInfoPageComponent: failed to observe event", err);
-          this.isLoadingEvent.set(false);
-          this.eventLoadFailed.set(true);
+          this._setEventLoadFailure(503);
         },
       });
   }

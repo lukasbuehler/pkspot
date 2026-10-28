@@ -851,7 +851,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     } catch {
       if (requestVersion !== this._eventLoadRequestVersion) return;
       // The event page owns the load-failure and retry UI.
-      void this._router.navigate(["/events", slug]);
+      void this._router.navigate(
+        this._isEmbedded()
+          ? ["/embedded/events", slug]
+          : ["/events", slug],
+        { queryParamsHandling: "preserve" },
+      );
       return;
     }
 
@@ -913,6 +918,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Invalidate in-flight event loads so a late failure can't redirect.
+    this._eventLoadRequestVersion++;
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
       if (this._minuteInterval !== undefined) {
         window.clearInterval(this._minuteInterval);
