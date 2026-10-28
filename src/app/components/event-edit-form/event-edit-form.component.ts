@@ -4,6 +4,7 @@ import { FeatureTelemetryService } from "../../services/feature-telemetry.servic
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
   inject,
@@ -110,7 +111,9 @@ import {
   MapPickerInlineSpot,
   MapPickerPoint,
 } from "../bounds-picker/bounds-picker.component";
-import { MediaUpload } from "../media-upload/media-upload.component";
+import { MediaUpload, type MediaUploadEvent } from "../media-upload/media-upload.component";
+import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
 import {
@@ -573,7 +576,22 @@ export class EventEditFormComponent {
     })),
   );
   featuredParticipants = signal<EditableFeaturedParticipant[]>([]);
-  externalMedia = signal<MediaSchema[]>([]);
+  readonly eventMedia = signal<MediaSchema[]>([]);
+  readonly galleryItems = computed(() => this.eventMedia().map((media) => ({
+    ...media,
+    previewSrc: media.type === MediaType.Image ? eventImageDisplaySrc(media.src) : undefined,
+  })));
+  readonly galleryUpload = viewChild<MediaUpload>("galleryUpload");
+  readonly processingGalleryImages = signal(0);
+  readonly galleryBusy = computed(() =>
+    this.processingGalleryImages() > 0 ||
+    (this.galleryUpload()?.uploading() ?? false) ||
+    (this.galleryUpload()?.hasPendingMedia() ?? false),
+  );
+  private readonly uploadStatus = inject(MediaUploadStatusService);
+  private readonly snackbar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
+  private galleryGeneration = 0;
   eventLinks = signal<EditableEventLink[]>([]);
   ticketOptions = signal<EditableTicketOption[]>([]);
   programPlans = signal<EditableProgramPlan[]>([]);
@@ -759,6 +777,7 @@ export class EventEditFormComponent {
       const e = this.event();
       if (!e) {
         this._loadedEventId = null;
+        this.galleryGeneration++;
         this.form.reset({
           timing_mode: this.mode() === "session" ? "exact" : "date_only",
           published: true,
@@ -800,7 +819,7 @@ export class EventEditFormComponent {
         this.customMarkers.set([]);
         this.inlineSpots.set([]);
         this.featuredParticipants.set([]);
-        this.externalMedia.set([]);
+        this.eventMedia.set([]);
         this.eventLinks.set([]);
         this.ticketOptions.set([]);
         this.programPlans.set([]);
@@ -820,6 +839,7 @@ export class EventEditFormComponent {
         return;
       }
       this._loadedEventId = e.id;
+      this.galleryGeneration++;
       const timing = e.timing;
       this.form.reset({
         name: e.name,
@@ -967,7 +987,7 @@ export class EventEditFormComponent {
           imageSrc: participant.image_src ?? "",
         })),
       );
-      this.externalMedia.set([...e.media]);
+      this.eventMedia.set([...e.media]);
       this.eventLinks.set(
         e.eventLinks.map((link, index) => ({
           id: `link-${index}`,
@@ -1530,6 +1550,44 @@ export class EventEditFormComponent {
     });
   }
 
+  async onGalleryBatchUploaded(uploads: MediaUploadEvent[]): Promise<void> {
+    const images = uploads.filter((upload) => upload.type === MediaType.Image);
+    if (!images.length) return;
+    const generation = this.galleryGeneration;
+    const uploader = this.galleryUpload();
+    const completedFiles = uploader?.mediaList()
+      .filter((file) => file.state === "complete").map((file) => file.id) ?? [];
+    this.processingGalleryImages.update((count) => count + images.length);
+    try {
+      // Intake upload completion is not publication. Save only URLs that have
+      // passed processing so a rejected image never enters the event gallery.
+      const results = await Promise.allSettled(images.map(async (upload): Promise<MediaSchema> => ({
+        src: upload.uploadId
+          ? await this.uploadStatus.waitForPublishedUpload(upload.uploadId)
+          : upload.src,
+        type: MediaType.Image,
+        isInStorage: true,
+        origin: "user",
+      })));
+      if (this.destroyRef.destroyed || generation !== this.galleryGeneration) return;
+      const published = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+      this.eventMedia.update((current) => {
+        const seen = new Set(current.map((media) => media.src));
+        return [...current, ...published.filter((media) => {
+          if (seen.has(media.src)) return false;
+          seen.add(media.src);
+          return true;
+        })];
+      });
+      for (const id of completedFiles) uploader?.removeMedia(id);
+      if (results.some((result) => result.status === "rejected")) {
+        this.snackbar.open($localize`:@@event_edit.gallery_processing_error:Some images could not be processed. Please select them again.`, undefined, { duration: 5000 });
+      }
+    } finally {
+      this.processingGalleryImages.update((count) => count - images.length);
+    }
+  }
+
   addExternalMediaFromUrl(): void {
     const url = safeExternalUrl(this.form.value.external_media_url);
     if (!url) {
@@ -1544,7 +1602,7 @@ export class EventEditFormComponent {
       return;
     }
 
-    this.externalMedia.update((items) =>
+    this.eventMedia.update((items) =>
       items.some((item) => item.src === url)
         ? items
         : [
@@ -1570,8 +1628,8 @@ export class EventEditFormComponent {
     this.form.controls["external_media_source_url"].setErrors(null);
   }
 
-  removeExternalMedia(src: string): void {
-    this.externalMedia.update((items) =>
+  removeEventMedia(src: string): void {
+    this.eventMedia.update((items) =>
       items.filter((item) => item.src !== src),
     );
   }
@@ -2120,6 +2178,7 @@ export class EventEditFormComponent {
   }
 
   async onSubmit() {
+    if (this.saving() || this.galleryBusy()) return;
     if (
       this.form.controls["name"].invalid ||
       this.form.controls["start_date"].invalid ||
@@ -2361,7 +2420,7 @@ export class EventEditFormComponent {
       logo_fit: v.logo_fit ?? "contain",
       logo_background_color: trimOrUndefined(v.logo_background_color),
       focus_zoom: numberOrUndefined(v.focus_zoom),
-      media: [...this.externalMedia()],
+      media: [...this.eventMedia()],
       livestream_live: v.livestream_live === true,
       custom_markers: this._buildCustomMarkersPatch(),
       inline_spots: this._buildInlineSpotsPatch(),

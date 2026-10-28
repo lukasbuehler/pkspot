@@ -4379,11 +4379,6 @@
         <source> External media links </source>
       </segment>
     </unit>
-    <unit id="event_edit.external_media_remove">
-      <segment>
-        <source>Remove external media</source>
-      </segment>
-    </unit>
     <unit id="event_edit.external_media_source_invalid">
       <segment>
         <source> Use a public http or https link. </source>
@@ -4487,6 +4482,41 @@
     <unit id="event_edit.focus_zoom_hint">
       <segment>
         <source> Optional. 14–18 is typical for a venue-level view. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_admin_only">
+      <segment>
+        <source>Image uploads are currently available to PK Spot admins.</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_heading">
+      <segment>
+        <source>Event gallery</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_hint">
+      <segment>
+        <source> Upload photos or posters for the event gallery. You can select multiple images. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_pending">
+      <segment>
+        <source>Upload or remove the selected images before saving.</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing">
+      <segment>
+        <source>Processing images…</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing_error">
+      <segment>
+        <source>Some images could not be processed. Please select them again.</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_remove">
+      <segment>
+        <source>Remove gallery media</source>
       </segment>
     </unit>
     <unit id="event_edit.heading_create">

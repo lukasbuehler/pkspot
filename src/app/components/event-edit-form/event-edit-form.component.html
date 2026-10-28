@@ -30,7 +30,7 @@
       mat-flat-button
       color="primary"
       type="submit"
-      [disabled]="saving() || form.invalid"
+      [disabled]="saving() || galleryBusy() || form.invalid"
     >
       <mat-icon>save</mat-icon>
       @if (isSessionPlanner()) {
@@ -1732,6 +1732,69 @@
             </mat-form-field>
           </div>
 
+          <h5 class="mat-title-small m-0 mt-2" i18n="@@event_edit.gallery_heading">Event gallery</h5>
+          @if (isAdmin()) {
+            <p class="mat-body-small text-muted m-0" i18n="@@event_edit.gallery_hint">
+              Upload photos or posters for the event gallery. You can select multiple images.
+            </p>
+            <app-media-upload
+              #galleryUpload
+              [allowedMimeTypes]="['image/jpeg', 'image/png', 'image/webp']"
+              [maximumSizeInBytes]="20 * 1024 * 1024"
+              [multipleAllowed]="true"
+              [storageFolder]="eventMediaBucket"
+              moderationTargetKind="event_media"
+              [moderationTargetId]="event()?.id ?? null"
+              [imageCropPolicy]="optionalMediaCropPolicy"
+              (mediaBatchUploaded)="onGalleryBatchUploaded($event)"
+            ></app-media-upload>
+            @if (processingGalleryImages() > 0) {
+              <p class="mat-body-small text-muted m-0" role="status" i18n="@@event_edit.gallery_processing">Processing images…</p>
+            } @else if (galleryBusy()) {
+              <p class="mat-body-small text-muted m-0" role="status" i18n="@@event_edit.gallery_pending">Upload or remove the selected images before saving.</p>
+            }
+          } @else {
+            <p class="mat-body-small text-muted m-0" i18n="@@event_edit.gallery_admin_only">Image uploads are currently available to PK Spot admins.</p>
+          }
+          @if (galleryItems().length > 0) {
+            <div class="event-media-grid">
+              @for (media of galleryItems(); track media.src) {
+                <div class="event-media-item">
+                  @if (media.type === "image") {
+                    <img [src]="media.previewSrc" alt="" />
+                  } @else {
+                    <div class="event-media-video">
+                      <mat-icon>video_camera_front</mat-icon>
+                    </div>
+                  }
+                  <span class="mat-label-small text-truncate">{{
+                    media.src
+                  }}</span>
+                  @if (media.source_page_url) {
+                    <span class="mat-label-small text-truncate">
+                      {{ media.source_page_url }}
+                    </span>
+                  }
+                  @if (media.attribution_text) {
+                    <span class="mat-label-small text-truncate">
+                      {{ media.attribution_text }}
+                    </span>
+                  }
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="removeEventMedia(media.src)"
+                    [disabled]="saving()"
+                    aria-label="Remove gallery media"
+                    i18n-aria-label="@@event_edit.gallery_remove"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
           <p
             class="mat-label-medium text-muted m-0 mt-2"
             i18n="@@event_edit.external_media_label"
@@ -1805,44 +1868,7 @@
               <span i18n="@@event_edit.external_media_add">Add link</span>
             </button>
           </div>
-          @if (externalMedia().length > 0) {
-            <div class="external-media-grid">
-              @for (media of externalMedia(); track media.src) {
-                <div class="external-media-item">
-                  @if (media.type === "image") {
-                    <img [src]="media.src" alt="" />
-                  } @else {
-                    <div class="external-media-video">
-                      <mat-icon>video_camera_front</mat-icon>
-                    </div>
-                  }
-                  <span class="mat-label-small text-truncate">{{
-                    media.src
-                  }}</span>
-                  @if (media.source_page_url) {
-                    <span class="mat-label-small text-truncate">
-                      {{ media.source_page_url }}
-                    </span>
-                  }
-                  @if (media.attribution_text) {
-                    <span class="mat-label-small text-truncate">
-                      {{ media.attribution_text }}
-                    </span>
-                  }
-                  <button
-                    mat-icon-button
-                    type="button"
-                    (click)="removeExternalMedia(media.src)"
-                    [disabled]="saving()"
-                    aria-label="Remove external media"
-                    i18n-aria-label="@@event_edit.external_media_remove"
-                  >
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-              }
-            </div>
-          }
+
         </div>
 
         <mat-divider />
@@ -3691,7 +3717,7 @@
       mat-flat-button
       color="primary"
       type="submit"
-      [disabled]="saving() || form.invalid"
+      [disabled]="saving() || galleryBusy() || form.invalid"
     >
       <mat-icon>save</mat-icon>
       <span i18n="@@event_edit.save">Save</span>

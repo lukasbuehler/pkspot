@@ -9,6 +9,9 @@ import { OrganizationsService } from "../../services/firebase/firestore/organiza
 import { MapsApiService } from "../../services/maps-api.service";
 import { SearchService } from "../../services/search.service";
 import { EventEditFormComponent } from "./event-edit-form.component";
+import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
+import { MediaType } from "../../../db/models/Interfaces";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { EventTimeZoneService } from "../../services/event-time-zone.service";
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 
@@ -46,6 +49,10 @@ describe("EventEditFormComponent", () => {
     await TestBed.configureTestingModule({
       imports: [EventEditFormComponent],
       providers: [
+        { provide: MediaUploadStatusService, useValue: {
+          waitForPublishedUpload: vi.fn().mockImplementation(async (id: string) => `https://firebasestorage.googleapis.com/v0/b/demo-pkspot.appspot.com/o/event_media%2F${id}.jpg?alt=media`),
+        } },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
         {
           provide: SearchService,
           useValue: {
@@ -679,15 +686,85 @@ describe("EventEditFormComponent", () => {
       media: [expect.objectContaining({src: "https://youtu.be/uG9SCwcHA7k"})]}));
   });
 
+  it("adds published gallery uploads without losing linked media or changing the cover", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput("event", eventWith("gallery-event", {
+      banner_src: "https://example.com/cover.jpg",
+      media: [{ type: MediaType.Video, src: "https://youtu.be/uG9SCwcHA7k", isInStorage: false }],
+    }));
+    fixture.detectChanges();
+    await component.onGalleryBatchUploaded([
+      { src: "pending.jpg", type: MediaType.Image, is_sized: true, uploadId: "poster" },
+      { src: "pending-2.jpg", type: MediaType.Image, is_sized: true, uploadId: "photo" },
+    ]);
+    const save = vi.fn();
+    component.save.subscribe(save);
+    await component.onSubmit();
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({
+      banner_src: "https://example.com/cover.jpg",
+      media: [
+        expect.objectContaining({ src: "https://youtu.be/uG9SCwcHA7k", isInStorage: false }),
+        expect.objectContaining({ src: expect.stringContaining("poster.jpg"), isInStorage: true, origin: "user" }),
+        expect.objectContaining({ src: expect.stringContaining("photo.jpg"), isInStorage: true, origin: "user" }),
+      ],
+    }));
+    expect(component.galleryItems()[1].previewSrc).toContain("poster_800x800.jpg");
+    component.removeEventMedia(component.eventMedia()[1].src);
+    expect(component.eventMedia()).toHaveLength(2);
+  });
+
+  it("blocks saving during processing and excludes rejected images", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput("event", eventWith("gallery-event"));
+    fixture.detectChanges();
+    const status = vi.mocked(TestBed.inject(MediaUploadStatusService).waitForPublishedUpload);
+    let reject!: (error: Error) => void;
+    status.mockReturnValueOnce(new Promise((_resolve, fail) => { reject = fail; }));
+    const save = vi.fn();
+    component.save.subscribe(save);
+    const pending = component.onGalleryBatchUploaded([
+      { src: "unpublished.jpg", type: MediaType.Image, is_sized: true, uploadId: "rejected" },
+    ]);
+    expect(component.galleryBusy()).toBe(true);
+    await component.onSubmit();
+    expect(save).not.toHaveBeenCalled();
+    reject(new Error("Processing failed"));
+    await pending;
+    expect(component.galleryBusy()).toBe(false);
+    expect(component.eventMedia()).toEqual([]);
+    expect(TestBed.inject(MatSnackBar).open).toHaveBeenCalled();
+  });
+
+  it("deduplicates uploaded media and ignores results for a different event", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput("event", eventWith("first-event"));
+    fixture.detectChanges();
+    const upload = { src: "hosted.jpg", type: MediaType.Image, is_sized: true };
+    await component.onGalleryBatchUploaded([upload, upload]);
+    expect(component.eventMedia()).toHaveLength(1);
+    const status = vi.mocked(TestBed.inject(MediaUploadStatusService).waitForPublishedUpload);
+    let publish!: (url: string) => void;
+    status.mockReturnValueOnce(new Promise(resolve => { publish = resolve; }));
+    const pending = component.onGalleryBatchUploaded([{ ...upload, uploadId: "pending" }]);
+    fixture.componentRef.setInput("event", eventWith("second-event"));
+    fixture.detectChanges();
+    publish("new-hosted.jpg");
+    await pending;
+    expect(component.eventMedia()).toEqual([]);
+  });
+
   it("adds a YouTube livestream as video media without accepting iframe HTML", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;
     component.form.patchValue({external_media_url: "https://www.youtube-nocookie.com/embed/uG9SCwcHA7k?si=example"});
     component.addExternalMediaFromUrl();
-    expect(component.externalMedia()[0]).toMatchObject({type: "video", isInStorage: false});
+    expect(component.eventMedia()[0]).toMatchObject({type: "video", isInStorage: false});
     component.form.patchValue({external_media_url: '<iframe src="https://www.youtube.com/embed/uG9SCwcHA7k"></iframe>'});
     component.addExternalMediaFromUrl();
-    expect(component.externalMedia()).toHaveLength(1);
+    expect(component.eventMedia()).toHaveLength(1);
     expect(component.form.controls["external_media_url"].hasError("url")).toBe(true);
   });
 

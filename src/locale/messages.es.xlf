@@ -9232,12 +9232,6 @@
         <target> Enlaces de medios externos </target>
       </segment>
     </unit>
-    <unit id="event_edit.external_media_remove">
-      <segment state="initial">
-        <source>Remove external media</source>
-        <target>Eliminar medio externo</target>
-      </segment>
-    </unit>
     <unit id="event_edit.external_media_source_invalid">
       <segment state="initial">
         <source> Use a public http or https link. </source>
@@ -9362,6 +9356,48 @@
       <segment state="initial">
         <source> Optional. 14–18 is typical for a venue-level view. </source>
         <target> Opcional. 14–18 es típico para una vista a nivel de lugar. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_admin_only">
+      <segment state="translated">
+        <source>Image uploads are currently available to PK Spot admins.</source>
+        <target>Por ahora, solo los administradores de PK Spot pueden subir imágenes.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_heading">
+      <segment state="translated">
+        <source>Event gallery</source>
+        <target>Galería del evento</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_hint">
+      <segment state="translated">
+        <source> Upload photos or posters for the event gallery. You can select multiple images. </source>
+        <target>Sube fotos o carteles para la galería del evento. Puedes seleccionar varias imágenes.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_pending">
+      <segment state="translated">
+        <source>Upload or remove the selected images before saving.</source>
+        <target>Sube o elimina las imágenes seleccionadas antes de guardar.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing">
+      <segment state="translated">
+        <source>Processing images…</source>
+        <target>Procesando imágenes…</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing_error">
+      <segment state="translated">
+        <source>Some images could not be processed. Please select them again.</source>
+        <target>No se pudieron procesar algunas imágenes. Vuelve a seleccionarlas.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_remove">
+      <segment state="translated">
+        <source>Remove gallery media</source>
+        <target>Eliminar contenido de la galería</target>
       </segment>
     </unit>
     <unit id="event_edit.heading_create">
