@@ -68,3 +68,19 @@ describe("restricted event metadata", () => {
     expect(structured.removeStructuredData).toHaveBeenCalledWith("event");
   });
 });
+
+describe("custom organizer structured data", () => {
+  const build = (organizerName: string) => {
+    const component = Object.assign(Object.create(EventInfoPageComponent.prototype), {
+      _locale: "en",
+      _safeExternalUrl: (url?: string) => url,
+      seriesById: () => ({ tour: { organizer: "Swiss Parkour Association", organizer_url: "https://swissparkour.ch" } }),
+    }) as { _buildOrganizerStructuredData(event: unknown): Record<string, unknown> };
+    return component._buildOrganizerStructuredData({ organizerName, seriesIds: ["tour"] });
+  };
+
+  it("borrows the series URL only when the series names the same organizer", () => {
+    expect(build(" swiss parkour association ")["url"]).toBe("https://swissparkour.ch");
+    expect(build("Independent Jam Crew")["url"]).toBeUndefined();
+  });
+});

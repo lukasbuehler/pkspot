@@ -1737,11 +1737,19 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
 
     if (event.organizerName) {
-      // Custom organizers have no URL of their own; borrow the series one so
-      // the organizer node stays linkable when the names refer to the same body.
+      // Custom organizers have no URL of their own. Borrow a series URL only
+      // when that series names the same organizer; membership alone does not
+      // prove the organizers are the same body.
+      const normalize = (name: string | undefined) =>
+        name?.trim().toLocaleLowerCase(this._locale);
+      const eventOrganizer = normalize(event.organizerName);
       const seriesUrl = event.seriesIds
         .map((seriesId) => this.seriesById()[seriesId])
-        .find((item) => !!item?.organizer_url)?.organizer_url;
+        .find(
+          (item) =>
+            !!item?.organizer_url &&
+            normalize(item.organizer) === eventOrganizer,
+        )?.organizer_url;
       return {
         "@type": "Organization",
         name: event.organizerName,

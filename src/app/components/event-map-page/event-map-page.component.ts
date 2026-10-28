@@ -843,7 +843,17 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       paramMap.get("slug") ?? paramMap.get("eventID") ?? "";
     const requestVersion = ++this._eventLoadRequestVersion;
 
-    const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
+    let loaded: Awaited<
+      ReturnType<EventPageDataService["loadEventBySlugOrId"]>
+    >;
+    try {
+      loaded = await this._eventPageData.loadEventBySlugOrId(slug);
+    } catch {
+      if (requestVersion !== this._eventLoadRequestVersion) return;
+      // The event page owns the load-failure and retry UI.
+      void this._router.navigate(["/events", slug]);
+      return;
+    }
 
     if (requestVersion !== this._eventLoadRequestVersion) {
       return;
