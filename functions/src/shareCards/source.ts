@@ -2,13 +2,54 @@ import { createHash } from "node:crypto";
 import { isEventPubliclyDiscoverable } from "../../../src/db/schemas/EventDiscoverySchema";
 import { EventSchema } from "../../../src/db/schemas/EventSchema";
 import { buildPublicUserProfile } from "../userProfileProjection";
+import { MAX_COMMUNITY_PHOTOS } from "./collage";
 import { ShareCardInput, SHARE_CARD_VERSION } from "./render";
 
 export type EntityKind = "spot" | "event" | "community" | "profile";
 export const collections: Record<EntityKind, string> = {
   spot: "spots", event: "events", community: "community_pages", profile: "users",
 };
-export interface CardSource { input: ShareCardInput; media: string[] }
+export interface CardSource { input: ShareCardInput; media: string[]; relatedSpotIds?: string[] }
+const MAX_COMMUNITY_CANDIDATES = 32;
+
+/** Generated rankings supply candidates, never publication permission. Resolve
+ * the current Spot documents before using their photos in a community card. */
+export function communityCardSpotIds(data: Record<string, unknown>): string[] {
+  const sections = Array.isArray(data.communityPicks) ? data.communityPicks.map(record) : [];
+  const list = (value: unknown): unknown[] => Array.isArray(value) ? value : [];
+  const candidates = [
+    ...sections.filter((section) => section.category === "standout").flatMap((section) => list(section.spots)),
+    ...list(data.topRatedSpots),
+    ...sections.flatMap((section) => list(section.spots)),
+    ...list(data.spots),
+  ];
+  return [...new Set(candidates.map((spot) => text(record(spot).id))
+    .filter((id) => /^[\w:.-]{1,200}$/.test(id) && id !== "." && id !== ".."))].slice(0, MAX_COMMUNITY_CANDIDATES);
+}
+
+export async function resolveCardSource(
+  kind: EntityKind,
+  data: Record<string, unknown> | undefined,
+  readSpots: (ids: string[]) => Promise<(Record<string, unknown> | undefined)[]>,
+  bucket: string,
+): Promise<CardSource | null> {
+  const source = projectCard(kind, data);
+  if (!source || kind !== "community") return source;
+  const paths = new Set<string>();
+  for (let offset = 0; offset < source.relatedSpotIds!.length && source.media.length < MAX_COMMUNITY_PHOTOS; offset += MAX_COMMUNITY_PHOTOS) {
+    const spots = await readSpots(source.relatedSpotIds!.slice(offset, offset + MAX_COMMUNITY_PHOTOS));
+    for (const spot of spots) {
+      if (spot?.isReported === true) continue;
+      const photo = projectCard("spot", spot)?.media.find((src) => {
+        const path = storageMediaPath(src, bucket);
+        return path && !paths.has(path);
+      });
+      if (photo) { paths.add(storageMediaPath(photo, bucket)!); source.media.push(photo); }
+      if (source.media.length === MAX_COMMUNITY_PHOTOS) break;
+    }
+  }
+  return source;
+}
 const record = (v: unknown): Record<string, unknown> =>
   v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {};
 const text = (v: unknown): string => typeof v === "string" ? v : "";
@@ -45,7 +86,8 @@ export function projectCard(kind: EntityKind, data: Record<string, unknown> | un
   const rating = kind === "spot" && typeof data.rating === "number" && Number.isFinite(data.rating) && data.rating >= 0 && data.rating <= 5 ? data.rating : undefined;
   return { input: { kind, audience: "public", title: title.slice(0, 240), subtitle: subtitle.slice(0, 240),
     detail: kind === "event" ? "Discover the event on PK Spot" : kind === "spot" ? "Explore on PK Spot" : "Find your community on PK Spot",
-    ...(rating === undefined ? {} : { rating }) }, media };
+    ...(rating === undefined ? {} : { rating }) }, media,
+    ...(kind === "community" ? { relatedSpotIds: communityCardSpotIds(data) } : {}) };
 }
 export function sourceFingerprint(source: CardSource): string {
   return createHash("sha256").update(SHARE_CARD_VERSION).update(JSON.stringify(source)).digest("hex").slice(0, 24);

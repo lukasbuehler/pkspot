@@ -10,6 +10,8 @@ export const fixtures = [
   { id: 'spot-empty', kind: 'spot', label: 'Spot', title: 'Güterbahnhof Nord', subtitle: 'Example Spot · Bern, Switzerland', detail: 'Explore on PK Spot', photos: [] },
   { id: 'event-photo', kind: 'event', label: 'Event', title: 'Swiss Jam 2026', subtitle: '26–28 June 2026 · Switzerland', detail: 'Three days. One community.', photos: ['src/assets/events/swissjam/swissjam26_banner.jpg'] },
   { id: 'event-empty', kind: 'event', label: 'Event', title: 'Farang × TRAZER\nParkour 360 Jam', subtitle: '22 September 2026 · TRAZER Parkour 360', detail: 'Discover the event on PK Spot', photos: [] },
+  { id: 'community-grid', kind: 'community', label: 'Community', title: 'Sydney', subtitle: '167 Spots', detail: 'Find your community on PK Spot', photos: Array.from({ length: 16 }, (_, index) => [photo, second, third][index % 3]) },
+  { id: 'genesis-title', kind: 'event', title: 'FIMBULWINTERJAM GENESIS', subtitle: '11 December 2026', photos: [photo] },
   { id: 'community', kind: 'community', label: 'Community', title: 'Parkour in Prague', subtitle: 'Find Spots. Meet your community.', detail: 'Explore Prague on PK Spot', photos: [photo, second, third] },
   { id: 'profile', kind: 'profile', label: 'Public profile', title: 'Alex Example', subtitle: 'Part of the parkour community', detail: 'Connect on PK Spot', photos: [] },
   { id: 'landing', kind: 'page', label: 'PK Spot', title: 'Find your place.\nMake your move.', subtitle: 'Spots, events and your next session.', detail: 'Built for the parkour community', photos: [photo] },

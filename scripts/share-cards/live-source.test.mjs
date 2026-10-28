@@ -75,3 +75,31 @@ test('falls back to legacy slug fields and handles missing slugs', async () => {
     readPhoto: async () => null,
   })).title, 'Legacy Spot');
 });
+
+test('community cards prefer standout Spot photos and verify current canonical media', async () => {
+  const {resolveCardSource} = await import('../../functions/lib/functions/src/shareCards/source.js');
+  const photo = id => `spot_pictures/${id}.jpg`;
+  const reads=[];
+  const source=await resolveCardSource('community',{
+    published:true,displayName:'Sydney',counts:{totalSpots:167},
+    communityPicks:[{category:'standout',spots:[{id:'standout'},{id:'private'},{id:'reported'}]}],
+    topRatedSpots:[{id:'standout'},{id:'rated'},{id:'empty'},{id:'external'}],
+    spots:[{id:'fallback'},{id:'../invalid'}],
+  },async ids=>{
+    reads.push(...ids);
+    return ids.map(id=>({name:id,...(id==='private'?{visibility:'private'}:{}),
+      media:id==='empty'?[]:[{type:'image',src:id==='external'?'https://example.com/photo.jpg':photo(id),
+        ...(id==='reported'?{isReported:true}:{})}]}));
+  },'test.appspot.com');
+  assert.deepEqual(source.media,[photo('standout'),photo('rated'),photo('fallback')]);
+  assert.deepEqual(reads,['standout','private','reported','rated','empty','external','fallback']);
+});
+
+test('community photo selection stays bounded and returns at most 16 distinct images', async () => {
+  const {resolveCardSource} = await import('../../functions/lib/functions/src/shareCards/source.js');
+  const reads=[];
+  const source=await resolveCardSource('community',{
+    published:true,displayName:'Large community',spots:Array.from({length:100},(_,i)=>({id:`spot${i}`})),
+  },async ids=>{reads.push(...ids);return ids.map(id=>({name:id,media:[{type:'image',src:`spot_pictures/${id}.jpg`}]}));},'test.appspot.com');
+  assert.equal(source.media.length,16);assert.equal(reads.length,16);assert.equal(source.relatedSpotIds.length,32);
+});

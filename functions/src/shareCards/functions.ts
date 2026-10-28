@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, Transaction } from "firebase-admin/firestore";
 import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
@@ -9,7 +9,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { DEFAULT_STORAGE_BUCKET } from "../storageBucket";
 import { renderShareCard } from "./render";
-import { collections, EntityKind, projectCard, sourceFingerprint, storageMediaPath, shareCardMediaCandidates } from "./source";
+import { collections, EntityKind, projectCard, resolveCardSource, sourceFingerprint, storageMediaPath, shareCardMediaCandidates } from "./source";
 
 const db = admin.firestore();
 const bucket = () => admin.storage().bucket(DEFAULT_STORAGE_BUCKET);
@@ -28,9 +28,14 @@ const safeKind = (value: unknown): EntityKind => {
 const imageUrl = (kind: EntityKind, id: string, revision?: string) =>
   `https://europe-west1-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/shareCardImage?kind=${kind}&id=${encodeURIComponent(id)}${revision ? `&v=${revision}` : ""}`;
 
-async function load(kind: EntityKind, id: string) {
-  const snapshot = await sourceRef(kind, id).get();
-  const source = projectCard(kind, snapshot.data());
+async function load(kind: EntityKind, id: string, transaction?: Transaction) {
+  const ref = sourceRef(kind, id);
+  const snapshot = await (transaction ? transaction.get(ref) : ref.get());
+  const source = await resolveCardSource(kind, snapshot.data(), async (ids) => {
+    const refs = ids.map((spotId) => sourceRef("spot", spotId));
+    const spots = await (transaction ? transaction.getAll(...refs) : db.getAll(...refs));
+    return spots.map((spot) => spot.data());
+  }, bucket().name);
   return source ? { source, revision: sourceFingerprint(source) } : null;
 }
 async function removeFile(path: unknown) {
@@ -100,9 +105,8 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
     try {
       // Recheck privacy/content and lease in one transaction before publication.
       await db.runTransaction(async tx => {
-        const [entity, card] = await Promise.all([tx.get(sourceRef(kind, id)), tx.get(ref)]);
-        const latest = projectCard(kind, entity.data());
-        if (!latest || sourceFingerprint(latest) !== current.revision || card.data()?.lease !== lease) throw new HttpsError("aborted", "Preview changed during preparation");
+        const [latest, card] = await Promise.all([load(kind, id, tx), tx.get(ref)]);
+        if (!latest || latest.revision !== current.revision || card.data()?.lease !== lease) throw new HttpsError("aborted", "Preview changed during preparation");
         tx.set(ref, { kind, id, revision: current.revision, path, media, generated_at: FieldValue.serverTimestamp() });
       });
       published = true;
@@ -169,13 +173,12 @@ function invalidate(kind: EntityKind) {
     if (before && after && sourceFingerprint(before) === sourceFingerprint(after)) return;
     const ref = cardRef(kind, event.params.id);
     const path = await db.runTransaction(async tx => {
-      const [card, entity] = await Promise.all([tx.get(ref), tx.get(sourceRef(kind, event.params.id))]);
-      const latest = projectCard(kind, entity.data());
+      const [card, latest] = await Promise.all([tx.get(ref), load(kind, event.params.id, tx)]);
       // Delayed triggers must preserve both current cards and renders of the
       // current source. Publication still rechecks privacy, revision and lease.
       const data = card.data();
       if (latest) {
-        const revision = sourceFingerprint(latest);
+        const revision = latest.revision;
         if ((!data?.lease && data?.revision === revision) ||
           (data?.lease && data.lease_revision === revision && Number(data.lease_until) > Date.now())) return undefined;
       }

@@ -110,3 +110,58 @@ test('photo-free cards use distinct entity-specific background artwork', async (
   }
   for(let i=0;i<crops.length;i++) for(let j=i+1;j<crops.length;j++) assert.notDeepEqual(crops[i],crops[j]);
 });
+
+test('community layouts cover the whole image rectangle without gaps or overlap for 1–16 photos', () => {
+  const { communityPhotoTiles } = require('../../functions/lib/functions/src/shareCards/collage.js');
+  assert.deepEqual(communityPhotoTiles(0), []);
+  for (let count = 1; count <= 16; count++) {
+    const tiles = communityPhotoTiles(count);
+    assert.equal(tiles.length, count);
+    assert.equal(tiles.reduce((area, tile) => area + tile.width * tile.height, 0), 900 * 630);
+    for (const [index, tile] of tiles.entries()) {
+      assert.ok(tile.left >= 300 && tile.left + tile.width <= 1200);
+      assert.ok(tile.top >= 0 && tile.top + tile.height <= 630);
+      assert.ok(tile.width >= 225 && tile.height >= 157);
+      for (const other of tiles.slice(index + 1)) {
+        assert.ok(tile.left + tile.width <= other.left || other.left + other.width <= tile.left ||
+          tile.top + tile.height <= other.top || other.top + other.height <= tile.top);
+      }
+    }
+  }
+  assert.equal(communityPhotoTiles(20).length, 16);
+  assert.deepEqual(communityPhotoTiles(3).map(tile => tile.width * tile.height), [283500, 141750, 141750]);
+});
+
+test('community collage repacks broken photos before allocating tiles', async () => {
+  const photo = await sharp({create:{width:500,height:500,channels:4,background:'#21d322'}}).png().toBuffer();
+  const community = {...input,kind:'community',title:'Sydney'};
+  assert.deepEqual(await renderShareCard({...community,photos:[photo]},assets),
+    await renderShareCard({...community,photos:[Buffer.from('broken'),photo,Buffer.from('broken')]},assets));
+  const photos = Array(16).fill(photo);
+  const grid = await renderShareCard({...community,photos},assets);
+  assert.equal((await sharp(grid).metadata()).width, 1200);
+  const changed = [...photos]; changed[15] = Buffer.from('different');
+  assert.notEqual(shareCardFingerprint({...community,photos}), shareCardFingerprint({...community,photos:changed}));
+});
+
+test('title sizing keeps short titles large and Genesis words intact', async () => {
+  const { renderTitle } = require('../../functions/lib/functions/src/shareCards/title.js');
+  const short = await renderTitle('Sydney',630,246,assets.fontFile);
+  assert.equal(short.fontSize,76); assert.deepEqual(short.lines,['Sydney']);
+  const genesis = await renderTitle('FIMBULWINTERJAM GENESIS',630,246,assets.fontFile);
+  assert.ok(genesis.fontSize >= 48 && genesis.fontSize < 76);
+  assert.deepEqual(genesis.lines,['FIMBULWINTERJAM','GENESIS']);
+  assert.equal(genesis.truncated,false); assert.ok(genesis.info.width <= 630 && genesis.info.height <= 246);
+  const forced = await renderTitle('Find your spot.\nMake your move.',930,246,assets.fontFile);
+  assert.deepEqual(forced.lines,['Find your spot.','Make your move.']);
+});
+
+test('extreme titles stop at 48 and ellipsize inside the reserved rectangle', async () => {
+  const { renderTitle } = require('../../functions/lib/functions/src/shareCards/title.js');
+  for (const title of ['W'.repeat(240), 'Long event title with many words '.repeat(7)]) {
+    const result = await renderTitle(title,630,246,assets.fontFile);
+    assert.equal(result.fontSize,48); assert.equal(result.truncated,true);
+    assert.ok(result.lines.at(-1).endsWith('…'));
+    assert.ok(result.info.width <= 630 && result.info.height <= 246);
+  }
+});

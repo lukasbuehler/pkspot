@@ -110,6 +110,40 @@ async function run(){
     await entity.delete();
     assert.equal((await fetch(query)).status,404,'Deleted entity never serves its cached image');
   }
+  // Community cards resolve current Spot media instead of trusting preview URLs.
+  const communityId='collage-community', communityRef=db.doc(`community_pages/${communityId}`);
+  const communitySpot=db.doc('spots/collage-spot');
+  await bucket.file('spot_pictures/collage_800x800.png').save(photo,{resumable:false,metadata:{contentType:'image/png'}});
+  const communityPhoto={type:'image',src:'spot_pictures/collage.png',isInStorage:true};
+  await communitySpot.set({name:'Community standout',media:[communityPhoto]});
+  await communityRef.set({published:true,displayName:'Collage town',counts:{totalSpots:1},
+    communityPicks:[{category:'standout',spots:[{id:'collage-spot',imageSrc:'untrusted-preview'}]}]});
+  const prepareCommunity=()=>prepareShareCard.run({data:{kind:'community',id:communityId},rawRequest:{ip:'collage-fixture'}});
+  const communityImage=()=>fetch(`${endpoint}?kind=community&id=${communityId}`);
+  await prepareCommunity();
+  assert.notDeepEqual(Buffer.from(await (await communityImage()).arrayBuffer()),fallback);
+  assert.equal((await prepareCommunity()).reused,true);
+  // No community trigger is needed for this privacy check.
+  await communitySpot.update({visibility:'private'});
+  assert.deepEqual(Buffer.from(await (await communityImage()).arrayBuffer()),fallback,'A private source Spot stops contributing immediately');
+  await communitySpot.update({visibility:'public',media:[{...communityPhoto,isReported:true}]});
+  assert.deepEqual(Buffer.from(await (await communityImage()).arrayBuffer()),fallback,'Reported photos never remain in a cached community card');
+  await communitySpot.update({media:[communityPhoto]});
+  const communityBefore=await communityRef.get();
+  const renderCommunity=renderer.renderShareCard;
+  renderer.renderShareCard=async (...args)=>{
+    // A delayed community creation event must preserve the current render lease.
+    await require('../../functions/lib/functions/src/shareCards/functions.js').invalidateCommunityShareCard.run({params:{id:communityId},data:{before:{data:()=>undefined},after:communityBefore}});
+    await communitySpot.update({visibility:'private'});
+    return renderCommunity(...args);
+  };
+  // Force a new render without changing the selected candidate IDs.
+  await communityRef.update({displayName:'Renamed collage town'});
+  try { await assert.rejects(prepareCommunity(),error=>error.code==='aborted'); }
+  finally { renderer.renderShareCard=renderCommunity; }
+  assert.deepEqual(Buffer.from(await (await communityImage()).arrayBuffer()),fallback,'A photo privacy change during rendering prevents publication');
+  await communityRef.delete();
+  await communitySpot.delete();
   // Advancing only the application clock exercises retention without waiting a day.
   await db.doc('spots/retained-card').set({name:'Still public'});
   await prepareShareCard.run({data:{kind:'spot',id:'retained-card'},rawRequest:{ip:'retention-fixture'}});
