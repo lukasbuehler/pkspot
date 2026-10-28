@@ -1,6 +1,6 @@
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
-import { NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage, NgTemplateOutlet } from "@angular/common";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
   ChangeDetectionStrategy,
@@ -12,6 +12,7 @@ import {
   inject,
   input,
   output,
+  resource,
   signal,
   viewChild,
 } from "@angular/core";
@@ -71,6 +72,10 @@ import {
 } from "../community-locality-merge-confirm-dialog/community-locality-merge-confirm-dialog.component";
 import { AppHrefPipe } from "../../pipes/app-href.pipe";
 
+import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
+import { ShareCardService } from "../../services/share-card.service";
+import { buildAbsoluteUrlNoLocale } from "../../../scripts/Helpers";
+
 type CommunityExploreMode = "all" | "dry";
 
 type CommunityInfoCardCtaView =
@@ -103,6 +108,7 @@ interface CommunityInfoCardView {
     AppHrefPipe,
     SystemDatePipe,
     NgOptimizedImage,
+    NgTemplateOutlet,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -140,6 +146,30 @@ export class CommunityLandingPageComponent {
   private _analytics = inject(AnalyticsService);
   private _searchService = inject(SearchService);
   private _notificationOptIn = inject(NotificationOptInService);
+
+  private readonly follows = inject(CommunityFollowsService);
+  readonly shareCards = inject(ShareCardService);
+  readonly savingFollow = signal(false);
+  readonly followStatus = resource({
+    params: () => {
+      const uid = this._authUser()?.uid;
+      const data = this.communityData();
+      return uid && data?.communityKey && !data.notFound
+        ? { uid, communityKey: data.communityKey }
+        : undefined;
+    },
+    loader: ({ params }) => this.follows.isFollowing(params.communityKey),
+  });
+  readonly following = computed(() =>
+    this.followStatus.hasValue() && this.followStatus.value(),
+  );
+  readonly followLabel = computed(() =>
+    this.followStatus.error()
+      ? $localize`:@@community.follow_retry:Retry follow status`
+      : this.following()
+        ? $localize`:@@community.following:Following`
+        : $localize`:@@community.follow:Follow`,
+  );
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
@@ -229,6 +259,54 @@ export class CommunityLandingPageComponent {
 
       void this._loadPrivateInfoCards(communityKey);
     });
+  }
+
+  async shareCommunity(): Promise<void> {
+    const data = this.communityData();
+    if (!data?.communityKey || data.notFound) return;
+    this._analytics.trackEvent("share_community_clicked", {
+      ...this._communityAnalyticsProperties(),
+      panel_mode: this.panelMode(),
+    });
+    await this.shareCards.share(
+      { kind: "community", id: data.communityKey },
+      buildAbsoluteUrlNoLocale(data.canonicalPath),
+      data.displayName,
+    );
+  }
+
+  async toggleFollow(): Promise<void> {
+    const data = this.communityData();
+    const uid = this._authUser()?.uid;
+    if (!uid || !data?.communityKey || data.notFound || this.savingFollow()) return;
+    if (this.followStatus.error()) {
+      this.followStatus.reload();
+      return;
+    }
+    if (!this.followStatus.hasValue() || this.followStatus.isLoading()) return;
+    const wasFollowing = this.following();
+    this.savingFollow.set(true);
+    try {
+      if (wasFollowing) await this.follows.unfollow(data.communityKey);
+      else await this.follows.follow({
+        id: data.communityKey,
+        communityKey: data.communityKey,
+        slug: data.preferredSlug,
+        displayName: data.displayName,
+        scope: data.scope,
+        totalSpots: data.totalSpotCount,
+        canonicalPath: data.canonicalPath,
+        ...(data.hasCustomImage ? { imageUrl: data.imageUrl } : {}),
+      });
+      // The map panel can navigate while the write is in flight.
+      if (this.communityData()?.communityKey === data.communityKey && this._authUser()?.uid === uid) {
+        this.followStatus.set(!wasFollowing);
+      }
+    } catch {
+      this._snackbar.open($localize`:@@community.follow_error:Could not update your community follow. Please try again.`, undefined, { duration: 5000 });
+    } finally {
+      this.savingFollow.set(false);
+    }
   }
 
   onClose() {

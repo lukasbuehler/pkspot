@@ -12075,6 +12075,30 @@
         <target>Esplora altri spot</target>
       </segment>
     </unit>
+    <unit id="community.follow">
+      <segment state="translated">
+        <source>Follow</source>
+        <target>Segui</target>
+      </segment>
+    </unit>
+    <unit id="community.follow_error">
+      <segment state="translated">
+        <source>Could not update your community follow. Please try again.</source>
+        <target>Impossibile aggiornare il seguito di questa community. Riprova.</target>
+      </segment>
+    </unit>
+    <unit id="community.follow_retry">
+      <segment state="translated">
+        <source>Retry follow status</source>
+        <target>Riprova a caricare lo stato di seguito</target>
+      </segment>
+    </unit>
+    <unit id="community.following">
+      <segment state="translated">
+        <source>Following</source>
+        <target>Segui già</target>
+      </segment>
+    </unit>
     <unit id="community.info_disclosure_classes">
       <segment state="initial">
         <source>Classes and coaching</source>
@@ -12193,6 +12217,12 @@
       <segment state="translated">
         <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
         <target><ph id="0" equiv="HEADING" disp="qualified"/> | Comunità PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.share_tooltip">
+      <segment state="translated">
+        <source>Share this community</source>
+        <target>Condividi questa community</target>
       </segment>
     </unit>
     <unit id="community.sign_in_to_see_link">
@@ -15104,6 +15134,12 @@
       <segment state="translated">
         <source>{VAR_PLURAL, plural, =1 {One published event has invalid discovery data and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> published events have invalid discovery data and were not shown.}}</source>
         <target>{VAR_PLURAL, plural, =1 {Un evento pubblicato contiene dati di ricerca non validi e non è stato mostrato.} other {<ph id="0" equiv="INTERPOLATION"/> eventi pubblicati contengono dati di ricerca non validi e non sono stati mostrati.}}</target>
+      </segment>
+    </unit>
+    <unit id="7419704019640008953">
+      <segment state="translated">
+        <source>Share</source>
+        <target>Condividi</target>
       </segment>
     </unit>
     <unit id="5400391042453835180">

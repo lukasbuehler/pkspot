@@ -1595,6 +1595,11 @@
         <source>{VAR_PLURAL, plural, =1 {One published event has invalid discovery data and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> published events have invalid discovery data and were not shown.}}</source>
       </segment>
     </unit>
+    <unit id="7419704019640008953">
+      <segment>
+        <source>Share</source>
+      </segment>
+    </unit>
     <unit id="2417459620118538314">
       <segment>
         <source>Could not update event notifications. Please try again.</source>
@@ -2429,6 +2434,26 @@
         <source>Explore more spots</source>
       </segment>
     </unit>
+    <unit id="community.follow">
+      <segment>
+        <source>Follow</source>
+      </segment>
+    </unit>
+    <unit id="community.follow_error">
+      <segment>
+        <source>Could not update your community follow. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="community.follow_retry">
+      <segment>
+        <source>Retry follow status</source>
+      </segment>
+    </unit>
+    <unit id="community.following">
+      <segment>
+        <source>Following</source>
+      </segment>
+    </unit>
     <unit id="community.info_disclosure_classes">
       <segment>
         <source>Classes and coaching</source>
@@ -2527,6 +2552,11 @@
     <unit id="community.seo.title">
       <segment>
         <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
+      </segment>
+    </unit>
+    <unit id="community.share_tooltip">
+      <segment>
+        <source>Share this community</source>
       </segment>
     </unit>
     <unit id="community.sign_in_to_see_link">

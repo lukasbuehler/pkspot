@@ -493,3 +493,10 @@
     transition: none;
   }
 }
+
+.community-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 8px 16px;
+}

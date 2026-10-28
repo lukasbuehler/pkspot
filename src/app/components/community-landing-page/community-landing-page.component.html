@@ -130,6 +130,38 @@
             </span>
           </div>
 
+          <!-- Header icon buttons, matching the Spot details header -->
+          <div mapInfoActions class="community-header-actions">
+            @if (isSignedIn()) {
+              <button
+                mat-icon-button
+                type="button"
+                [color]="following() ? 'primary' : undefined"
+                [disabled]="savingFollow() || followStatus.isLoading()"
+                [attr.aria-busy]="savingFollow() || followStatus.isLoading()"
+                [attr.aria-pressed]="following()"
+                [matTooltip]="followLabel()"
+                [attr.aria-label]="followLabel()"
+                (click)="toggleFollow(); $event.stopPropagation()"
+              >
+                <mat-icon>{{ following() ? "how_to_reg" : "group_add" }}</mat-icon>
+              </button>
+            }
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Share this community"
+              i18n-matTooltip="@@community.share_tooltip"
+              aria-label="Share this community"
+              i18n-aria-label="@@community.share_tooltip"
+              [disabled]="shareCards.preparing()"
+              [attr.aria-busy]="shareCards.preparing()"
+              (click)="shareCommunity(); $event.stopPropagation()"
+            >
+              <mat-icon>share</mat-icon>
+            </button>
+          </div>
+
           <div class="collapsible">
             <div class="community-panel-body px-3 pb-3">
               @if (data.hasCustomImage && data.imageUrl) {
@@ -185,6 +217,8 @@
               }
             </h1>
             <p class="mat-body-large intro-copy mb-4">{{ introText() }}</p>
+
+            <ng-container [ngTemplateOutlet]="communityActions"></ng-container>
 
             <div class="stats-grid">
               <div class="stat-card">
@@ -852,3 +886,21 @@
     </div>
   </ng-template>
 }
+
+<ng-template #communityActions>
+  <div class="community-actions">
+    @if (isSignedIn()) {
+      <button mat-stroked-button type="button"
+        [disabled]="savingFollow() || followStatus.isLoading()"
+        [attr.aria-pressed]="following()"
+        (click)="toggleFollow()">
+        <mat-icon>{{ following() ? "check" : "add" }}</mat-icon>
+        {{ followLabel() }}
+      </button>
+    }
+    <button mat-stroked-button type="button" [disabled]="shareCards.preparing()" (click)="shareCommunity()">
+      <mat-icon>share</mat-icon>
+      <span i18n>Share</span>
+    </button>
+  </div>
+</ng-template>
