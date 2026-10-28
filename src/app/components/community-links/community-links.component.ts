@@ -7,6 +7,7 @@ import {
   resource,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
 import { buildCommunityLandingPath } from "../../../scripts/CommunityHelpers";
 import {
   CommunitySearchPreview,
@@ -17,6 +18,7 @@ export interface CommunityLink {
   key: string;
   name: string;
   path: string;
+  imageUrl?: string;
 }
 
 /**
@@ -39,7 +41,12 @@ export function communityLinksFromPreviews(
       (preview.slug ? buildCommunityLandingPath(preview.slug) : "");
     if (!path || !preview.displayName) continue;
     seen.add(key);
-    links.push({ key, name: preview.displayName, path });
+    links.push({
+      key,
+      name: preview.displayName,
+      path,
+      imageUrl: preview.imageUrl,
+    });
   }
   return links;
 }
@@ -50,7 +57,7 @@ export function communityLinksFromPreviews(
  */
 @Component({
   selector: "app-community-links",
-  imports: [RouterLink],
+  imports: [RouterLink, EntityPreviewCardComponent],
   templateUrl: "./community-links.component.html",
   styleUrl: "./community-links.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

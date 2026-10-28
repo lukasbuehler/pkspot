@@ -3,18 +3,20 @@
 }
 
 .community-links-heading {
-  margin: 0 0 4px;
+  margin: 0 0 8px;
 }
 
 .community-links-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-a {
-  color: var(--mat-sys-primary);
+.community-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
 }
