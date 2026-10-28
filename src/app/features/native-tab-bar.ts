@@ -1,5 +1,3 @@
-import type { NavigationLayout } from "./navigation-layout";
-
 /** A navigation destination as the app shell describes it. */
 export interface NativeTabDestination {
   id: string;
@@ -20,12 +18,31 @@ export interface NativeTabItem {
   badge: boolean;
 }
 
+/** `#rrggbb` colours from the web theme, so both navigations look alike. */
+export interface NativeTabBarColors {
+  /** Selected item: the Material 3 primary highlight. */
+  selected: string;
+  /** Other items: on-surface-variant. */
+  unselected: string;
+  /** Bar surface where the system does not draw glass. */
+  background: string;
+}
+
+/** Theme tokens read for `NativeTabBarColors`. */
+export const NATIVE_TAB_BAR_THEME_TOKENS: Readonly<
+  Record<keyof NativeTabBarColors, string>
+> = {
+  selected: "--mat-sys-primary",
+  unselected: "--mat-sys-on-surface-variant",
+  background: "--mat-sys-surface-container",
+};
+
 export interface NativeTabBarState {
   items: NativeTabItem[];
   overflow: NativeTabItem[];
   selectedId: string | null;
   hidden: boolean;
-  tintColor?: string;
+  colors?: NativeTabBarColors;
 }
 
 export const NATIVE_TAB_BAR_MORE_ID = "more";
@@ -52,15 +69,16 @@ export function nativeTabSymbol(materialIcon: string): string {
 }
 
 /**
- * The native bar replaces the web navigation wherever the web app would show
- * a bottom bar or a rail. The short "menu" layout keeps the web Alain menu,
- * whose clearance every page already reserves.
+ * Where the native bar exists it replaces every web navigation: the bottom
+ * bar, the rail and the short-layout Alain menu. iOS keeps the bar visible in
+ * landscape and moves it into the iPhone Duo's vertical bar, so the web
+ * never needs its fallback menu there.
  */
 export function nativeTabBarOwnsNavigation(
   available: boolean,
-  layout: NavigationLayout,
+  embedded: boolean,
 ): boolean {
-  return available && layout !== "menu";
+  return available && !embedded;
 }
 
 /**
@@ -70,7 +88,7 @@ export function nativeTabBarOwnsNavigation(
  */
 export function buildNativeTabBarState(
   destinations: readonly NativeTabDestination[],
-  options: { moreTitle: string; hidden: boolean; tintColor?: string },
+  options: { moreTitle: string; hidden: boolean },
 ): NativeTabBarState {
   const regular = destinations.filter((item) => !item.alwaysVisible);
   const pinned = destinations.filter((item) => item.alwaysVisible);
@@ -115,7 +133,6 @@ export function buildNativeTabBarState(
     overflow,
     selectedId,
     hidden: options.hidden,
-    ...(options.tintColor ? { tintColor: options.tintColor } : {}),
   };
 }
 

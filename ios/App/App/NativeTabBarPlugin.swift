@@ -31,10 +31,14 @@ public class NativeTabBarPlugin: CAPPlugin, CAPBridgedPlugin {
         let overflow = Self.items(call.getArray("overflow", JSObject.self) ?? [])
         let selectedId = call.getString("selectedId")
         let hidden = call.getBool("hidden") ?? true
-        let tintColor = call.getString("tintColor").flatMap(Self.color(hex:))
+        let colorValues = call.getObject("colors")
+        let colors = NativeTabBarController.Colors(
+            selected: (colorValues?["selected"] as? String).flatMap(Self.color(hex:)),
+            unselected: (colorValues?["unselected"] as? String).flatMap(Self.color(hex:)),
+            background: (colorValues?["background"] as? String).flatMap(Self.color(hex:)))
 
-        DispatchQueue.main.async {
-            guard let controller = self.controller else {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let controller = self.controller else {
                 call.reject("Native tab bar is not available")
                 return
             }
@@ -43,7 +47,7 @@ public class NativeTabBarPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             controller.apply(.init(
                 items: items, overflow: overflow,
-                selectedId: selectedId, hidden: hidden, tintColor: tintColor))
+                selectedId: selectedId, hidden: hidden, colors: colors))
             call.resolve()
         }
     }

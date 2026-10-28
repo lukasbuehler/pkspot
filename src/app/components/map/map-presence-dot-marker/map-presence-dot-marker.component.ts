@@ -18,7 +18,7 @@ import { MapAdvancedMarker } from "@angular/google-maps";
   template: `
     <div
       #dot
-      class="presence-dot"
+      class="presence-dot map-marker-hit-target"
       [style.height.px]="size()"
       [style.width.px]="size()"
       [attr.aria-label]="label()"

@@ -18,12 +18,20 @@ final class NativeTabBarController: UITabBarController, UITabBarControllerDelega
         let badge: Bool
     }
 
+    /// The web theme's Material 3 colours (primary, on-surface-variant and a
+    /// surface container); nil values keep the system default.
+    struct Colors: Equatable {
+        var selected: UIColor?
+        var unselected: UIColor?
+        var background: UIColor?
+    }
+
     struct State: Equatable {
         var items: [Item] = []
         var overflow: [Item] = []
         var selectedId: String?
         var hidden = true
-        var tintColor: UIColor?
+        var colors = Colors()
     }
 
     static let moreId = "more"
@@ -43,9 +51,11 @@ final class NativeTabBarController: UITabBarController, UITabBarControllerDelega
         setViewControllers([navigation], animated: false)
         host(of: navigation).adopt(bridgeController)
         setBarHidden(true)
-        // The web app is dark-only; keep the bar matching it without changing
-        // the web view's own appearance.
-        tabBar.overrideUserInterfaceStyle = .dark
+        // The web app is dark-only. Applying it to the whole controller also
+        // reaches the bar where iOS moves it (the iPhone Duo vertical bar),
+        // the More sheet and the Duo navigation bar.
+        overrideUserInterfaceStyle = .dark
+        applyColors()
     }
 
     @available(*, unavailable)
@@ -64,7 +74,7 @@ final class NativeTabBarController: UITabBarController, UITabBarControllerDelega
         if itemsChanged {
             rebuildTabs()
         }
-        tabBar.tintColor = newState.tintColor
+        applyColors()
         select(id: newState.selectedId)
         setBarHidden(newState.hidden)
         (bridgeController as? AppViewController)?.navigationChromeDidChange()
@@ -84,6 +94,38 @@ final class NativeTabBarController: UITabBarController, UITabBarControllerDelega
             tabBar.isHidden = hidden
         }
         view.setNeedsLayout()
+    }
+
+    /// Matches the web navigation: primary for the selected item and
+    /// on-surface-variant for the others. From iOS 26 the system draws the bar
+    /// as Liquid Glass, so only item colours change there; earlier versions
+    /// get the app's dark surface.
+    private func applyColors() {
+        let colors = state.colors
+        let appearance = UITabBarAppearance()
+        if #available(iOS 26.0, *) {
+            appearance.configureWithDefaultBackground()
+        } else {
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = colors.background ?? .black
+        }
+        for layout in [appearance.stackedLayoutAppearance,
+                       appearance.inlineLayoutAppearance,
+                       appearance.compactInlineLayoutAppearance] {
+            if let unselected = colors.unselected {
+                layout.normal.iconColor = unselected
+                layout.normal.titleTextAttributes = [.foregroundColor: unselected]
+            }
+            if let selected = colors.selected {
+                layout.selected.iconColor = selected
+                layout.selected.titleTextAttributes = [.foregroundColor: selected]
+            }
+        }
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
+        // Tint drives the selection glow and highlights the system draws itself.
+        tabBar.tintColor = colors.selected
+        tabBar.unselectedItemTintColor = colors.unselected
     }
 
     // MARK: Tabs

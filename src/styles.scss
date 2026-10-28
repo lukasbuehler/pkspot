@@ -11,6 +11,13 @@ button:focus {
 }
 
 html {
+  /* Space pages reserve above their content for the Alain menu FAB in short
+     layouts (see AGENTS.md, "Floating navigation clearance"). */
+  --alain-menu-block-start: max(
+    80px,
+    calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+  );
+
   /* Native Safe Area Padding for iOS/Android notch and navigation */
   /* On Android, our MainActivity injects --safe-area-inset-* with correct orientation values.
      On iOS, AppViewController supplies UIKit insets after load and rotation.
@@ -340,6 +347,14 @@ app-root {
     --nav-bar-height: var(--navigation-bottom-clearance);
   }
 
+  // The native iOS tab bar floats over the web view like the web bar did. Its
+  // overlap arrives in the bottom safe area that AppViewController publishes,
+  // so documents, the map sheet and floating chips clear it in every layout.
+  &.has-native-tab-bar {
+    --navigation-bottom-clearance: var(--safe-area-inset-bottom, 0px);
+    --nav-bar-height: var(--navigation-bottom-clearance);
+  }
+
   // Only apply status bar height on Android native - not on iOS or macOS
   .native-platform.platform-android:not(.running-on-macos-or-ipad) & {
     @media (orientation: portrait) {
@@ -366,6 +381,21 @@ app-root:not(.has-navigation-rail) {
   }
 }
 app-root.has-navigation-rail { --map-leading-safe-area: 0px; }
+
+// Google sizes each advanced marker (and, in newer Maps versions, its content
+// container) to the marker content we pass, which includes collision padding
+// and unscaled layout space. Only the visible marker element takes taps:
+// clicks still bubble to the marker for gmp-click, and keyboard focus and
+// dragging stay on the marker element itself. Google writes an inline
+// `pointer-events: auto` on clickable markers, hence `!important`; a marker
+// Google switches off inline stays off.
+gmp-advanced-marker:has(.map-marker-hit-target),
+gmp-advanced-marker:has(.map-marker-hit-target) [class*="content-container"] {
+  pointer-events: none !important;
+}
+gmp-advanced-marker:not([style*="pointer-events: none"]) .map-marker-hit-target {
+  pointer-events: auto;
+}
 
 // Map workspaces need a definite viewport height; document routes scroll freely.
 app-root.immersive-map-route,

@@ -131,7 +131,9 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
 
     .spot-preview-marker__pin {
       cursor: pointer;
-      pointer-events: auto;
+      /* The pill inside (.map-marker-hit-target) takes the taps; this
+         host keeps unscaled layout space around it. */
+      pointer-events: none;
       transition: opacity 0.18s ease;
       transform-origin: bottom center;
     }

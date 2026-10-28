@@ -143,8 +143,8 @@
       <router-outlet></router-outlet>
     </div>
 
-    @if(alainMode()) {
-    <!-- Alain Mode: Menu button (shows in any view mode when alainMode is true) -->
+    @if(showsAlainMenu()) {
+    <!-- Alain Mode: Menu button (short layouts, unless a native tab bar navigates) -->
     <app-fab-menu
       id="alainMenuButton"
       [class.native-platform]="isNativePlatform"
@@ -271,7 +271,7 @@
     checkInService.currentProximitySpot(); as spot) {
     <div
       class="check-in-chip-container d-flex justify-content-center w-100 p-2 overflow-hidden"
-      [style.bottom]="usesNavigationRail() ? 'auto' : usesNativeTabBar() ? 'var(--safe-area-inset-bottom, 0px)' : 'var(--navigation-bottom-clearance, 0px)'"
+      [style.bottom]="usesNavigationRail() ? 'auto' : 'var(--navigation-bottom-clearance, 0px)'"
       [style.top]="usesNavigationRail() ? '10px' : 'auto'"
       style="position: fixed; z-index: 1000; pointer-events: none"
       [@slideVertical]="{
