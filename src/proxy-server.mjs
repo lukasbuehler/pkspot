@@ -130,7 +130,7 @@ function isKnownAngularRoute(pathname) {
   if (first === "e" && second) return true;
   if (first === "u" && second) return true;
   if (first === "__" && second === "auth" && third === "action") return true;
-  if (first === "event" && second === "swissjam25") return true;
+  if (first === "event" && second) return true;
 
   if (first === "embedded") {
     return (

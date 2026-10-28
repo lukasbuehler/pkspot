@@ -186,6 +186,13 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
   - In the template/CSS, select the outline font with `material-symbols-rounded-outline` or `font-family: "Material Symbols Rounded Outlined"`. Adding a name to `icons_outline_list.txt` only makes the glyph available; it does not automatically switch a `<mat-icon>` away from the default filled font.
   - Run `npm run icons:optimize` after changing either icon list.
 
+## No hardcoded content or test-fixture exceptions
+
+- Never special-case a specific event, spot, user, slug, or ID in app code (resolvers, routes, services, components, templates, proxy/server code, SEO, or meta tags). Everything must be driven by real data loaded for the requested entity, so every event and spot behaves identically.
+- Do not hardcode titles, descriptions, images, redirects, or static fallback records for one entity to make a test, demo, or screenshot pass. Fix the generic code path instead.
+- Test fixtures belong in spec files, fixtures, or seed data, never in production code. If a test only passes for one fixture ID, the code is wrong, not the test.
+- SEO metadata (title, description, canonical, structured data) must be derived for any event or spot by the route resolver/server render, and verified against more than one entity. If you find an existing entity-specific exception, remove it rather than extending it.
+
 ## Testing
 
 - Before considering work complete, both the relevant tests and the build/SSR smoke test must pass. Do not report a change as done if `npm run test:unit` passes but `npm run test:build` is failing; either fix the build or clearly call out the blocker.

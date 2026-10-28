@@ -1143,7 +1143,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private _subscribeToEventFromRoute(paramMap: ParamMap): void {
     const slug =
-      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "";
     const requestVersion = ++this._eventLoadRequestVersion;
     this.isLoadingEvent.set(true);
     this.eventLoadFailed.set(false);
@@ -1170,7 +1170,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private async _loadEventFromRoute(paramMap: ParamMap): Promise<void> {
     const slug =
-      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "";
     const requestVersion = ++this._eventLoadRequestVersion;
     this.isLoadingEvent.set(true);
     this.eventLoadFailed.set(false);
@@ -1737,9 +1737,15 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
 
     if (event.organizerName) {
+      // Custom organizers have no URL of their own; borrow the series one so
+      // the organizer node stays linkable when the names refer to the same body.
+      const seriesUrl = event.seriesIds
+        .map((seriesId) => this.seriesById()[seriesId])
+        .find((item) => !!item?.organizer_url)?.organizer_url;
       return {
         "@type": "Organization",
         name: event.organizerName,
+        url: this._safeExternalUrl(seriesUrl),
       };
     }
 
