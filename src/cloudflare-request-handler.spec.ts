@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createCloudflareRequestHandler } from "./cloudflare-request-handler";
 
 function setup(host = "test.pkspot.app") {
-  const render = vi.fn<(request: Request) => Promise<Response>>(
+  const render = vi.fn<(request: Request) => Promise<Response | null>>(
     async () =>
       new Response("<title>SSR page</title>", {
         headers: { "Content-Type": "text/html" },
@@ -126,6 +126,23 @@ describe("Cloudflare request routing", () => {
       "noindex, nofollow, noarchive",
     );
     expect(response.headers.get("Cache-Control")).toBe("no-cache");
+  });
+
+  it("identifies null-render fallbacks without logging URL or query data", async () => {
+    const { request, render } = setup();
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      render.mockResolvedValue(null);
+      const response = await request("/en/map/spots/imax?private=value");
+      expect(response.status).toBe(404);
+      expect(await response.text()).toBe("Not Found");
+      expect(error).toHaveBeenCalledExactlyOnceWith(
+        "Cloudflare SSR returned no response",
+        { locale: "en" },
+      );
+    } finally {
+      error.mockRestore();
+    }
   });
 
   it("returns HEAD metadata without a body", async () => {

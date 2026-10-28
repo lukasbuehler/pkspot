@@ -18790,6 +18790,144 @@
         <target>Merci — ta suggestion est prête à être examinée par l’équipe.</target>
       </segment>
     </unit>
+    <unit id="event_suggestions.approve">
+      <segment state="translated">
+        <source>Approve and publish</source>
+        <target>Approuver et publier</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved">
+      <segment state="translated">
+        <source>Approved</source>
+        <target>Approuvées</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved_notice">
+      <segment state="translated">
+        <source>Suggestion approved and published.</source>
+        <target>Suggestion approuvée et publiée.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.checking_access">
+      <segment state="translated">
+        <source>Checking admin access</source>
+        <target>Vérification de l’accès administrateur</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.dates">
+      <segment state="translated">
+        <source>Event dates</source>
+        <target>Dates de l’événement</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.description">
+      <segment state="translated">
+        <source>Review community event proposals before publishing.</source>
+        <target>Examinez les propositions d’événements de la communauté avant leur publication.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.empty">
+      <segment state="translated">
+        <source>No event suggestions in this queue.</source>
+        <target>Aucune suggestion d’événement dans cette file.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.filter">
+      <segment state="translated">
+        <source>Suggestion status</source>
+        <target>Statut de la suggestion</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.heading">
+      <segment state="translated">
+        <source>Event suggestions</source>
+        <target>Suggestions d’événements</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.load_error">
+      <segment state="translated">
+        <source>Could not load event suggestions. Please refresh and try again.</source>
+        <target>Impossible de charger les suggestions. Actualisez la page et réessayez.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.loading">
+      <segment state="translated">
+        <source>Loading suggestions</source>
+        <target>Chargement des suggestions</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.more">
+      <segment state="translated">
+        <source>Show more</source>
+        <target>Afficher plus</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.note">
+      <segment state="translated">
+        <source>Review note (optional)</source>
+        <target>Note de vérification (facultative)</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.open_source">
+      <segment state="translated">
+        <source>Open source</source>
+        <target>Ouvrir la source</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.organizer">
+      <segment state="translated">
+        <source>Organizer</source>
+        <target>Organisateur</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.pending">
+      <segment state="translated">
+        <source>Pending</source>
+        <target>En attente</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.publish_hint">
+      <segment state="translated">
+        <source>Approval publishes this as a public event.</source>
+        <target>L’approbation publie cette proposition comme événement public.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.reject">
+      <segment state="translated">
+        <source>Reject</source>
+        <target>Rejeter</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected">
+      <segment state="translated">
+        <source>Rejected</source>
+        <target>Rejetées</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected_notice">
+      <segment state="translated">
+        <source>Suggestion rejected.</source>
+        <target>Suggestion rejetée.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.review_error">
+      <segment state="translated">
+        <source>Could not update the queue. Refresh and try again.</source>
+        <target>Impossible de mettre à jour la file. Actualisez la page et réessayez.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.submitted">
+      <segment state="translated">
+        <source>Submitted</source>
+        <target>Envoyée</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.view_event">
+      <segment state="translated">
+        <source>View published event</source>
+        <target>Voir l’événement publié</target>
+      </segment>
+    </unit>
     <unit id="event_tickets.availability.coming_soon">
       <segment state="initial">
         <source>Coming soon</source>

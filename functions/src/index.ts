@@ -63,6 +63,7 @@ export {
   createCommunityEvent,
   createFormalEvent,
   demoteCommunityEventsWhenProfileBecomesPrivate,
+  listEventSuggestions,
   reviewEventSuggestion,
   submitEventSuggestion,
   updateCommunityEvent,
@@ -140,6 +141,12 @@ export {
   runMediaModerationAudit,
 } from "./mediaModerationFunctions";
 export { markMediaUploadFalsePositive } from "./mediaReviewActionFunctions";
+export {
+  beginSpotMediaSubmission,
+  failSpotMediaSubmissionUploads,
+  onSpotMediaSubmissionUploadStatus,
+  expireSpotMediaSubmissions,
+} from "./spotMediaSubmissionFunctions";
 
 // spot challenge functions
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
@@ -337,3 +344,5 @@ export { plannedSessions, schedulePlannedSessionReminder, refreshPlannedSessionP
 
 export { prepareShareCard, shareCardImage, cleanupShareCards, invalidateSpotShareCard, invalidateEventShareCard,
   invalidateCommunityShareCard, invalidateProfileShareCard } from "./shareCards/functions";
+
+export { onEventSuggestionEmailCreate } from "./eventSuggestionEmailFunctions";

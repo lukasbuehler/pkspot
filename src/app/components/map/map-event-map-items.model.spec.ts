@@ -55,6 +55,25 @@ describe("map event map items", () => {
     ]);
   });
 
+  it("also pins events inside the open community's circle without its key", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [
+        // About 1 km from the centre, tagged only with its suburb.
+        eventStub({ id: "inside", location: { lat: -33.87, lng: 151.2 }, communityKeys: ["locality:au:nsw:surry-hills"] }),
+        // About 100 km away and untagged.
+        eventStub({ id: "outside", location: { lat: -34.8, lng: 151.2 }, communityKeys: [] }),
+      ],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "all",
+      now,
+      communityKeys: ["locality:au:nsw:sydney"],
+      communityArea: { center: { lat: -33.8688, lng: 151.2093 }, radiusM: 40_000 },
+    });
+
+    expect(markers.map((marker) => marker.id)).toEqual(["event:inside"]);
+  });
+
   it("builds event markers without duplicating the open event", () => {
     const selectedEvent = eventStub({
       id: "event-1",

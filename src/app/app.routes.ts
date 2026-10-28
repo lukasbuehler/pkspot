@@ -340,6 +340,11 @@ export const routes: Routes = [
     data: { routeName: "Moderation" },
   },
   {
+    path: "moderation/event-suggestions",
+    loadComponent: () => import("./components/event-suggestion-review-page/event-suggestion-review-page.component").then(m => m.EventSuggestionReviewPageComponent),
+    data: {routeName: "Event Suggestions", discoverable: false},
+  },
+  {
     path: "moderation/duplicates",
     loadComponent: () => import("./components/moderation-duplicates-page/moderation-duplicates-page.component").then(m => m.ModerationDuplicatesPageComponent),
     data: { routeName: "Duplicate Spots", discoverable: false },

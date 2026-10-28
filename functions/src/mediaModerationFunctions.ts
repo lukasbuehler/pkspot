@@ -694,6 +694,15 @@ const applyApprovalSideEffects = async (
   mediaType: "image" | "video"
 ): Promise<void> => {
   if (intake.targetKind === "spot" && intake.targetId) {
+    const upload = await uploadStatusRef(intake.uploadId).get();
+    if (upload.get("submission_id")) {
+      // The complete submission creates one edit after every file has an
+      // outcome. Older clients still use the individual edit path below.
+      if (upload.get("uid") !== intake.uid || upload.get("target_id") !== intake.targetId) {
+        throw new Error("Media submission target does not match upload.");
+      }
+      return;
+    }
     await appendSpotMediaEdit(intake.targetId, intake.uid, approvedUrl, mediaType);
     return;
   }
@@ -1018,6 +1027,13 @@ const processIntakeObject = async (params: {
 
   const contentType = params.contentType;
   const kind = contentKind(contentType);
+
+  const reservedUpload = await uploadStatusRef(intake.uploadId).get();
+  if (reservedUpload.get("submission_id") &&
+      (reservedUpload.get("uid") !== intake.uid ||
+       reservedUpload.get("target_id") !== intake.targetId || intake.targetKind !== "spot")) {
+    throw new Error("Intake does not match its reserved Spot media submission.");
+  }
 
   await review.set({
     status: "scanning",

@@ -469,6 +469,36 @@ async function testMediaAppendAndOverwrite() {
   );
 }
 
+async function testConcurrentMediaAppendsPreserveAllPhotos() {
+  const spotId = "integration-concurrent-media-appends";
+  const user = { uid: "integration-concurrent-uploader" };
+  const existing = { src: "https://example.test/existing.jpg", type: "image", uid: user.uid };
+  await db.doc(`users/${user.uid}`).set({});
+  await db.doc(`spots/${spotId}`).set({ media: [existing], source: "pkspot" });
+  const photos = Array.from({ length: 12 }, (_, index) => ({
+    src: `https://example.test/concurrent-${index}.jpg`, type: "image", uid: user.uid,
+  }));
+  // A single commit starts independent Function invocations together, matching
+  // simultaneous media-scanner approvals rather than sequential UI edits.
+  const batch = db.batch();
+  photos.forEach((photo, index) => batch.set(db.doc(`spots/${spotId}/edits/photo-${index}`), {
+    ...editPayload({ type: "UPDATE", data: { media: [photo] }, user,
+      offsetMs: 6500 + index, modificationType: "APPEND" }),
+    target_type: "spot", target_id: spotId, schema_version: 1,
+  }));
+  await batch.commit();
+  await waitFor(async () => {
+    const edits = await db.collection(`spots/${spotId}/edits`).get();
+    return edits.size === photos.length && edits.docs.every((edit) => edit.get("approved"));
+  }, "concurrent photo edits", 60000);
+  const spot = await getSpot(spotId);
+  assert.deepEqual(new Set(spot.media.map((photo) => photo.src)),
+    new Set([existing, ...photos].map((photo) => photo.src)));
+  assert.equal(spot.media.length, photos.length + 1);
+  const contributor = (await db.doc(`users/${user.uid}`).get()).data();
+  assert.equal(contributor.media_added_count, photos.length);
+}
+
 async function testOverwriteMediaEditRecordsOnlyNewMediaInHistory() {
   const spotId = "integration-media-history-diff";
   const initialMedia = [
@@ -1230,6 +1260,7 @@ async function main() {
   await testSourceAndSystemFieldsAreIgnoredOnUpdate();
   await testMergedAndDeletedFields();
   await testMediaAppendAndOverwrite();
+  await testConcurrentMediaAppendsPreserveAllPhotos();
   await testOverwriteMediaEditRecordsOnlyNewMediaInHistory();
   await testFullSpotEditAppliesAllEditableFieldsAndKeepsHistoryData();
   await testEmptyMediaAppendDoesNotDeleteExistingMedia();

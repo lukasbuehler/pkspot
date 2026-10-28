@@ -1,8 +1,7 @@
-import * as admin from "firebase-admin";
-import * as logger from "firebase-functions/logger";
 import {defineSecret} from "firebase-functions/params";
 import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import {buildContactEmail} from "./contactEmail";
+import {deliverStaffEmail} from "./staffEmailDelivery";
 
 const resendKey = defineSecret("CONTACT_RESEND_API_KEY");
 
@@ -11,39 +10,14 @@ export const onContactMessageEmailCreate = onDocumentCreated({
   document: "contact_messages/{messageId}",
   region: "europe-west1",
   secrets: [resendKey],
-  // Safe to retry: delivered messages are skipped, Resend deduplicates by
-  // idempotency key, and retries stop at the 23-hour boundary below.
   retry: true,
 }, async (event) => {
   if (!event.data) return;
-  const delivery = admin.firestore().doc(`contact_email_delivery/${event.params.messageId}`);
-  if ((await delivery.get()).data()?.sent_at) return;
-  // Resend retains idempotency keys for 24 hours. Do not blindly resend after
-  // that boundary: an earlier accepted request may have timed out locally.
-  if (Date.now() - event.data.createTime.toMillis() > 23 * 60 * 60 * 1000) {
-    await delivery.set({status: "needs_review", reason: "delivery_window_expired"}, {merge: true});
-    logger.error("Contact email requires delivery review", {messageId: event.params.messageId});
-    return;
-  }
-  const key = resendKey.value().trim();
-  if (!key) throw new Error("Contact email credentials are not configured");
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    signal: AbortSignal.timeout(15_000),
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": `contact-${event.params.messageId}`,
-    },
-    body: JSON.stringify(buildContactEmail(event.params.messageId, event.data.data())),
+  await deliverStaffEmail({
+    deliveryPath: `contact_email_delivery/${event.params.messageId}`,
+    idempotencyKey: `contact-${event.params.messageId}`,
+    createdAtMs: event.data.createTime.toMillis(),
+    apiKey: () => resendKey.value(),
+    email: buildContactEmail(event.params.messageId, event.data.data()),
   });
-  // A rejected request will not succeed on retry; 409 (idempotent request
-  // still in progress) and 429 (rate limit) are transient.
-  if (response.status >= 400 && response.status < 500 && response.status !== 409 && response.status !== 429) {
-    await delivery.set({status: "needs_review", reason: `provider_rejected_${response.status}`}, {merge: true});
-    logger.error("Contact email was rejected by the provider", {messageId: event.params.messageId, status: response.status});
-    return;
-  }
-  if (!response.ok) throw new Error(`Contact email provider returned HTTP ${response.status}`);
-  await delivery.set({status: "sent", sent_at: admin.firestore.FieldValue.serverTimestamp()}, {merge: true});
 });

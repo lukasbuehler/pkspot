@@ -11,6 +11,8 @@ export interface ShareCardInput {
   kind: ShareCardKind;
   title: string;
   subtitle: string;
+  /** Locality or country shown directly below the title, ahead of supporting metadata. */
+  locationLabel?: string;
   detail?: string;
   label?: string;
   /** Average Spot rating out of five. Missing or zero means unrated. */
@@ -22,7 +24,7 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-11";
+export const SHARE_CARD_VERSION = "prototype-12";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 
 /** No network, Firebase, or filesystem writes. The local lab and future worker
@@ -30,7 +32,7 @@ export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
  * Raster artwork has a fixed palette independent of the viewer's app theme. */
 export async function renderShareCard(input: ShareCardInput, assets: ShareCardAssets): Promise<Buffer> {
   if (input.audience !== "public") throw new Error("Restricted content cannot produce a public share card");
-  if (!input.title.trim() || input.title.length > 240 || input.subtitle.length > 240 || (input.detail?.length ?? 0) > 160) {
+  if (!input.title.trim() || input.title.length > 240 || input.subtitle.length > 240 || (input.detail?.length ?? 0) > 160 || (input.locationLabel?.length ?? 0) > 240) {
     throw new Error("Share card text is missing or too long");
   }
   if (input.rating !== undefined && (!Number.isFinite(input.rating) || input.rating < 0 || input.rating > 5)) {
@@ -63,7 +65,7 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
       layers.push({ input: image, left: box.left, top: box.top });
     } catch { /* Keep a valid, intentionally designed fallback for broken photos. */ }
   }
-  layers.push({ input: svg(`<defs><linearGradient id="shade"><stop offset="0" stop-color="#18191f"/><stop offset=".3" stop-color="#18191f"/><stop offset=".48" stop-color="#18191f" stop-opacity=".88"/><stop offset=".8" stop-color="#18191f" stop-opacity=".22"/><stop offset="1" stop-color="#18191f" stop-opacity=".12"/></linearGradient></defs><rect width="1200" height="630" fill="url(#shade)"/><rect x="56" y="62" width="5" height="28" rx="2" fill="#b9bdff"/>`) });
+  layers.push({ input: svg(`<defs><linearGradient id="shade"><stop offset="0" stop-color="#18191f"/><stop offset=".3" stop-color="#18191f"/><stop offset=".48" stop-color="#18191f" stop-opacity=".88"/><stop offset=".8" stop-color="#18191f" stop-opacity=".22"/><stop offset="1" stop-color="#18191f" stop-opacity=".12"/></linearGradient></defs><rect width="1200" height="630" fill="url(#shade)"/>`) });
   const addText = async (text: string, left: number, top: number, width: number, height: number, size: number, color: string, bold = false) => {
     if (!text) return;
     const png = await sharp({ text: {
@@ -73,7 +75,7 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
     } }).resize({ width, height, fit: "inside", withoutEnlargement: true }).png().toBuffer();
     layers.push({ input: png, left, top });
   };
-  await addText((input.label ?? input.kind).slice(0, 40).toUpperCase(), 78, 63, 700, 36, 30, "#b9bdff", true);
+  await addText((input.label ?? input.kind).slice(0, 40).toUpperCase(), 56, 63, 700, 36, 30, "#b9bdff", true);
   if (input.kind === "spot" && input.rating && input.rating > 0) {
     const rating = await sharp({ text: {
       text: `<span foreground="#f4f3ff">${input.rating.toFixed(1)}</span>`,
@@ -87,8 +89,14 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
     layers.push({ input: rating.data, left: left + padding + starSize + gap,
       top: 48 + Math.round((height - rating.info.height) / 2) });
   }
-  const title = await renderTitle(input.title, photos.length ? 630 : 930, 246, assets.fontFile);
+  const titleWidth = photos.length ? 630 : 930;
+  // Reserve a small place line even when a long title reaches its minimum size.
+  // Supporting counts/date/venue keep their own fixed row below this region.
+  const title = await renderTitle(input.title, titleWidth, input.locationLabel ? 192 : 246, assets.fontFile);
   layers.push({ input: title.data, left: 56, top: 155 });
+  if (input.locationLabel) {
+    await addText(input.locationLabel, 58, 155 + title.info.height + 18, titleWidth, 36, 30, "#e2e0eb");
+  }
   await addText(input.subtitle, 58, 429, 1020, 72, 38, "#e2e0eb");
   await addText(input.detail ?? "", 58, 510, 1020, 42, 30, "#b9bdff");
   if (input.showBrandIcon && assets.icon) {

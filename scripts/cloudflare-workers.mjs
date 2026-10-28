@@ -38,6 +38,11 @@ function buildWorker() {
     { cwd: repoRoot, env: process.env, stdio: "inherit" }
   );
   rewriteFirebaseMessagingServiceWorkers(browserApiKey);
+  // Static assets can bypass the Worker, so their cache policy belongs here.
+  writeFileSync(
+    path.join(outputDir, "browser", "_headers"),
+    readFileSync(path.join(repoRoot, "src", "cloudflare-headers"), "utf8"),
+  );
   writeFileSync(
     path.join(outputDir, "worker.mjs"),
     [

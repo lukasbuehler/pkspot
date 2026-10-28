@@ -126,9 +126,13 @@ async function routeRequest(
   // Express renders the map at the locale root without an extra redirect.
   if (url.pathname === `/${first}` || url.pathname === `/${first}/`)
     url.pathname = `/${first}/map`;
-  const response =
-    (await render(new Request(url, request))) ??
-    new Response("Not Found", { status: 404 });
+  const rendered = await render(new Request(url, request));
+  if (!rendered) {
+    // Angular can return null after a navigation error, not only a missing route.
+    // Log no URL/query data; the Worker invocation identifies the request.
+    console.error("Cloudflare SSR returned no response", { locale: first });
+  }
+  const response = rendered ?? new Response("Not Found", { status: 404 });
   const headers = new Headers(response.headers);
   headers.set("Cache-Control", "no-cache");
   return new Response(response.body, { status: response.status, headers });

@@ -6479,6 +6479,121 @@
         <source>Thanks — your suggestion is ready for staff review.</source>
       </segment>
     </unit>
+    <unit id="event_suggestions.approve">
+      <segment>
+        <source>Approve and publish</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved">
+      <segment>
+        <source>Approved</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved_notice">
+      <segment>
+        <source>Suggestion approved and published.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.checking_access">
+      <segment>
+        <source>Checking admin access</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.dates">
+      <segment>
+        <source>Event dates</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.description">
+      <segment>
+        <source>Review community event proposals before publishing.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.empty">
+      <segment>
+        <source>No event suggestions in this queue.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.filter">
+      <segment>
+        <source>Suggestion status</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.heading">
+      <segment>
+        <source>Event suggestions</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.load_error">
+      <segment>
+        <source>Could not load event suggestions. Please refresh and try again.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.loading">
+      <segment>
+        <source>Loading suggestions</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.more">
+      <segment>
+        <source>Show more</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.note">
+      <segment>
+        <source>Review note (optional)</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.open_source">
+      <segment>
+        <source>Open source</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.organizer">
+      <segment>
+        <source>Organizer</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.pending">
+      <segment>
+        <source>Pending</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.publish_hint">
+      <segment>
+        <source>Approval publishes this as a public event.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.reject">
+      <segment>
+        <source>Reject</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected">
+      <segment>
+        <source>Rejected</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected_notice">
+      <segment>
+        <source>Suggestion rejected.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.review_error">
+      <segment>
+        <source>Could not update the queue. Refresh and try again.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.submitted">
+      <segment>
+        <source>Submitted</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.view_event">
+      <segment>
+        <source>View published event</source>
+      </segment>
+    </unit>
     <unit id="event_tickets.availability.coming_soon">
       <segment>
         <source>Coming soon</source>

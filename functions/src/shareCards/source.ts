@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { isEventPubliclyDiscoverable } from "../../../src/db/schemas/EventDiscoverySchema";
 import { EventSchema } from "../../../src/db/schemas/EventSchema";
 import { buildPublicUserProfile } from "../userProfileProjection";
+import { localizedCountryName } from "../../../src/scripts/CommunityPlaceNames";
+import { singleLocality } from "../../../src/scripts/EntityPlaceNames";
 import { MAX_COMMUNITY_PHOTOS } from "./collage";
 import { ShareCardInput, SHARE_CARD_VERSION } from "./render";
 
@@ -32,15 +34,16 @@ export async function resolveCardSource(
   data: Record<string, unknown> | undefined,
   readSpots: (ids: string[]) => Promise<(Record<string, unknown> | undefined)[]>,
   bucket: string,
+  locale = "en",
 ): Promise<CardSource | null> {
-  const source = projectCard(kind, data);
+  const source = projectCard(kind, data, locale);
   if (!source || kind !== "community") return source;
   const paths = new Set<string>();
   for (let offset = 0; offset < source.relatedSpotIds!.length && source.media.length < MAX_COMMUNITY_PHOTOS; offset += MAX_COMMUNITY_PHOTOS) {
     const spots = await readSpots(source.relatedSpotIds!.slice(offset, offset + MAX_COMMUNITY_PHOTOS));
     for (const spot of spots) {
       if (spot?.isReported === true) continue;
-      const photo = projectCard("spot", spot)?.media.find((src) => {
+      const photo = projectCard("spot", spot, locale)?.media.find((src) => {
         const path = storageMediaPath(src, bucket);
         return path && !paths.has(path);
       });
@@ -60,14 +63,22 @@ const localized = (v: unknown): string => {
 };
 
 /** Public presentation fields only. Never include profile history or attendance. */
-const eventDate = (data: Record<string, unknown>): string => {
+const eventDate = (data: Record<string, unknown>, locale: string): string => {
   const seconds = record(data.start).seconds ?? data.start_seconds;
   if (typeof seconds !== "number" || !Number.isFinite(seconds)) return "";
   try {
-    return new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric", timeZone: text(data.time_zone) || "UTC" }).format(new Date(seconds * 1000));
+    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: text(data.time_zone) || "UTC" }).format(new Date(seconds * 1000));
   } catch { return ""; }
 };
-export function projectCard(kind: EntityKind, data: Record<string, unknown> | undefined): CardSource | null {
+/** Resolve only materialized place names; rendering never calls a geocoder.
+ * An explicit place key mismatch means the stored translation is stale. */
+const eventLocality = (data: Record<string, unknown>, locale: string): string => {
+  const place = record(data.place_names);
+  const names = data.place_key && data.place_key !== place.key ? {} : record(place.locality);
+  return text(names[locale]) || text(names[locale.split("-")[0]]) ||
+    singleLocality(text(data.locality_string), text(data.country_code)) || text(data.locality_string);
+};
+export function projectCard(kind: EntityKind, data: Record<string, unknown> | undefined, locale = "en"): CardSource | null {
   if (!data) return null;
   if (kind === "event" && (!isEventPubliclyDiscoverable(data as Partial<EventSchema>) || data.viewer_policy !== undefined)) return null;
   if (kind === "community" && (data.published !== true || data.redirect_to_community_key)) return null;
@@ -76,8 +87,13 @@ export function projectCard(kind: EntityKind, data: Record<string, unknown> | un
   const title = kind === "community" ? text(data.displayName) : kind === "profile" ? text(data.display_name) : localized(data.name);
   if (!title) return null;
   const address = record(data.address);
+  const geography = record(data.geography);
+  const locationLabel = kind === "event" ? eventLocality(data, locale)
+    : kind === "community" && data.scope === "locality"
+      ? localizedCountryName(text(geography.countryCode), locale, text(geography.countryName) || text(geography.countryLocalName))
+      : "";
   const subtitle = kind === "spot" ? text(data.locality_string) || [text(address.locality), text(record(address.country).name)].filter(Boolean).join(", ")
-    : kind === "event" ? [eventDate(data), text(data.venue_string) || text(data.locality_string)].filter(Boolean).join(" · ")
+    : kind === "event" ? [eventDate(data, locale), text(data.venue_string)].filter(Boolean).join(" · ")
     : kind === "community" ? `${Number(record(data.counts).totalSpots) || 0} Spots` : "Part of the parkour community";
   const media = kind === "spot" && Array.isArray(data.media) ? data.media.map(record)
     .filter(m => m.type === "image" && m.isReported !== true && m.origin !== "streetview" && !m.attribution && !m.attribution_text)
@@ -85,6 +101,7 @@ export function projectCard(kind: EntityKind, data: Record<string, unknown> | un
     : kind === "event" && text(data.banner_src) ? [text(data.banner_src)] : [];
   const rating = kind === "spot" && typeof data.rating === "number" && Number.isFinite(data.rating) && data.rating >= 0 && data.rating <= 5 ? data.rating : undefined;
   return { input: { kind, audience: "public", title: title.slice(0, 240), subtitle: subtitle.slice(0, 240),
+    ...(locationLabel ? { locationLabel: locationLabel.slice(0, 240) } : {}),
     detail: kind === "event" ? "Discover the event on PK Spot" : kind === "spot" ? "Explore on PK Spot" : "Find your community on PK Spot",
     ...(rating === undefined ? {} : { rating }) }, media,
     ...(kind === "community" ? { relatedSpotIds: communityCardSpotIds(data) } : {}) };

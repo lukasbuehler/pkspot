@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const admin = require("firebase-admin");
 const { deleteApp, initializeApp } = require("firebase/app");
+const { CustomProvider, initializeAppCheck } = require("firebase/app-check");
 const {
   connectAuthEmulator,
   getAuth,
@@ -59,6 +60,18 @@ async function createAdminCallables(uid) {
     },
     `media-moderation-admin-${Date.now()}`
   );
+  // The Functions emulator decodes synthetic App Check JWTs locally. Keep
+  // production enforcement enabled while exercising the actual callable SDK.
+  initializeAppCheck(clientApp, { provider: new CustomProvider({
+    getToken: async () => ({
+      token: [
+        Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url"),
+        Buffer.from(JSON.stringify({ sub: "emulator-test-app", exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url"),
+        "emulator-only",
+      ].join("."),
+      expireTimeMillis: Date.now() + 3600000,
+    }),
+  }) });
   const auth = getAuth(clientApp);
   const [authHost, authPort] = process.env.FIREBASE_AUTH_EMULATOR_HOST.split(":");
   connectAuthEmulator(auth, `http://${authHost}:${authPort}`, {
@@ -74,6 +87,9 @@ async function createAdminCallables(uid) {
     createIncident: httpsCallable(functions, "createSafetyIncident"),
     getPreview: httpsCallable(functions, "getModerationMediaPreview"),
     updateIncident: httpsCallable(functions, "updateSafetyIncident"),
+    beginSubmission: httpsCallable(functions, "beginSpotMediaSubmission"),
+    failTransfers: httpsCallable(functions, "failSpotMediaSubmissionUploads"),
+    cleanup: httpsCallable(functions, "cleanupAllOrphanedMedia"),
   };
 }
 
@@ -110,6 +126,97 @@ async function waitForDeletedDoc(docRef, timeoutMs = 60_000) {
   }
 
   throw new Error(`Timed out waiting for ${docRef.path} to be deleted`);
+}
+
+async function waitForSpotPhotos(spotId, expectedCount, expectedEditCount = 1) {
+  const start = Date.now();
+  while (Date.now() - start < 60000) {
+    const [spot, edits] = await Promise.all([
+      db.doc(`spots/${spotId}`).get(), db.collection(`spots/${spotId}/edits`).get(),
+    ]);
+    if (spot.get("media")?.length === expectedCount && edits.size === expectedEditCount &&
+        edits.docs.every((edit) => edit.get("approved"))) return edits;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Timed out waiting for ${expectedCount} photos on ${spotId}`);
+}
+
+async function testSpotMediaSubmissions(callables, suffix) {
+  const uid = "media-moderation-admin";
+  async function upload(spotId, id, decision = "allow") {
+    await bucket.upload(ORIGINAL_IMAGE, {
+      destination: `media_intake/${uid}/${id}/${id}.jpg`, resumable: false,
+      metadata: { contentType: "image/jpeg", metadata: {
+        uid, upload_id: id, destination_folder: "spot_pictures", destination_filename: id,
+        target_kind: "spot", target_id: spotId, emulator_safety_result: decision,
+      } },
+    });
+  }
+  console.log("Checking one submission produces one edit for two independently scanned photos...");
+  const spotId = `submission-${suffix}`;
+  const ids = [`batch-first-${suffix}`, `batch-second-${suffix}`];
+  await db.doc(`spots/${spotId}`).set({ media: [], source: "pkspot" });
+  const payload = { submission_id: `batch-${suffix}`, spot_id: spotId, upload_ids: ids };
+  await callables.beginSubmission(payload);
+  await callables.beginSubmission(payload); // A retried reservation is idempotent.
+  await Promise.all(ids.map((id) => upload(spotId, id)));
+  const edits = await waitForSpotPhotos(spotId, 2);
+  assert.equal(edits.docs[0].get("data.media").length, 2);
+  await Promise.all(ids.map((id) => waitForReviewStatus(id, "approved")));
+  // Repeated terminal snapshots must not create another edit or lose siblings.
+  await db.doc(`media_upload_status/${ids[0]}`).update({ replay_test: true });
+  await waitForSpotPhotos(spotId, 2);
+  await assertCallableRejected(() => callables.cleanup({}), "functions/failed-precondition");
+  await waitForFile(`spot_pictures/${ids[0]}_800x800.jpg`);
+
+  console.log("Checking failed transfers and held photos do not block approved siblings...");
+  const mixedSpot = `mixed-submission-${suffix}`;
+  const mixedIds = [`batch-safe-${suffix}`, `batch-held-${suffix}`, `batch-failed-${suffix}`];
+  await db.doc(`spots/${mixedSpot}`).set({ media: [], source: "pkspot" });
+  await callables.beginSubmission({ submission_id: `mixed-${suffix}`, spot_id: mixedSpot, upload_ids: mixedIds });
+  await Promise.all([
+    upload(mixedSpot, mixedIds[0]), upload(mixedSpot, mixedIds[1], "needs_review"),
+    callables.failTransfers({ upload_ids: [mixedIds[2]] }),
+  ]);
+  await waitForSpotPhotos(mixedSpot, 1);
+  await waitForReviewStatus(mixedIds[1], "needs_review");
+  await callables.markSafe({ review_id: mixedIds[1] });
+  await waitForSpotPhotos(mixedSpot, 2, 2);
+  await assertCallableRejected(() => callables.failTransfers({ upload_ids: [`moderated-${suffix}`] }),
+    "functions/permission-denied");
+
+  console.log("Checking abandoned transfers expire and delayed approvals remain recoverable...");
+  const abandonedSpot = `abandoned-submission-${suffix}`;
+  const abandonedIds = [`batch-ready-${suffix}`, `batch-late-${suffix}`];
+  await db.doc(`spots/${abandonedSpot}`).set({ media: [], source: "pkspot" });
+  const reservation = await callables.beginSubmission({
+    submission_id: `abandoned-${suffix}`, spot_id: abandonedSpot, upload_ids: abandonedIds,
+  });
+  await upload(abandonedSpot, abandonedIds[0]);
+  await waitForReviewStatus(abandonedIds[0], "approved");
+  // Published status follows the review update; wait before simulating age.
+  const ready = db.doc(`media_upload_status/${abandonedIds[0]}`);
+  const statusWaitStart = Date.now();
+  while ((await ready.get()).get("status") !== "published") {
+    if (Date.now() - statusWaitStart > 60000) throw new Error("Timed out waiting for upload publication");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  const old = admin.firestore.Timestamp.fromMillis(Date.now() - 2 * 3600000);
+  await db.doc(`spot_media_submissions/${reservation.data.submission_id}`).update({ created_at: old });
+  await db.doc(`media_upload_status/${abandonedIds[1]}`).update({ updated_at: old });
+  // Scheduled Functions do not run on a clock in the emulator. Invoke the
+  // real compiled handler against the same isolated emulator database.
+  const maintenanceAdmin = require("../functions/node_modules/firebase-admin");
+  const maintenanceApp = maintenanceAdmin.initializeApp({ projectId: PROJECT_ID });
+  try {
+    const { expireSpotMediaSubmissions } = require("../functions/lib/functions/src/spotMediaSubmissionFunctions");
+    await expireSpotMediaSubmissions.run({});
+    await waitForSpotPhotos(abandonedSpot, 1);
+    await upload(abandonedSpot, abandonedIds[1]);
+    await waitForSpotPhotos(abandonedSpot, 2, 2);
+  } finally {
+    await maintenanceApp.delete();
+  }
 }
 
 function getDerivativePath(originalPath, size) {
@@ -413,6 +520,7 @@ async function main() {
 
   console.log("Checking administrator review releases ordinary Vision flags only...");
   const callables = await createAdminCallables("media-moderation-admin");
+  await testSpotMediaSubmissions(callables, suffix);
   await assertCallableRejected(
     () => callables.getPreview({ review_id: blockedUploadId }),
     "functions/failed-precondition"
@@ -725,6 +833,7 @@ async function main() {
   await assertCallableRejected(() => callables.markFalsePositive({ review_id: `locked-${suffix}` }), "functions/failed-precondition");
   await db.doc("users/media-moderation-admin").update({ is_admin: false });
   await assertCallableRejected(() => callables.markFalsePositive({ review_id: oldProfileId }), "functions/permission-denied");
+  await assertCallableRejected(() => callables.cleanup({}), "functions/permission-denied");
   await db.doc("users/media-moderation-admin").update({ is_admin: true });
 
   console.log("Checking maintenance backfill creates missing derivatives for spot and profile images...");

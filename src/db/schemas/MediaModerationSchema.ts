@@ -80,6 +80,8 @@ export interface MediaUploadReviewSchema {
 export interface MediaUploadStatusSchema {
   uid: string;
   upload_id: string;
+  /** Server-owned grouping for photos uploaded in one Spot submission. */
+  submission_id?: string;
   status: MediaUploadProcessingStatus;
   target_kind?: MediaUploadTargetKind;
   target_id?: string;

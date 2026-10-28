@@ -165,3 +165,48 @@ test('extreme titles stop at 48 and ellipsize inside the reserved rectangle', as
     assert.ok(result.info.width <= 630 && result.info.height <= 246);
   }
 });
+
+test('locality community cards show the country while retaining their Spot count', () => {
+  const data={published:true,displayName:'Zürich',scope:'locality',counts:{totalSpots:141},
+    geography:{countryCode:'CH',countryName:'Switzerland'}};
+  const english=projectCard('community',data);
+  assert.equal(english.input.locationLabel,'Switzerland');
+  assert.equal(english.input.subtitle,'141 Spots');
+  assert.equal(projectCard('community',data,'de-CH').input.locationLabel,'Schweiz');
+  assert.equal(projectCard('community',{...data,geography:{countryName:'Recorded country'}}).input.locationLabel,'Recorded country');
+  assert.equal(projectCard('community',{...data,scope:'country',displayName:'Switzerland'}).input.locationLabel,undefined);
+  assert.equal(projectCard('community',{...data,geography:{}}).input.locationLabel,undefined);
+});
+
+test('event cards include localized locality alongside the date and venue', () => {
+  const data={name:'An event',published:true,start:{seconds:1797033600},venue_string:'Parkourhall1',
+    locality_string:'Liège, Belgium',country_code:'BE',place_key:'town-key',
+    place_names:{key:'town-key',locality:{en:'Liège',de:'Lüttich',nl:'Luik'}}};
+  const english=projectCard('event',data);
+  assert.equal(english.input.locationLabel,'Liège');
+  assert.ok(english.input.subtitle.includes('Parkourhall1'));
+  assert.equal(projectCard('event',data,'de-CH').input.locationLabel,'Lüttich');
+  assert.equal(projectCard('event',data,'nl').input.locationLabel,'Luik');
+  assert.equal(projectCard('event',{...data,place_key:'moved-town'}).input.locationLabel,'Liège');
+  assert.equal(projectCard('event',{...data,place_names:undefined,venue_string:''}).input.locationLabel,'Liège');
+  assert.equal(projectCard('event',{name:'Unknown place',published:true}).input.locationLabel,undefined);
+  assert.notEqual(sourceFingerprint(english),sourceFingerprint(projectCard('event',{...data,locality_string:'Elsewhere',place_names:undefined})));
+});
+
+test('type labels have no accent bar and place context leaves the supporting row intact', async () => {
+  for(const kind of ['spot','event','community']) {
+    const png=await renderShareCard({...input,kind,title:'Zürich',locationLabel:'Switzerland',subtitle:'141 Spots'},assets);
+    const {data,info}=await sharp(png).raw().toBuffer({resolveWithObject:true});
+    const offset=(62*info.width+58)*info.channels;
+    assert.deepEqual([...data.subarray(offset,offset+3)],[24,25,31]);
+    // The location and count occupy independent bands and produce real glyphs.
+    for(const [top,height] of [[230,80],[429,72]]) {
+      const area=await sharp(png).extract({left:56,top,width:420,height}).stats();
+      assert.ok(area.channels[0].max>150);
+    }
+  }
+  const long={...input,kind:'event',title:'W'.repeat(240),locationLabel:'Järfälla',subtitle:'11 December 2026 · Parkourhall1'};
+  const png=await renderShareCard(long,assets);
+  assert.equal((await sharp(png).metadata()).height,630);
+  await assert.rejects(renderShareCard({...input,locationLabel:'x'.repeat(241)},assets));
+});

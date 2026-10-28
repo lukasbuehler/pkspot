@@ -51,6 +51,10 @@ const mobileViewport = { width: 390, height: 844 };
 const alainMobileViewport = { width: 390, height: 680 };
 
 const routeVisualCases: RouteVisualCase[] = [
+  { name: "event-suggestions-review", path: "/moderation/event-suggestions", signedIn: true, admin: true, viewport: desktopViewport, fullPage: true },
+  { name: "event-suggestions-review-alain", path: "/moderation/event-suggestions", signedIn: true, admin: true, viewport: alainMobileViewport, fullPage: true, assertAlainClearance: {axis: "block", target: "app-event-suggestion-review-page header"} },
+  { name: "event-suggestions-denied", path: "/moderation/event-suggestions", signedIn: true, viewport: mobileViewport, fullPage: true },
+
   { name: "event-youtube-desktop", path: "/events/visual-youtube-event", youtubeFixture: true, viewport: desktopViewport, fixedTime: "2026-10-23T12:00:00.000Z" },
   { name: "event-youtube-mobile", path: "/events/visual-youtube-event", youtubeFixture: true, viewport: mobileViewport, fixedTime: "2026-10-23T12:00:00.000Z" },
   { name: "finances", path: "/finances", signedIn: true, admin: true, fullPage: true, fixedTime: "2026-10-06T12:00:00.000Z" },
@@ -731,6 +735,11 @@ test.describe("Route visual regression @visual", () => {
         await expect(page.locator("app-youtube-player")).toBeVisible();
         await expect(page.locator("app-youtube-player iframe, app-youtube-player img")).toHaveCount(0);
         await expect(page.locator("app-youtube-player .youtube-watch")).toBeVisible();
+      }
+
+      if (route.path === "/moderation/event-suggestions" && route.admin) {
+        await expect(page.locator("app-event-suggestion-review-page mat-expansion-panel")).toHaveCount(2);
+        await expect(page.locator("app-event-suggestion-review-page")).toContainText("Zürich Community Jam");
       }
 
       if (route.name.startsWith("moderation-duplicates")) {
@@ -2305,6 +2314,21 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       verifiedAdult: route.verifiedAdult === true,
     },
   );
+
+  if (route.path === "/moderation/event-suggestions" && route.admin) {
+    await page.addInitScript(() => {
+      (window as typeof window & {__PKSPOT_SCREENSHOT_EVENT_SUGGESTIONS__?: unknown}).__PKSPOT_SCREENSHOT_EVENT_SUGGESTIONS__ = [
+        {id: "visual-suggestion-one", name: "Zürich Community Jam", status: "submitted", submitter_id: "visual-athlete",
+          locality_string: "Zürich", country_code: "CH", organizer_name: "Local movement crew",
+          description: "Open training and a friendly gathering for the local parkour community.\nBring water and meet at the main training area.",
+          source_url: "https://example.test/community-jam", time_zone: "Europe/Zurich",
+          start: "2026-11-14T12:00:00Z", end: "2026-11-14T16:00:00Z", time_created: "2026-10-28T12:00:00Z", time_updated: "2026-10-28T12:00:00Z"},
+        {id: "visual-suggestion-two", name: "Winter Movement Gathering", status: "submitted", submitter_id: "visual-athlete-two",
+          locality_string: "Basel", country_code: "CH", time_zone: "Europe/Zurich",
+          start: "2026-12-05T12:00:00Z", end: "2026-12-05T16:00:00Z", time_created: "2026-10-27T12:00:00Z", time_updated: "2026-10-27T12:00:00Z"},
+      ];
+    });
+  }
 
   if (route.path === "/finances") {
     await page.addInitScript(() => {

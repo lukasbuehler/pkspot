@@ -31,8 +31,10 @@ export { SpotFilterMode } from "./spot-filter-config";
 
 import {
   getMapSpotSearchLimit,
+  MAP_SPOT_PRESENCE_LIMIT,
   SearchService,
 } from "../../services/search.service";
+import { viewportQuerySegments } from "./viewport-query-segments";
 
 /**
  * This interface is used to reference a spot in the loaded spots array.
@@ -94,6 +96,8 @@ export class SpotMapDataManager {
   private _visibleSpots = signal<Spot[]>([]);
   private _visibleAmenityMarkers = signal<MarkerSchema[]>([]);
   private _visibleHighlightedSpots = signal<SpotPreviewData[]>([]);
+  private _visibleSpotPresence = signal<SpotPreviewData[]>([]);
+  private _spotPresenceRequestId = 0;
 
   private _manualHighlightedSpots = signal<SpotPreviewData[]>([]);
   private _filteredSpotsCache: Map<SpotId, SpotPreviewData> = new Map();
@@ -104,6 +108,8 @@ export class SpotMapDataManager {
   public visibleSpots = this._visibleSpots.asReadonly();
   public visibleAmenityMarkers = this._visibleAmenityMarkers.asReadonly();
   public visibleHighlightedSpots = this._visibleHighlightedSpots.asReadonly();
+  /** Every Spot in the viewport (capped), for the map's presence dots. */
+  public visibleSpotPresence = this._visibleSpotPresence.asReadonly();
 
   private _lastVisibleTiles = signal<TilesObject | null>(null);
 
@@ -378,6 +384,8 @@ export class SpotMapDataManager {
           visibleTilesObj,
           this._getSpotPreviewSearchOptions(zoom)
         );
+        // Presence pages are loaded once the map rests, not while panning.
+        this._loadSpotPresence(visibleTilesObj);
         this._lastHighlightFetchTime = Date.now();
       }, this.CLUSTER_DEBOUNCE_MS);
     }
@@ -955,6 +963,37 @@ export class SpotMapDataManager {
     }
 
     return `${point.latitude}:${point.longitude}`;
+  }
+
+  private _loadSpotPresence(visibleTilesObj: TilesObject): void {
+    const bounds = visibleTilesObj.viewportBounds;
+    if (!bounds) return;
+    const requestId = ++this._spotPresenceRequestId;
+    const segments = viewportQuerySegments(bounds);
+    const perSegment = Math.ceil(MAP_SPOT_PRESENCE_LIMIT / segments.length);
+    Promise.all(
+      segments.map((segment) =>
+        this._searchService.searchSpotPresenceInRawBounds(
+          segment.north,
+          segment.south,
+          segment.east,
+          segment.west,
+          perSegment,
+        ),
+      ),
+    )
+      .then((results) => {
+        if (requestId !== this._spotPresenceRequestId) return;
+        const unique = new Map<SpotId, SpotPreviewData>();
+        for (const preview of results.flat()) {
+          if (preview.location && !unique.has(preview.id)) unique.set(preview.id, preview);
+        }
+        this._visibleSpotPresence.set([...unique.values()]);
+      })
+      .catch((err) => {
+        if (requestId !== this._spotPresenceRequestId) return;
+        console.warn("Typesense presence search failed:", err);
+      });
   }
 
   private _loadHighlightsForTiles(

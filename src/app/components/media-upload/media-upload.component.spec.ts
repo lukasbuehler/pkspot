@@ -15,6 +15,8 @@ import {
 describe("MediaUpload", () => {
   let storageService: {
     setUploadToStorageWithResult: ReturnType<typeof vi.fn>;
+    beginSpotMediaSubmission: ReturnType<typeof vi.fn>;
+    failSpotMediaSubmissionUploads: ReturnType<typeof vi.fn>;
   };
   let snackBar: {
     open: ReturnType<typeof vi.fn>;
@@ -26,6 +28,8 @@ describe("MediaUpload", () => {
   beforeEach(() => {
     storageService = {
       setUploadToStorageWithResult: vi.fn(),
+      beginSpotMediaSubmission: vi.fn().mockResolvedValue({}),
+      failSpotMediaSubmissionUploads: vi.fn().mockResolvedValue({}),
     };
     snackBar = {
       open: vi.fn(),
@@ -81,6 +85,47 @@ describe("MediaUpload", () => {
     await Promise.resolve();
     await Promise.resolve();
   }
+
+  it("reserves one submission for a multi-photo Spot upload and reports transfer failures", async () => {
+    const fixture = await createFixture();
+    fixture.componentRef.setInput("storageFolder", StorageBucket.SpotPictures);
+    fixture.componentRef.setInput("moderationTargetKind", "spot");
+    fixture.componentRef.setInput("moderationTargetId", "spot-1");
+    fixture.componentRef.setInput("multipleAllowed", true);
+    const component = fixture.componentInstance;
+    storageService.setUploadToStorageWithResult.mockImplementation(async (...args: unknown[]) => {
+      if ((args[0] as File).name === "failed.jpg") throw new Error("transport failed");
+      return { url: "https://example.test/photo.jpg", uploadId: args[8],
+        path: "spot_pictures/photo.jpg", targetKind: "spot", targetId: "spot-1" };
+    });
+    component.stageFiles(["first.jpg", "second.jpg", "failed.jpg"].map(
+      (name) => new File(["image"], name, { type: "image/jpeg" }),
+    ));
+    await component.uploadStaged();
+    expect(storageService.beginSpotMediaSubmission).toHaveBeenCalledOnce();
+    const ids = storageService.beginSpotMediaSubmission.mock.calls[0]![1] as string[];
+    expect(ids).toHaveLength(3);
+    expect(storageService.setUploadToStorageWithResult.mock.calls.map((args) => args[8])).toEqual(ids);
+    expect(storageService.beginSpotMediaSubmission.mock.invocationCallOrder[0]).toBeLessThan(
+      storageService.setUploadToStorageWithResult.mock.invocationCallOrder[0]!,
+    );
+    expect(storageService.failSpotMediaSubmissionUploads).toHaveBeenCalledWith([ids[2]]);
+    expect(component.mediaList().map((media) => media.state)).toEqual(["complete", "complete", "failed"]);
+  });
+
+  it("keeps files staged if submission reservation fails", async () => {
+    const fixture = await createFixture();
+    fixture.componentRef.setInput("storageFolder", StorageBucket.SpotPictures);
+    fixture.componentRef.setInput("moderationTargetKind", "spot");
+    fixture.componentRef.setInput("moderationTargetId", "spot-1");
+    storageService.beginSpotMediaSubmission.mockRejectedValue(new Error("offline"));
+    const component = fixture.componentInstance;
+    component.stageFiles([new File(["image"], "spot.jpg", { type: "image/jpeg" })]);
+    await component.uploadStaged();
+    expect(storageService.setUploadToStorageWithResult).not.toHaveBeenCalled();
+    expect(component.mediaList()[0]?.state).toBe("staged");
+    expect(component.uploading()).toBe(false);
+  });
 
   it("marks the attach button as non-submit so parent edit forms stay open", async () => {
     const fixture = await createFixture();
@@ -139,6 +184,7 @@ describe("MediaUpload", () => {
       expect.any(String),
       "jpg",
       "public, max-age=31536000",
+      undefined,
       undefined,
       undefined
     );

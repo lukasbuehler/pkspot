@@ -11,7 +11,7 @@ import type {
   EventOwnerSchema,
   EventSchema,
 } from "../../src/db/schemas/EventSchema";
-import type { EventSuggestionSchema } from "../../src/db/schemas/EventSuggestionSchema";
+import type { EventSuggestionSchema, EventSuggestionQueueItem, EventSuggestionQueuePage } from "../../src/db/schemas/EventSuggestionSchema";
 import type { OrganizationMemberSchema, OrganizationReferenceSchema, OrganizationSchema } from "../../src/db/schemas/OrganizationSchema";
 import type { UserSchema } from "../../src/db/schemas/UserSchema";
 
@@ -647,6 +647,40 @@ export const submitEventSuggestion = onCall(
   },
 );
 
+/** Suggestions remain private: listing and review share server-side admin checks. */
+export const listEventSuggestions = onCall(
+  CALLABLE_OPTIONS,
+  async (request): Promise<EventSuggestionQueuePage> => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to review suggestions.");
+    if (!isAdmin(await requireUser(uid))) throw new HttpsError("permission-denied", "Administrator access required.");
+    const input = record(request.data);
+    const status = input["status"] ?? "submitted";
+    if (status !== "submitted" && status !== "approved" && status !== "rejected") {
+      throw new HttpsError("invalid-argument", "Invalid suggestion status.");
+    }
+    const db = admin.firestore();
+    let query = db.collection("event_suggestions").where("status", "==", status).orderBy("time_created", "desc").limit(51);
+    if (input["cursor"]) {
+      const id = cleanText(input["cursor"], "Cursor", 128)!;
+      if (!/^[\w-]+$/.test(id)) throw new HttpsError("invalid-argument", "Invalid cursor.");
+      const cursor = await db.doc(`event_suggestions/${id}`).get();
+      if (!cursor.exists) throw new HttpsError("invalid-argument", "Cursor is no longer available. Refresh the queue.");
+      query = query.startAfter(cursor);
+    }
+    const snapshot = await query.get();
+    const items = snapshot.docs.slice(0, 50).map((doc): EventSuggestionQueueItem => {
+      const data = doc.data() as EventSuggestionSchema;
+      const {start, end, time_created, time_updated, review, ...fields} = data;
+      return {...fields, id: doc.id, start: start.toDate().toISOString(), end: end.toDate().toISOString(),
+        time_created: time_created.toDate().toISOString(), time_updated: time_updated.toDate().toISOString(),
+        ...(review ? {review: {...review, reviewed_at: review.reviewed_at.toDate().toISOString()}} : {}),
+      };
+    });
+    return {items, nextCursor: snapshot.docs.length > 50 ? items.at(-1)!.id : null};
+  },
+);
+
 export const reviewEventSuggestion = onCall(
   CALLABLE_OPTIONS,
   async (request): Promise<{ ok: true; eventId?: string; slug?: string }> => {
@@ -696,6 +730,10 @@ export const reviewEventSuggestion = onCall(
         eventRef!.id,
         { type: "user", user_id: uid },
       );
+      if (suggestion.source_url) {
+        event.url = suggestion.source_url;
+        event.event_links = [{label: "Event source", url: suggestion.source_url, kind: "website"}];
+      }
       transaction.create(eventRef!, event);
       transaction.create(db.doc(`event_slugs/${event.slug}`), { event_id: eventRef!.id });
       transaction.update(suggestionRef, {

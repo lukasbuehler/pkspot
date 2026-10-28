@@ -44,6 +44,9 @@ import {
   type SearchTextMatch,
 } from "./search-ranking";
 
+/** How many Spots the map loads as presence dots per viewport. */
+export const MAP_SPOT_PRESENCE_LIMIT = 1000;
+
 export function getMapSpotSearchLimit(viewportZoom: number | undefined): number {
   if (typeof viewportZoom !== "number" || !Number.isFinite(viewportZoom)) {
     return 10;
@@ -835,6 +838,47 @@ export class SearchService {
       onlyWithImages,
       viewportZoom,
     );
+  }
+
+  /**
+   * Lightweight Spot points for the map's presence dots: every Spot in the
+   * bounds, without the tile grouping that spreads the rating pills out, and
+   * with only the fields a dot needs. Top-rated Spots come first when capped.
+   */
+  public async searchSpotPresenceInRawBounds(
+    north: number,
+    south: number,
+    east: number,
+    west: number,
+    maxSpots: number,
+  ): Promise<SpotPreviewData[]> {
+    const polygon = [north, east, south, east, south, west, north, west]
+      .map((num) => SearchService._formatGeoFilterCoordinate(num))
+      .join(", ");
+    const MAX_PER_PAGE = 250;
+    const perPage = Math.min(MAX_PER_PAGE, Math.max(1, maxSpots));
+    const previews: SpotPreviewData[] = [];
+    for (let page = 1; previews.length < maxSpots; page++) {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_SPOTS)
+        .documents()
+        .search(
+          {
+            q: "*",
+            filter_by: `location:(${polygon})`,
+            sort_by: this.SPOT_SORT_BY_RATING,
+            include_fields: "id,name,slug,location",
+            per_page: perPage,
+            page,
+          },
+          {},
+        );
+      const hits = SearchService._flattenTypesenseHits(result);
+      previews.push(...hits.map((hit) => this.getSpotPreviewFromHit(hit)));
+      const found = SearchService._readFound(result) || 0;
+      if (hits.length < perPage || page * perPage >= found) break;
+    }
+    return previews.slice(0, maxSpots);
   }
 
   private async _executeSearch(

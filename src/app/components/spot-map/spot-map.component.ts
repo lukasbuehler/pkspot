@@ -325,6 +325,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.spotFilterMode() !== SpotFilterMode.None ||
       this.focusedSpotPreviews() !== null,
   );
+  /** Presence dots belong to the normal map, not to filter or community views. */
+  readonly renderedSpotPresence = computed(() =>
+    this.showSpots() &&
+    this.focusedSpotPreviews() === null &&
+    this.spotFilterMode() === SpotFilterMode.None
+      ? this._spotMapDataManager.visibleSpotPresence()
+      : [],
+  );
   readonly renderedVisibleSpots = computed(() =>
     this.showSpots() && this.focusedSpotPreviews() === null
       ? this.visibleSpots()

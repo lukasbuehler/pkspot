@@ -7,6 +7,7 @@ import { StorageBucket } from "../../../db/schemas/Media";
 import type { MediaUploadTargetKind } from "../../../db/schemas/MediaModerationSchema";
 import { generateUUID } from "../../../scripts/Helpers";
 import { StorageAdapterService } from "./storage-adapter.service";
+import { FunctionsAdapterService } from "./functions-adapter.service";
 
 export interface StorageUploadResult {
   url: string;
@@ -24,6 +25,17 @@ export class StorageService {
 
   private storageAdapter = inject(StorageAdapterService);
   private authService = inject(AuthenticationService);
+  private readonly functions = inject(FunctionsAdapterService);
+
+  beginSpotMediaSubmission(spotId: string, uploadIds: string[]): Promise<unknown> {
+    return this.functions.call("beginSpotMediaSubmission", {
+      submission_id: generateUUID(), spot_id: spotId, upload_ids: uploadIds,
+    });
+  }
+
+  failSpotMediaSubmissionUploads(uploadIds: string[]): Promise<unknown> {
+    return this.functions.call("failSpotMediaSubmissionUploads", { upload_ids: uploadIds });
+  }
 
   private readonly isBrowser = typeof window !== "undefined";
 
@@ -71,7 +83,8 @@ export class StorageService {
     fileEnding?: string,
     cacheControl?: string,
     targetKind?: MediaUploadTargetKind,
-    targetId?: string
+    targetId?: string,
+    reservedUploadId?: string
   ): Promise<StorageUploadResult> {
     return this.telemetry.run("media_upload", "setUploadToStorageWithResult", async () => {
       if (!this.isBrowser) {
@@ -119,7 +132,7 @@ export class StorageService {
       }
 
       if (this.requiresModeration(location)) {
-        const uploadId = generateUUID();
+        const uploadId = reservedUploadId ?? generateUUID();
         const intakeExtension =
           normalizedFileEnding ?? this.getExtensionFromContentType(contentType);
         const intakeFilename = `${uploadId}${intakeExtension ? "." + intakeExtension : ""}`;

@@ -116,6 +116,8 @@ interface SpotPreviewAreaOverlay {
 const SPOT_AREA_MIN_ZOOM = 14;
 const DEFAULT_SPOT_AREA_RADIUS_M = 10;
 const EVENT_MARKER_COLLISION_SIZE_PX = 48;
+/** Above the highest Spot marker priority (999), see `getSpotPriority`. */
+const EVENT_OVER_SPOT_COLLISION_PRIORITY = 1000;
 const COMMUNITY_FULL_MARKER_COLLISION_SIZE_PX = 44;
 const COMMUNITY_DOT_COLLISION_SIZE_PX = 24;
 const POINT_MARKER_DOT_COLLISION_SIZE_PX = 28;
@@ -157,6 +159,22 @@ interface FilteredRegularSpotMarkersCache {
   spots: (LocalSpot | Spot)[];
   layout: MapMarkerCollisionLayout;
   visibleSpots: (LocalSpot | Spot)[];
+}
+
+/** A Spot whose pill lost the collision, shown as a small presence dot. */
+export interface SpotPresenceDot {
+  id: string;
+  location: google.maps.LatLngLiteral;
+  label: string;
+  spot: SpotPreviewData | LocalSpot | Spot;
+}
+
+interface SpotPresenceDotsCache {
+  presence: SpotPreviewData[];
+  previews: SpotPreviewData[];
+  regularSpots: (LocalSpot | Spot)[];
+  layout: MapMarkerCollisionLayout;
+  dots: SpotPresenceDot[];
 }
 
 interface FilteredPointMarkersCache {
@@ -789,6 +807,8 @@ export class GoogleMap2dComponent
     SpotPreviewData[] | null | undefined
   >([], { transform: (value) => (value ? [...value] : []) });
   readonly highlightedSpotColor = input<MapMarkerColor>("primary");
+  /** Lightweight points for every loaded Spot, drawn as presence dots. */
+  readonly spotPresence = input<SpotPreviewData[]>([]);
   // Optional mapping from marker index -> SpotId to open spot directly on marker click.
 
   /**
@@ -826,6 +846,67 @@ export class GoogleMap2dComponent
     const layout = this._getMarkerCollisionLayout();
     const zoom = this.zoom;
     return this._getPointMarkerCollisionPartition(layout, zoom).visibleMarkers;
+  }
+
+  /**
+   * Every loaded Spot that does not show a pill or marker gets a small,
+   * non-colliding dot, so the map shows where Spots are at every zoom: Spots
+   * whose pill lost the collision and the lightweight presence points.
+   */
+  getSpotPresenceDots(): SpotPresenceDot[] {
+    if (this.showAllHighlightedSpotPins()) return [];
+    const presence = this.spotPresence();
+    const previews = this._getVisibleHighlightedSpotPreviews();
+    const regularSpots = this._getVisibleRegularSpotMarkers();
+    const layout = this._getMarkerCollisionLayout();
+    const cached = this._spotPresenceDotsCache;
+    if (
+      cached?.presence === presence &&
+      cached.previews === previews &&
+      cached.regularSpots === regularSpots &&
+      cached.layout === layout
+    ) {
+      return cached.dots;
+    }
+
+    const dots = new Map<string, SpotPresenceDot>();
+    for (const spot of previews) {
+      const id = this._getSpotPreviewCollisionId(spot);
+      if (!spot.location || !layout.hiddenSpotIds.has(id)) continue;
+      dots.set(id, {
+        id,
+        location: { lat: spot.location.latitude, lng: spot.location.longitude },
+        label: spot.name,
+        spot,
+      });
+    }
+    const shownIds = new Set<string>();
+    for (const spot of previews) {
+      const id = this._getSpotPreviewCollisionId(spot);
+      if (!layout.hiddenSpotIds.has(id)) shownIds.add(id);
+    }
+    for (const spot of regularSpots) {
+      const id = this._getSpotModelCollisionId(spot);
+      if (!layout.hiddenSpotIds.has(id)) {
+        shownIds.add(id);
+        continue;
+      }
+      if (!dots.has(id)) dots.set(id, { id, location: spot.location(), label: spot.name(), spot });
+    }
+    for (const spot of presence) {
+      const id = this._getSpotPreviewCollisionId(spot);
+      if (!spot.location || shownIds.has(id) || dots.has(id)) continue;
+      dots.set(id, {
+        id,
+        location: { lat: spot.location.latitude, lng: spot.location.longitude },
+        label: spot.name,
+        spot,
+      });
+    }
+
+    const result = [...dots.values()];
+    this._spotPresenceDotsCache = { presence, previews, regularSpots, layout, dots: result };
+    return result;
   }
 
   getCollapsedCommunityMarkers(): MapPointMarker[] {
@@ -1146,7 +1227,9 @@ export class GoogleMap2dComponent
           id: marker.id,
           kind: "event",
           location: marker.location,
-          priority: getMapMarkerPriority(marker),
+          // Events outrank every Spot pill (Spot priorities stop at 999): a
+          // pill that loses keeps its presence dot, a hidden event is gone.
+          priority: EVENT_OVER_SPOT_COLLISION_PRIORITY + getMapMarkerPriority(marker),
           widthPx: EVENT_MARKER_COLLISION_SIZE_PX,
           heightPx: EVENT_MARKER_COLLISION_SIZE_PX,
           anchor: "center",
@@ -1443,6 +1526,7 @@ export class GoogleMap2dComponent
   private _filteredRegularSpotMarkersCache: FilteredRegularSpotMarkersCache | null =
     null;
   private _filteredPointMarkersCache: FilteredPointMarkersCache | null = null;
+  private _spotPresenceDotsCache: SpotPresenceDotsCache | null = null;
   private _visibleHighlightedSpotAreasCache: VisibleHighlightedSpotAreasCache | null =
     null;
   private readonly _emptyHighlightedSpotAreas: SpotPreviewAreaOverlay[] = [];

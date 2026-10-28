@@ -56,6 +56,19 @@
       </div>
     }
 
+    <!-- Spot presence: one dot for every loaded Spot whose pill lost the
+         collision. Below every other marker; community dots draw above. -->
+    @for (dot of getSpotPresenceDots(); track dot.id) {
+      <app-map-presence-dot-marker
+        variant="spot"
+        [position]="dot.location"
+        [label]="dot.label"
+        [size]="7"
+        [zIndex]="-30"
+        (markerClick)="spotClick.emit(dot.spot)"
+      />
+    }
+
     @for (community of communityDotMarkers(); track community.communityKey) {
       <app-community-dot-marker
         [community]="community"

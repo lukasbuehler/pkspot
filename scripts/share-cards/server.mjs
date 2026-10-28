@@ -56,7 +56,8 @@ createServer(async (request, response) => {
       const fixture = liveSources.get(data.fixture) ?? loaded.find(item => item.id === data.fixture);
       if (!fixture) throw new Error('Choose a fixture');
       const input = { ...fixture, photos: fixture.photos.slice(0, Math.max(0, Math.min(fixture.kind === 'community' ? 16 : 3, Number(data.photoCount) || 0))) };
-      for (const field of ['title', 'subtitle', 'detail']) {
+      for (const field of ['title', 'locationLabel', 'subtitle', 'detail']) {
+        if (field === 'locationLabel' && data[field] === undefined) continue;
         if (typeof data[field] !== 'string') throw new Error('Text fields must be strings');
         input[field] = data[field];
       }

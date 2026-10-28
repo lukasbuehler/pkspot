@@ -1034,7 +1034,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       mode: this.mapObjectMode(),
       now,
       communityKeys: this._openCommunityKeys(),
+      communityArea: this._openCommunityArea(),
     });
+  });
+
+  /** The open community's circle; countries match by key only. */
+  private readonly _openCommunityArea = computed(() => {
+    const community = this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
+    const center = community?.boundsCenter;
+    const radiusM = community?.boundsRadiusM;
+    if (!community || community.scope === "country" || !center || center.length < 2) return null;
+    if (typeof radiusM !== "number" || !Number.isFinite(radiusM) || radiusM <= 0) return null;
+    return { center: { lat: center[0], lng: center[1] }, radiusM };
   });
 
   private readonly _openCommunityKeys = computed<string[] | null>(() => {

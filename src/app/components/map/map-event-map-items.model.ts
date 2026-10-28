@@ -24,10 +24,29 @@ export interface VisibleEventMarkerParams {
   now: Date;
   /**
    * Keys of the open community (including communities merged into it). When
-   * set, only events listed under one of them get pins, matching the events
-   * the community panel shows.
+   * set, only events listed under one of them, or inside `communityArea`,
+   * get pins.
    */
   communityKeys?: readonly string[] | null;
+  /**
+   * The open community's area. Events are not always tagged with every
+   * community they lie in, so an event inside the drawn community circle keeps
+   * its pin even without a matching key.
+   */
+  communityArea?: { center: { lat: number; lng: number }; radiusM: number } | null;
+}
+
+function distanceMeters(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const toRad = (degrees: number) => (degrees * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6_371_000 * Math.asin(Math.sqrt(h));
 }
 
 export function buildVisibleEventMarkers({
@@ -37,6 +56,7 @@ export function buildVisibleEventMarkers({
   mode,
   now,
   communityKeys,
+  communityArea,
 }: VisibleEventMarkerParams): EventMapMarker[] {
   const selectedEventId = selectedEvent?.id ?? null;
   const community = communityKeys?.length ? new Set(communityKeys) : null;
@@ -51,7 +71,15 @@ export function buildVisibleEventMarkers({
         return false;
       }
       if (event.isPast(now)) return false;
-      if (community && !event.communityKeys.some((key) => community.has(key))) {
+      if (
+        community &&
+        !event.communityKeys.some((key) => community.has(key)) &&
+        !(
+          communityArea &&
+          event.location &&
+          distanceMeters(event.location, communityArea.center) <= communityArea.radiusM
+        )
+      ) {
         return false;
       }
       return Boolean(event.location);

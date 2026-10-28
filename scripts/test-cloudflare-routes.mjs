@@ -91,7 +91,15 @@ async function page(base, route, title, status = 200) {
   for (const [stylesheet] of stylesheets) {
     // Express may inline CSS; Worker responses use an ordinary blocking link.
     if (/media="print"/.test(stylesheet)) {
-      assert.match(stylesheet, /onload=/, `Stylesheet activation missing: ${route}`);
+      const restoresMedia = /onload=/.test(stylesheet) || (
+        /data-beasties-media=/.test(stylesheet) &&
+        activeHtml.includes(
+          "document.querySelectorAll('link[data-beasties-media]').forEach(function(l){" +
+          "l.media=l.getAttribute('data-beasties-media');" +
+          "l.removeAttribute('data-beasties-media')})",
+        )
+      );
+      assert.ok(restoresMedia, `Stylesheet activation missing: ${route}`);
     }
   }
   assert.match(
@@ -128,6 +136,7 @@ async function asset(base, route, type, status = 200) {
     assert.ok((await response.arrayBuffer()).byteLength > 0, route);
   else await response.body?.cancel();
   checks++;
+  return response;
 }
 
 try {
@@ -207,13 +216,30 @@ try {
   await page(worker, "/en/this-route-should-not-exist", null, 404);
   await asset(worker, "/assets/icons/favicon-16x16.png", /image\/png/);
   await asset(worker, "/en/assets/icons/favicon-16x16.png", /image\/png/);
-  await asset(worker, "/firebase-messaging-sw.js", /javascript/);
+  const messagingWorker = await asset(
+    worker, "/firebase-messaging-sw.js", /javascript/,
+  );
+  assert.equal(
+    messagingWorker.headers.get("cache-control"),
+    "public, max-age=0, must-revalidate",
+  );
+  const localizedMessagingWorker = await asset(
+    worker, "/en/firebase-messaging-sw.js", /javascript/,
+  );
+  assert.doesNotMatch(
+    localizedMessagingWorker.headers.get("cache-control") ?? "", /immutable/,
+  );
   await asset(worker, "/robots.txt", /text\/plain/);
   const missing = await request(worker, "/assets/not-a-real-file.png");
   assert.equal(missing.status, 404);
   assert.equal(missing.headers.get("location"), null);
   assert.equal(missing.headers.get("cache-control"), "no-store");
   await missing.body?.cancel();
+  checks++;
+  const missingBundle = await request(worker, "/en/chunk-NOTFOUND.js");
+  assert.equal(missingBundle.status, 404);
+  assert.equal(missingBundle.headers.get("cache-control"), "no-store");
+  await missingBundle.body?.cancel();
   checks++;
   const html = await page(worker, "/en/about", /About/);
   assert.doesNotMatch(
@@ -227,8 +253,25 @@ try {
   assert.ok(files.length, "SSR should reference browser bundles");
   for (const file of new Set(files)) {
     const url = new URL(file, `${worker}/en/`);
-    if (url.origin === worker)
-      await asset(worker, url.pathname, /javascript|text\/css/);
+    if (url.origin === worker) {
+      const response = await asset(worker, url.pathname, /javascript|text\/css/);
+      if (!/^\/en\/(?:main|polyfills|chunk|styles)-[\w-]{8}\.(?:js|css)$/u.test(url.pathname)) {
+        assert.doesNotMatch(response.headers.get("cache-control") ?? "", /immutable/);
+        continue;
+      }
+      assert.equal(
+        response.headers.get("cache-control"),
+        "public, max-age=31536000, immutable",
+        `Hashed bundle must be immutable: ${url.pathname}`,
+      );
+      // The Worker maps unprefixed asset requests to the English asset directory.
+      const unprefixed = await asset(
+        worker, url.pathname.slice(3), /javascript|text\/css/,
+      );
+      assert.equal(
+        unprefixed.headers.get("cache-control"), response.headers.get("cache-control"),
+      );
+    }
   }
   console.log(
     "PASS: deep links, redirects, missing routes, icons, service worker, and browser bundles",

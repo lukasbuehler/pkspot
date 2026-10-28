@@ -80,6 +80,11 @@ interface AppliedEditSummary {
   inferredPrevData?: Record<string, unknown>;
 }
 
+interface SpotMediaReference {
+  src: string;
+  isInStorage?: boolean;
+}
+
 interface Coordinate {
   latitude: number;
   longitude: number;
@@ -572,7 +577,6 @@ async function applyUpdateEditToSpot(
   editData: SpotEditSchema,
   spotId: string
 ): Promise<AppliedEditSummary> {
-  const summary: AppliedEditSummary = {};
   const submitterUid = editData.user?.uid;
   const submitterIsAdmin =
     typeof submitterUid === "string" && (await isAdminUser(submitterUid));
@@ -586,115 +590,118 @@ async function applyUpdateEditToSpot(
     { allowAdminProtectedFields: submitterIsAdmin }
   );
 
-  let updateData: any = {
-    ...regularDataWithoutSource,
-    updated_at: FieldValue.serverTimestamp(),
-  };
+  // Media merges must read and write the same Spot atomically. Concurrent
+  // scanner approvals previously read the same list and overwrote each other.
+  const { summary, removedMedia } = await spotRef.firestore.runTransaction(
+    async (transaction) => {
+      const summary: AppliedEditSummary = {};
+      let removedMedia: SpotMediaReference[] = [];
+      const updateData: Record<string, unknown> = {
+        ...regularDataWithoutSource,
+        updated_at: FieldValue.serverTimestamp(),
+      };
 
-  applyLocationFields(updateData, spotId);
-  applyBoundsFields(updateData, spotId);
+      applyLocationFields(updateData, spotId);
+      applyBoundsFields(updateData, spotId);
 
-  // For media, we handle two cases based on modification_type:
-  // 1. OVERWRITE: Completely replace the media list (used by new clients supporting deletions)
-  // 2. APPEND (default): Add new items only (used by legacy clients)
-  if (media && Array.isArray(media)) {
-    const spotSnapshot = await spotRef.get();
-    const currentMedia =
-      spotSnapshot.exists && Array.isArray((spotSnapshot.data() as any)["media"])
-        ? (spotSnapshot.data() as any)["media"]
-        : [];
-    const currentMediaSrcs = new Set(currentMedia.map((item: any) => item.src));
+      // For media, we handle two cases based on modification_type:
+      // 1. OVERWRITE: Completely replace the media list (used by new clients supporting deletions)
+      // 2. APPEND (default): Add new items only (used by legacy clients)
+      if (media && Array.isArray(media)) {
+        const spotSnapshot = await transaction.get(spotRef);
+        const storedMedia: unknown = spotSnapshot.get("media");
+        const currentMedia = Array.isArray(storedMedia)
+          ? storedMedia as SpotMediaReference[] : [];
+        const currentMediaSrcs = new Set(currentMedia.map((item) => item.src));
 
-    if (editData.modification_type === "OVERWRITE") {
-      summary.mediaAddedCount = media.filter(
-        (item: any) => !currentMediaSrcs.has(item.src)
-      ).length;
+        if (editData.modification_type === "OVERWRITE") {
+          summary.mediaAddedCount = media.filter(
+            (item: SpotMediaReference) => !currentMediaSrcs.has(item.src)
+          ).length;
 
-      if (
-        !Object.prototype.hasOwnProperty.call(editData.prevData ?? {}, "media")
-      ) {
-        summary.inferredPrevData = {
-          ...(editData.prevData ?? {}),
-          media: currentMedia,
-        };
-      }
+          if (
+            !Object.prototype.hasOwnProperty.call(editData.prevData ?? {}, "media")
+          ) {
+            summary.inferredPrevData = {
+              ...(editData.prevData ?? {}),
+              media: currentMedia,
+            };
+          }
 
-      // Check for deleted media and remove from storage
-      if (spotSnapshot.exists) {
-        const newMediaSrcs = new Set(media.map((m: any) => m.src));
+          // Return cleanup work from the successful transaction attempt only.
+          const nextSources = new Set(media.map((item: SpotMediaReference) => item.src));
+          removedMedia = currentMedia.filter((item) => !nextSources.has(item.src) && item.isInStorage);
 
-        const removedMedia = currentMedia.filter(
-          (m: any) => !newMediaSrcs.has(m.src) && m.isInStorage
-        );
-
-        if (removedMedia.length > 0) {
-          console.log(
-            `Found ${removedMedia.length} removed media items. Attempting deletion.`
-          );
-          const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
-
-          for (const item of removedMedia) {
-            try {
-              // Extract path from URL.
-              // Format: https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?alt=media...
-              // Or gs://[bucket]/[path]
-              let path = "";
-              if (item.src.startsWith("gs://")) {
-                path = item.src.split(bucket.name + "/")[1];
-              } else if (item.src.includes("/o/")) {
-                const urlObj = new URL(item.src);
-                const pathWithToken = urlObj.pathname.split("/o/")[1];
-                path = decodeURIComponent(pathWithToken);
-              }
-
-              if (path) {
-                console.log(`Deleting orphaned file: ${path}`);
-                await bucket.file(path).delete();
-              }
-            } catch (e) {
-              console.error(
-                `Failed to delete orphaned media ${item.src}:`,
-                e
-              );
-              // Continue execution, do not fail the spot update
-            }
+          updateData.media = media;
+        } else {
+          // Legacy/Default behavior: Append only
+          if (spotSnapshot.exists) {
+            // Append new media items to existing ones, avoiding duplicates
+            const newMedia = media.filter(
+              (newItem: SpotMediaReference) =>
+                !currentMediaSrcs.has(newItem.src)
+            );
+            summary.mediaAddedCount = newMedia.length;
+            updateData.media = [...currentMedia, ...newMedia];
+          } else {
+            // Spot doesn't exist yet, just set the media
+            summary.mediaAddedCount = media.length;
+            updateData.media = media;
           }
         }
       }
 
-      updateData.media = media;
-    } else {
-      // Legacy/Default behavior: Append only
-      if (spotSnapshot.exists) {
-        // Append new media items to existing ones, avoiding duplicates
-        const newMedia = media.filter(
-          (newItem: any) =>
-            !currentMediaSrcs.has(newItem.src)
+      // Handle external references: merge instead of replace
+      if (external_references) {
+        Object.assign(
+          updateData,
+          buildNestedMergeUpdate("external_references", external_references)
         );
-        summary.mediaAddedCount = newMedia.length;
-        updateData.media = [...currentMedia, ...newMedia];
-      } else {
-        // Spot doesn't exist yet, just set the media
-        summary.mediaAddedCount = media.length;
-        updateData.media = media;
+      }
+
+      // Handle amenities: merge instead of replace
+      if (amenities) {
+        Object.assign(updateData, buildNestedMergeUpdate("amenities", amenities));
+      }
+      transaction.update(spotRef, updateData);
+      return { summary, removedMedia };
+    }
+  );
+
+  // Storage operations are not transactional and must never run in a retry.
+  if (removedMedia.length > 0) {
+    console.log(
+      `Found ${removedMedia.length} removed media items. Attempting deletion.`
+    );
+    const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
+
+    for (const item of removedMedia) {
+      try {
+        // Extract path from URL.
+        // Format: https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?alt=media...
+        // Or gs://[bucket]/[path]
+        let path = "";
+        if (item.src.startsWith("gs://")) {
+          path = item.src.split(bucket.name + "/")[1];
+        } else if (item.src.includes("/o/")) {
+          const urlObj = new URL(item.src);
+          const pathWithToken = urlObj.pathname.split("/o/")[1];
+          path = decodeURIComponent(pathWithToken);
+        }
+
+        if (path) {
+          console.log(`Deleting orphaned file: ${path}`);
+          await bucket.file(path).delete();
+        }
+      } catch (e) {
+        console.error(
+          `Failed to delete orphaned media ${item.src}:`,
+          e
+        );
+        // Continue execution, do not fail the spot update
       }
     }
   }
-
-  // Handle external references: merge instead of replace
-  if (external_references) {
-    Object.assign(
-      updateData,
-      buildNestedMergeUpdate("external_references", external_references)
-    );
-  }
-
-  // Handle amenities: merge instead of replace
-  if (amenities) {
-    Object.assign(updateData, buildNestedMergeUpdate("amenities", amenities));
-  }
-
-  await spotRef.update(updateData);
   return summary;
 }
 
