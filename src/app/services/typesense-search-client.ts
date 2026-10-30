@@ -9,6 +9,8 @@ export interface TypesenseRequestOptions {
 
 interface TypesenseSearchClientConfiguration {
   apiKey: string;
+  /** Aborts each request after this many milliseconds when set. */
+  requestTimeoutMs?: number;
   nodes: Array<{
     host: string;
     port: number;
@@ -88,7 +90,7 @@ export class TypesenseSearchClient {
         ...(body ? { "Content-Type": "application/json" } : {}),
       },
       body: body ? JSON.stringify(body) : undefined,
-      signal: options.abortSignal,
+      signal: this._requestSignal(options.abortSignal),
     });
 
     if (!response.ok) {
@@ -96,5 +98,14 @@ export class TypesenseSearchClient {
     }
 
     return (await response.json()) as T;
+  }
+
+  private _requestSignal(callerSignal?: AbortSignal): AbortSignal | undefined {
+    const timeoutMs = this._configuration.requestTimeoutMs;
+    if (!timeoutMs) return callerSignal;
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    return callerSignal
+      ? AbortSignal.any([callerSignal, timeoutSignal])
+      : timeoutSignal;
   }
 }
