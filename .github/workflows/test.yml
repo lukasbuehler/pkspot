@@ -3,6 +3,8 @@ name: Tests
 on:
   push:
     branches: [main, development]
+  # Manual only: PRs deliberately do not trigger CI, so untrusted branches never run workflows automatically.
+  workflow_dispatch:
 
 env:
   NODE_VERSION: "22"
