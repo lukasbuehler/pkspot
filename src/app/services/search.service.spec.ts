@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import { getMapSpotSearchLimit, SearchService } from "./search.service";
+import { PLATFORM_ID } from "@angular/core";
+import {
+  getMapSpotSearchLimit,
+  SearchService,
+  SSR_TYPESENSE_TIMEOUT_MS,
+} from "./search.service";
 import { MapsApiService } from "./maps-api.service";
 import { PlatformService } from "./platform.service";
 import { GeoPoint } from "firebase/firestore";
@@ -11,9 +16,15 @@ import {
 
 const typesenseSearchMock = vi.hoisted(() => vi.fn());
 const typesenseMultiSearchMock = vi.hoisted(() => vi.fn());
+const typesenseClientConfigs = vi.hoisted(
+  () => [] as { requestTimeoutMs?: number }[],
+);
 
 vi.mock("./typesense-search-client", () => ({
-  TypesenseSearchClient: function TypesenseSearchClient() {
+  TypesenseSearchClient: function TypesenseSearchClient(config: {
+    requestTimeoutMs?: number;
+  }) {
+    typesenseClientConfigs.push(config);
     return {
       multiSearch: {
         perform: typesenseMultiSearchMock,
@@ -77,6 +88,25 @@ describe("SearchService", () => {
 
   it("should be created", () => {
     expect(service).toBeTruthy();
+  });
+
+  it.each([
+    ["server", SSR_TYPESENSE_TIMEOUT_MS],
+    ["browser", undefined],
+  ])("uses a Typesense request timeout only on the %s platform", (platform, timeout) => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        SearchService,
+        { provide: PLATFORM_ID, useValue: platform },
+        { provide: MapsApiService, useValue: mapsApiServiceSpy },
+        { provide: PlatformService, useValue: platformServiceSpy },
+      ],
+    });
+
+    TestBed.inject(SearchService);
+
+    expect(typesenseClientConfigs.at(-1)?.requestTimeoutMs).toBe(timeout);
   });
 
   it("uses the map preview budget for filtered viewport searches", () => {
