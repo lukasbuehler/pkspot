@@ -88,8 +88,17 @@ async function page(base, route, title, status = 200) {
   const activeHtml = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, "");
   const stylesheets = [...activeHtml.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)];
   assert.ok(stylesheets.length, `Stylesheet missing: ${route}`);
+  assert.ok(
+    stylesheets.every(([stylesheet]) => /media="print"/.test(stylesheet)),
+    `Global CSS must not block the first paint: ${route}`,
+  );
+  assert.match(
+    html,
+    /<noscript>\s*<link\b[^>]*rel="stylesheet"/,
+    `Deferred CSS needs a no-JavaScript fallback: ${route}`,
+  );
   for (const [stylesheet] of stylesheets) {
-    // Express may inline CSS; Worker responses use an ordinary blocking link.
+    // Angular activates deferred CSS after the inline critical styles paint.
     if (/media="print"/.test(stylesheet)) {
       const restoresMedia = /onload=/.test(stylesheet) || (
         /data-beasties-media=/.test(stylesheet) &&
@@ -242,11 +251,6 @@ try {
   await missingBundle.body?.cancel();
   checks++;
   const html = await page(worker, "/en/about", /About/);
-  assert.doesNotMatch(
-    html,
-    /data-beasties-container/,
-    "Worker must not perform request-time critical CSS extraction",
-  );
   const files = [...html.matchAll(/(?:src|href)="([^"\s]+\.(?:js|css))"/g)].map(
     (match) => match[1],
   );
