@@ -73,10 +73,49 @@ describe("TypesenseSearchClient", () => {
       createClient().collections("spots_v2").documents().search({ q: "*" }),
     ).rejects.toThrow("Typesense request failed with HTTP 503.");
   });
+
+  it("aborts requests that exceed the configured timeout", async () => {
+    vi.stubGlobal("fetch", hangingFetch());
+
+    await expect(
+      createClient({ requestTimeoutMs: 20 })
+        .collections("communities_v1")
+        .documents()
+        .search({ q: "*" }),
+    ).rejects.toMatchObject({ name: "TimeoutError" });
+  });
+
+  it("keeps caller cancellation when a timeout is configured", async () => {
+    vi.stubGlobal("fetch", hangingFetch());
+    const abortController = new AbortController();
+
+    const request = createClient({ requestTimeoutMs: 60_000 })
+      .collections("communities_v1")
+      .documents()
+      .search({ q: "*" }, { abortSignal: abortController.signal });
+    abortController.abort();
+
+    await expect(request).rejects.toMatchObject({ name: "AbortError" });
+  });
 });
 
-function createClient(): TypesenseSearchClient {
+/** A fetch that only settles when its signal aborts, like a stalled origin. */
+function hangingFetch() {
+  return vi.fn(
+    (_url: URL, init: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init.signal?.addEventListener("abort", () =>
+          reject(init.signal?.reason),
+        );
+      }),
+  );
+}
+
+function createClient(
+  options: { requestTimeoutMs?: number } = {},
+): TypesenseSearchClient {
   return new TypesenseSearchClient({
+    ...options,
     nodes: [
       {
         host: "search.example.test",
