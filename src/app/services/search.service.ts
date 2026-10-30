@@ -1,6 +1,7 @@
 import { normalizeRecentActivityMin30d } from "../../db/schemas/CheckInActivitySchema";
 import { communityPreviewNames } from "../../scripts/CommunityPlaceNames";
-import { Injectable, LOCALE_ID, inject } from "@angular/core";
+import { isPlatformServer } from "@angular/common";
+import { Injectable, LOCALE_ID, PLATFORM_ID, inject } from "@angular/core";
 import type { PlaceLabelNames } from "../../scripts/LocalizedPlaceLabels";
 import { TypesenseSearchClient } from "./typesense-search-client";
 import { environment } from "../../environments/environment.default";
@@ -46,6 +47,8 @@ import {
 
 /** How many Spots the map loads as presence dots per viewport. */
 export const MAP_SPOT_PRESENCE_LIMIT = 1000;
+/** Server renders give up on Typesense after this long. */
+export const SSR_TYPESENSE_TIMEOUT_MS = 3000;
 
 export function getMapSpotSearchLimit(viewportZoom: number | undefined): number {
   if (typeof viewportZoom !== "number" || !Number.isFinite(viewportZoom)) {
@@ -108,6 +111,11 @@ export class SearchService {
       },
     ],
     apiKey: environment.keys.typesense.apiKey,
+    // A slow Typesense must not hold SSR renders (and Cloud Run slots) open;
+    // pages render without search data and the browser loads it after hydration.
+    requestTimeoutMs: isPlatformServer(inject(PLATFORM_ID))
+      ? SSR_TYPESENSE_TIMEOUT_MS
+      : undefined,
   });
 
   spotSearchParameters = {

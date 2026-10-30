@@ -2623,7 +2623,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Initialization ///////////////////////////////////////////////////////////
 
   private loadPromotableCommunitiesAfterConsent(): void {
+    // SSR grants consent automatically, so the consent subscription would
+    // otherwise fetch every community on every server-rendered /map page.
     if (
+      !isPlatformBrowser(this.platformId) ||
       this._promotableCommunitiesRequested ||
       !this._consentService.hasConsent()
     ) {
