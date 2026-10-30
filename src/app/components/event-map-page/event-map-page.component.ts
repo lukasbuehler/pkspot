@@ -855,7 +855,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         this._isEmbedded()
           ? ["/embedded/events", slug]
           : ["/events", slug],
-        { queryParamsHandling: "preserve" },
+        { queryParamsHandling: "preserve", replaceUrl: true },
       );
       return;
     }

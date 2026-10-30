@@ -1190,6 +1190,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private _setEventLoadFailure(status: 404 | 503): void {
     if (this.serverResponse) this.serverResponse.status = status;
+    this.isEditingEvent.set(false);
+    this.canEditEvent.set(false);
+    this.canManageEvent.set(false);
     this.event.set(null);
     this.isLoadingEvent.set(false);
     this.eventLoadFailed.set(true);

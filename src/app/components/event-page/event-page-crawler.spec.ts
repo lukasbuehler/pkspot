@@ -1,4 +1,4 @@
-import { signal } from "@angular/core";
+import { signal, WritableSignal } from "@angular/core";
 import { convertToParamMap, ParamMap } from "@angular/router";
 import { describe, it, expect, vi } from "vitest";
 import { EventInfoPageComponent } from "./event-page.component";
@@ -15,11 +15,20 @@ describe("event crawler failures", () => {
       _structuredData: { removeStructuredData: vi.fn() },
       featureTelemetry: { failure: vi.fn() },
       event: signal(null), isLoadingEvent: loading, eventLoadFailed: failed,
-    }) as { _loadEventFromRoute(params: ParamMap): Promise<void> };
+      isEditingEvent: signal(true), canEditEvent: signal(true), canManageEvent: signal(true),
+    }) as {
+      _loadEventFromRoute(params: ParamMap): Promise<void>;
+      isEditingEvent: WritableSignal<boolean>;
+      canEditEvent: WritableSignal<boolean>;
+      canManageEvent: WritableSignal<boolean>;
+    };
     await component._loadEventFromRoute(convertToParamMap({ slug: "missing" }));
     expect(response.status).toBe(status);
     expect(meta.setRobotsContent).toHaveBeenCalledWith("noindex,follow");
     expect(loading()).toBe(false); expect(failed()).toBe(true);
+    expect(component.isEditingEvent()).toBe(false);
+    expect(component.canEditEvent()).toBe(false);
+    expect(component.canManageEvent()).toBe(false);
   });
 });
 
