@@ -19,6 +19,7 @@ import { MapAdvancedMarker } from "@angular/google-maps";
     <div
       #dot
       class="presence-dot map-marker-hit-target"
+      [class.presence-dot--spot]="variant() === 'spot'"
       [style.height.px]="size()"
       [style.width.px]="size()"
       [attr.aria-label]="label()"
@@ -58,6 +59,15 @@ import { MapAdvancedMarker } from "@angular/google-maps";
         transform 120ms ease;
     }
 
+    /* Spots invert the community colours: dark fill, light border. */
+    .presence-dot--spot {
+      background: var(--mat-sys-on-primary-fixed-variant, var(--mat-sys-primary));
+      border-color: var(
+        --mat-sys-primary-fixed,
+        var(--mat-sys-primary-container)
+      );
+    }
+
     .presence-dot:hover {
       opacity: 1;
       transform: scale(1.35);
@@ -71,6 +81,8 @@ export class MapPresenceDotMarkerComponent {
   readonly label = input.required<string>();
   readonly size = input<number>(8);
   readonly zIndex = input<number>(5);
+  /** Community presence (light fill) or Spot presence (dark fill). */
+  readonly variant = input<"community" | "spot">("community");
   readonly markerClick = output<void>();
 
   readonly markerOptions = computed<google.maps.marker.AdvancedMarkerElementOptions>(
