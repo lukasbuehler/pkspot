@@ -194,6 +194,28 @@ describe("Event", () => {
     );
   });
 
+  it("never promotes an event in the map island without the promoted flag", () => {
+    const data = {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      promo_radius_m: 20_100_000,
+    } as EventSchema;
+    const now = new Date("2026-06-14T11:00:00.000Z");
+
+    expect(new Event("event-1" as EventId, data).isPromotable(now)).toBe(false);
+    expect(
+      new Event("event-1" as EventId, { ...data, is_promoted: true })
+        .isPromotable(now),
+    ).toBe(true);
+    // Older documents only carry the deprecated flag.
+    expect(
+      new Event("event-1" as EventId, { ...data, is_sponsored: true })
+        .isPromotable(now),
+    ).toBe(true);
+  });
+
   it("uses promo_radius_m as promo geometry centered on the event location", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,

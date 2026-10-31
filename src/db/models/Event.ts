@@ -388,11 +388,15 @@ export class Event {
 
   /**
    * True when the map-island promo for this event should be active right
-   * now: a `promo_region` is set, the current time is past `promo_starts_at`
-   * (or `start` if no explicit lead time), and the event has not ended.
+   * now: the event is flagged as promoted, a `promo_region` is set, the
+   * current time is past `promo_starts_at` (or `start` if no explicit lead
+   * time), and the event has not ended. A radius alone never promotes: the
+   * island is a paid placement, so it always needs the promoted flag.
    */
   isPromotable(now: Date = new Date()): boolean {
-    if (!this.promoRegion || !this.hasLocation) return false;
+    if (!this.isPromoted || !this.promoRegion || !this.hasLocation) {
+      return false;
+    }
     if (now > this.end) return false;
     const promoStart = this.promoStartsAt ?? this.start;
     return now >= promoStart;

@@ -34,6 +34,7 @@ function event(
       center: promoCenter,
       radius_m: promoRadiusM,
     },
+    is_promoted: true,
     ...overrides,
   } as EventSchema);
 }
