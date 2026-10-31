@@ -171,6 +171,31 @@
         </div>
       </div>
     }
+    @if (trailingPhoto(); as photo) {
+      <!-- Index -1 matches no media, so a tap here never opens the viewer. -->
+      <div
+        class="spot-img-container trailing-photo-card"
+        data-media-index="-1"
+        [style.--image-aspect-ratio]="trailingPhotoAspectRatio"
+        [style.aspect-ratio]="trailingPhotoAspectRatio"
+      >
+        <div class="spot-img-frame">
+          <img [src]="photo.src" [alt]="imageDescription()" />
+        </div>
+        @if (photo.attribution) {
+          <span class="trailing-photo-attribution" [title]="photo.attribution">
+            <span
+              i18n="
+                Google photo attribution prefix|Short prefix shown before the
+                Google Place photo author
+                name@@googlePlacePreview.photoAttributionPrefix"
+              >Image:</span
+            >
+            {{ photo.attribution }}
+          </span>
+        }
+      </div>
+    }
   </div>
 
   <div

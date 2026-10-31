@@ -109,6 +109,24 @@
       background: var(--mat-sys-surface-container-highest);
     }
 
+    // Same corner credit as the Google Place preview card.
+    .trailing-photo-attribution {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      padding: 2px 4px;
+      border-radius: 4px 0 0 0;
+      max-width: 70%;
+      overflow: hidden;
+      color: white;
+      background: rgba(0, 0, 0, 0.62);
+      font-size: 10px;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
     .video-mute-button {
       --mat-icon-button-hover-state-layer-opacity: 0;
       --mat-icon-button-focus-state-layer-opacity: 0;

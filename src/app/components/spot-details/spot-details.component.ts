@@ -115,6 +115,7 @@ import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-g
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
+import type { GooglePlacePhoto } from "../google-place-preview/google-place-preview.component";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -455,6 +456,21 @@ export class SpotDetailsComponent
       return "";
     }
   });
+  /** Photo loaded by the Google Place preview, shown at the end of the gallery. */
+  private readonly _googlePlacePhoto = signal<GooglePlacePhoto | null>(null);
+  readonly galleryGooglePhoto = computed(() => {
+    const photo = this._googlePlacePhoto();
+    const spot = this.spot();
+    // Ignore a photo left over from a previously opened Spot's place.
+    return photo && spot instanceof Spot && spot.googlePlaceId() === photo.placeId
+      ? photo
+      : null;
+  });
+
+  onGooglePlacePhotoChange(photo: GooglePlacePhoto | null): void {
+    this._googlePlacePhoto.set(photo);
+  }
+
   processingSpotMedia = computed(() => {
     const spot = this.spot();
     if (!(spot instanceof Spot)) return [];
