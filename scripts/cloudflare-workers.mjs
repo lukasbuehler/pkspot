@@ -9,10 +9,20 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { getCloudflareBuildProfile, createWranglerConfig, createAssetHeaders } from "./cloudflare-build-profiles.mjs";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const action = process.argv[2] ?? "build";
-const wranglerArgs = process.argv.slice(3);
-const outputDir = path.join(repoRoot, "dist", "pkspot-cloudflare-worker");
+const argumentsAfterAction = process.argv.slice(3);
+const targetFlags = argumentsAfterAction.filter(argument => argument.startsWith("--target="));
+if (targetFlags.length > 1) throw new Error("Specify only one Cloudflare target.");
+const profile = getCloudflareBuildProfile(targetFlags[0]?.slice("--target=".length));
+const wranglerArgs = argumentsAfterAction.filter(argument => !argument.startsWith("--target="));
+const outputDir = path.join(repoRoot, profile.outputDirectory);
+
+if (action === "build" && wranglerArgs.length) {
+  throw new Error("Unexpected build arguments. Select --target=staging or --target=production.");
+}
 
 if (action === "build") {
   buildWorker();
@@ -31,7 +41,7 @@ function buildWorker() {
     process.execPath,
     [
       "scripts/run-angular-build.mjs",
-      "--configuration=cloudflare",
+      `--configuration=${profile.configuration}`,
       "--localize",
       `--output-path=${path.relative(repoRoot, outputDir)}`,
     ],
@@ -41,7 +51,7 @@ function buildWorker() {
   // Static assets can bypass the Worker, so their cache policy belongs here.
   writeFileSync(
     path.join(outputDir, "browser", "_headers"),
-    readFileSync(path.join(repoRoot, "src", "cloudflare-headers"), "utf8"),
+    createAssetHeaders(readFileSync(path.join(repoRoot, "src", "cloudflare-headers"), "utf8"), profile),
   );
   writeFileSync(
     path.join(outputDir, "worker.mjs"),
@@ -55,12 +65,7 @@ function buildWorker() {
 }
 
 function readCloudflareFirebaseConfig() {
-  const configPath = path.join(
-    repoRoot,
-    "src",
-    "environments",
-    "firebase.staging.json"
-  );
+  const configPath = path.join(repoRoot, profile.firebaseConfigPath);
   const config = JSON.parse(readFileSync(configPath, "utf8"));
   if (typeof config.apiKey !== "string" || !config.apiKey.trim()) {
     throw new Error("Cloudflare Firebase config requires a public API key.");
@@ -128,19 +133,7 @@ function writeWranglerConfig() {
   writeFileSync(
     configPath,
     `${JSON.stringify(
-      {
-        $schema: "../../node_modules/wrangler/config-schema.json",
-        name: "pkspot-web",
-        main: "worker.mjs",
-        minify: true,
-        compatibility_date: "2026-08-20",
-        compatibility_flags: ["nodejs_compat"],
-        assets: {
-          binding: "ASSETS",
-          directory: "browser",
-        },
-        observability: { enabled: true },
-      },
+      createWranglerConfig(profile),
       null,
       2
     )}\n`

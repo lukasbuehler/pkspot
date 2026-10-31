@@ -5,10 +5,14 @@ import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { getCloudflareBuildProfile } from "./cloudflare-build-profiles.mjs";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
+const target = [...args].find(argument => argument.startsWith("--target="))?.slice("--target=".length);
+const profile = getCloudflareBuildProfile(target);
 if (!args.has("--skip-build")) {
-  execFileSync(process.execPath, ["scripts/cloudflare-workers.mjs", "build"], {
+  execFileSync(process.execPath, ["scripts/cloudflare-workers.mjs", "build", `--target=${target ?? "staging"}`], {
     cwd: root,
     stdio: "inherit",
   });
@@ -159,7 +163,7 @@ try {
       "node_modules/wrangler/bin/wrangler.js",
       "dev",
       "--config",
-      "dist/pkspot-cloudflare-worker/wrangler.jsonc",
+      `${profile.outputDirectory}/wrangler.jsonc`,
       "--port",
       String(port),
       "--ip",

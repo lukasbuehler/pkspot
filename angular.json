@@ -247,6 +247,14 @@
                 }
               ]
             },
+            "cloudflare-production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.default.ts",
+                  "with": "src/environments/environment.production.ts"
+                }
+              ]
+            },
             "cloudflare": {
               "fileReplacements": [
                 {

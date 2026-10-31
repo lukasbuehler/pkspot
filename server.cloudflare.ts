@@ -2,17 +2,12 @@ import { AngularAppEngine, createRequestHandler } from "@angular/ssr";
 import { SsrRequestScope } from "./src/ssr-request-scope";
 import { createCloudflareRequestHandler } from "./src/cloudflare-request-handler";
 
+import { environment } from "./src/environments/environment.default";
+import { cloudflareSsrAllowedHosts } from "./src/cloudflare-hosts";
 import { prepareSsrDocument } from "./src/ssr-document";
 
 const angularApp = new AngularAppEngine({
-  allowedHosts: [
-    "test.pkspot.app",
-    "*.test.pkspot.app",
-    "*.workers.dev",
-    "localhost",
-    "127.0.0.1",
-    "[::1]",
-  ],
+  allowedHosts: cloudflareSsrAllowedHosts(environment.name),
 });
 
 export const reqHandler = createRequestHandler(async (request) => {

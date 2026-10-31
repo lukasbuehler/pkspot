@@ -1,3 +1,4 @@
+import firebaseConfig from "./firebase.production.json";
 import { ageVerificationProviders } from "./age-verification";
 export const environment = {
   name: "Production",
@@ -30,17 +31,7 @@ export const environment = {
       "BLaMDzAC7VOiAKMfNmcEPXvAl7FOaANMFQhEHp9hPFQSvPw7yVTJvzDIY3hXfbVjodP-WMeqAgE4FD_u3etY1FQ",
   },
   keys: {
-    firebaseConfig: {
-      projectId: "parkour-base-project",
-      appId: "1:294969617102:web:f9a2fcf843e8b288313e9f",
-      databaseURL: "https://parkour-base-project.firebaseio.com",
-      storageBucket: "parkour-base-project.appspot.com",
-      locationId: "us-central1",
-      authDomain: "parkour-base-project.firebaseapp.com",
-      messagingSenderId: "294969617102",
-      measurementId: "G-K7E4HFP8NM",
-      apiKey: "AIzaSyBweX0jjdbdrIy2slKPf6ZAhvl6XHz4AlI",
-    },
+    firebaseConfig,
     typesense: {
       host: "search.pkspot.app",
       apiKey: "7yxCDDLoGisH1vDtl2ZBfIglrr3OXsVk",

@@ -151,3 +151,67 @@ describe("Cloudflare request routing", () => {
     expect(await response.text()).toBe("");
   });
 });
+
+
+describe("App Hosting legacy bundle transition", () => {
+  function transition(host = "pkspot.app", mode = "route-origin") {
+    const render = vi.fn(async () => new Response("page", { status: 404 }));
+    const fetch = vi.fn(async () => new Response("missing", { status: 404 }));
+    const legacy = vi.fn(async (_request: Request) => new Response("old bundle", {
+      headers: { "Content-Type": "application/javascript", "Cache-Control": "public, max-age=31536000, immutable" },
+    }));
+    const handler = createCloudflareRequestHandler(render, legacy);
+    const request = (path = "/en/chunk-OLDER123.js") => handler(new Request(`https://${host}${path}`), {
+      ASSETS: { fetch }, PKSPOT_APP_HOSTING_ASSET_FALLBACK: mode,
+    });
+    return { request, render, fetch, legacy };
+  }
+
+  it("serves an older hashed bundle from the retained route origin", async () => {
+    const { request, legacy, render } = transition();
+    const response = await request();
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("old bundle");
+    expect(response.headers.get("Cache-Control")).toContain("immutable");
+    expect(legacy.mock.calls[0][0].url).toBe("https://pkspot.app/en/chunk-OLDER123.js");
+    expect(legacy.mock.calls[0][0].headers.get("X-PKSpot-Legacy-Asset")).toBe("1");
+    expect(render).not.toHaveBeenCalled();
+  });
+
+  it.each([["test.pkspot.app", "route-origin"], ["preview.workers.dev", "route-origin"], ["pkspot.app", "disabled"]])(
+    "never fetches the origin on %s with mode %s", async (host, mode) => {
+      const { request, legacy } = transition(host, mode);
+      expect((await request()).status).toBe(404);
+      expect(legacy).not.toHaveBeenCalled();
+    },
+  );
+
+  it("cannot recurse if the origin route is accidentally changed to a Custom Domain", async () => {
+    const legacy = vi.fn(async (_request: Request) => new Response("should not fetch"));
+    const handler = createCloudflareRequestHandler(async () => null, legacy);
+    const response = await handler(new Request("https://pkspot.app/en/chunk-OLDER123.js", {
+      headers: { "X-PKSpot-Legacy-Asset": "1" },
+    }), { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+      PKSPOT_APP_HOSTING_ASSET_FALLBACK: "route-origin" });
+    expect(response.status).toBe(404);
+    expect(legacy).not.toHaveBeenCalled();
+  });
+
+  it("does not mask a missing page or nonversioned asset", async () => {
+    const { request, legacy } = transition();
+    expect((await request("/en/missing-page")).status).toBe(404);
+    expect((await request("/en/firebase-messaging-sw.js")).status).toBe(404);
+    expect((await request("/assets/missing.png")).status).toBe(404);
+    expect(legacy).not.toHaveBeenCalled();
+  });
+
+  it("does not replace current assets or accept an HTML fallback as JavaScript", async () => {
+    const current = transition();
+    current.fetch.mockResolvedValue(new Response("current", { headers: { "Content-Type": "application/javascript" } }));
+    expect(await (await current.request()).text()).toBe("current");
+    expect(current.legacy).not.toHaveBeenCalled();
+    const missing = transition();
+    missing.legacy.mockResolvedValue(new Response("soft 404", { headers: { "Content-Type": "text/html" } }));
+    expect((await missing.request()).status).toBe(404);
+  });
+});
