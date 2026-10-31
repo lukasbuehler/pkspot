@@ -161,7 +161,7 @@ describe("App Hosting legacy bundle transition", () => {
       headers: { "Content-Type": "application/javascript", "Cache-Control": "public, max-age=31536000, immutable" },
     }));
     const handler = createCloudflareRequestHandler(render, legacy);
-    const request = (path = "/en/chunk-OLDER123.js") => handler(new Request(`https://${host}${path}`), {
+    const request = (path = "/en/chunk-OLDER123.js", init?: RequestInit) => handler(new Request(`https://${host}${path}`, init), {
       ASSETS: { fetch }, PKSPOT_APP_HOSTING_ASSET_FALLBACK: mode,
     });
     return { request, render, fetch, legacy };
@@ -185,6 +185,16 @@ describe("App Hosting legacy bundle transition", () => {
       expect(legacy).not.toHaveBeenCalled();
     },
   );
+
+  it("preserves a conditional 304 for a browser's cached legacy bundle", async () => {
+    const { request, legacy } = transition();
+    legacy.mockResolvedValue(new Response(null, { status: 304, headers: { ETag: '"old"' } }));
+    const response = await request("/en/chunk-OLDER123.js", { headers: { "If-None-Match": '"old"' } });
+    expect(response.status).toBe(304);
+    expect(response.headers.get("ETag")).toBe('"old"');
+    expect(response.body).toBeNull();
+    expect(legacy.mock.calls[0][0].headers.get("If-None-Match")).toBe('"old"');
+  });
 
   it("cannot recurse if the origin route is accidentally changed to a Custom Domain", async () => {
     const legacy = vi.fn(async (_request: Request) => new Response("should not fetch"));

@@ -124,7 +124,9 @@ async function routeRequest(
         const legacy = await fetchLegacyAsset(originRequest);
         const expectedType = url.pathname.endsWith(".css")
           ? /text\/css/u : /(?:application|text)\/(?:x-)?javascript/u;
-        if (legacy.status === 200 && expectedType.test(legacy.headers.get("Content-Type") ?? "")) {
+        const notModified = legacy.status === 304 &&
+          (request.headers.has("If-None-Match") || request.headers.has("If-Modified-Since"));
+        if (notModified || (legacy.status === 200 && expectedType.test(legacy.headers.get("Content-Type") ?? ""))) {
           await response.body?.cancel();
           return legacy;
         }
