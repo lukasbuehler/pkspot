@@ -140,13 +140,76 @@ async function renderLikeGooglebot(browser, base, route, { blockFirestore }) {
     const response = await page.goto(base + route, { waitUntil: "load" });
     assert.equal(response?.status(), 200, `${base}${route}`);
     const html = await response.text();
+    assert.doesNotMatch(html, /<div\b[^>]*id="app-splash-screen"/u,
+      "SSR content must not be covered by the client splash");
     assert.match(html, /<app-spot-details\b/u, "Spot body must be server rendered");
     assert.match(html, /initial-spot:v1:/u, "Public Spot snapshot must accompany SSR HTML");
     await page.waitForTimeout(SETTLE_MS);
+    assert.equal(await page.locator("app-welcome-dialog").count(), 0,
+      "Bot profile must not display a welcome dialog");
     const states = await page.evaluate(() => window.__seoHeadStates);
     assert.equal(liveServiceRequests.length, 0,
       `Initial public content must not require Firebase/App Check: ${liveServiceRequests.join(", ")}`);
     return { states, blockedRequests };
+  } finally {
+    await context.close();
+  }
+}
+
+/** Verify the same SSR data survives a real first-visit consent handoff. */
+async function renderFirstVisit(browser, base, route) {
+  const context = await browser.newContext({
+    viewport: { width: 412, height: 823 }, isMobile: true,
+    userAgent: GOOGLEBOT_SMARTPHONE_UA.replace(/ \(compatible; Googlebot.*$/u, ""),
+  });
+  // Exercise startup without sending test analytics or live client requests.
+  await context.route("**/*", request =>
+    new URL(request.request().url()).origin === base
+      ? request.continue() : request.abort("failed"));
+  await context.addInitScript(() => { window.__PKSPOT_STORE_SCREENSHOT__ = true; });
+  const page = await context.newPage();
+  const errors = [], protectedRequests = [];
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("request", request => {
+    if (/firestore\.googleapis\.com|firebaseappcheck\.googleapis\.com|\/recaptcha\//u.test(request.url())) {
+      protectedRequests.push(request.url().split("?")[0]);
+    }
+  });
+  try {
+    const response = await page.goto(base + route, { waitUntil: "load" });
+    assert.equal(response?.status(), 200);
+    await page.locator("app-welcome-startup").waitFor({ state: "attached" });
+    await page.locator("app-welcome-dialog").waitFor({ state: "visible" });
+    // Angular removes ngh when the main app consumes its hydration state.
+    await page.waitForFunction(() => !document.querySelector("app-root")?.hasAttribute("ngh"));
+    await page.waitForTimeout(1000);
+    assert.equal(await page.locator("app-welcome-dialog").count(), 1);
+    assert.equal(protectedRequests.length, 0, "Consent must gate protected client requests");
+    assert.equal(await page.evaluate(() => localStorage.getItem("acceptedVersion")), null);
+    assert.match(await page.locator("app-spot-details").textContent(), /IMAX/u);
+    await page.locator("app-welcome-dialog button").click();
+    await page.locator("app-welcome-startup").waitFor({ state: "detached" });
+    assert.ok(await page.evaluate(() => localStorage.getItem("acceptedVersion")));
+    assert.equal(await page.locator("app-welcome-dialog").count(), 0);
+    assert.match(await page.locator("app-spot-details").textContent(), /IMAX/u);
+    // Returning visitors must bypass the early application entirely.
+    await page.reload({ waitUntil: "load" });
+    await page.waitForFunction(() => !document.querySelector("app-root")?.hasAttribute("ngh"));
+    assert.equal(await page.locator("app-welcome-startup").count(), 0);
+    assert.equal(await page.locator("app-welcome-dialog").count(), 0);
+
+    // A first visitor can read legal/about content without granting consent.
+    await page.evaluate(() => localStorage.removeItem("acceptedVersion"));
+    await page.goto(base + route, { waitUntil: "load" });
+    const about = page.locator('app-welcome-dialog a[href="about"]');
+    await about.waitFor({ state: "visible" });
+    await about.click();
+    await page.waitForURL(base + route.split("/").slice(0, 2).join("/") + "/about");
+    await page.waitForFunction(() => !document.querySelector("app-root")?.hasAttribute("ngh"));
+    assert.equal(await page.locator("app-welcome-dialog").count(), 0);
+    assert.equal(await page.evaluate(() => localStorage.getItem("acceptedVersion")), null);
+    assert.deepEqual(errors, []);
+    checks++;
   } finally {
     await context.close();
   }
@@ -173,48 +236,41 @@ function assertSpotHeadStable(label, route, states) {
   checks++;
 }
 
+async function stop({ child }) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  const exited = once(child, "exit");
+  const kill = signal => {
+    try {
+      process.platform === "win32" ? child.kill(signal) : process.kill(-child.pid, signal);
+    } catch (error) {
+      if (error.code !== "ESRCH") throw error;
+    }
+  };
+  kill("SIGTERM");
+  const deadline = setTimeout(() => kill("SIGKILL"), 5000);
+  await exited;
+  clearTimeout(deadline);
+}
+
 let browser;
 try {
-  const expressPort = await freePort();
-  const workerPort = await freePort();
+  const expressPort = await freePort(), workerPort = await freePort();
   const servers = [
-    [
-      "App Hosting (Express)",
-      await start("App Hosting (Express)", ["dist/pkspot/server/server.mjs"], expressPort, {
-        PORT: String(expressPort),
-      }),
-    ],
-    [
-      "Cloudflare (workerd)",
-      await start(
-        "Cloudflare (workerd)",
-        [
-          "node_modules/wrangler/bin/wrangler.js",
-          "dev",
-          "--config",
-          "dist/pkspot-cloudflare-worker/wrangler.jsonc",
-          "--port",
-          String(workerPort),
-          "--ip",
-          "127.0.0.1",
-          "--inspector-port",
-          "0",
-          "--log-level",
-          "error",
-        ],
-        workerPort,
-        {
-          WRANGLER_LOG_PATH: "/tmp/pkspot-crawler-render.log",
-          WRANGLER_SEND_METRICS: "false",
-        },
-      ),
-    ],
+    { label: "App Hosting (Express)", port: expressPort,
+      command: ["dist/pkspot/server/server.mjs"], env: { PORT: String(expressPort) } },
+    { label: "Cloudflare (workerd)", port: workerPort,
+      command: ["node_modules/wrangler/bin/wrangler.js", "dev", "--config",
+        "dist/pkspot-cloudflare-worker/wrangler.jsonc", "--port", String(workerPort),
+        "--ip", "127.0.0.1", "--inspector-port", "0", "--log-level", "error"],
+      env: { WRANGLER_LOG_PATH: "/tmp/pkspot-crawler-render.log", WRANGLER_SEND_METRICS: "false" } },
   ];
 
-  browser = await chromium.launch();
+  browser = await chromium.launch({ args: ["--renderer-process-limit=2", "--js-flags=--max-old-space-size=512"] });
   // Render every combination before failing, so one run shows which servers break.
   const failures = [];
-  for (const [serverLabel, base] of servers) {
+  for (const server of servers) {
+    const serverLabel = server.label;
+    const base = await start(serverLabel, server.command, server.port, server.env);
     for (const route of SPOT_ROUTES) {
       for (const blockFirestore of [false, true]) {
         const label = `${serverLabel} ${route} (Firestore ${blockFirestore ? "blocked" : "allowed"})`;
@@ -230,30 +286,26 @@ try {
         }
       }
     }
+    for (const route of SPOT_ROUTES) {
+      const label = `${serverLabel} ${route} (first-visit welcome)`;
+      try {
+        await renderFirstVisit(browser, base, route);
+        console.log(`PASS: ${label}`);
+      } catch (error) {
+        failures.push(error);
+        console.error(`FAIL: ${label}: ${error.message}`);
+      }
+    }
+    // Keep only one SSR backend running at a time on local machines.
+    await stop(processes.at(-1));
   }
-  assert.equal(failures.length, 0, `${failures.length} crawler render(s) failed`);
-  console.log(`Crawler render test passed (${checks} renders).`);
+  assert.equal(failures.length, 0, `${failures.length} crawler/welcome render(s) failed`);
+  console.log(`Crawler/welcome render test passed (${checks} renders).`);
 } catch (error) {
   console.error(error);
   for (const { label, logs } of processes) console.error(`--- ${label} logs ---\n${logs.slice(-10_000)}`);
   process.exitCode = 1;
 } finally {
   await browser?.close();
-  await Promise.all(
-    processes.map(async ({ child }) => {
-      if (child.exitCode !== null) return;
-      const exited = once(child, "exit");
-      const kill = (signal) => {
-        try {
-          process.platform === "win32" ? child.kill(signal) : process.kill(-child.pid, signal);
-        } catch (error) {
-          if (error.code !== "ESRCH") throw error;
-        }
-      };
-      kill("SIGTERM");
-      const deadline = setTimeout(() => kill("SIGKILL"), 5000);
-      await exited;
-      clearTimeout(deadline);
-    }),
-  );
+  await Promise.all(processes.map(stop));
 }

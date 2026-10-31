@@ -6,17 +6,7 @@ import { trainingFeatureEnabled } from "./features/training-feature";
 import { financesFeatureEnabled } from "./features/finances-feature";
 import { supportShopFeatureEnabled } from "./features/support-shop-feature";
 
-export const ACCEPTANCE_FREE_PREFIXES = [
-  "/about",
-  "/shop",
-  "/support",
-  "/contact",
-  "/terms-of-service",
-  "/tos",
-  "/privacy-policy",
-  "/pp",
-  "/impressum",
-];
+export { ACCEPTANCE_FREE_PREFIXES } from "./startup/welcome-policy";
 
 const visualTestRoutes: Routes = environment.production
   ? []

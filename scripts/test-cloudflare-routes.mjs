@@ -85,7 +85,11 @@ async function page(base, route, title, status = 200) {
   assert.equal(response.status, status, `${base}${route}`);
   assert.match(response.headers.get("content-type") ?? "", /text\/html/);
   const html = await response.text();
+  assert.doesNotMatch(html, /<div\b[^>]*id="app-splash-screen"/u,
+    `SSR content must be visible before hydration: ${route}`);
   const activeHtml = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, "");
+  assert.doesNotMatch(activeHtml, /<link\b[^>]*rel="modulepreload"/,
+    `Route scripts must wait for browser startup scheduling: ${route}`);
   const stylesheets = [...activeHtml.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)];
   assert.ok(stylesheets.length, `Stylesheet missing: ${route}`);
   assert.ok(
