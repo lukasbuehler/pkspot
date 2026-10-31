@@ -851,12 +851,21 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     } catch {
       if (requestVersion !== this._eventLoadRequestVersion) return;
       // The event page owns the load-failure and retry UI.
-      void this._router.navigate(
-        this._isEmbedded()
-          ? ["/embedded/events", slug]
-          : ["/events", slug],
-        { queryParamsHandling: "preserve", replaceUrl: true },
-      );
+      this._router
+        .navigate(
+          this._isEmbedded()
+            ? ["/embedded/events", slug]
+            : ["/events", slug],
+          { queryParamsHandling: "preserve", replaceUrl: true },
+        )
+        .catch((navigationError) => {
+          // e.g. a failed lazy chunk import; don't leave the rejection unhandled.
+          this.featureTelemetry.failure(
+            "event-map-page",
+            "loadFailureRedirect",
+            navigationError,
+          );
+        });
       return;
     }
 
