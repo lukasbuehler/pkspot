@@ -68,9 +68,13 @@ test('check-in removal withdraws ranks only on publication and respects the thre
   assert.equal((await ranksOf(users[2], month)).spots[spot], undefined);
 });
 
-test('withdrawal clears the whole current month, preserves history, and rejoining never imports older visits', async () => {
+test('withdrawal clears the whole current month, preserves history, and rejoining never imports older visits', async (context) => {
   const uid = `withdraw-${run}`;
-  const now = Date.now(); const month = new Date(now).toISOString().slice(0, 7);
+  // It is November in the rank calendar while UTC is still in October.
+  // Keep the callable's clock deterministic across the whole consent flow.
+  let now = Date.parse('2091-10-31T23:30:00Z');
+  context.mock.method(Date, 'now', () => now);
+  const month = '2091-11';
   const call = enabled => setLocalLegendParticipation.run({auth: {uid}, data: {enabled}});
   await db.doc(`users/${uid}/session_records/before`).set({
     source: 'check_in', started_at_raw_ms: now - 1000, time_zone: 'Europe/Zurich',
@@ -94,6 +98,7 @@ test('withdrawal clears the whole current month, preserves history, and rejoinin
   assert.equal((await db.doc(`users/${uid}/training_months/${month}`).get()).get('spots.withdraw-spot.verified_days'), 1);
   // A legacy off-state may still have retained a current rank.
   await db.doc(`users/${uid}/training_ranks/${month}`).set(rank);
+  now += 1000;
   await call(true);
   assert.equal(await ranksOf(uid, month), undefined);
   assert.ok((await ref.get()).get('enabled_since_raw_ms') > since);
