@@ -62,7 +62,13 @@ export function eventCopy(event: Event, locale: string, schedule = "") {
         : $localize`:@@event.copy.upcoming:Find event details and planning information on PK Spot.`;
   const organizer = (event.organizer?.type === "organization" ? event.organizer.organization.name : undefined) || event.organizerName;
   const organizedBy = organizer ? $localize`:@@event.copy.organizer:Organized by ${organizer}:ORGANIZER:.` : "";
-  return { place, heading, title, description: [heading + ".", kindSentence, schedule ? schedule + "." : "", status, organizedBy].filter(Boolean).join(" ") };
+  const generated = [heading + ".", kindSentence, schedule ? schedule + "." : "", status, organizedBy].filter(Boolean).join(" ");
+  // Prefer the organizer-written description; keep the generated summary as fallback.
+  const written = event.description?.replace(/\s+/g, " ").trim();
+  const description = written
+    ? written.length > 160 ? written.slice(0, 157).trimEnd() + "…" : written
+    : generated;
+  return { place, heading, title, description };
 }
 
 function eventKindLabel(kind: Event["kind"]): string {

@@ -220,7 +220,7 @@ describe("EventInfoPageComponent", () => {
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "Dummy City Jam",
-        description: expect.stringContaining("Parkour event in Dummy City"),
+        description: "A dummy event page for crawler-readable parkour jam info.",
       }),
       "/events/dummy-city-jam",
     );
@@ -229,7 +229,7 @@ describe("EventInfoPageComponent", () => {
       expect.objectContaining({
         "@type": "Event",
         name: "Dummy City Jam",
-        description: expect.stringContaining("Parkour event in Dummy City"),
+        description: "A dummy event page for crawler-readable parkour jam info.",
         location: expect.objectContaining({
           name: "Dummy Training Hall",
           address: expect.objectContaining({

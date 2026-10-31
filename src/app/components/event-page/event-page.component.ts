@@ -1143,7 +1143,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private _subscribeToEventFromRoute(paramMap: ParamMap): void {
     const slug =
-      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "";
     const requestVersion = ++this._eventLoadRequestVersion;
     this.isLoadingEvent.set(true);
     this.eventLoadFailed.set(false);
@@ -1162,15 +1162,14 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         error: (err) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           console.warn("EventInfoPageComponent: failed to observe event", err);
-          this.isLoadingEvent.set(false);
-          this.eventLoadFailed.set(true);
+          this._setEventLoadFailure(503);
         },
       });
   }
 
   private async _loadEventFromRoute(paramMap: ParamMap): Promise<void> {
     const slug =
-      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "";
     const requestVersion = ++this._eventLoadRequestVersion;
     this.isLoadingEvent.set(true);
     this.eventLoadFailed.set(false);
@@ -1191,6 +1190,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private _setEventLoadFailure(status: 404 | 503): void {
     if (this.serverResponse) this.serverResponse.status = status;
+    this.isEditingEvent.set(false);
+    this.canEditEvent.set(false);
+    this.canManageEvent.set(false);
     this.event.set(null);
     this.isLoadingEvent.set(false);
     this.eventLoadFailed.set(true);
@@ -1737,9 +1739,23 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
 
     if (event.organizerName) {
+      // Custom organizers have no URL of their own. Borrow a series URL only
+      // when that series names the same organizer; membership alone does not
+      // prove the organizers are the same body.
+      const normalize = (name: string | undefined) =>
+        name?.trim().toLocaleLowerCase(this._locale);
+      const eventOrganizer = normalize(event.organizerName);
+      const seriesUrl = event.seriesIds
+        .map((seriesId) => this.seriesById()[seriesId])
+        .find(
+          (item) =>
+            !!item?.organizer_url &&
+            normalize(item.organizer) === eventOrganizer,
+        )?.organizer_url;
       return {
         "@type": "Organization",
         name: event.organizerName,
+        url: this._safeExternalUrl(seriesUrl),
       };
     }
 

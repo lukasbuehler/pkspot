@@ -10,6 +10,8 @@ import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { ConsentService } from "../services/consent.service";
 import { MetaTagService } from "../services/meta-tag.service";
+import { EventPageDataService } from "../services/event-page/event-page-data.service";
+import { eventCopy } from "../localization/entity-copy";
 import { Spot } from "../../db/models/Spot";
 import { SpotChallenge } from "../../db/models/SpotChallenge";
 import { SpotId } from "../../db/schemas/SpotSchema";
@@ -78,7 +80,10 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
       });
 
     case "event":
-      return await resolveEventContent(route, result, metaTagService);
+      return await resolveEventContent(route, result, metaTagService, {
+        eventPageData: inject(EventPageDataService),
+        locale,
+      });
 
     case "user":
       return await resolveUserContent(route, result, metaTagService, {
@@ -232,21 +237,40 @@ async function resolveSpotContent(
 async function resolveEventContent(
   route: ActivatedRouteSnapshot,
   result: RouteContentData,
-  metaTagService: MetaTagService
+  metaTagService: MetaTagService,
+  services: { eventPageData: EventPageDataService; locale: string }
 ): Promise<RouteContentData> {
-  // TODO: Implement event loading
-  // For now, just set default event meta tags
   const eventId = route.paramMap.get("eventId") || route.paramMap.get("slug");
 
-  if (eventId === "swissjam25") {
-    // Hardcoded for SwissJam event
-    metaTagService.setStaticPageMetaTags(
-      "SwissJam 2025",
-      "Join us for the biggest parkour event in Switzerland! SwissJam 2025 brings together athletes from around the world.",
-      "assets/swissjam/swissjam0.jpg",
-      "/events/swissjam25"
-    );
-  } else if (eventId) {
+  // Resolve the real event so SSR and the initial client navigation both carry
+  // the event's own title/description instead of the generic placeholder.
+  if (eventId) {
+    try {
+      const event = await services.eventPageData.loadEventBySlugOrId(eventId);
+      const isIndexable =
+        !!event &&
+        event.published &&
+        event.visibility === "public" &&
+        !event.viewerPolicy &&
+        event.listingTier !== "community";
+      if (event && isIndexable) {
+        const copy = eventCopy(event, services.locale);
+        metaTagService.setEventMetaTags(
+          {
+            name: event.name,
+            title: copy.title,
+            description: copy.description,
+          },
+          services.eventPageData.eventCanonicalPath(event)
+        );
+        return result;
+      }
+    } catch {
+      // Fall through to generic tags; the page component handles load errors.
+    }
+  }
+
+  if (eventId) {
     metaTagService.setStaticPageMetaTags(
       "Event",
       "Discover upcoming parkour and freerunning events near you.",
