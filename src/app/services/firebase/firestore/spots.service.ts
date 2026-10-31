@@ -1,4 +1,5 @@
 import { PlaceNamesService } from "../../place-names.service";
+import { InitialSpotSnapshotService } from "../../initial-spot-snapshot.service";
 import { Injectable, inject, Injector } from "@angular/core";
 import type { QuerySnapshot, DocumentData } from "firebase/firestore";
 import { Observable, forkJoin, of, from, throwError } from "rxjs";
@@ -25,6 +26,7 @@ import {
 export class SpotsService extends ConsentAwareService {
   private _injector = inject(Injector);
   private readonly placeNames = inject(PlaceNamesService);
+  private readonly initialSnapshots = inject(InitialSpotSnapshotService);
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private get storageService(): StorageService {
     // Lazily resolve to avoid circular DI during construction
@@ -39,13 +41,15 @@ export class SpotsService extends ConsentAwareService {
     return this._firestoreAdapter.documentReference(path);
   }
 
-  getSpotById(spotId: SpotId, locale: LocaleCode): Promise<Spot> {
+  getSpotById(spotId: SpotId, locale: LocaleCode, initialRouteKey?: string): Promise<Spot> {
     // Use adapter for platform-agnostic access
     return this._firestoreAdapter
       .getDocument<SpotSchema & { id: string }>(`spots/${spotId}`)
-      .then((data) => {
+      .then(async (data) => {
         if (data) {
-          return this.hydrateLocalizedSpot(data.id as SpotId, data, locale);
+          const spot = await this.hydrateLocalizedSpot(data.id as SpotId, data, locale);
+          if (initialRouteKey) this.initialSnapshots.capture(initialRouteKey, locale, spot, data);
+          return spot;
         } else {
           throw new SpotLoadError(spotId, "not_found");
         }

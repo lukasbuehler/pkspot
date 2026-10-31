@@ -2397,6 +2397,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.isServer || this.isEditing() || !selectedSpotId) {
         return;
       }
+      // The initial public Spot is already in the SSR snapshot. Start live
+      // Firebase work only after the visitor accepts essential services.
+      if (!this._consentService.hasConsent()) return;
 
       const selectedSpotSub = this._spotsService
         .getSpotById$(selectedSpotId, this.locale)
@@ -2554,12 +2557,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Keep a lightweight pending-edit count for the selected spot so the
-    // main detail view can show that voting/review is pending.
+    // Voting badges are live browser UI. SSR and visitors without consent
+    // need only the public Spot, not its entire edit collection.
     effect((onCleanup) => {
       const spot = this.selectedSpot();
 
-      if (!(spot instanceof Spot)) {
+      if (this.isServer || !this._consentService.hasConsent() || !(spot instanceof Spot)) {
         this.pendingSpotEditsCount.set(0);
         return;
       }

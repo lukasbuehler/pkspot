@@ -97,8 +97,9 @@ function recordHeadStates() {
       canonical: document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? null,
       robots: document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? null,
       title: document.title,
+      hasSpotContent: /IMAX/u.test(document.querySelector("app-spot-details")?.textContent ?? ""),
     };
-    const key = `${state.canonical}|${state.robots}|${state.title}`;
+    const key = `${state.canonical}|${state.robots}|${state.title}|${state.hasSpotContent}`;
     if (key !== last) {
       last = key;
       states.push(state);
@@ -129,11 +130,22 @@ async function renderLikeGooglebot(browser, base, route, { blockFirestore }) {
   }
   await context.addInitScript(recordHeadStates);
   const page = await context.newPage();
+  const liveServiceRequests = [];
+  page.on("request", (request) => {
+    if (/firestore\.googleapis\.com|firebaseappcheck\.googleapis\.com|\/recaptcha\//u.test(request.url())) {
+      liveServiceRequests.push(request.url().split("?")[0]);
+    }
+  });
   try {
     const response = await page.goto(base + route, { waitUntil: "load" });
     assert.equal(response?.status(), 200, `${base}${route}`);
+    const html = await response.text();
+    assert.match(html, /<app-spot-details\b/u, "Spot body must be server rendered");
+    assert.match(html, /initial-spot:v1:/u, "Public Spot snapshot must accompany SSR HTML");
     await page.waitForTimeout(SETTLE_MS);
     const states = await page.evaluate(() => window.__seoHeadStates);
+    assert.equal(liveServiceRequests.length, 0,
+      `Initial public content must not require Firebase/App Check: ${liveServiceRequests.join(", ")}`);
     return { states, blockedRequests };
   } finally {
     await context.close();
@@ -154,6 +166,10 @@ function assertSpotHeadStable(label, route, states) {
     assert.doesNotMatch(state.robots ?? "", /noindex/u, `${where}: robots became noindex`);
     assert.match(state.title, /IMAX/u, `${where}: title left the Spot ("${state.title}")`);
   }
+  const firstSpot = states.findIndex((state) => state.hasSpotContent);
+  assert.ok(firstSpot >= 0, `${label}: no Spot body content was rendered`);
+  assert.ok(states.slice(firstSpot).every((state) => state.hasSpotContent),
+    `${label}: hydration removed the server-rendered Spot body`);
   checks++;
 }
 
@@ -206,11 +222,8 @@ try {
           const { states, blockedRequests } = await renderLikeGooglebot(browser, base, route, {
             blockFirestore,
           });
-          if (blockFirestore) {
-            assert.ok(blockedRequests > 0, `${label}: the page made no Firestore request to block`);
-          }
           assertSpotHeadStable(label, route, states);
-          console.log(`PASS: ${label}`);
+          console.log(`PASS: ${label}; blocked requests: ${blockedRequests}`);
         } catch (error) {
           failures.push(error);
           console.error(`FAIL: ${error.message}`);
