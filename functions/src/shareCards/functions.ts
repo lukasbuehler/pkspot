@@ -9,6 +9,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { DEFAULT_STORAGE_BUCKET } from "../storageBucket";
 import { renderShareCard } from "./render";
+import { cachedContentMatches, cachedMediaReferences, contentFingerprint, legacyRevisions } from "./cache";
 import { collections, EntityKind, projectCard, resolveCardSource, sourceFingerprint, storageMediaPath, shareCardMediaCandidates } from "./source";
 
 const db = admin.firestore();
@@ -36,7 +37,9 @@ async function load(kind: EntityKind, id: string, transaction?: Transaction) {
     const spots = await (transaction ? transaction.getAll(...refs) : db.getAll(...refs));
     return spots.map((spot) => spot.data());
   }, bucket().name);
-  return source ? { source, revision: sourceFingerprint(source) } : null;
+  const data = snapshot.data();
+  return source && data ? { source, revision: sourceFingerprint(source),
+    contentFingerprint: contentFingerprint(kind, data, 2), contentFingerprintV1: contentFingerprint(kind, data), legacyRevisions: legacyRevisions(kind, data, source) } : null;
 }
 async function removeFile(path: unknown) {
   if (typeof path === "string" && path.startsWith("share_cards/")) await bucket().file(path).delete({ ignoreNotFound: true });
@@ -56,6 +59,28 @@ async function mediaState(media: string[]) {
     }
     return null;
   }));
+}
+
+/** Serving and retention deliberately ignore renderer freshness. Every saved
+ * photo must still be approved and have exactly the stored object generation. */
+async function canServeCard(card: Record<string, unknown>, current: NonNullable<Awaited<ReturnType<typeof load>>>): Promise<boolean> {
+  if (typeof card.path !== "string" || !card.path.startsWith("share_cards/") || !cachedContentMatches(card, current)) return false;
+  const eligible = new Set((current.source.eligibleMedia ?? current.source.media).flatMap((src) => {
+    const path = storageMediaPath(src, bucket().name);
+    return path ? shareCardMediaCandidates(path) : [];
+  }));
+  const references = cachedMediaReferences(card.media, eligible);
+  if (!references) return false;
+  const valid = await Promise.all(references.map(async (item) => {
+    try {
+      const [metadata] = await bucket().file(item.path).getMetadata();
+      return String(metadata.generation) === item.generation && Number(metadata.size) <= 12 * 1024 * 1024 && !!metadata.contentType?.startsWith("image/");
+    } catch (error) {
+      if ((error as {code?: number}).code !== 404) throw error;
+      return false;
+    }
+  }));
+  return valid.every(Boolean);
 }
 
 /** Preparation is an explicit user action. GET/image/crawler requests never render. */
@@ -80,7 +105,10 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
   const available = typeof persistedPath === "string" && persistedPath.startsWith("share_cards/") && (await bucket().file(persistedPath).exists())[0];
   const state = await db.runTransaction(async tx => {
     const old = (await tx.get(ref)).data();
-    if (available && old?.path === persistedPath && old?.revision === current.revision && JSON.stringify(media) === JSON.stringify(old.media)) return { reused: true, old };
+    if (available && old?.path === persistedPath && old?.revision === current.revision && JSON.stringify(media) === JSON.stringify(old.media)) {
+      tx.set(ref, {content_version: 2, content_fingerprint: current.contentFingerprint}, {merge: true});
+      return { reused: true, old };
+    }
     if (Number(old?.lease_until) > Date.now()) throw new HttpsError("aborted", "Preview is being prepared");
     tx.set(ref, { kind, id, lease, lease_revision: current.revision, lease_until: Date.now() + 65_000 }, { merge: true });
     return { reused: false, old };
@@ -106,8 +134,8 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
       // Recheck privacy/content and lease in one transaction before publication.
       await db.runTransaction(async tx => {
         const [latest, card] = await Promise.all([load(kind, id, tx), tx.get(ref)]);
-        if (!latest || latest.revision !== current.revision || card.data()?.lease !== lease) throw new HttpsError("aborted", "Preview changed during preparation");
-        tx.set(ref, { kind, id, revision: current.revision, path, media, generated_at: FieldValue.serverTimestamp() });
+        if (!latest || latest.revision !== current.revision || latest.contentFingerprint !== current.contentFingerprint || card.data()?.lease !== lease) throw new HttpsError("aborted", "Preview changed during preparation");
+        tx.set(ref, { kind, id, revision: current.revision, content_version: 2, content_fingerprint: current.contentFingerprint, path, media, generated_at: FieldValue.serverTimestamp() });
       });
       published = true;
     } finally { if (!published) await removeFile(path); }
@@ -145,10 +173,9 @@ export const shareCardImage = onRequest({ region: "europe-west1", cors: true, in
     const current = await load(kind, id);
     if (!current) { response.status(404).end(); return; }
     const card = (await cardRef(kind, id).get()).data();
-    if (card?.revision === current.revision && typeof card.path === "string" && card.path.startsWith("share_cards/") &&
-      JSON.stringify(await mediaState(current.source.media)) === JSON.stringify(card.media)) {
+    if (card && await canServeCard(card, current)) {
       try {
-        const [png] = await bucket().file(card.path).download();
+        const [png] = await bucket().file(card.path as string).download();
         response.type("png").send(png); return;
       } catch (error) {
         // Cleanup or replacement can remove a prepared image before its record.
@@ -179,8 +206,8 @@ function invalidate(kind: EntityKind) {
       const data = card.data();
       if (latest) {
         const revision = latest.revision;
-        if ((!data?.lease && data?.revision === revision) ||
-          (data?.lease && data.lease_revision === revision && Number(data.lease_until) > Date.now())) return undefined;
+        if ((data?.lease && data.lease_revision === revision && Number(data.lease_until) > Date.now()) ||
+          (data && await canServeCard(data, latest))) return undefined;
       }
       tx.delete(ref); return card.data()?.path;
     });
@@ -205,11 +232,16 @@ export const cleanupShareCards = onSchedule({ schedule: "every 24 hours", region
     const data = card.data();
     if (data?.path === file.name) {
       const current = await load(safeKind(data.kind), safeId(data.id));
-      if (current && current.revision === data.revision && JSON.stringify(await mediaState(current.source.media)) === JSON.stringify(data.media)) continue;
-      await db.runTransaction(async tx => {
-        const latest = await tx.get(card.ref);
-        if (latest.data()?.path === file.name && !latest.data()?.lease) tx.delete(card.ref);
+      if (current && await canServeCard(data, current)) continue;
+      const removable = await db.runTransaction(async tx => {
+        const [latest, source] = await Promise.all([tx.get(card.ref), load(safeKind(data.kind), safeId(data.id), tx)]);
+        const saved = latest.data();
+        if (saved?.path !== file.name) return true; // Old unreferenced file.
+        if (Number(saved.lease_until) > Date.now() || (source && await canServeCard(saved, source))) return false;
+        tx.delete(card.ref);
+        return true;
       });
+      if (!removable) continue;
     }
     await file.delete({ ignoreNotFound: true });
   }

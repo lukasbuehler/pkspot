@@ -210,3 +210,27 @@ test('type labels have no accent bar and place context leaves the supporting row
   assert.equal((await sharp(png).metadata()).height,630);
   await assert.rejects(renderShareCard({...input,locationLabel:'x'.repeat(241)},assets));
 });
+
+test('event cards format full calendar ranges in the event time zone and locale', () => {
+  const base={name:'Camp',published:true,time_zone:'Europe/Zurich'};
+  const stamp=value=>({seconds:Date.parse(value)/1000});
+  const subtitle=(data,locale='en')=>projectCard('event',{...base,...data},locale).input.subtitle;
+  const range=(start,end,locale='en',timeZone='UTC')=>new Intl.DateTimeFormat(locale,
+    {day:'numeric',month:'short',year:'numeric',timeZone}).formatRange(new Date(start),new Date(end));
+  for(const [start,end] of [['2026-12-11','2026-12-13'],['2026-11-30','2026-12-02'],['2026-12-31','2027-01-02']]) {
+    for(const locale of ['en','de-CH']) {
+      assert.equal(subtitle({timing:{start_date:start,end_date:end,mode:'date_only'}},locale),range(start,end,locale));
+    }
+  }
+  const start=stamp('2026-12-11T23:30:00Z'); // Dec 12 at the venue, Dec 11 in UTC.
+  const single=new Intl.DateTimeFormat('en',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Zurich'}).format(new Date(start.seconds*1000));
+  for(const end of [undefined,stamp('2026-12-12T20:00:00Z'),stamp('2026-12-10T12:00:00Z'),{seconds:NaN}]) {
+    assert.equal(subtitle({start,end}),single);
+  }
+  assert.equal(subtitle({start,end:stamp('2026-12-13T20:00:00Z')}),range('2026-12-11T23:30:00Z','2026-12-13T20:00:00Z','en','Europe/Zurich'));
+  assert.equal(subtitle({start_seconds:start.seconds,end_seconds:Date.parse('2026-12-13T20:00:00Z')/1000}),
+    subtitle({start,end:stamp('2026-12-13T20:00:00Z')}));
+  assert.equal(subtitle({start,end:stamp('2026-12-15T00:00:00Z'),timing:{start_date:'2026-12-11',mode:'open_end'}}),new Intl.DateTimeFormat('en',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date('2026-12-11T00:00:00Z')));
+  assert.equal(subtitle({end:stamp('2026-12-15T00:00:00Z')}),'');
+  assert.equal(subtitle({start:{seconds:NaN}}),'');
+});

@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const {createRequire} = require('node:module');
 const {resolve} = require('node:path');
 const {readFile} = require('node:fs/promises');
+const {createHash} = require('node:crypto');
 const requireFunctions = createRequire(resolve('functions/package.json'));
 if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_STORAGE_EMULATOR_HOST || !process.env.GCLOUD_PROJECT?.startsWith('demo-')) throw Error('Demo Firestore and Storage emulators required');
 const admin = requireFunctions('firebase-admin');
@@ -53,6 +54,29 @@ async function run(){
   const head=await fetch(`${endpoint}?kind=spot&id=${id}`,{method:'HEAD'});
   assert.equal(head.status,200); assert.equal((await head.arrayBuffer()).byteLength,0);
   assert.equal((await call(id)).reused,true);
+  // A future renderer version must never create a gap in the public preview.
+  const oldVersion=renderer.SHARE_CARD_VERSION;
+  const oldBytes=Buffer.from(await (await image(id)).arrayBuffer());
+  const oldPath=card.path;
+  const priorRenderer=renderer.renderShareCard;
+  renderer.SHARE_CARD_VERSION='future-renderer-test';
+  try {
+    assert.deepEqual(Buffer.from(await (await image(id)).arrayBuffer()),oldBytes);
+    await invalidateSpotShareCard.run({params:{id},data:{before:{data:()=>undefined},after:await ref.get()}});
+    assert.equal((await cards.docs[0].ref.get()).data().path,oldPath,'Delayed invalidation preserves a safe older design');
+    renderer.renderShareCard=async()=>{
+      assert.deepEqual(Buffer.from(await (await image(id)).arrayBuffer()),oldBytes,'Old preview remains readable during replacement');
+      throw Error('Simulated render failure');
+    };
+    await assert.rejects(call(id),error=>error.code==='internal');
+    assert.deepEqual(Buffer.from(await (await image(id)).arrayBuffer()),oldBytes,'A failed refresh retains the previous image');
+    renderer.renderShareCard=priorRenderer;
+    assert.equal((await call(id)).reused,false,'An explicit Share upgrades to the current design');
+    assert.equal((await bucket.file(oldPath).exists())[0],false,'Successful replacement removes the old object');
+    card=(await cards.docs[0].ref.get()).data();
+    assert.equal(card.content_version,2);
+  } finally {renderer.SHARE_CARD_VERSION=oldVersion;renderer.renderShareCard=priorRenderer;}
+  assert.ok((await image(id)).ok,'Rolling back a renderer also preserves a safe preview');
   const direct=await fetch(`http://${process.env.FIREBASE_STORAGE_EMULATOR_HOST}/v0/b/${bucket.name}/o/${encodeURIComponent(card.path)}?alt=media`);
   assert.ok([401,403].includes(direct.status),'Anonymous Storage reads must be denied');
   const firestoreRead=await fetch(`http://${process.env.FIRESTORE_EMULATOR_HOST}/v1/projects/${process.env.GCLOUD_PROJECT}/databases/(default)/documents/share_cards/${cards.docs[0].id}`);
@@ -65,6 +89,15 @@ async function run(){
   assert.equal((await bucket.file(card.path).exists())[0],false,'Replaced card removed');
   card=(await cards.docs[0].ref.get()).data();
   assert.equal(card.media[0].path,photoPath,'Use published resize even when original is archived');
+  const originalMedia={type:'image',src:'spot_pictures/share-test.png',isInStorage:true};
+  const morePhotos=Array.from({length:3},(_,i)=>({type:'image',src:`spot_pictures/added-${i}.png`,isInStorage:true}));
+  for(let i=0;i<3;i++) await bucket.file(`spot_pictures/added-${i}_800x800.png`).save(photo,{resumable:false,metadata:{contentType:'image/png'}});
+  const savedPhotoCard=Buffer.from(await (await image(id)).arrayBuffer());
+  await ref.update({media:[...morePhotos,originalMedia]});
+  assert.deepEqual(Buffer.from(await (await image(id)).arrayBuffer()),savedPhotoCard,'An older approved photo remains usable after a new selection becomes preferred');
+  await ref.update({media:morePhotos});
+  assert.deepEqual(Buffer.from(await (await image(id)).arrayBuffer()),fallback,'Removing the embedded photo reference blocks its cached card');
+  await ref.update({media:[originalMedia]});
   await bucket.file(photoPath).delete();
   assert.deepEqual(Buffer.from(await (await image(id)).arrayBuffer()),photo,'Removed media is not served from the old card');
   assert.equal((await call(id)).reused,false);
@@ -110,6 +143,59 @@ async function run(){
     await entity.delete();
     assert.equal((await fetch(query)).status,404,'Deleted entity never serves its cached image');
   }
+  // Newly rendered ranges must stop serving when only the ending changes.
+  const rangeEvent=db.doc('events/range-event');
+  await rangeEvent.set({name:'Multi day camp',published:true,time_zone:'Europe/Zurich',
+    start:admin.firestore.Timestamp.fromDate(new Date('2026-12-11T12:00:00Z')),
+    end:admin.firestore.Timestamp.fromDate(new Date('2026-12-13T12:00:00Z'))});
+  const prepareRange=()=>prepareShareCard.run({data:{kind:'event',id:'range-event'},rawRequest:{ip:'range-fixture'}});
+  const rangeImage=()=>fetch(`${endpoint}?kind=event&id=range-event`);
+  await prepareRange();
+  assert.notDeepEqual(Buffer.from(await (await rangeImage()).arrayBuffer()),fallback);
+  await rangeEvent.update({end:admin.firestore.Timestamp.fromDate(new Date('2026-12-14T12:00:00Z'))});
+  assert.deepEqual(Buffer.from(await (await rangeImage()).arrayBuffer()),fallback,'End-only edits invalidate corrected cards');
+  await prepareRange();
+  assert.notDeepEqual(Buffer.from(await (await rangeImage()).arrayBuffer()),fallback);
+  await rangeEvent.delete();
+  // Seed the exact deployed cache format, without the new content snapshot.
+  const legacyBytes=await requireFunctions('sharp')({create:{width:1200,height:630,channels:4,background:'#304578'}}).png().toBuffer();
+  const legacyPhotoPath='spot_pictures/legacy_800x800.png';
+  await bucket.file(legacyPhotoPath).save(photo,{resumable:false,metadata:{contentType:'image/png'}});
+  const legacyPhotoMetadata=(await bucket.file(legacyPhotoPath).getMetadata())[0];
+  const legacyFixtures=[
+    ['spot','spots',{name:'Legacy Spot',rating:4,locality_string:'Town',media:[{type:'image',src:'spot_pictures/legacy.png',isInStorage:true}]},
+      {kind:'spot',audience:'public',title:'Legacy Spot',subtitle:'Town',detail:'Explore on PK Spot',rating:4},['spot_pictures/legacy.png']],
+    ['event','events',{name:'Legacy event',published:true,venue_string:'Hall',locality_string:'Town'},
+      {kind:'event',audience:'public',title:'Legacy event',subtitle:'Hall',detail:'Discover the event on PK Spot'},[]],
+    ['community','community_pages',{displayName:'Legacy town',published:true,scope:'locality',geography:{countryCode:'CH'},counts:{totalSpots:1},communityPicks:[{category:'standout',spots:[{id:'compat-spot'}]}]},
+      {kind:'community',audience:'public',title:'Legacy town',subtitle:'1 Spots',detail:'Find your community on PK Spot'},[]],
+    ['profile','users',adult,
+      {kind:'profile',audience:'public',title:'Public athlete',subtitle:'Part of the parkour community',detail:'Find your community on PK Spot'},[]],
+  ];
+  const legacyPaths=[];
+  for(const [kind,collection,data,input,media] of legacyFixtures) {
+    const entityId=`compat-${kind}`, entity=db.doc(`${collection}/${entityId}`);
+    await entity.set(data);
+    const key=createHash('sha256').update(`${kind}/${entityId}`).digest('hex');
+    const path=`share_cards/${collection}/${key}/legacy.png`;
+    legacyPaths.push(path);
+    await bucket.file(path).save(legacyBytes,{resumable:false,metadata:{contentType:'image/png',cacheControl:'private, no-store'}});
+    const revision=createHash('sha256').update('prototype-10').update(JSON.stringify({input,media})).digest('hex').slice(0,24);
+    const cardRef=db.doc(`share_cards/${key}`);
+    await cardRef.set({kind,id:entityId,path,revision,media:kind==='spot'?[{path:legacyPhotoPath,generation:String(legacyPhotoMetadata.generation)}]:[]});
+    const before=(await cardRef.get()).updateTime.toMillis();
+    const query=`${endpoint}?kind=${kind}&id=${entityId}`;
+    assert.deepEqual(Buffer.from(await (await fetch(query)).arrayBuffer()),legacyBytes,`${kind}: legacy card survives renderer/projection changes`);
+    assert.equal((await cardRef.get()).updateTime.toMillis(),before,'GET never migrates or rewrites cache records');
+    const invalidate=require('../../functions/lib/functions/src/shareCards/functions.js')[`invalidate${kind[0].toUpperCase()+kind.slice(1)}ShareCard`];
+    await invalidate.run({params:{id:entityId},data:{before:{data:()=>undefined},after:await entity.get()}});
+    assert.equal((await cardRef.get()).data().path,path,'Legacy image survives delayed invalidation');
+    if(kind==='event') {
+      await entity.update({name:'Edited legacy event'});
+      assert.deepEqual(Buffer.from(await (await fetch(query)).arrayBuffer()),fallback,'Real content edits still invalidate legacy cards');
+      await entity.update({name:data.name});
+    }
+  }
   // Community cards resolve current Spot media instead of trusting preview URLs.
   const communityId='collage-community', communityRef=db.doc(`community_pages/${communityId}`);
   const communitySpot=db.doc('spots/collage-spot');
@@ -147,7 +233,9 @@ async function run(){
   // Advancing only the application clock exercises retention without waiting a day.
   await db.doc('spots/retained-card').set({name:'Still public'});
   await prepareShareCard.run({data:{kind:'spot',id:'retained-card'},rawRequest:{ip:'retention-fixture'}});
-  const retained=(await db.collection('share_cards').where('id','==','retained-card').get()).docs[0].data();
+  const retainedRef=(await db.collection('share_cards').where('id','==','retained-card').get()).docs[0].ref;
+  await retainedRef.update({revision:'an-older-renderer-version'});
+  const retained=(await retainedRef.get()).data();
   const orphan=`share_cards/spots/${'a'.repeat(64)}/orphan.png`;
   await bucket.file(orphan).save(fallback,{resumable:false,metadata:{contentType:'image/png'}});
   const realNow=Date.now, future=realNow()+2*86400_000;
@@ -155,8 +243,9 @@ async function run(){
   try { await cleanupShareCards.run({}); } finally { Date.now=realNow; }
   assert.equal((await bucket.file(orphan).exists())[0],false,'Old orphan upload is removed');
   assert.equal((await bucket.file(retained.path).exists())[0],true,'Still-public current image survives cleanup');
-  assert.equal((await bucket.getFiles({prefix:'share_cards/'}))[0].length,1,'Deleted/restricted entity images are removed');
+  for(const path of legacyPaths) assert.equal((await bucket.file(path).exists())[0],true,'Safe legacy images survive scheduled cleanup without migration');
+  assert.equal((await bucket.getFiles({prefix:'share_cards/'}))[0].length,1+legacyPaths.length,'Only valid current and legacy images survive cleanup');
   assert.equal((await db.collection('share_card_limits').get()).empty,true,'Expired rate-limit records are removed');
-  console.log('Share-card emulator checks passed: prepare, reuse, private storage, privacy gate, deletion, publication race.');
+  console.log('Share-card emulator checks passed: renderer upgrades/rollback, legacy compatibility, failed refresh retention, read-only GET, safe cleanup, privacy gates and publication races.');
 }
 run().finally(async()=>{server.close();await admin.app().delete();}).catch(error=>{console.error(error);process.exitCode=1;});

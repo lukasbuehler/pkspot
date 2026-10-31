@@ -101,5 +101,5 @@ test('community photo selection stays bounded and returns at most 16 distinct im
   const source=await resolveCardSource('community',{
     published:true,displayName:'Large community',spots:Array.from({length:100},(_,i)=>({id:`spot${i}`})),
   },async ids=>{reads.push(...ids);return ids.map(id=>({name:id,media:[{type:'image',src:`spot_pictures/${id}.jpg`}]}));},'test.appspot.com');
-  assert.equal(source.media.length,16);assert.equal(reads.length,16);assert.equal(source.relatedSpotIds.length,32);
+  assert.equal(source.media.length,16);assert.equal(reads.length,32);assert.equal(source.relatedSpotIds.length,32);assert.equal(source.eligibleMedia.length,32);
 });

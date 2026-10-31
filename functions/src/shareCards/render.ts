@@ -24,7 +24,7 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-12";
+export const SHARE_CARD_VERSION = "prototype-13";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 
 /** No network, Firebase, or filesystem writes. The local lab and future worker
