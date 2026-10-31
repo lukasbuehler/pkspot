@@ -3,18 +3,132 @@ import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
 import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { NEVER } from "rxjs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { environment } from "../../environments/environment.default";
 import { ConsentService } from "./consent.service";
 import { AnalyticsService, stripUtmParametersFromUrl, redactPlanningUrl } from "./analytics.service";
 
 const capacitorPostHogMock = vi.hoisted(() => ({
   unregister: vi.fn(),
   captureException: vi.fn(),
+  setup: vi.fn().mockResolvedValue(undefined),
+  register: vi.fn().mockResolvedValue(undefined),
+  screen: vi.fn().mockResolvedValue(undefined),
+  capture: vi.fn().mockResolvedValue(undefined),
+  optIn: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@capawesome/capacitor-posthog", () => ({
   Posthog: capacitorPostHogMock,
 }));
+
+describe("AnalyticsService privacy and native startup", () => {
+  const originalConfig = environment.keys.posthog;
+  let service: AnalyticsService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    environment.keys.posthog = { apiKey: "phc_test", host: "https://analytics.invalid" };
+    TestBed.configureTestingModule({
+      providers: [
+        AnalyticsService,
+        { provide: ConsentService, useValue: { hasConsent: () => true } },
+        { provide: Router, useValue: { events: NEVER, url: "/map" } },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+    service = TestBed.inject(AnalyticsService);
+    const internals = service as unknown as { isLocalhost: () => boolean; isNative: () => boolean };
+    vi.spyOn(internals, "isLocalhost").mockReturnValue(false);
+    vi.spyOn(internals, "isNative").mockReturnValue(true);
+    vi.mocked(CapacitorPostHog.unregister).mockResolvedValue();
+  });
+
+  afterEach(() => {
+    environment.keys.posthog = originalConfig;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+  });
+
+  it("captures the initial native screen after initialization is ready", async () => {
+    await service.init();
+
+    expect(CapacitorPostHog.screen).toHaveBeenCalledWith(expect.objectContaining({
+      screenTitle: "https://pkspot.app/map",
+    }));
+    expect(CapacitorPostHog.capture).toHaveBeenCalledWith(expect.objectContaining({
+      event: "$pageview",
+    }));
+    service.trackScreen("/map");
+    expect(CapacitorPostHog.screen).toHaveBeenCalledTimes(1);
+    expect(CapacitorPostHog.capture).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not treat a false GPC signal as an opt-out", async () => {
+    vi.stubGlobal("navigator", { globalPrivacyControl: false });
+    await service.init();
+    expect(service.isAvailable()).toBe(true);
+    expect(CapacitorPostHog.capture).toHaveBeenCalled();
+  });
+
+  it("does not access browser privacy signals during SSR", () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        AnalyticsService,
+        { provide: ConsentService, useValue: {} },
+        { provide: Router, useValue: {} },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+    const readGpc = vi.fn(() => { throw new Error("Browser-only API"); });
+    vi.stubGlobal("navigator", { get globalPrivacyControl() { return readGpc(); } });
+    const internals = TestBed.inject(AnalyticsService) as unknown as {
+      hasGlobalPrivacyControl: () => boolean;
+    };
+    expect(internals.hasGlobalPrivacyControl()).toBe(false);
+    expect(readGpc).not.toHaveBeenCalled();
+  });
+
+  it("drops web SDK events at the send hook when GPC is active", () => {
+    vi.stubGlobal("navigator", { globalPrivacyControl: true });
+    const internals = service as unknown as {
+      processEventBeforeSend: (event: unknown) => unknown;
+    };
+    expect(internals.processEventBeforeSend({ event: "$pageview", properties: {} })).toBeNull();
+  });
+
+  it.each([true, false])("does not initialize analytics with GPC enabled (native=%s)", async (native) => {
+    vi.stubGlobal("navigator", { globalPrivacyControl: true });
+    const internals = service as unknown as { isNative: () => boolean; initWeb: () => Promise<void> };
+    vi.mocked(internals.isNative).mockReturnValue(native);
+    const webInit = vi.spyOn(internals, "initWeb").mockResolvedValue();
+
+    await service.init();
+    service.optIn();
+
+    expect(CapacitorPostHog.setup).not.toHaveBeenCalled();
+    expect(CapacitorPostHog.optIn).not.toHaveBeenCalled();
+    expect(webInit).not.toHaveBeenCalled();
+    expect(service.hasOptedOut()).toBe(true);
+  });
+
+  it("blocks captures and opt-in if GPC becomes active after startup", async () => {
+    await service.init();
+    vi.mocked(CapacitorPostHog.capture).mockClear();
+    vi.mocked(CapacitorPostHog.screen).mockClear();
+    vi.stubGlobal("navigator", { globalPrivacyControl: true });
+
+    service.trackScreen("/events");
+    service.trackEvent("$pageview");
+    service.optIn();
+
+    expect(CapacitorPostHog.capture).not.toHaveBeenCalled();
+    expect(CapacitorPostHog.screen).not.toHaveBeenCalled();
+    expect(CapacitorPostHog.optIn).not.toHaveBeenCalled();
+  });
+});
 
 describe("AnalyticsService URL helpers", () => {
   it("removes UTM parameters while preserving other query params and hash", () => {

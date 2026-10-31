@@ -81,6 +81,7 @@ import { PlatformService } from "./services/platform.service";
 // import { SelectLanguageDialogComponent } from "./components/select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
+import { completedNavigations } from "./shared/completed-navigations";
 import { ConsentService } from "./services/consent.service";
 import {
   Capacitor,
@@ -585,8 +586,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Manual pageview + engaged-time tracking (disable autocapture to avoid race conditions)
-    let initialPageviewSent = false;
+    // Manual pageview + engaged-time tracking, including an already completed landing navigation.
 
     // Engagement helper object to manage timers and handlers per-page
     this._engagement = {
@@ -699,118 +699,100 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
     } as any;
 
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
-        const nav = event as NavigationEnd;
+    completedNavigations(this.router)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe((nav) => {
         this.syncSiteStructuredData(nav.urlAfterRedirects);
         this.checkWelcomeDialogForCurrentRoute();
 
-        const send = () => {
-          try {
-            const isBrowser =
-              typeof window !== "undefined" && typeof document !== "undefined";
+        // Pageviews must not wait for auth restoration: a visitor may leave first.
+        try {
+          const isBrowser =
+            typeof window !== "undefined" && typeof document !== "undefined";
 
-            const url = isBrowser
-              ? window.location.href
-              : nav.urlAfterRedirects;
-            const authenticated = this.isSignedIn();
-            const consentGranted = this._consentService.hasConsent();
-            const acceptedVersion = isBrowser
-              ? localStorage.getItem("acceptedVersion")
-              : null;
+          const url = isBrowser
+            ? window.location.href
+            : nav.urlAfterRedirects;
+          const authenticated = this.isSignedIn();
+          const consentGranted = this._consentService.hasConsent();
+          const acceptedVersion = isBrowser
+            ? localStorage.getItem("acceptedVersion")
+            : null;
 
-            // finalize previous page's engagement before starting new
-            this._engagement.finalizeAndSend();
+          // finalize previous page's engagement before starting new
+          this._engagement.finalizeAndSend();
 
-            // Emit manual pageview using PostHog's standard $pageview event
+          // Emit manual pageview using PostHog's standard $pageview event
 
-            if (!this.isNativePlatform) {
-              const attribution =
-                this._analyticsService.getCurrentAttributionProperties();
-              this._analyticsService.trackEvent("$pageview", {
-                path: nav.urlAfterRedirects,
-                current_url: url,
-                ...attribution,
-                authenticated: authenticated,
-                consent_granted: consentGranted,
-                accepted_version: acceptedVersion,
-                source: "manual",
-              });
-              this._analyticsService.trackStickerScanFromCurrentUrl();
-              this._analyticsService.cleanCurrentUtmParametersFromUrl();
-            }
-
-            if (this.shouldSyncCanonicalFromNavigation()) {
-              this._metaTagService.syncCanonicalAndHreflangForPath(
-                nav.urlAfterRedirects,
-              );
-            }
-
-            // Start new engagement tracking for this page (browser-only)
-            if (isBrowser && document.visibilityState === "visible") {
-              this._engagement.visibleStart = Date.now();
-            } else {
-              this._engagement.visibleStart = null;
-            }
-
-            // visibility handler (browser-only)
-            if (isBrowser) {
-              this._engagement.visibilityHandler = () => {
-                if (document.visibilityState === "hidden") {
-                  if (this._engagement.visibleStart) {
-                    this._engagement.totalVisibleMs +=
-                      Date.now() - this._engagement.visibleStart;
-                    this._engagement.visibleStart = null;
-                  }
-                } else {
-                  this._engagement.visibleStart = Date.now();
-                }
-              };
-              document.addEventListener(
-                "visibilitychange",
-                this._engagement.visibilityHandler,
-              );
-
-              // beforeunload handler to try and send final duration
-              this._engagement.beforeUnloadHandler = () => {
-                this._engagement.finalizeAndSend(nav.urlAfterRedirects);
-              };
-              window.addEventListener(
-                "beforeunload",
-                this._engagement.beforeUnloadHandler,
-                { capture: false },
-              );
-            }
-
-            // start periodic pings if consent already granted (browser-only)
-            if (
-              this._engagedPingEnabled &&
-              this._consentService.hasConsent() &&
-              isBrowser &&
-              !this.isNativePlatform
-            ) {
-              this._engagement.startPingsIfNeeded();
-            }
-          } catch (e) {
-            console.error("Failed to send manual pageview", e);
-          }
-        };
-
-        if (!initialPageviewSent) {
-          // wait until auth state is restored to get correct `authenticated` flag
-          this.waitForInitialAuthState()
-            .then(() => {
-              send();
-              initialPageviewSent = true;
-            })
-            .catch(() => {
-              // even if auth retrieval fails, still send a pageview
-              send();
-              initialPageviewSent = true;
+          if (!this.isNativePlatform) {
+            const attribution =
+              this._analyticsService.getCurrentAttributionProperties();
+            this._analyticsService.trackEvent("$pageview", {
+              path: nav.urlAfterRedirects,
+              current_url: url,
+              ...attribution,
+              authenticated: authenticated,
+              consent_granted: consentGranted,
+              accepted_version: acceptedVersion,
+              source: "manual",
             });
-        } else {
-          send();
+            this._analyticsService.trackStickerScanFromCurrentUrl();
+            this._analyticsService.cleanCurrentUtmParametersFromUrl();
+          }
+
+          if (this.shouldSyncCanonicalFromNavigation()) {
+            this._metaTagService.syncCanonicalAndHreflangForPath(
+              nav.urlAfterRedirects,
+            );
+          }
+
+          // Start new engagement tracking for this page (browser-only)
+          if (isBrowser && document.visibilityState === "visible") {
+            this._engagement.visibleStart = Date.now();
+          } else {
+            this._engagement.visibleStart = null;
+          }
+
+          // visibility handler (browser-only)
+          if (isBrowser) {
+            this._engagement.visibilityHandler = () => {
+              if (document.visibilityState === "hidden") {
+                if (this._engagement.visibleStart) {
+                  this._engagement.totalVisibleMs +=
+                    Date.now() - this._engagement.visibleStart;
+                  this._engagement.visibleStart = null;
+                }
+              } else {
+                this._engagement.visibleStart = Date.now();
+              }
+            };
+            document.addEventListener(
+              "visibilitychange",
+              this._engagement.visibilityHandler,
+            );
+
+            // beforeunload handler to try and send final duration
+            this._engagement.beforeUnloadHandler = () => {
+              this._engagement.finalizeAndSend(nav.urlAfterRedirects);
+            };
+            window.addEventListener(
+              "beforeunload",
+              this._engagement.beforeUnloadHandler,
+              { capture: false },
+            );
+          }
+
+          // start periodic pings if consent already granted (browser-only)
+          if (
+            this._engagedPingEnabled &&
+            this._consentService.hasConsent() &&
+            isBrowser &&
+            !this.isNativePlatform
+          ) {
+            this._engagement.startPingsIfNeeded();
+          }
+        } catch (e) {
+          console.error("Failed to send manual pageview", e);
         }
       });
   }
@@ -1014,14 +996,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         3000,
       ),
     ]);
-  }
-
-  private waitForInitialAuthState(): Promise<void> {
-    if (typeof window === "undefined") {
-      return Promise.resolve();
-    }
-
-    return this.waitUntil(() => this.authService.initialAuthStateResolved());
   }
 
   private async waitForAppStable() {
