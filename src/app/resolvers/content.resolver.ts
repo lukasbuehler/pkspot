@@ -10,6 +10,7 @@ import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { ConsentService } from "../services/consent.service";
 import { MetaTagService } from "../services/meta-tag.service";
+import { InitialSpotSnapshotService } from "../services/initial-spot-snapshot.service";
 import { EventPageDataService } from "../services/event-page/event-page-data.service";
 import { eventCopy } from "../localization/entity-copy";
 import { Spot } from "../../db/models/Spot";
@@ -56,6 +57,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
   const usersService = inject(UsersService);
   const consentService = inject(ConsentService);
   const metaTagService = inject(MetaTagService);
+  const initialSnapshots = inject(InitialSpotSnapshotService);
   const locale = inject(LOCALE_ID);
   const response = inject(RESPONSE_INIT, { optional: true });
   const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -77,6 +79,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
         locale,
         response,
         isBrowser,
+        initialSnapshots,
       });
 
     case "event":
@@ -166,6 +169,17 @@ async function resolveSpotContent(
     return result;
   }
 
+  // Reuse the public HTML's data before checking browser consent. No Firebase
+  // request is needed to hydrate content that was already delivered by SSR.
+  if (result.contentType === "spot") {
+    const snapshot = services.initialSnapshots.read(spotIdOrSlug, services.locale);
+    if (snapshot) {
+      result.spot = snapshot;
+      services.metaTagService.setSpotMetaTags(snapshot, buildSpotCanonicalPath(snapshot.slug ?? snapshot.id));
+      return result;
+    }
+  }
+
   // Check for consent before making any Firestore requests
   if (!services.consentService.hasConsent()) {
     console.warn(
@@ -186,7 +200,11 @@ async function resolveSpotContent(
       .getSpotIdFromSpotSlug(spotIdOrSlug)
       .catch(() => spotIdOrSlug as SpotId);
 
-    const spot = await services.spotsService.getSpotById(spotId, services.locale);
+    const spot = await services.spotsService.getSpotById(
+      spotId,
+      services.locale,
+      result.contentType === "spot" ? spotIdOrSlug : undefined,
+    );
     result.spot = spot;
 
     // If we also have a challenge, get that too

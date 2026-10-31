@@ -53,7 +53,9 @@ import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
 import { environment } from "../environments/environment.default";
 import { isBot } from "../scripts/Helpers";
-import { ACCEPTANCE_FREE_PREFIXES } from "./app.routes";
+import { isAcceptanceFreePath, withoutLocalePrefix } from "./startup/welcome-policy";
+import { EARLY_WELCOME_CONTEXT } from "./startup/welcome-acceptance";
+import { WELCOME_DIALOG_OPTIONS } from "./startup/welcome-dialog-options";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
@@ -252,6 +254,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _appSettings = inject(AppSettingsService);
   private _mapProfiler = inject(MapPerformanceProfilerService);
   private _appCheckFailureWarning = inject(AppCheckFailureWarningService);
+  private readonly earlyWelcomeContext = inject(EARLY_WELCOME_CONTEXT, { optional: true });
   private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
   readonly myEventContext = inject(MyEventContextService);
@@ -586,6 +589,13 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     });
 
+    this.earlyWelcomeContext?.ready(() => {
+      this._consentService.grantConsent();
+      this._analyticsService.trackEvent("Visitor Agreed to Terms", {
+        version: this._consentService.CURRENT_TERMS_VERSION, method: "welcome_dialog",
+      });
+    });
+
     // Manual pageview + engaged-time tracking, including an already completed landing navigation.
 
     // Engagement helper object to manage timers and handlers per-page
@@ -845,6 +855,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     );
   }
   private checkWelcomeDialogForCurrentRoute(): void {
+    // The early app owns this one dialog, including while hydration navigates.
+    if (this.earlyWelcomeContext && !this._consentService.hasConsent()) return;
     if (typeof window === "undefined") {
       return;
     }
@@ -905,13 +917,8 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
 
       const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+        ...WELCOME_DIALOG_OPTIONS,
         data: { version: currentTermsVersion },
-        width: "680px",
-        maxWidth: "min(680px, calc(100vw - 2rem))",
-        maxHeight: "calc(100dvh - 2rem)",
-        hasBackdrop: true,
-        disableClose: true,
-        enterAnimationDuration: "0ms",
       });
 
       dialogRef.afterClosed().subscribe((agreed: boolean) => {
@@ -934,22 +941,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private isAcceptanceFreePath(pathname: string): boolean {
-    const path = this.stripLocalePrefix(pathname);
-
-    return ACCEPTANCE_FREE_PREFIXES.some(
-      (prefix) => path === prefix || path.startsWith(`${prefix}/`),
-    );
+    return isAcceptanceFreePath(pathname);
   }
 
   private stripLocalePrefix(pathname: string): string {
-    const segments = pathname.split("/");
-
-    if (segments.length > 1 && isKnownUiLocalePrefix(segments[1])) {
-      segments.splice(1, 1);
-      return segments.join("/") || "/";
-    }
-
-    return pathname || "/";
+    return withoutLocalePrefix(pathname);
   }
 
   private shouldSyncCanonicalFromNavigation(): boolean {

@@ -1,15 +1,13 @@
 import { MatDialog } from "@angular/material/dialog";
 import { firstValueFrom } from "rxjs";
 import { LocalLegendService } from "./local-legend.service";
-import { LocalLegendJoinDialogComponent } from "../components/local-legend-join-dialog/local-legend-join-dialog.component";
 import { Injectable, inject, signal } from "@angular/core";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import type { SpotId } from "../../db/schemas/SpotSchema";
-import {
-  CheckInRewardSheetComponent,
-  type CheckInAttempt,
-  type CheckInRewardSheetData,
+import type {
+  CheckInAttempt,
+  CheckInRewardSheetData,
 } from "../components/check-in-reward-sheet/check-in-reward-sheet.component";
 import { CheckInService } from "./check-in.service";
 
@@ -39,6 +37,7 @@ export class CheckInFlowService {
       const choice = state === "unavailable" ? await this._legend.choiceForCheckIn() : state;
       if (choice === "undecided") {
         if (!this._checkIns.canCheckIn()) throw new Error("Location is unavailable.");
+        const { LocalLegendJoinDialogComponent } = await import("../components/local-legend-join-dialog/local-legend-join-dialog.component");
         const decision = await firstValueFrom(LocalLegendJoinDialogComponent.open(
           this._dialog, {forCheckIn: true},
         ).afterClosed());
@@ -58,6 +57,7 @@ export class CheckInFlowService {
   }
 
   private async openReward(spotId: SpotId, spotName: string | null): Promise<void> {
+    const { CheckInRewardSheetComponent } = await import("../components/check-in-reward-sheet/check-in-reward-sheet.component");
     const attempt = signal<CheckInAttempt>({ status: "pending" });
     let sheetOpen = true;
     const run = async (): Promise<void> => {
@@ -84,9 +84,9 @@ export class CheckInFlowService {
         this._pending.set(false);
       }
     };
-    const sheet = this._bottomSheet.open<CheckInRewardSheetComponent, CheckInRewardSheetData>(
+    const sheet = this._bottomSheet.open(
       CheckInRewardSheetComponent,
-      { data: { spotId, spotName, attempt: attempt.asReadonly(), retry: () => { if (!this._pending()) void run(); } } },
+      { data: { spotId, spotName, attempt: attempt.asReadonly(), retry: () => { if (!this._pending()) void run(); } } satisfies CheckInRewardSheetData },
     );
     sheet.afterDismissed().subscribe(() => (sheetOpen = false));
     await run();

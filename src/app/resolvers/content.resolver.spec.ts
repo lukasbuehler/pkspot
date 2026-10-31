@@ -13,6 +13,7 @@ import { SpotChallengesService } from "../services/firebase/firestore/spot-chall
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { ConsentService } from "../services/consent.service";
+import { InitialSpotSnapshotService } from "../services/initial-spot-snapshot.service";
 import { Spot } from "../../db/models/Spot";
 import { MediaType } from "../../db/models/Interfaces";
 import { SpotId } from "../../db/schemas/SpotSchema";
@@ -261,6 +262,23 @@ describe("contentResolver", () => {
     });
   });
 
+  it("hydrates public Spot content before consent without fetching Firebase or resolving the slug again", async () => {
+    const spot = buildImaxSpot();
+    TestBed.overrideProvider(PLATFORM_ID, { useValue: "browser" });
+    TestBed.overrideProvider(InitialSpotSnapshotService, {
+      useValue: { read: vi.fn().mockReturnValue(spot) },
+    });
+    consentService.hasConsent.mockReturnValue(false);
+    const result = await TestBed.runInInjectionContext(() =>
+      contentResolver(createRouteSnapshot("imax") as ActivatedRouteSnapshot),
+    );
+    expect(result.spot).toBe(spot);
+    expect(spotsService.getSpotById).not.toHaveBeenCalled();
+    expect(slugsService.getSpotIdFromSpotSlug).not.toHaveBeenCalled();
+    expect(getLinkHref(testDocument, 'link[rel="canonical"]')).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX: Parkour Spot in London | PK Spot");
+  });
+
   it("should render spot-specific SSR social tags for the imax route", async () => {
     const imaxSpot = buildImaxSpot();
     const route = createRouteSnapshot("imax");
@@ -274,7 +292,7 @@ describe("contentResolver", () => {
 
     expect(result.spot).toBe(imaxSpot);
     expect(slugsService.getSpotIdFromSpotSlug).toHaveBeenCalledWith("imax");
-    expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en");
+    expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en", "imax");
     expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX: Parkour Spot in London | PK Spot");
 
     expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
@@ -342,7 +360,7 @@ describe("contentResolver", () => {
 
     await TestBed.runInInjectionContext(() => contentResolver(route as any));
 
-    expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en");
+    expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en", "spot-imax");
     expect(
       getMetaContent(testDocument, 'meta[property="og:url"]')
     ).toBe("https://pkspot.app/en/map/spots/imax");
