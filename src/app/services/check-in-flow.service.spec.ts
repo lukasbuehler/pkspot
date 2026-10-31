@@ -41,7 +41,8 @@ describe("CheckInFlowService", () => {
     const checkIn = vi.fn().mockResolvedValue(confirmed);
     const {flow, dialog, sheet, decision} = setup(checkIn, "undecided");
     const attempt = flow.checkIn("spot" as SpotId, "Riverside");
-    expect(dialog).toHaveBeenCalledOnce();
+    expect(flow.pending()).toBe(true);
+    await vi.waitFor(() => expect(dialog).toHaveBeenCalledOnce());
     expect(dialog.mock.calls[0]).toEqual(expect.arrayContaining([expect.objectContaining({data: {forCheckIn: true}})]));
     expect(sheet).not.toHaveBeenCalled();
     expect(checkIn).not.toHaveBeenCalled();
@@ -56,8 +57,9 @@ describe("CheckInFlowService", () => {
 
   it("cancels the attempt when the choice dialog is dismissed", async () => {
     const checkIn = vi.fn();
-    const {flow, sheet, decision, snackbar} = setup(checkIn, "undecided");
+    const {flow, dialog, sheet, decision, snackbar} = setup(checkIn, "undecided");
     const attempt = flow.checkIn("spot" as SpotId, null);
+    await vi.waitFor(() => expect(dialog).toHaveBeenCalledOnce());
     decision.next(undefined);
     await attempt;
     expect(checkIn).not.toHaveBeenCalled();
@@ -94,11 +96,12 @@ describe("CheckInFlowService", () => {
     expect(checkIn).toHaveBeenCalledOnce();
   });
 
-  it("opens the sheet on the tap and fills it in once the server confirms", async () => {
+  it("marks the tap pending while loading the sheet and fills it once the server confirms", async () => {
     let resolve!: (value: unknown) => void;
     const { flow, sheet, data } = setup(vi.fn(() => new Promise((done) => (resolve = done))));
     const done = flow.checkIn("spot" as SpotId, "Riverside");
-    expect(sheet).toHaveBeenCalledTimes(1);
+    expect(flow.pending()).toBe(true);
+    await vi.waitFor(() => expect(sheet).toHaveBeenCalledTimes(1));
     expect(data()).toMatchObject({ spotId: "spot", spotName: "Riverside" });
     expect(data().attempt()).toEqual({ status: "pending" });
     expect(flow.pending()).toBe(true);
@@ -121,8 +124,9 @@ describe("CheckInFlowService", () => {
 
   it("reports a failure with a message when the sheet was swiped away", async () => {
     let reject!: (error: unknown) => void;
-    const { flow, snackbar, dismissed } = setup(vi.fn(() => new Promise((_, fail) => (reject = fail))));
+    const { flow, sheet, snackbar, dismissed } = setup(vi.fn(() => new Promise((_, fail) => (reject = fail))));
     const done = flow.checkIn("spot" as SpotId, null);
+    await vi.waitFor(() => expect(sheet).toHaveBeenCalledOnce());
     dismissed.next();
     reject(new Error("offline"));
     await done;
@@ -135,6 +139,7 @@ describe("CheckInFlowService", () => {
     const { flow, sheet, dismiss } = setup(checkIn);
     const first = flow.checkIn("spot" as SpotId, null);
     await flow.checkIn("spot" as SpotId, null);
+    await vi.waitFor(() => expect(sheet).toHaveBeenCalledOnce());
     expect(checkIn).toHaveBeenCalledTimes(1);
     expect(sheet).toHaveBeenCalledTimes(1);
     resolve();
