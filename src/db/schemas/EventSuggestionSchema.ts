@@ -23,3 +23,18 @@ export interface EventSuggestionSchema {
   time_created: Timestamp;
   time_updated: Timestamp;
 }
+
+/** Callable response: dates are ISO strings across web and native adapters. */
+export interface EventSuggestionQueueItem extends Omit<EventSuggestionSchema, "start" | "end" | "time_created" | "time_updated" | "review"> {
+  id: string;
+  start: string;
+  end: string;
+  time_created: string;
+  time_updated: string;
+  review?: Omit<NonNullable<EventSuggestionSchema["review"]>, "reviewed_at"> & { reviewed_at: string };
+}
+
+export interface EventSuggestionQueuePage {
+  items: EventSuggestionQueueItem[];
+  nextCursor: string | null;
+}

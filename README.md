@@ -21,6 +21,16 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ## Release Notes
 
+### Version 1.2.1 - "Training Polishes & Bug fixes"
+
+- Search results now put the closest name matches first
+- The map stays in place when the layout changes instead of reloading
+- Native tab bar on iPhone
+- Clearer share cards, and sharing and following communities
+- Faster page loads and first-visit welcome
+- Only promoted events appear in the map island
+- Translation, privacy and general bug fixes
+
 ### Version 1.2 - "Training Update"
 
 - New Train tab: find your next session with nearby Spots, the forecast with

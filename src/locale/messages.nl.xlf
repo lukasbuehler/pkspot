@@ -3517,10 +3517,22 @@
         <target>Winkel</target>
       </segment>
     </unit>
+    <unit id="share_card.close">
+      <segment state="translated">
+        <source>Close</source>
+        <target>Sluiten</target>
+      </segment>
+    </unit>
     <unit id="share_card.copied">
       <segment state="initial">
         <source>Link copied.</source>
         <target>Link gekopieerd.</target>
+      </segment>
+    </unit>
+    <unit id="share_card.copy">
+      <segment state="translated">
+        <source>Copy link</source>
+        <target>Link kopiëren</target>
       </segment>
     </unit>
     <unit id="share_card.failed">
@@ -3529,16 +3541,16 @@
         <target>De link kon niet worden gedeeld. Probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="share_card.image_alt">
+      <segment state="translated">
+        <source>Preview of the share card</source>
+        <target>Voorbeeld van de deelkaart</target>
+      </segment>
+    </unit>
     <unit id="share_card.preparing">
       <segment state="initial">
         <source>Preparing your link…</source>
         <target>Je link wordt voorbereid…</target>
-      </segment>
-    </unit>
-    <unit id="share_card.ready">
-      <segment state="initial">
-        <source>Your link is ready.</source>
-        <target>Je link is klaar.</target>
       </segment>
     </unit>
     <unit id="share_card.share">
@@ -9394,12 +9406,6 @@
         <target> Links naar externe media </target>
       </segment>
     </unit>
-    <unit id="event_edit.external_media_remove">
-      <segment state="initial">
-        <source>Remove external media</source>
-        <target>Externe media verwijderen</target>
-      </segment>
-    </unit>
     <unit id="event_edit.external_media_source_invalid">
       <segment state="initial">
         <source> Use a public http or https link. </source>
@@ -9524,6 +9530,48 @@
       <segment state="initial">
         <source> Optional. 14–18 is typical for a venue-level view. </source>
         <target> Optioneel. 14–18 is typisch voor een locatieweergave. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_admin_only">
+      <segment state="translated">
+        <source>Image uploads are currently available to PK Spot admins.</source>
+        <target>Momenteel kunnen alleen PK Spot-beheerders afbeeldingen uploaden.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_heading">
+      <segment state="translated">
+        <source>Event gallery</source>
+        <target>Evenementgalerij</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_hint">
+      <segment state="translated">
+        <source> Upload photos or posters for the event gallery. You can select multiple images. </source>
+        <target>Upload foto’s of posters voor de evenementgalerij. Je kunt meerdere afbeeldingen selecteren.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_pending">
+      <segment state="translated">
+        <source>Upload or remove the selected images before saving.</source>
+        <target>Upload of verwijder de geselecteerde afbeeldingen voordat je opslaat.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing">
+      <segment state="translated">
+        <source>Processing images…</source>
+        <target>Afbeeldingen worden verwerkt…</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing_error">
+      <segment state="translated">
+        <source>Some images could not be processed. Please select them again.</source>
+        <target>Sommige afbeeldingen konden niet worden verwerkt. Selecteer ze opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_remove">
+      <segment state="translated">
+        <source>Remove gallery media</source>
+        <target>Media uit de galerij verwijderen</target>
       </segment>
     </unit>
     <unit id="event_edit.heading_create">
@@ -12237,6 +12285,30 @@
         <target>Meer spots ontdekken</target>
       </segment>
     </unit>
+    <unit id="community.follow">
+      <segment state="translated">
+        <source>Follow</source>
+        <target>Volgen</target>
+      </segment>
+    </unit>
+    <unit id="community.follow_error">
+      <segment state="translated">
+        <source>Could not update your community follow. Please try again.</source>
+        <target>Je volgstatus voor deze community kon niet worden bijgewerkt. Probeer het opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="community.follow_retry">
+      <segment state="translated">
+        <source>Retry follow status</source>
+        <target>Volgstatus opnieuw laden</target>
+      </segment>
+    </unit>
+    <unit id="community.following">
+      <segment state="translated">
+        <source>Following</source>
+        <target>Volgend</target>
+      </segment>
+    </unit>
     <unit id="community.info_disclosure_classes">
       <segment state="initial">
         <source>Classes and coaching</source>
@@ -12355,6 +12427,12 @@
       <segment state="translated">
         <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
         <target><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot-community</target>
+      </segment>
+    </unit>
+    <unit id="community.share_tooltip">
+      <segment state="translated">
+        <source>Share this community</source>
+        <target>Deze community delen</target>
       </segment>
     </unit>
     <unit id="community.sign_in_to_see_link">
@@ -15352,6 +15430,12 @@
         <target>{VAR_PLURAL, plural, =1 {Eén gepubliceerd evenement bevat ongeldige zoekgegevens en is niet weergegeven.} other {<ph id="0" equiv="INTERPOLATION"/> gepubliceerde evenementen bevatten ongeldige zoekgegevens en zijn niet weergegeven.}}</target>
       </segment>
     </unit>
+    <unit id="7419704019640008953">
+      <segment state="translated">
+        <source>Share</source>
+        <target>Delen</target>
+      </segment>
+    </unit>
     <unit id="5400391042453835180">
       <segment state="initial">
         <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
@@ -18034,6 +18118,12 @@
         <target>Zoekfilters wissen</target>
       </segment>
     </unit>
+    <unit id="search_field_community_placeholder">
+      <segment state="translated">
+        <source>Search for a community</source>
+        <target>Zoek een community</target>
+      </segment>
+    </unit>
     <unit id="search_field_default_placeholder">
       <segment state="initial">
         <source>Find spots and more</source>
@@ -18698,6 +18788,144 @@
       <segment state="initial">
         <source>Thanks — your suggestion is ready for staff review.</source>
         <target>Bedankt — je suggestie staat klaar voor beoordeling door het team.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approve">
+      <segment state="translated">
+        <source>Approve and publish</source>
+        <target>Goedkeuren en publiceren</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved">
+      <segment state="translated">
+        <source>Approved</source>
+        <target>Goedgekeurd</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved_notice">
+      <segment state="translated">
+        <source>Suggestion approved and published.</source>
+        <target>Suggestie goedgekeurd en gepubliceerd.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.checking_access">
+      <segment state="translated">
+        <source>Checking admin access</source>
+        <target>Beheerderstoegang controleren</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.dates">
+      <segment state="translated">
+        <source>Event dates</source>
+        <target>Evenementdatums</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.description">
+      <segment state="translated">
+        <source>Review community event proposals before publishing.</source>
+        <target>Beoordeel evenementvoorstellen uit de community voordat je ze publiceert.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.empty">
+      <segment state="translated">
+        <source>No event suggestions in this queue.</source>
+        <target>Geen evenementsuggesties in deze wachtrij.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.filter">
+      <segment state="translated">
+        <source>Suggestion status</source>
+        <target>Suggestiestatus</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.heading">
+      <segment state="translated">
+        <source>Event suggestions</source>
+        <target>Evenementsuggesties</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.load_error">
+      <segment state="translated">
+        <source>Could not load event suggestions. Please refresh and try again.</source>
+        <target>De suggesties konden niet worden geladen. Vernieuw de pagina en probeer het opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.loading">
+      <segment state="translated">
+        <source>Loading suggestions</source>
+        <target>Suggesties laden</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.more">
+      <segment state="translated">
+        <source>Show more</source>
+        <target>Meer weergeven</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.note">
+      <segment state="translated">
+        <source>Review note (optional)</source>
+        <target>Beoordelingsnotitie (optioneel)</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.open_source">
+      <segment state="translated">
+        <source>Open source</source>
+        <target>Bron openen</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.organizer">
+      <segment state="translated">
+        <source>Organizer</source>
+        <target>Organisator</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.pending">
+      <segment state="translated">
+        <source>Pending</source>
+        <target>In behandeling</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.publish_hint">
+      <segment state="translated">
+        <source>Approval publishes this as a public event.</source>
+        <target>Goedkeuring publiceert dit als een openbaar evenement.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.reject">
+      <segment state="translated">
+        <source>Reject</source>
+        <target>Afwijzen</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected">
+      <segment state="translated">
+        <source>Rejected</source>
+        <target>Afgewezen</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected_notice">
+      <segment state="translated">
+        <source>Suggestion rejected.</source>
+        <target>Suggestie afgewezen.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.review_error">
+      <segment state="translated">
+        <source>Could not update the queue. Refresh and try again.</source>
+        <target>De wachtrij kon niet worden bijgewerkt. Vernieuw de pagina en probeer het opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.submitted">
+      <segment state="translated">
+        <source>Submitted</source>
+        <target>Ingediend</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.view_event">
+      <segment state="translated">
+        <source>View published event</source>
+        <target>Gepubliceerd evenement bekijken</target>
       </segment>
     </unit>
     <unit id="event_tickets.availability.coming_soon">

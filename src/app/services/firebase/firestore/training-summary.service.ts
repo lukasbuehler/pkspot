@@ -35,6 +35,14 @@ interface ScreenshotGlobal {
  * server writes both: summaries on every session write, ranks once a night.
  * They are plain owner-only documents, so the Firestore cache serves repeats.
  */
+/**
+ * A nightly withdrawal merges a deletion into `spots`; when that creates the
+ * document, it has no `spots` map at all. Readers always get a map.
+ */
+function withSpots(ranks: TrainingRanksSchema): TrainingRanksSchema {
+  return ranks.spots ? ranks : { ...ranks, spots: {} };
+}
+
 @Injectable({ providedIn: "root" })
 export class TrainingSummaryService {
   private readonly telemetry = inject(FeatureTelemetryService);
@@ -95,9 +103,10 @@ export class TrainingSummaryService {
     const fixture = (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_SPOT_RANKS__;
     if (fixture) return fixture.month === month ? fixture : null;
     if (this.fixtureSessions()) return null;
-    return this.firestore.getDocument<TrainingRanksSchema>(
+    const ranks = await this.firestore.getDocument<TrainingRanksSchema>(
       `users/${this.requireUserId()}/training_ranks/${month}`,
     );
+    return ranks ? withSpots(ranks) : null;
   }
 
   /** Every month with published ranks, newest first. */
@@ -108,7 +117,7 @@ export class TrainingSummaryService {
     const ranks = await this.firestore.getCollection<TrainingRanksSchema>(
       `users/${this.requireUserId()}/training_ranks`,
     );
-    return [...ranks].sort((left, right) => right.month.localeCompare(left.month));
+    return ranks.map(withSpots).sort((left, right) => right.month.localeCompare(left.month));
   }
 
   /** The person's Local Legend choice, or null before they chose. */

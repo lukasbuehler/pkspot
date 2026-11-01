@@ -1,6 +1,6 @@
 {
   "name": "pkspot",
-  "version": "1.2",
+  "version": "1.2.1",
   "engines": {
     "node": "22"
   },
@@ -93,11 +93,14 @@
     "share-cards:lab": "npm --prefix functions run build && node scripts/share-cards/server.mjs",
     "share-cards:fallback": "npm --prefix functions run build && node scripts/share-cards/generate-fallback.mjs && node scripts/share-cards/bundle.mjs",
     "test:emulator:share-cards": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,storage --project demo-pkspot \"node scripts/share-cards/emulator.test.cjs\"",
-    "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs scripts/share-cards/live-source.test.mjs",
+    "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs scripts/share-cards/live-source.test.mjs scripts/share-cards/cache.test.cjs",
     "build:cloudflare": "node scripts/cloudflare-workers.mjs build",
-    "test:cloudflare": "node scripts/test-cloudflare-routes.mjs",
+    "test:cloudflare": "npm run test:cloudflare:config && node scripts/test-cloudflare-routes.mjs",
     "cloudflare:dry-run": "node scripts/cloudflare-workers.mjs dry-run",
-    "cloudflare:preview": "node scripts/cloudflare-workers.mjs preview"
+    "cloudflare:preview": "node scripts/cloudflare-workers.mjs preview",
+    "build:cloudflare:production": "node scripts/cloudflare-workers.mjs build --target=production",
+    "cloudflare:dry-run:production": "node scripts/cloudflare-workers.mjs dry-run --target=production",
+    "test:cloudflare:config": "node --test scripts/cloudflare-build-profiles.test.mjs"
   },
   "private": true,
   "dependencies": {
@@ -194,7 +197,7 @@
     "flatted": "^3.4.2",
     "handlebars": "^4.7.9",
     "esbuild": "^0.28.1",
-    "follow-redirects": "^1.16.1",
+    "follow-redirects": "^1.16.2",
     "hono": "4.13.13",
     "@hono/node-server": "^2.0.10",
     "@modelcontextprotocol/sdk": "1.32.1",

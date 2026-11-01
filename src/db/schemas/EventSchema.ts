@@ -598,9 +598,9 @@ export interface EventSchema {
   logo_background_color?: string;
 
   /**
-   * Optional externally linked event media. These are public media URLs
-   * embedded on the event page gallery, separate from uploaded banner/logo
-   * assets and inline spot media.
+   * Optional event gallery media, including hosted uploads and external links.
+   * Hosted items use isInStorage so readers resolve resized image variants.
+   * Separate from banner/logo assets and inline spot media.
    */
   media?: MediaSchema[];
 

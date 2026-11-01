@@ -43,13 +43,14 @@ describe("MapPageComponent search template", () => {
     expect(template).toContain('<app-map-community-landing-panel');
   });
 
-  it("should allow Google Places results in the main map search fields", () => {
+  it("should allow Google Places results in the main map search field", () => {
     const template = readFileSync(templatePath, "utf8");
     const searchFields = template.match(
       /<app-search-field[\s\S]*?<\/app-search-field>/g
     );
 
-    expect(searchFields?.length).toBe(2);
+    // One instance moves between the drawer and bottom-sheet layouts.
+    expect(searchFields?.length).toBe(1);
     for (const searchField of searchFields ?? []) {
       expect(searchField).not.toContain(`[onlySpots]="true"`);
       expect(searchField).not.toContain("(placePreviewChange)");
@@ -217,18 +218,34 @@ describe("MapPageComponent search template", () => {
 
   it("mounts paid promo island content in both desktop and mobile layouts", () => {
     const mapTemplate = activeTemplate();
-    const islandOutlets =
-      mapTemplate.match(
-        /<ng-container\s+\*ngTemplateOutlet="mapIsland"><\/ng-container>/gu,
-      ) ?? [];
 
-    expect(mapTemplate).toContain(
-      '<div @fadeInOut class="map-island-host">',
-    );
-    expect(mapTemplate).toContain(
-      '<div @fadeInOut class="map-island-mobile-host">',
-    );
-    expect(islandOutlets).toHaveLength(2);
+    expect(mapTemplate).toContain('[appMovableViewHost]="mapIsland"');
+    expect(mapTemplate).toContain('<div class="map-island-host">');
+    expect(mapTemplate).toContain('<div class="map-island-mobile-host">');
+    expect(
+      mapTemplate.match(/context: \{ \$implicit: islandView \}/gu) ?? [],
+    ).toHaveLength(2);
+  });
+
+  it("keeps one search field, chip row and panel set for every layout", () => {
+    const mapTemplate = activeTemplate();
+
+    for (const [template, view] of [
+      ["sidebarContent", "panelView"],
+      ["searchField", "searchView"],
+      ["chips", "chipsView"],
+      ["mapIsland", "islandView"],
+    ]) {
+      expect(mapTemplate).toContain(`[appMovableViewHost]="${template}"`);
+      expect(mapTemplate).toContain(`#${view}="movableViewHost"`);
+      // Shown once in the drawer layout and once in the bottom-sheet layout.
+      expect(
+        mapTemplate.match(new RegExp(`\\$implicit: ${view} \\}`, "gu")) ?? [],
+      ).toHaveLength(2);
+    }
+    expect(mapTemplate.match(/<app-search-field\b/gu) ?? []).toHaveLength(1);
+    expect(mapTemplate.match(/<app-map-island\b/gu) ?? []).toHaveLength(1);
+    expect(mapTemplate).not.toMatch(/\*ngTemplateOutlet="(chips|mapIsland|sidebarContent)"/u);
   });
 
   it("should hide the Add Spot button while a spot is selected", () => {

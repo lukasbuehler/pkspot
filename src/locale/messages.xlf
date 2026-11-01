@@ -1595,6 +1595,11 @@
         <source>{VAR_PLURAL, plural, =1 {One published event has invalid discovery data and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> published events have invalid discovery data and were not shown.}}</source>
       </segment>
     </unit>
+    <unit id="7419704019640008953">
+      <segment>
+        <source>Share</source>
+      </segment>
+    </unit>
     <unit id="2417459620118538314">
       <segment>
         <source>Could not update event notifications. Please try again.</source>
@@ -2429,6 +2434,26 @@
         <source>Explore more spots</source>
       </segment>
     </unit>
+    <unit id="community.follow">
+      <segment>
+        <source>Follow</source>
+      </segment>
+    </unit>
+    <unit id="community.follow_error">
+      <segment>
+        <source>Could not update your community follow. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="community.follow_retry">
+      <segment>
+        <source>Retry follow status</source>
+      </segment>
+    </unit>
+    <unit id="community.following">
+      <segment>
+        <source>Following</source>
+      </segment>
+    </unit>
     <unit id="community.info_disclosure_classes">
       <segment>
         <source>Classes and coaching</source>
@@ -2527,6 +2552,11 @@
     <unit id="community.seo.title">
       <segment>
         <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
+      </segment>
+    </unit>
+    <unit id="community.share_tooltip">
+      <segment>
+        <source>Share this community</source>
       </segment>
     </unit>
     <unit id="community.sign_in_to_see_link">
@@ -4349,11 +4379,6 @@
         <source> External media links </source>
       </segment>
     </unit>
-    <unit id="event_edit.external_media_remove">
-      <segment>
-        <source>Remove external media</source>
-      </segment>
-    </unit>
     <unit id="event_edit.external_media_source_invalid">
       <segment>
         <source> Use a public http or https link. </source>
@@ -4457,6 +4482,41 @@
     <unit id="event_edit.focus_zoom_hint">
       <segment>
         <source> Optional. 14–18 is typical for a venue-level view. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_admin_only">
+      <segment>
+        <source>Image uploads are currently available to PK Spot admins.</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_heading">
+      <segment>
+        <source>Event gallery</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_hint">
+      <segment>
+        <source> Upload photos or posters for the event gallery. You can select multiple images. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_pending">
+      <segment>
+        <source>Upload or remove the selected images before saving.</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing">
+      <segment>
+        <source>Processing images…</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing_error">
+      <segment>
+        <source>Some images could not be processed. Please select them again.</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_remove">
+      <segment>
+        <source>Remove gallery media</source>
       </segment>
     </unit>
     <unit id="event_edit.heading_create">
@@ -6417,6 +6477,121 @@
     <unit id="event_suggestion.submitted">
       <segment>
         <source>Thanks — your suggestion is ready for staff review.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approve">
+      <segment>
+        <source>Approve and publish</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved">
+      <segment>
+        <source>Approved</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved_notice">
+      <segment>
+        <source>Suggestion approved and published.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.checking_access">
+      <segment>
+        <source>Checking admin access</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.dates">
+      <segment>
+        <source>Event dates</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.description">
+      <segment>
+        <source>Review community event proposals before publishing.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.empty">
+      <segment>
+        <source>No event suggestions in this queue.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.filter">
+      <segment>
+        <source>Suggestion status</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.heading">
+      <segment>
+        <source>Event suggestions</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.load_error">
+      <segment>
+        <source>Could not load event suggestions. Please refresh and try again.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.loading">
+      <segment>
+        <source>Loading suggestions</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.more">
+      <segment>
+        <source>Show more</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.note">
+      <segment>
+        <source>Review note (optional)</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.open_source">
+      <segment>
+        <source>Open source</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.organizer">
+      <segment>
+        <source>Organizer</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.pending">
+      <segment>
+        <source>Pending</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.publish_hint">
+      <segment>
+        <source>Approval publishes this as a public event.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.reject">
+      <segment>
+        <source>Reject</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected">
+      <segment>
+        <source>Rejected</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected_notice">
+      <segment>
+        <source>Suggestion rejected.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.review_error">
+      <segment>
+        <source>Could not update the queue. Refresh and try again.</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.submitted">
+      <segment>
+        <source>Submitted</source>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.view_event">
+      <segment>
+        <source>View published event</source>
       </segment>
     </unit>
     <unit id="event_tickets.availability.coming_soon">
@@ -11196,9 +11371,19 @@
         <source>Shop</source>
       </segment>
     </unit>
+    <unit id="share_card.close">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
     <unit id="share_card.copied">
       <segment>
         <source>Link copied.</source>
+      </segment>
+    </unit>
+    <unit id="share_card.copy">
+      <segment>
+        <source>Copy link</source>
       </segment>
     </unit>
     <unit id="share_card.failed">
@@ -11206,14 +11391,14 @@
         <source>Couldn&apos;t share the link. Please try again.</source>
       </segment>
     </unit>
+    <unit id="share_card.image_alt">
+      <segment>
+        <source>Preview of the share card</source>
+      </segment>
+    </unit>
     <unit id="share_card.preparing">
       <segment>
         <source>Preparing your link…</source>
-      </segment>
-    </unit>
-    <unit id="share_card.ready">
-      <segment>
-        <source>Your link is ready.</source>
       </segment>
     </unit>
     <unit id="share_card.share">
@@ -16010,6 +16195,11 @@
     <unit id="search_field_clear_context">
       <segment>
         <source>Clear search filters</source>
+      </segment>
+    </unit>
+    <unit id="search_field_community_placeholder">
+      <segment>
+        <source>Search for a community</source>
       </segment>
     </unit>
     <unit id="search_field_default_placeholder">

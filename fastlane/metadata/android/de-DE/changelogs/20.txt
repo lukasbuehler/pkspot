@@ -1,0 +1,8 @@
+PK Spot 1.2.1: Feinschliff und Fehlerbehebungen
+
+• Die Suche zeigt die passendsten Namen jetzt zuerst.
+• Die Karte bleibt erhalten, wenn sich das Layout ändert.
+• Native Tab-Leiste auf dem iPhone.
+• Bessere Share Cards, und du kannst Communities jetzt teilen und ihnen folgen.
+• Schnelleres Laden.
+• Korrekturen bei Übersetzungen, Datenschutz und Fehlerbehebungen.

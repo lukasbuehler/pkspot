@@ -3373,10 +3373,22 @@
         <target>Boutique</target>
       </segment>
     </unit>
+    <unit id="share_card.close">
+      <segment state="translated">
+        <source>Close</source>
+        <target>Fermer</target>
+      </segment>
+    </unit>
     <unit id="share_card.copied">
       <segment state="initial">
         <source>Link copied.</source>
         <target>Lien copié.</target>
+      </segment>
+    </unit>
+    <unit id="share_card.copy">
+      <segment state="translated">
+        <source>Copy link</source>
+        <target>Copier le lien</target>
       </segment>
     </unit>
     <unit id="share_card.failed">
@@ -3385,16 +3397,16 @@
         <target>Impossible de partager le lien. Réessaie.</target>
       </segment>
     </unit>
+    <unit id="share_card.image_alt">
+      <segment state="translated">
+        <source>Preview of the share card</source>
+        <target>Aperçu de la carte de partage</target>
+      </segment>
+    </unit>
     <unit id="share_card.preparing">
       <segment state="initial">
         <source>Preparing your link…</source>
         <target>Préparation de ton lien…</target>
-      </segment>
-    </unit>
-    <unit id="share_card.ready">
-      <segment state="initial">
-        <source>Your link is ready.</source>
-        <target>Ton lien est prêt.</target>
       </segment>
     </unit>
     <unit id="share_card.share">
@@ -9220,12 +9232,6 @@
         <target> Liens vers des médias externes </target>
       </segment>
     </unit>
-    <unit id="event_edit.external_media_remove">
-      <segment state="initial">
-        <source>Remove external media</source>
-        <target>Supprimer le média externe</target>
-      </segment>
-    </unit>
     <unit id="event_edit.external_media_source_invalid">
       <segment state="initial">
         <source> Use a public http or https link. </source>
@@ -9350,6 +9356,48 @@
       <segment state="initial">
         <source> Optional. 14–18 is typical for a venue-level view. </source>
         <target> Optionnel. 14–18 est typique pour une vue au niveau du lieu. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_admin_only">
+      <segment state="translated">
+        <source>Image uploads are currently available to PK Spot admins.</source>
+        <target>Pour le moment, seuls les administrateurs PK Spot peuvent importer des images.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_heading">
+      <segment state="translated">
+        <source>Event gallery</source>
+        <target>Galerie de l’événement</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_hint">
+      <segment state="translated">
+        <source> Upload photos or posters for the event gallery. You can select multiple images. </source>
+        <target>Importez des photos ou des affiches pour la galerie de l’événement. Vous pouvez sélectionner plusieurs images.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_pending">
+      <segment state="translated">
+        <source>Upload or remove the selected images before saving.</source>
+        <target>Importez ou retirez les images sélectionnées avant d’enregistrer.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing">
+      <segment state="translated">
+        <source>Processing images…</source>
+        <target>Traitement des images…</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_processing_error">
+      <segment state="translated">
+        <source>Some images could not be processed. Please select them again.</source>
+        <target>Certaines images n’ont pas pu être traitées. Veuillez les sélectionner à nouveau.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.gallery_remove">
+      <segment state="translated">
+        <source>Remove gallery media</source>
+        <target>Retirer le média de la galerie</target>
       </segment>
     </unit>
     <unit id="event_edit.heading_create">
@@ -12063,6 +12111,30 @@
         <target>Explorer plus de spots</target>
       </segment>
     </unit>
+    <unit id="community.follow">
+      <segment state="translated">
+        <source>Follow</source>
+        <target>Suivre</target>
+      </segment>
+    </unit>
+    <unit id="community.follow_error">
+      <segment state="translated">
+        <source>Could not update your community follow. Please try again.</source>
+        <target>Impossible de mettre à jour votre abonnement à cette communauté. Veuillez réessayer.</target>
+      </segment>
+    </unit>
+    <unit id="community.follow_retry">
+      <segment state="translated">
+        <source>Retry follow status</source>
+        <target>Réessayer de charger le statut de suivi</target>
+      </segment>
+    </unit>
+    <unit id="community.following">
+      <segment state="translated">
+        <source>Following</source>
+        <target>Abonné</target>
+      </segment>
+    </unit>
     <unit id="community.info_disclosure_classes">
       <segment state="initial">
         <source>Classes and coaching</source>
@@ -12181,6 +12253,12 @@
       <segment state="translated">
         <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
         <target><ph id="0" equiv="HEADING" disp="qualified"/> | Communauté PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.share_tooltip">
+      <segment state="translated">
+        <source>Share this community</source>
+        <target>Partager cette communauté</target>
       </segment>
     </unit>
     <unit id="community.sign_in_to_see_link">
@@ -15092,6 +15170,12 @@
       <segment state="translated">
         <source>{VAR_PLURAL, plural, =1 {One published event has invalid discovery data and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> published events have invalid discovery data and were not shown.}}</source>
         <target>{VAR_PLURAL, plural, =1 {Un événement publié contient des données de recherche non valides et n&apos;a pas été affiché.} other {<ph id="0" equiv="INTERPOLATION"/> événements publiés contiennent des données de recherche non valides et n&apos;ont pas été affichés.}}</target>
+      </segment>
+    </unit>
+    <unit id="7419704019640008953">
+      <segment state="translated">
+        <source>Share</source>
+        <target>Partager</target>
       </segment>
     </unit>
     <unit id="5400391042453835180">
@@ -18034,6 +18118,12 @@
         <target>Effacer les filtres de recherche</target>
       </segment>
     </unit>
+    <unit id="search_field_community_placeholder">
+      <segment state="translated">
+        <source>Search for a community</source>
+        <target>Rechercher une communauté</target>
+      </segment>
+    </unit>
     <unit id="search_field_default_placeholder">
       <segment state="initial">
         <source>Find spots and more</source>
@@ -18698,6 +18788,144 @@
       <segment state="initial">
         <source>Thanks — your suggestion is ready for staff review.</source>
         <target>Merci — ta suggestion est prête à être examinée par l’équipe.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approve">
+      <segment state="translated">
+        <source>Approve and publish</source>
+        <target>Approuver et publier</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved">
+      <segment state="translated">
+        <source>Approved</source>
+        <target>Approuvées</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.approved_notice">
+      <segment state="translated">
+        <source>Suggestion approved and published.</source>
+        <target>Suggestion approuvée et publiée.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.checking_access">
+      <segment state="translated">
+        <source>Checking admin access</source>
+        <target>Vérification de l’accès administrateur</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.dates">
+      <segment state="translated">
+        <source>Event dates</source>
+        <target>Dates de l’événement</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.description">
+      <segment state="translated">
+        <source>Review community event proposals before publishing.</source>
+        <target>Examinez les propositions d’événements de la communauté avant leur publication.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.empty">
+      <segment state="translated">
+        <source>No event suggestions in this queue.</source>
+        <target>Aucune suggestion d’événement dans cette file.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.filter">
+      <segment state="translated">
+        <source>Suggestion status</source>
+        <target>Statut de la suggestion</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.heading">
+      <segment state="translated">
+        <source>Event suggestions</source>
+        <target>Suggestions d’événements</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.load_error">
+      <segment state="translated">
+        <source>Could not load event suggestions. Please refresh and try again.</source>
+        <target>Impossible de charger les suggestions. Actualisez la page et réessayez.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.loading">
+      <segment state="translated">
+        <source>Loading suggestions</source>
+        <target>Chargement des suggestions</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.more">
+      <segment state="translated">
+        <source>Show more</source>
+        <target>Afficher plus</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.note">
+      <segment state="translated">
+        <source>Review note (optional)</source>
+        <target>Note de vérification (facultative)</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.open_source">
+      <segment state="translated">
+        <source>Open source</source>
+        <target>Ouvrir la source</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.organizer">
+      <segment state="translated">
+        <source>Organizer</source>
+        <target>Organisateur</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.pending">
+      <segment state="translated">
+        <source>Pending</source>
+        <target>En attente</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.publish_hint">
+      <segment state="translated">
+        <source>Approval publishes this as a public event.</source>
+        <target>L’approbation publie cette proposition comme événement public.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.reject">
+      <segment state="translated">
+        <source>Reject</source>
+        <target>Rejeter</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected">
+      <segment state="translated">
+        <source>Rejected</source>
+        <target>Rejetées</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.rejected_notice">
+      <segment state="translated">
+        <source>Suggestion rejected.</source>
+        <target>Suggestion rejetée.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.review_error">
+      <segment state="translated">
+        <source>Could not update the queue. Refresh and try again.</source>
+        <target>Impossible de mettre à jour la file. Actualisez la page et réessayez.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.submitted">
+      <segment state="translated">
+        <source>Submitted</source>
+        <target>Envoyée</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestions.view_event">
+      <segment state="translated">
+        <source>View published event</source>
+        <target>Voir l’événement publié</target>
       </segment>
     </unit>
     <unit id="event_tickets.availability.coming_soon">

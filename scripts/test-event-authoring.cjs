@@ -48,6 +48,45 @@ test('unverified user submits a private suggestion and staff can review it', asy
   await assert.rejects(call('submitEventSuggestion', undefined, input), {code:'unauthenticated'});
 });
 
+test('staff approval preserves source links and records one review atomically', async () => {
+  const result=await call('submitEventSuggestion','author-user',{...input,name:'Source-backed jam',sourceUrl:'https://example.test/jam',countryCode:'CH'});
+  await assert.rejects(call('reviewEventSuggestion','author-user',{suggestionId:result.suggestionId,outcome:'approved'}),{code:'permission-denied'});
+  const approved=await call('reviewEventSuggestion','author-admin',{suggestionId:result.suggestionId,outcome:'approved',note:'Source verified'});
+  const event=(await db.doc(`events/${approved.eventId}`).get()).data();
+  assert.equal(event.url,'https://example.test/jam');
+  assert.deepEqual(event.event_links,[{label:'Event source',url:'https://example.test/jam',kind:'website'}]);
+  assert.equal(event.country_code,'CH');
+  assert.equal(event.published,true);
+  const suggestion=(await db.doc(`event_suggestions/${result.suggestionId}`).get()).data();
+  assert.equal(suggestion.review.event_id,approved.eventId);
+  assert.equal(suggestion.review.note,'Source verified');
+  await assert.rejects(call('reviewEventSuggestion','author-admin',{suggestionId:result.suggestionId,outcome:'approved'}),{code:'failed-precondition'});
+});
+
+test('the private suggestion queue is admin-only, paginated and returns ISO dates', async () => {
+  await assert.rejects(call('listEventSuggestions',undefined,{}),{code:'unauthenticated'});
+  await assert.rejects(call('listEventSuggestions','author-user',{}),{code:'permission-denied'});
+  await assert.rejects(call('listEventSuggestions','author-admin',{status:'all'}),{code:'invalid-argument'});
+  const timestamp=admin.firestore.Timestamp.fromDate(new Date('2030-01-01T12:00:00Z'));
+  const batch=db.batch();
+  for(let i=0;i<55;i++) batch.set(db.doc(`event_suggestions/page-${String(i).padStart(2,'0')}`),{
+    name:`Queued jam ${i}`,submitter_id:'author-user',status:'submitted',start:timestamp,end:timestamp,time_created:timestamp,time_updated:timestamp,
+  });
+  await batch.commit();
+  const first=await call('listEventSuggestions','author-admin',{status:'submitted'});
+  assert.equal(first.items.length,50);assert.ok(first.nextCursor);
+  assert.equal(typeof first.items[0].start,'string');assert.equal(typeof first.items[0].time_created,'string');
+  // Reviewing the last visible row must not break the next-page cursor.
+  await db.doc(`event_suggestions/${first.nextCursor}`).update({status:'rejected'});
+  const second=await call('listEventSuggestions','author-admin',{status:'submitted',cursor:first.nextCursor});
+  assert.ok(second.items.length>=5);
+  const ids=new Set(first.items.map(item=>item.id));
+  assert.ok(second.items.every(item=>!ids.has(item.id)));
+  const history=await call('listEventSuggestions','author-admin',{status:'approved'});
+  assert.ok(history.items.some(item=>item.review?.note==='Source verified'));
+  assert.equal(typeof history.items[0].review.reviewed_at,'string');
+});
+
 test('custom event slug is reserved atomically and invalid or duplicate slugs do not create events', async () => {
   await db.doc('users/slug-admin').set({is_admin:true});
   const result = await call('createFormalEvent', 'slug-admin', {...input, slug:'chosen-jam-26'});

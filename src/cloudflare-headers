@@ -1,0 +1,9 @@
+# Angular emits these bundles with content hashes. Leave unversioned scripts revalidatable.
+/:locale/main-*.js
+  Cache-Control: public, max-age=31536000, immutable
+/:locale/polyfills-*.js
+  Cache-Control: public, max-age=31536000, immutable
+/:locale/chunk-*.js
+  Cache-Control: public, max-age=31536000, immutable
+/:locale/styles-*.css
+  Cache-Control: public, max-age=31536000, immutable

@@ -240,6 +240,16 @@
   }
 </ng-template>
 
+<ng-template #searchField>
+  <app-search-field
+    class="map-search-field position-relative w-100 flex-grow-1 mat-elevation-z3 overflow-hidden"
+    [contextLabel]="searchContextLabel()"
+    (spotSelected)="openSpotOrGooglePlace($event)"
+    (contextClear)="onSearchContextClear()"
+    (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
+  ></app-search-field>
+</ng-template>
+
 <ng-template #mapIsland>
   <app-map-island
     [content]="visibleIslandContent()"
@@ -301,6 +311,39 @@
   </h1>
 }
 
+<!-- One instance of the panels, search field, filter chips and map island for
+     every layout. The drawer and bottom-sheet layouts show them through
+     `appMovableViewOutlet`, so crossing the layout breakpoint moves them
+     instead of recreating them: panels keep their loaded data, the search
+     field its typed text and the chips and island their state. On the server
+     they render in place instead. -->
+<div class="map-panel-home" hidden>
+  <ng-container
+    [appMovableViewHost]="sidebarContent"
+    #panelView="movableViewHost"
+  ></ng-container>
+  <ng-container
+    [appMovableViewHost]="searchField"
+    #searchView="movableViewHost"
+  ></ng-container>
+  <ng-container
+    [appMovableViewHost]="chips"
+    #chipsView="movableViewHost"
+  ></ng-container>
+  <ng-container
+    [appMovableViewHost]="mapIsland"
+    #islandView="movableViewHost"
+  ></ng-container>
+</div>
+
+<ng-template #movableOutlet let-view>
+  @if (isServer) {
+    <ng-container *ngTemplateOutlet="view.template()"></ng-container>
+  } @else {
+    <div class="map-movable-outlet" [appMovableViewOutlet]="view"></div>
+  }
+</ng-template>
+
 @if (!responsiveService.isInitialized() && !isServer) {
   <div
     class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
@@ -308,138 +351,131 @@
     <mat-icon class="map-status-icon">map</mat-icon>
     <p class="mat-title-medium" i18n>Preparing map layout...</p>
   </div>
-} @else if (usesMapDrawer()) {
-  <div
-    class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
-    [class.map-overlay-drawer]="usesOverlayMapDrawer()"
-  >
-    <div class="d-flex flex-row gap-3">
-      @if (alainMode()) {
-        <div class="alain-spacer flex-shrink-0"></div>
-      }
-      <app-search-field
-        class="map-search-field position-relative w-100 mat-elevation-z3 overflow-hidden"
-        [contextLabel]="searchContextLabel()"
-        (spotSelected)="openSpotOrGooglePlace($event)"
-        (contextClear)="onSearchContextClear()"
-        (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
-      ></app-search-field>
-    </div>
+} @else {
+  @if (usesMapDrawer()) {
     <div
-      class="desktop-filter-chips-host"
-      [class.desktop-filter-chips-host--hidden]="
-        sidebarContentIsScrolling() && sidenavOpen()
-      "
-    >
-      <ng-container *ngTemplateOutlet="chips"></ng-container>
-    </div>
-  </div>
-
-  <mat-drawer-container
-    #drawerContainer
-    class="h-100 bg-transparent"
-    [class.sidenav-open]="sidenavOpen()"
-    [class.map-overlay-drawer]="usesOverlayMapDrawer()"
-    [hasBackdrop]="false"
-  >
-    <mat-drawer
-      #infoDrawer
-      [opened]="sidenavOpen()"
-      position="start"
-      [mode]="mapSidenavMode()"
-      class="info-panel"
+      class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
       [class.map-overlay-drawer]="usesOverlayMapDrawer()"
     >
-      <div [style.height.px]="chipsSpacerHeight()"></div>
-      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
-    </mat-drawer>
+      <div class="d-flex flex-row gap-3">
+        @if (alainMode()) {
+          <div class="alain-spacer flex-shrink-0"></div>
+        }
+        <ng-container
+          *ngTemplateOutlet="movableOutlet; context: { $implicit: searchView }"
+        ></ng-container>
+      </div>
+      <div
+        class="desktop-filter-chips-host"
+        [class.desktop-filter-chips-host--hidden]="
+          sidebarContentIsScrolling() && sidenavOpen()
+        "
+      >
+        <ng-container
+          *ngTemplateOutlet="movableOutlet; context: { $implicit: chipsView }"
+        ></ng-container>
+      </div>
+    </div>
+  }
+
+  <!-- The map host stays the same in every panel layout: only the drawer and
+       the bottom sheet around the map react to `mapPanelLayout()`. Moving the
+       map between layout branches would destroy the Google Map. -->
+  <mat-drawer-container
+    #drawerContainer
+    class="map-panel-container h-100 bg-transparent"
+    [class.sidenav-open]="sidenavOpen()"
+    [class.map-overlay-drawer]="usesOverlayMapDrawer()"
+    [class.map-panel-container--sheet]="usesMapBottomSheet()"
+    [hasBackdrop]="false"
+  >
+    @if (usesMapDrawer()) {
+      <mat-drawer
+        #infoDrawer
+        [opened]="sidenavOpen()"
+        position="start"
+        [mode]="mapSidenavMode()"
+        class="info-panel"
+        [class.map-overlay-drawer]="usesOverlayMapDrawer()"
+      >
+        <div [style.height.px]="chipsSpacerHeight()"></div>
+        <ng-container
+          *ngTemplateOutlet="movableOutlet; context: { $implicit: panelView }"
+        ></ng-container>
+      </mat-drawer>
+    }
 
     <div class="map-canvas-container position-relative h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
-      @if (visibleIslandContent()) {
+
+      @if (usesMapDrawer()) {
+        <!-- Stays mounted: the island animates its own content in and out. -->
         <div class="map-context-host">
-          <!-- @if (mapWeatherResponse(); as weather) {
-            <app-map-weather-chip
-              @fadeInOut
-              class="map-weather-chip-host"
-              [response]="weather"
-              (pressed)="openMapWeather()"
-            ></app-map-weather-chip>
-          } -->
-          @if (visibleIslandContent()) {
-            <div @fadeInOut class="map-island-host">
-              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+          <div class="map-island-host">
+            <ng-container
+              *ngTemplateOutlet="movableOutlet; context: { $implicit: islandView }"
+            ></ng-container>
+          </div>
+        </div>
+
+        <!-- sidenav toggle button -->
+        <div class="sidenav-toggle">
+          <button
+            mat-icon-button
+            (click)="toggleSidenav()"
+            class="sidenav-toggle__button d-flex border justify-content-center align-items-center p-0"
+          >
+            @if (sidenavOpen()) {
+              <mat-icon>chevron_left</mat-icon>
+            } @else {
+              <mat-icon>chevron_right</mat-icon>
+            }
+          </button>
+        </div>
+      } @else {
+        <!-- One root element, so leaving this layout removes the overlay and
+             the (by then empty) sheet at once instead of fading them out. -->
+        <div class="map-sheet-layout">
+          <div
+            class="search-bar-overlay position-absolute top-0 start-0 end-0 d-flex flex-column gap-1"
+          >
+            <div class="d-flex flex-row gap-2 align-items-center">
+              @if (alainMode()) {
+                <div class="alain-spacer flex-shrink-0"></div>
+              }
+              <ng-container
+                *ngTemplateOutlet="movableOutlet; context: { $implicit: searchView }"
+              ></ng-container>
             </div>
-          }
+            <ng-container
+              *ngTemplateOutlet="movableOutlet; context: { $implicit: chipsView }"
+            ></ng-container>
+            <!-- Stays mounted: the island animates its own content in and out. -->
+            <div
+              class="map-context-mobile-host"
+              [class.map-context-mobile-host--empty]="!visibleIslandContent()"
+            >
+              <div class="map-island-mobile-host">
+                <ng-container
+                  *ngTemplateOutlet="movableOutlet; context: { $implicit: islandView }"
+                ></ng-container>
+              </div>
+            </div>
+          </div>
+
+          <app-bottom-sheet
+            class="map-bottom-sheet d-flex"
+            @fadeInOut
+            [closedHeight]="mapSheetClosedHeight()"
+            (isAtTopChange)="bottomSheetOpen.set($event)"
+            (openProgressChange)="bottomSheetProgress.set($event)"
+          >
+            <ng-container
+              *ngTemplateOutlet="movableOutlet; context: { $implicit: panelView }"
+            ></ng-container>
+          </app-bottom-sheet>
         </div>
       }
-
-      <!-- sidenav toggle button -->
-      <div class="sidenav-toggle">
-        <button
-          mat-icon-button
-          (click)="toggleSidenav()"
-          class="sidenav-toggle__button d-flex border justify-content-center align-items-center p-0"
-        >
-          @if (sidenavOpen()) {
-            <mat-icon>chevron_left</mat-icon>
-          } @else {
-            <mat-icon>chevron_right</mat-icon>
-          }
-        </button>
-      </div>
     </div>
   </mat-drawer-container>
-} @else {
-  <div class="position-relative flex-grow-1 h-100">
-    <ng-container
-      *ngTemplateOutlet="mapContent"
-      class="position-absolute flex-grow-1"
-    ></ng-container>
-
-    <div
-      class="search-bar-overlay position-absolute top-0 start-0 end-0 d-flex flex-column gap-1"
-    >
-      <div class="d-flex flex-row gap-2 align-items-center">
-        @if (alainMode() && usesMapBottomSheet()) {
-          <div class="alain-spacer flex-shrink-0"></div>
-        }
-        <app-search-field
-          class="map-search-field flex-grow-1 mat-elevation-z3 overflow-hidden"
-          [contextLabel]="searchContextLabel()"
-          (spotSelected)="openSpotOrGooglePlace($event)"
-          (contextClear)="onSearchContextClear()"
-          (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
-        ></app-search-field>
-      </div>
-      <ng-container *ngTemplateOutlet="chips"></ng-container>
-      @if (visibleIslandContent()) {
-        <div class="map-context-mobile-host">
-          <!-- @if (mapWeatherResponse(); as weather) {
-            <app-map-weather-chip
-              @fadeInOut
-              class="map-weather-chip-host"
-              [response]="weather"
-              (pressed)="openMapWeather()"
-            ></app-map-weather-chip>
-          } -->
-          @if (visibleIslandContent()) {
-            <div @fadeInOut class="map-island-mobile-host">
-              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-            </div>
-          }
-        </div>
-      }
-    </div>
-
-    <app-bottom-sheet
-      class="map-bottom-sheet d-flex"
-      @fadeInOut
-      [closedHeight]="mapSheetClosedHeight()"
-      (isAtTopChange)="bottomSheetOpen.set($event)"
-      (openProgressChange)="bottomSheetProgress.set($event)"
-    >
-      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
-    </app-bottom-sheet>
-  </div>
 }

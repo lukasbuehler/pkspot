@@ -21,7 +21,7 @@
     Use your location for nearby ideas, or search for a community to plan a session somewhere else.
   </p>
 
-  <button matButton="tonal" type="button" (click)="useLocation()">
+  <button matButton="filled" type="button" (click)="useLocation()">
     <mat-icon>my_location</mat-icon>
     <span i18n="@@train.useLocation">Use my location</span>
   </button>
@@ -30,6 +30,7 @@
 
   <app-search-field
     appearance="outline"
+    [onlyCommunities]="true"
     [contextLabel]="data.area?.displayName ?? null"
     (spotSelected)="selectArea($event)"
     (contextClear)="clearArea()"

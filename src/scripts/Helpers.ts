@@ -352,12 +352,7 @@ export function isMobileDevice() {
   );
 }
 
-export function isBot(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /bot|googlebot|crawler|spider|robot|crawling/i.test(
-    navigator.userAgent
-  );
-}
+export { isBot } from "./BrowserAgents";
 
 export function makeAnyMediaFromMediaSchema(
   mediaSchema: MediaSchema

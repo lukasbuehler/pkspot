@@ -152,6 +152,7 @@ import { SpotReportsService } from "../../services/firebase/firestore/spot-repor
 import { PostsService } from "../../services/firebase/firestore/posts.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
+import { ConsentService } from "../../services/consent.service";
 import { SpotReviewsService } from "../../services/firebase/firestore/spot-reviews.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
@@ -364,6 +365,7 @@ export class SpotDetailsComponent
   private _ageAssuranceService = inject(AgeAssuranceService);
   private _mediaUploadStatusService = inject(MediaUploadStatusService);
   private readonly _platformId = inject(PLATFORM_ID);
+  private readonly _consentService = inject(ConsentService);
   private readonly _weatherService = inject(WeatherService);
 
   /**
@@ -383,6 +385,7 @@ export class SpotDetailsComponent
       const location = this.spot()?.location();
       if (
         !isPlatformBrowser(this._platformId) ||
+        !this._consentService.hasConsent() ||
         !this.spotWeatherContext().available ||
         !location ||
         !Number.isFinite(location.lat) ||
@@ -1148,7 +1151,10 @@ export class SpotDetailsComponent
       this.newSlug = "";
       this.addingSlug.set(false);
 
-      if (spot instanceof Spot && this.liveUpdates()) {
+      if (
+        spot instanceof Spot && this.liveUpdates() &&
+        isPlatformBrowser(this._platformId) && this._consentService.hasConsent()
+      ) {
         // Ensure live updates subscription for this spot id
         this._subscribeToLiveSpot(spot);
 

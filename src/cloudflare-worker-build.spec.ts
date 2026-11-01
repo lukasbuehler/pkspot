@@ -10,7 +10,6 @@ interface AngularWorkspace {
           configurations: {
             cloudflare: {
               externalDependencies?: string[];
-              optimization: { styles: { inlineCritical: boolean } };
               fileReplacements: Array<{ replace: string; with: string }>;
               ssr: { platform: string };
             };
@@ -25,6 +24,8 @@ const buildScript = readFileSync(
   resolve(process.cwd(), "scripts/cloudflare-workers.mjs"),
   "utf8",
 );
+const profileScript = readFileSync(resolve(process.cwd(), "scripts/cloudflare-build-profiles.mjs"), "utf8");
+const hostPolicy = readFileSync(resolve(process.cwd(), "src/cloudflare-hosts.ts"), "utf8");
 const stagingEnvironment = readFileSync(
   resolve(process.cwd(), "src/environments/environment.staging.ts"),
   "utf8",
@@ -45,31 +46,23 @@ describe("Cloudflare Worker build", () => {
   it("packages Angular's localized SSR output as one Worker", () => {
     expect(buildScript).toContain('"--localize"');
     expect(buildScript).not.toMatch(/--localize=/u);
-    expect(buildScript).toContain('name: "pkspot-web"');
+    expect(profileScript).toContain('workerName: "pkspot-web"');
     expect(buildScript).toContain(
       'import { handleWorkerRequest } from "./server/server.mjs";',
     );
-    expect(buildScript).toContain('main: "worker.mjs"');
-    expect(buildScript).toContain("minify: true");
-    expect(buildScript).toContain('directory: "browser"');
+    expect(profileScript).toContain('main: "worker.mjs"');
+    expect(profileScript).toContain("minify: true");
+    expect(profileScript).toContain('directory: "browser"');
     expect(buildScript).toContain("rewriteFirebaseMessagingServiceWorkers");
     expect(buildScript).toContain('"firebase-messaging-sw.js"');
     expect(buildScript).not.toContain("cpu_ms");
   });
 
-  it("avoids request-time critical CSS extraction in the Worker", () => {
-    // Angular scans the full stylesheet against SSR HTML on cache misses.
-    // Keep that CPU cost out of the constrained Worker request budget.
-    expect(
-      angularWorkspace.projects.pkspot.architect.build.configurations.cloudflare
-        .optimization.styles.inlineCritical,
-    ).toBe(false);
-  });
-
   it("accepts the stable test host and its branch preview hosts", () => {
-    expect(cloudflareServer).toContain('"test.pkspot.app"');
-    expect(cloudflareServer).toContain('"*.test.pkspot.app"');
+    expect(hostPolicy).toContain('"test.pkspot.app"');
+    expect(hostPolicy).toContain('"*.test.pkspot.app"');
     expect(cloudflareServer).not.toContain("edge-test.pkspot.app");
+    expect(cloudflareServer).toContain("cloudflareSsrAllowedHosts(environment.name)");
   });
 
   it("bundles dependencies used by browser chunks", () => {
@@ -90,7 +83,7 @@ describe("Cloudflare Worker build", () => {
         with: "src/environments/environment.staging.ts",
       },
     ]);
-    expect(buildScript).toContain('"firebase.staging.json"');
+    expect(profileScript).toContain('"src/environments/firebase.staging.json"');
     expect(stagingEnvironment).toContain('name: "Staging"');
     expect(stagingEnvironment).toContain(
       'from "./firebase.staging.json"',

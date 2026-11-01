@@ -5,10 +5,14 @@ import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { getCloudflareBuildProfile } from "./cloudflare-build-profiles.mjs";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
+const target = [...args].find(argument => argument.startsWith("--target="))?.slice("--target=".length);
+const profile = getCloudflareBuildProfile(target);
 if (!args.has("--skip-build")) {
-  execFileSync(process.execPath, ["scripts/cloudflare-workers.mjs", "build"], {
+  execFileSync(process.execPath, ["scripts/cloudflare-workers.mjs", "build", `--target=${target ?? "staging"}`], {
     cwd: root,
     stdio: "inherit",
   });
@@ -85,13 +89,34 @@ async function page(base, route, title, status = 200) {
   assert.equal(response.status, status, `${base}${route}`);
   assert.match(response.headers.get("content-type") ?? "", /text\/html/);
   const html = await response.text();
+  assert.doesNotMatch(html, /<div\b[^>]*id="app-splash-screen"/u,
+    `SSR content must be visible before hydration: ${route}`);
   const activeHtml = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, "");
+  assert.doesNotMatch(activeHtml, /<link\b[^>]*rel="modulepreload"/,
+    `Route scripts must wait for browser startup scheduling: ${route}`);
   const stylesheets = [...activeHtml.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)];
   assert.ok(stylesheets.length, `Stylesheet missing: ${route}`);
+  assert.ok(
+    stylesheets.every(([stylesheet]) => /media="print"/.test(stylesheet)),
+    `Global CSS must not block the first paint: ${route}`,
+  );
+  assert.match(
+    html,
+    /<noscript>\s*<link\b[^>]*rel="stylesheet"/,
+    `Deferred CSS needs a no-JavaScript fallback: ${route}`,
+  );
   for (const [stylesheet] of stylesheets) {
-    // Express may inline CSS; Worker responses use an ordinary blocking link.
+    // Angular activates deferred CSS after the inline critical styles paint.
     if (/media="print"/.test(stylesheet)) {
-      assert.match(stylesheet, /onload=/, `Stylesheet activation missing: ${route}`);
+      const restoresMedia = /onload=/.test(stylesheet) || (
+        /data-beasties-media=/.test(stylesheet) &&
+        activeHtml.includes(
+          "document.querySelectorAll('link[data-beasties-media]').forEach(function(l){" +
+          "l.media=l.getAttribute('data-beasties-media');" +
+          "l.removeAttribute('data-beasties-media')})",
+        )
+      );
+      assert.ok(restoresMedia, `Stylesheet activation missing: ${route}`);
     }
   }
   assert.match(
@@ -128,6 +153,7 @@ async function asset(base, route, type, status = 200) {
     assert.ok((await response.arrayBuffer()).byteLength > 0, route);
   else await response.body?.cancel();
   checks++;
+  return response;
 }
 
 try {
@@ -137,7 +163,7 @@ try {
       "node_modules/wrangler/bin/wrangler.js",
       "dev",
       "--config",
-      "dist/pkspot-cloudflare-worker/wrangler.jsonc",
+      `${profile.outputDirectory}/wrangler.jsonc`,
       "--port",
       String(port),
       "--ip",
@@ -207,7 +233,19 @@ try {
   await page(worker, "/en/this-route-should-not-exist", null, 404);
   await asset(worker, "/assets/icons/favicon-16x16.png", /image\/png/);
   await asset(worker, "/en/assets/icons/favicon-16x16.png", /image\/png/);
-  await asset(worker, "/firebase-messaging-sw.js", /javascript/);
+  const messagingWorker = await asset(
+    worker, "/firebase-messaging-sw.js", /javascript/,
+  );
+  assert.equal(
+    messagingWorker.headers.get("cache-control"),
+    "public, max-age=0, must-revalidate",
+  );
+  const localizedMessagingWorker = await asset(
+    worker, "/en/firebase-messaging-sw.js", /javascript/,
+  );
+  assert.doesNotMatch(
+    localizedMessagingWorker.headers.get("cache-control") ?? "", /immutable/,
+  );
   await asset(worker, "/robots.txt", /text\/plain/);
   const missing = await request(worker, "/assets/not-a-real-file.png");
   assert.equal(missing.status, 404);
@@ -215,20 +253,37 @@ try {
   assert.equal(missing.headers.get("cache-control"), "no-store");
   await missing.body?.cancel();
   checks++;
+  const missingBundle = await request(worker, "/en/chunk-NOTFOUND.js");
+  assert.equal(missingBundle.status, 404);
+  assert.equal(missingBundle.headers.get("cache-control"), "no-store");
+  await missingBundle.body?.cancel();
+  checks++;
   const html = await page(worker, "/en/about", /About/);
-  assert.doesNotMatch(
-    html,
-    /data-beasties-container/,
-    "Worker must not perform request-time critical CSS extraction",
-  );
   const files = [...html.matchAll(/(?:src|href)="([^"\s]+\.(?:js|css))"/g)].map(
     (match) => match[1],
   );
   assert.ok(files.length, "SSR should reference browser bundles");
   for (const file of new Set(files)) {
     const url = new URL(file, `${worker}/en/`);
-    if (url.origin === worker)
-      await asset(worker, url.pathname, /javascript|text\/css/);
+    if (url.origin === worker) {
+      const response = await asset(worker, url.pathname, /javascript|text\/css/);
+      if (!/^\/en\/(?:main|polyfills|chunk|styles)-[\w-]{8}\.(?:js|css)$/u.test(url.pathname)) {
+        assert.doesNotMatch(response.headers.get("cache-control") ?? "", /immutable/);
+        continue;
+      }
+      assert.equal(
+        response.headers.get("cache-control"),
+        "public, max-age=31536000, immutable",
+        `Hashed bundle must be immutable: ${url.pathname}`,
+      );
+      // The Worker maps unprefixed asset requests to the English asset directory.
+      const unprefixed = await asset(
+        worker, url.pathname.slice(3), /javascript|text\/css/,
+      );
+      assert.equal(
+        unprefixed.headers.get("cache-control"), response.headers.get("cache-control"),
+      );
+    }
   }
   console.log(
     "PASS: deep links, redirects, missing routes, icons, service worker, and browser bundles",

@@ -1,7 +1,7 @@
 @if (variant() === "amenity") {
   @if (hasAmenityContent()) {
     <div
-      class="amenity-marker"
+      class="amenity-marker map-marker-hit-target"
       [class.amenity-marker--primary]="isPrimary()"
       [class.amenity-marker--secondary]="isSecondary()"
       [class.amenity-marker--tertiary]="isTertiary()"
@@ -37,7 +37,7 @@
   }
 } @else {
 <div
-  class="pin-marker"
+  class="pin-marker map-marker-hit-target"
   [class.pin-primary]="isPrimary()"
   [class.pin-secondary]="isSecondary()"
   [class.pin-tertiary]="isTertiary()"

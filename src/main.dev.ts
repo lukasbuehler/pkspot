@@ -5,4 +5,4 @@
 // available for those dependencies. Production uses `main.ts` and stays AOT.
 import "@angular/compiler";
 
-void import("./main.bootstrap").then(({ bootstrap }) => bootstrap());
+void import("./browser-startup").then(({ startBrowserApplication }) => startBrowserApplication()).catch(console.error);

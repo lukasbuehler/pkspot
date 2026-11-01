@@ -2,6 +2,8 @@ import { createRequire } from "node:module";
 import type { OverlayOptions } from "sharp";
 const sharp = createRequire(__filename)("sharp") as typeof import("sharp").default;
 import { createHash } from "node:crypto";
+import { communityPhotoTiles, MAX_COMMUNITY_PHOTOS } from "./collage";
+import { escapeText, renderTitle } from "./title";
 import { shareCardPlaceholders } from "./placeholder";
 
 export type ShareCardKind = "spot" | "event" | "community" | "profile" | "page";
@@ -9,6 +11,8 @@ export interface ShareCardInput {
   kind: ShareCardKind;
   title: string;
   subtitle: string;
+  /** Locality or country shown directly below the title, ahead of supporting metadata. */
+  locationLabel?: string;
   detail?: string;
   label?: string;
   /** Average Spot rating out of five. Missing or zero means unrated. */
@@ -20,23 +24,30 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-10";
+export const SHARE_CARD_VERSION = "prototype-13";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
-const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
-  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
 
 /** No network, Firebase, or filesystem writes. The local lab and future worker
  * call this exact renderer with resolved, publication-approved asset buffers.
  * Raster artwork has a fixed palette independent of the viewer's app theme. */
 export async function renderShareCard(input: ShareCardInput, assets: ShareCardAssets): Promise<Buffer> {
   if (input.audience !== "public") throw new Error("Restricted content cannot produce a public share card");
-  if (!input.title.trim() || input.title.length > 240 || input.subtitle.length > 240 || (input.detail?.length ?? 0) > 160) {
+  if (!input.title.trim() || input.title.length > 240 || input.subtitle.length > 240 || (input.detail?.length ?? 0) > 160 || (input.locationLabel?.length ?? 0) > 240) {
     throw new Error("Share card text is missing or too long");
   }
   if (input.rating !== undefined && (!Number.isFinite(input.rating) || input.rating < 0 || input.rating > 5)) {
     throw new Error("Spot rating must be between zero and five");
   }
-  const photos = (input.photos ?? []).slice(0, 3);
+  const photos: Buffer[] = [];
+  const limit = input.kind === "community" ? MAX_COMMUNITY_PHOTOS : 3;
+  // Decode before choosing a layout, so corrupt images never leave empty tiles.
+  for (const photo of (input.photos ?? []).slice(0, limit)) {
+    try {
+      photos.push(await sharp(photo, { limitInputPixels: 40_000_000 }).rotate()
+        .resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true }).png().toBuffer());
+    } catch { /* Use fewer, larger photos or the entity artwork. */ }
+  }
+  const communityTiles = input.kind === "community" ? communityPhotoTiles(photos.length) : [];
   const layers: OverlayOptions[] = [];
   const svg = (body: string): Buffer => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">${body}</svg>`);
   layers.push({ input: svg(`<rect width="1200" height="630" fill="#18191f"/>
@@ -45,16 +56,16 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
   // Optional supporting crops share that same edge; failed media uses artwork.
   for (const [index, photo] of photos.entries()) {
     const collage = photos.length > 1;
-    const box = !collage ? { left: 300, top: 0, width: 900, height: 630 }
+    const box = communityTiles[index] ?? (!collage ? { left: 300, top: 0, width: 900, height: 630 }
       : index === 0 ? { left: 300, top: 0, width: 900, height: 410 }
-      : { left: index === 1 ? 300 : 753, top: 416, width: photos.length === 2 ? 900 : 447, height: 214 };
+      : { left: index === 1 ? 300 : 753, top: 416, width: photos.length === 2 ? 900 : 447, height: 214 });
     try {
       const image = await sharp(photo, { limitInputPixels: 40_000_000 }).rotate()
         .resize(box.width, box.height, { fit: "cover", position: "centre" }).png().toBuffer();
       layers.push({ input: image, left: box.left, top: box.top });
     } catch { /* Keep a valid, intentionally designed fallback for broken photos. */ }
   }
-  layers.push({ input: svg(`<defs><linearGradient id="shade"><stop offset="0" stop-color="#18191f"/><stop offset=".3" stop-color="#18191f"/><stop offset=".48" stop-color="#18191f" stop-opacity=".88"/><stop offset=".8" stop-color="#18191f" stop-opacity=".22"/><stop offset="1" stop-color="#18191f" stop-opacity=".12"/></linearGradient></defs><rect width="1200" height="630" fill="url(#shade)"/><rect x="56" y="62" width="5" height="28" rx="2" fill="#b9bdff"/>`) });
+  layers.push({ input: svg(`<defs><linearGradient id="shade"><stop offset="0" stop-color="#18191f"/><stop offset=".3" stop-color="#18191f"/><stop offset=".48" stop-color="#18191f" stop-opacity=".88"/><stop offset=".8" stop-color="#18191f" stop-opacity=".22"/><stop offset="1" stop-color="#18191f" stop-opacity=".12"/></linearGradient></defs><rect width="1200" height="630" fill="url(#shade)"/>`) });
   const addText = async (text: string, left: number, top: number, width: number, height: number, size: number, color: string, bold = false) => {
     if (!text) return;
     const png = await sharp({ text: {
@@ -64,7 +75,7 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
     } }).resize({ width, height, fit: "inside", withoutEnlargement: true }).png().toBuffer();
     layers.push({ input: png, left, top });
   };
-  await addText((input.label ?? input.kind).slice(0, 40).toUpperCase(), 78, 63, 700, 36, 30, "#b9bdff", true);
+  await addText((input.label ?? input.kind).slice(0, 40).toUpperCase(), 56, 63, 700, 36, 30, "#b9bdff", true);
   if (input.kind === "spot" && input.rating && input.rating > 0) {
     const rating = await sharp({ text: {
       text: `<span foreground="#f4f3ff">${input.rating.toFixed(1)}</span>`,
@@ -78,7 +89,14 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
     layers.push({ input: rating.data, left: left + padding + starSize + gap,
       top: 48 + Math.round((height - rating.info.height) / 2) });
   }
-  await addText(input.title, 56, 155, photos.length ? 630 : 930, 246, 76, "#f4f3ff", true);
+  const titleWidth = photos.length ? 630 : 930;
+  // Reserve a small place line even when a long title reaches its minimum size.
+  // Supporting counts/date/venue keep their own fixed row below this region.
+  const title = await renderTitle(input.title, titleWidth, input.locationLabel ? 192 : 246, assets.fontFile);
+  layers.push({ input: title.data, left: 56, top: 155 });
+  if (input.locationLabel) {
+    await addText(input.locationLabel, 58, 155 + title.info.height + 18, titleWidth, 36, 30, "#e2e0eb");
+  }
   await addText(input.subtitle, 58, 429, 1020, 72, 38, "#e2e0eb");
   await addText(input.detail ?? "", 58, 510, 1020, 42, 30, "#b9bdff");
   if (input.showBrandIcon && assets.icon) {
@@ -104,6 +122,6 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
 export function shareCardFingerprint(input: ShareCardInput): string {
   const hash = createHash("sha256").update(SHARE_CARD_VERSION)
     .update(JSON.stringify({ ...input, photos: undefined }));
-  for (const photo of (input.photos ?? []).slice(0, 3)) hash.update(photo);
+  for (const photo of (input.photos ?? []).slice(0, input.kind === "community" ? MAX_COMMUNITY_PHOTOS : 3)) hash.update(photo);
   return hash.digest("hex").slice(0, 24);
 }

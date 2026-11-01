@@ -13,11 +13,18 @@ type RenderRequest = (
   request: Request,
 ) => Promise<Response | null> | Response | null;
 const locales = new Set<string>(SUPPORTED_UI_LOCALES);
+const LEGACY_ASSET_HEADER = "X-PKSpot-Legacy-Asset";
 
-export function createCloudflareRequestHandler(render: RenderRequest) {
+export function createCloudflareRequestHandler(
+  render: RenderRequest,
+  fetchLegacyAsset: (request: Request) => Promise<Response> = (request) => fetch(request),
+) {
   return async (
     request: Request,
-    environment: { ASSETS: CloudflareAssets },
+    environment: {
+      ASSETS: CloudflareAssets;
+      PKSPOT_APP_HOSTING_ASSET_FALLBACK?: string;
+    },
   ): Promise<Response> => {
     const url = new URL(request.url);
     const response = await routeRequest(
@@ -25,6 +32,11 @@ export function createCloudflareRequestHandler(render: RenderRequest) {
       url,
       environment.ASSETS,
       render,
+      // Only enable this after retaining App Hosting behind a Worker Route.
+      // A same-host fetch from a Custom Domain would call the Worker again.
+      environment.PKSPOT_APP_HOSTING_ASSET_FALLBACK === "route-origin" &&
+      url.hostname === "pkspot.app" && !request.headers.has(LEGACY_ASSET_HEADER)
+        ? fetchLegacyAsset : undefined,
     );
     const headers = new Headers(response.headers);
     if (
@@ -47,6 +59,7 @@ async function routeRequest(
   url: URL,
   assets: CloudflareAssets,
   render: RenderRequest,
+  fetchLegacyAsset?: (request: Request) => Promise<Response>,
 ): Promise<Response> {
   // Apply the shared policy before redirects, asset lookups or Angular SSR.
   if (isSensitiveProbePath(url.pathname)) {
@@ -102,6 +115,26 @@ async function routeRequest(
       assetUrl.pathname = `/en${url.pathname.startsWith("/.well-known/") ? "/assets" : ""}${url.pathname}`;
     }
     const response = await assets.fetch(new Request(assetUrl, request));
+    const legacyBundle = localized && url.pathname.split("/").length === 3 &&
+      /\/(?:main|polyfills|chunk|styles)-[a-zA-Z0-9_-]+\.(?:js|css)$/u.test(url.pathname);
+    if (response.status === 404 && fetchLegacyAsset && legacyBundle) {
+      try {
+        const originRequest = new Request(request);
+        originRequest.headers.set(LEGACY_ASSET_HEADER, "1");
+        const legacy = await fetchLegacyAsset(originRequest);
+        const expectedType = url.pathname.endsWith(".css")
+          ? /text\/css/u : /(?:application|text)\/(?:x-)?javascript/u;
+        const notModified = legacy.status === 304 &&
+          (request.headers.has("If-None-Match") || request.headers.has("If-Modified-Since"));
+        if (notModified || (legacy.status === 200 && expectedType.test(legacy.headers.get("Content-Type") ?? ""))) {
+          await response.body?.cancel();
+          return legacy;
+        }
+        await legacy.body?.cancel();
+      } catch {
+        console.warn("App Hosting legacy bundle fallback failed");
+      }
+    }
     const headers = new Headers(response.headers);
     if (response.status === 404) headers.set("Cache-Control", "no-store");
     if (url.pathname === "/firebase-messaging-sw.js") {
@@ -126,9 +159,13 @@ async function routeRequest(
   // Express renders the map at the locale root without an extra redirect.
   if (url.pathname === `/${first}` || url.pathname === `/${first}/`)
     url.pathname = `/${first}/map`;
-  const response =
-    (await render(new Request(url, request))) ??
-    new Response("Not Found", { status: 404 });
+  const rendered = await render(new Request(url, request));
+  if (!rendered) {
+    // Angular can return null after a navigation error, not only a missing route.
+    // Log no URL/query data; the Worker invocation identifies the request.
+    console.error("Cloudflare SSR returned no response", { locale: first });
+  }
+  const response = rendered ?? new Response("Not Found", { status: 404 });
   const headers = new Headers(response.headers);
   headers.set("Cache-Control", "no-cache");
   return new Response(response.body, { status: response.status, headers });

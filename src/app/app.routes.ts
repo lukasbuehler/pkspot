@@ -6,17 +6,7 @@ import { trainingFeatureEnabled } from "./features/training-feature";
 import { financesFeatureEnabled } from "./features/finances-feature";
 import { supportShopFeatureEnabled } from "./features/support-shop-feature";
 
-export const ACCEPTANCE_FREE_PREFIXES = [
-  "/about",
-  "/shop",
-  "/support",
-  "/contact",
-  "/terms-of-service",
-  "/tos",
-  "/privacy-policy",
-  "/pp",
-  "/impressum",
-];
+export { ACCEPTANCE_FREE_PREFIXES } from "./startup/welcome-policy";
 
 const visualTestRoutes: Routes = environment.production
   ? []
@@ -338,6 +328,11 @@ export const routes: Routes = [
         (m) => m.ModerationDashboardPageComponent,
       ),
     data: { routeName: "Moderation" },
+  },
+  {
+    path: "moderation/event-suggestions",
+    loadComponent: () => import("./components/event-suggestion-review-page/event-suggestion-review-page.component").then(m => m.EventSuggestionReviewPageComponent),
+    data: {routeName: "Event Suggestions", discoverable: false},
   },
   {
     path: "moderation/duplicates",

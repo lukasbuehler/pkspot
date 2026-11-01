@@ -47,13 +47,15 @@ import {
   RouterModule,
 } from "@angular/router";
 import { filter, map } from "rxjs/operators";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { AuthenticationService } from "./services/firebase/authentication.service";
 import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
 import { environment } from "../environments/environment.default";
 import { isBot } from "../scripts/Helpers";
-import { ACCEPTANCE_FREE_PREFIXES } from "./app.routes";
+import { isAcceptanceFreePath, withoutLocalePrefix } from "./startup/welcome-policy";
+import { EARLY_WELCOME_CONTEXT } from "./startup/welcome-acceptance";
+import { WELCOME_DIALOG_OPTIONS } from "./startup/welcome-dialog-options";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
@@ -81,6 +83,7 @@ import { PlatformService } from "./services/platform.service";
 // import { SelectLanguageDialogComponent } from "./components/select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
+import { completedNavigations } from "./shared/completed-navigations";
 import { ConsentService } from "./services/consent.service";
 import {
   Capacitor,
@@ -112,6 +115,8 @@ import {
   type NavigationOverflow,
 } from "./features/navbar-overflow";
 import { MyEventContextService } from "./services/my-event-context.service";
+import { NativeTabBarService } from "./services/native-tab-bar.service";
+import { nativeTabBarOwnsNavigation } from "./features/native-tab-bar";
 
 interface ButtonBase {
   id: string;
@@ -160,6 +165,7 @@ type NavigationPerfDetails = Record<string, unknown>;
     "(window:resize)": "onResize()",
     "[class.has-floating-bottom-navigation]": "usesFloatingBottomNavigation()",
     "[class.has-navigation-rail]": "usesNavigationRail()",
+    "[class.has-native-tab-bar]": "usesNativeTabBar()",
     "[class.immersive-map-route]": "isImmersiveMapRoute()",
     "[class.event-map-route]": "isEventMapRoute()",
   },
@@ -248,6 +254,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _appSettings = inject(AppSettingsService);
   private _mapProfiler = inject(MapPerformanceProfilerService);
   private _appCheckFailureWarning = inject(AppCheckFailureWarningService);
+  private readonly earlyWelcomeContext = inject(EARLY_WELCOME_CONTEXT, { optional: true });
   private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
   readonly myEventContext = inject(MyEventContextService);
@@ -327,11 +334,27 @@ export class AppComponent implements OnInit, AfterViewInit {
    * use a rail without being treated as a desktop page everywhere else.
    */
   readonly navigationLayout = this.responsive.navigationLayout;
+  private readonly _nativeTabBar = inject(NativeTabBarService);
+  /**
+   * On iPhone a native tab bar provides the navigation in every layout,
+   * instead of the web bar, rail or Alain menu. Map panels still follow
+   * `navigationLayout()`.
+   */
+  readonly usesNativeTabBar = computed(() =>
+    nativeTabBarOwnsNavigation(
+      this._nativeTabBar.available(),
+      this.isEmbedded() === true,
+    ),
+  );
+  /** The web Alain menu, unless the native tab bar replaces it. */
+  readonly showsAlainMenu = computed(
+    () => this.alainMode() && !this.usesNativeTabBar(),
+  );
   readonly usesNavigationRail = computed(
-    () => this.navigationLayout() === "rail",
+    () => this.navigationLayout() === "rail" && !this.usesNativeTabBar(),
   );
   readonly usesFloatingBottomNavigation = computed(
-    () => this.navigationLayout() === "bottom",
+    () => this.navigationLayout() === "bottom" && !this.usesNativeTabBar(),
   );
 
   /** True when running as a native iOS or Android app via Capacitor */
@@ -343,6 +366,27 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.responsive.refreshViewport();
     this.scheduleDesktopNavigationMeasurement();
   }
+
+  /** Mirrors the destinations and the route's selection into the native bar. */
+  private readonly _nativeTabBarBinding = this._nativeTabBar.bind({
+    destinations: () =>
+      (this.navbarConfig() ?? []).map((button) => ({
+        id: button.id,
+        name: button.name,
+        icon: button.icon,
+        alwaysVisible: button.alwaysVisible,
+        liveIndicator: button.liveIndicator,
+        active:
+          !!button.active ||
+          (!!button.link && this.isNavbarLinkActive(button.link)),
+      })),
+    ownsNavigation: () => this.usesNativeTabBar(),
+    moreTitle: () => this.moreNavigationLabel,
+  });
+
+  private readonly _nativeTabSelections = this._nativeTabBar.selections
+    .pipe(takeUntilDestroyed())
+    .subscribe((id) => this.onNavigationFabAction(id));
 
   private readonly trackNavigationMode = effect(() => {
     const alainMode = this.alainMode();
@@ -545,8 +589,14 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Manual pageview + engaged-time tracking (disable autocapture to avoid race conditions)
-    let initialPageviewSent = false;
+    this.earlyWelcomeContext?.ready(() => {
+      this._consentService.grantConsent();
+      this._analyticsService.trackEvent("Visitor Agreed to Terms", {
+        version: this._consentService.CURRENT_TERMS_VERSION, method: "welcome_dialog",
+      });
+    });
+
+    // Manual pageview + engaged-time tracking, including an already completed landing navigation.
 
     // Engagement helper object to manage timers and handlers per-page
     this._engagement = {
@@ -659,118 +709,100 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
     } as any;
 
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
-        const nav = event as NavigationEnd;
+    completedNavigations(this.router)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe((nav) => {
         this.syncSiteStructuredData(nav.urlAfterRedirects);
         this.checkWelcomeDialogForCurrentRoute();
 
-        const send = () => {
-          try {
-            const isBrowser =
-              typeof window !== "undefined" && typeof document !== "undefined";
+        // Pageviews must not wait for auth restoration: a visitor may leave first.
+        try {
+          const isBrowser =
+            typeof window !== "undefined" && typeof document !== "undefined";
 
-            const url = isBrowser
-              ? window.location.href
-              : nav.urlAfterRedirects;
-            const authenticated = this.isSignedIn();
-            const consentGranted = this._consentService.hasConsent();
-            const acceptedVersion = isBrowser
-              ? localStorage.getItem("acceptedVersion")
-              : null;
+          const url = isBrowser
+            ? window.location.href
+            : nav.urlAfterRedirects;
+          const authenticated = this.isSignedIn();
+          const consentGranted = this._consentService.hasConsent();
+          const acceptedVersion = isBrowser
+            ? localStorage.getItem("acceptedVersion")
+            : null;
 
-            // finalize previous page's engagement before starting new
-            this._engagement.finalizeAndSend();
+          // finalize previous page's engagement before starting new
+          this._engagement.finalizeAndSend();
 
-            // Emit manual pageview using PostHog's standard $pageview event
+          // Emit manual pageview using PostHog's standard $pageview event
 
-            if (!this.isNativePlatform) {
-              const attribution =
-                this._analyticsService.getCurrentAttributionProperties();
-              this._analyticsService.trackEvent("$pageview", {
-                path: nav.urlAfterRedirects,
-                current_url: url,
-                ...attribution,
-                authenticated: authenticated,
-                consent_granted: consentGranted,
-                accepted_version: acceptedVersion,
-                source: "manual",
-              });
-              this._analyticsService.trackStickerScanFromCurrentUrl();
-              this._analyticsService.cleanCurrentUtmParametersFromUrl();
-            }
-
-            if (this.shouldSyncCanonicalFromNavigation()) {
-              this._metaTagService.syncCanonicalAndHreflangForPath(
-                nav.urlAfterRedirects,
-              );
-            }
-
-            // Start new engagement tracking for this page (browser-only)
-            if (isBrowser && document.visibilityState === "visible") {
-              this._engagement.visibleStart = Date.now();
-            } else {
-              this._engagement.visibleStart = null;
-            }
-
-            // visibility handler (browser-only)
-            if (isBrowser) {
-              this._engagement.visibilityHandler = () => {
-                if (document.visibilityState === "hidden") {
-                  if (this._engagement.visibleStart) {
-                    this._engagement.totalVisibleMs +=
-                      Date.now() - this._engagement.visibleStart;
-                    this._engagement.visibleStart = null;
-                  }
-                } else {
-                  this._engagement.visibleStart = Date.now();
-                }
-              };
-              document.addEventListener(
-                "visibilitychange",
-                this._engagement.visibilityHandler,
-              );
-
-              // beforeunload handler to try and send final duration
-              this._engagement.beforeUnloadHandler = () => {
-                this._engagement.finalizeAndSend(nav.urlAfterRedirects);
-              };
-              window.addEventListener(
-                "beforeunload",
-                this._engagement.beforeUnloadHandler,
-                { capture: false },
-              );
-            }
-
-            // start periodic pings if consent already granted (browser-only)
-            if (
-              this._engagedPingEnabled &&
-              this._consentService.hasConsent() &&
-              isBrowser &&
-              !this.isNativePlatform
-            ) {
-              this._engagement.startPingsIfNeeded();
-            }
-          } catch (e) {
-            console.error("Failed to send manual pageview", e);
-          }
-        };
-
-        if (!initialPageviewSent) {
-          // wait until auth state is restored to get correct `authenticated` flag
-          this.waitForInitialAuthState()
-            .then(() => {
-              send();
-              initialPageviewSent = true;
-            })
-            .catch(() => {
-              // even if auth retrieval fails, still send a pageview
-              send();
-              initialPageviewSent = true;
+          if (!this.isNativePlatform) {
+            const attribution =
+              this._analyticsService.getCurrentAttributionProperties();
+            this._analyticsService.trackEvent("$pageview", {
+              path: nav.urlAfterRedirects,
+              current_url: url,
+              ...attribution,
+              authenticated: authenticated,
+              consent_granted: consentGranted,
+              accepted_version: acceptedVersion,
+              source: "manual",
             });
-        } else {
-          send();
+            this._analyticsService.trackStickerScanFromCurrentUrl();
+            this._analyticsService.cleanCurrentUtmParametersFromUrl();
+          }
+
+          if (this.shouldSyncCanonicalFromNavigation()) {
+            this._metaTagService.syncCanonicalAndHreflangForPath(
+              nav.urlAfterRedirects,
+            );
+          }
+
+          // Start new engagement tracking for this page (browser-only)
+          if (isBrowser && document.visibilityState === "visible") {
+            this._engagement.visibleStart = Date.now();
+          } else {
+            this._engagement.visibleStart = null;
+          }
+
+          // visibility handler (browser-only)
+          if (isBrowser) {
+            this._engagement.visibilityHandler = () => {
+              if (document.visibilityState === "hidden") {
+                if (this._engagement.visibleStart) {
+                  this._engagement.totalVisibleMs +=
+                    Date.now() - this._engagement.visibleStart;
+                  this._engagement.visibleStart = null;
+                }
+              } else {
+                this._engagement.visibleStart = Date.now();
+              }
+            };
+            document.addEventListener(
+              "visibilitychange",
+              this._engagement.visibilityHandler,
+            );
+
+            // beforeunload handler to try and send final duration
+            this._engagement.beforeUnloadHandler = () => {
+              this._engagement.finalizeAndSend(nav.urlAfterRedirects);
+            };
+            window.addEventListener(
+              "beforeunload",
+              this._engagement.beforeUnloadHandler,
+              { capture: false },
+            );
+          }
+
+          // start periodic pings if consent already granted (browser-only)
+          if (
+            this._engagedPingEnabled &&
+            this._consentService.hasConsent() &&
+            isBrowser &&
+            !this.isNativePlatform
+          ) {
+            this._engagement.startPingsIfNeeded();
+          }
+        } catch (e) {
+          console.error("Failed to send manual pageview", e);
         }
       });
   }
@@ -823,6 +855,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     );
   }
   private checkWelcomeDialogForCurrentRoute(): void {
+    // The early app owns this one dialog, including while hydration navigates.
+    if (this.earlyWelcomeContext && !this._consentService.hasConsent()) return;
     if (typeof window === "undefined") {
       return;
     }
@@ -883,13 +917,8 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
 
       const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+        ...WELCOME_DIALOG_OPTIONS,
         data: { version: currentTermsVersion },
-        width: "680px",
-        maxWidth: "min(680px, calc(100vw - 2rem))",
-        maxHeight: "calc(100dvh - 2rem)",
-        hasBackdrop: true,
-        disableClose: true,
-        enterAnimationDuration: "0ms",
       });
 
       dialogRef.afterClosed().subscribe((agreed: boolean) => {
@@ -912,22 +941,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private isAcceptanceFreePath(pathname: string): boolean {
-    const path = this.stripLocalePrefix(pathname);
-
-    return ACCEPTANCE_FREE_PREFIXES.some(
-      (prefix) => path === prefix || path.startsWith(`${prefix}/`),
-    );
+    return isAcceptanceFreePath(pathname);
   }
 
   private stripLocalePrefix(pathname: string): string {
-    const segments = pathname.split("/");
-
-    if (segments.length > 1 && isKnownUiLocalePrefix(segments[1])) {
-      segments.splice(1, 1);
-      return segments.join("/") || "/";
-    }
-
-    return pathname || "/";
+    return withoutLocalePrefix(pathname);
   }
 
   private shouldSyncCanonicalFromNavigation(): boolean {
@@ -974,14 +992,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         3000,
       ),
     ]);
-  }
-
-  private waitForInitialAuthState(): Promise<void> {
-    if (typeof window === "undefined") {
-      return Promise.resolve();
-    }
-
-    return this.waitUntil(() => this.authService.initialAuthStateResolved());
   }
 
   private async waitForAppStable() {

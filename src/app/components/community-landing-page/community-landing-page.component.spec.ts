@@ -21,6 +21,9 @@ import { CommunityEditsService } from "../../services/firebase/firestore/communi
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { Event as PkEvent } from "../../../db/models/Event";
 
+import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
+import { ShareCardService } from "../../services/share-card.service";
+
 const communityData: CommunityLandingPageData = {
   communityKey: "country:ch",
   scope: "country",
@@ -65,6 +68,10 @@ const communityData: CommunityLandingPageData = {
 };
 
 describe("CommunityLandingPageComponent", () => {
+  const follows = {
+    isFollowing: vi.fn(), follow: vi.fn(), unfollow: vi.fn(),
+  };
+  const shareCards = { preparing: signal(false), share: vi.fn() };
   let fixture: ComponentFixture<CommunityLandingPageComponent>;
   let isAdmin: ReturnType<typeof signal<boolean>>;
   let authState$: BehaviorSubject<{ uid: string } | null>;
@@ -78,6 +85,10 @@ describe("CommunityLandingPageComponent", () => {
   let getCommunityPage: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
+    follows.isFollowing.mockReset().mockResolvedValue(false);
+    follows.follow.mockReset().mockResolvedValue(undefined);
+    follows.unfollow.mockReset().mockResolvedValue(undefined);
+    shareCards.share.mockReset().mockResolvedValue(undefined);
     isAdmin = signal(false);
     authState$ = new BehaviorSubject<{ uid: string } | null>(null);
     getCommunityPrivateInfoCards = vi.fn().mockResolvedValue([]);
@@ -95,6 +106,8 @@ describe("CommunityLandingPageComponent", () => {
       imports: [CommunityLandingPageComponent],
       providers: [
         provideRouter([]),
+        { provide: CommunityFollowsService, useValue: follows },
+        { provide: ShareCardService, useValue: shareCards },
         provideNoopAnimations(),
         {
           provide: ActivatedRoute,
@@ -157,6 +170,78 @@ describe("CommunityLandingPageComponent", () => {
   afterEach(() => {
     TestBed.inject(MatDialog).closeAll();
     fixture.destroy();
+  });
+
+  it.each([true, false])("shares the canonical community with its document key (panel: %s)", async (panelMode) => {
+    fixture.componentRef.setInput("communityDataInput", communityData);
+    fixture.componentRef.setInput("panelMode", panelMode);
+    fixture.detectChanges();
+    const buttons = [...fixture.nativeElement.querySelectorAll("button")] as HTMLButtonElement[];
+    // The panel header uses an icon-only button, so match its label too.
+    buttons.find(button =>
+      button.textContent?.includes("Share") || button.getAttribute("aria-label")?.includes("Share"),
+    )!.click();
+    await fixture.whenStable();
+    expect(shareCards.share).toHaveBeenCalledWith(
+      { kind: "community", id: "country:ch" },
+      "https://pkspot.app/map/communities/switzerland",
+      "Switzerland",
+    );
+  });
+
+  it.each([true, false])("hides follow from signed-out users without reading follows (panel: %s)", async (panelMode) => {
+    fixture.componentRef.setInput("communityDataInput", communityData);
+    fixture.componentRef.setInput("panelMode", panelMode);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector("[aria-pressed]")).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain("Follow");
+    expect(follows.isFollowing).not.toHaveBeenCalled();
+  });
+
+  it("loads, follows and unfollows a community through the existing service", async () => {
+    authState$.next({ uid: "viewer" });
+    fixture.componentRef.setInput("communityDataInput", communityData);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fixture.componentInstance.toggleFollow();
+    expect(follows.follow).toHaveBeenCalledWith(expect.objectContaining({
+      communityKey: "country:ch", canonicalPath: communityData.canonicalPath,
+      displayName: "Switzerland", scope: "country",
+    }));
+    expect(fixture.componentInstance.following()).toBe(true);
+    await fixture.componentInstance.toggleFollow();
+    expect(follows.unfollow).toHaveBeenCalledWith("country:ch");
+    expect(fixture.componentInstance.following()).toBe(false);
+  });
+
+  it("retries a failed status lookup without overwriting an existing follow", async () => {
+    follows.isFollowing.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce(true);
+    authState$.next({ uid: "viewer" });
+    fixture.componentRef.setInput("communityDataInput", communityData);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.followStatus.error()).toBeTruthy();
+    await fixture.componentInstance.toggleFollow();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.following()).toBe(true);
+    expect(follows.follow).not.toHaveBeenCalled();
+  });
+
+  it("does not apply a pending follow to a newly opened community", async () => {
+    let complete!: () => void;
+    follows.follow.mockReturnValueOnce(new Promise<void>(resolve => { complete = resolve; }));
+    authState$.next({ uid: "viewer" });
+    fixture.componentRef.setInput("communityDataInput", communityData);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const pending = fixture.componentInstance.toggleFollow();
+    fixture.componentRef.setInput("communityDataInput", { ...communityData, communityKey: "country:au" });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    complete();
+    await pending;
+    expect(fixture.componentInstance.following()).toBe(false);
   });
 
   it.each([true, false])("uses only the localized place name in an h1 (panel: %s)", (panelMode) => {

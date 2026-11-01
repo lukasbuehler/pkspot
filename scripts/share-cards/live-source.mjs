@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const require = createRequire(import.meta.url);
-const { projectCard, collections, storageMediaPath, shareCardMediaCandidates } = require('../../functions/lib/functions/src/shareCards/source.js');
+const { resolveCardSource, collections, storageMediaPath, shareCardMediaCandidates } = require('../../functions/lib/functions/src/shareCards/source.js');
 const { DEFAULT_STORAGE_BUCKET } = require('../../functions/lib/functions/src/storageBucket.js');
 const execute = promisify(execFile);
 let token, tokenExpires = 0;
@@ -68,7 +68,14 @@ export async function loadLiveSource(kind, id, access = { readDocument, readPhot
     // Older entities can have a slug without a corresponding alias document.
     if (!document) document = await access.readBySlug(collections[kind], slug);
   }
-  const source = projectCard(kind, document);
+  if (!document && kind === 'community') {
+    const alias = await access.readDocument('community_slugs', id.toLowerCase());
+    if (typeof alias?.communityKey === 'string' && /^[\w:.-]{1,200}$/.test(alias.communityKey)) {
+      document = await access.readDocument(collections[kind], alias.communityKey);
+    }
+  }
+  const source = await resolveCardSource(kind, document,
+    ids => Promise.all(ids.map(spotId => access.readDocument('spots', spotId))), DEFAULT_STORAGE_BUCKET);
   if (!source) throw new Error('Not found or not eligible for a public share card.');
   const photos = (await Promise.all(source.media.map(access.readPhoto))).filter(Boolean);
   return { ...source.input, photos };

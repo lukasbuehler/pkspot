@@ -35,6 +35,9 @@ import {
   FIREBASE_APP,
   FIREBASE_FIRESTORE,
 } from "../firebase-client.providers";
+import { EventId } from "../../../../db/schemas/EventSchema";
+import { MediaSchema } from "../../../../db/schemas/Media";
+import { MediaType } from "../../../../db/models/Interfaces";
 import { EventsService } from "./events.service";
 
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
@@ -246,6 +249,7 @@ runWithEmulator("EventsService emulator integration", () => {
   let firestore: Firestore;
   const authState$ = new BehaviorSubject<{ uid: string } | null>(null);
   const authService = {
+    waitForAuthorizationState: async () => undefined,
     user: { uid: null as string | null, data: { isAdmin: false } },
     authState$: authState$ as Observable<{ uid: string } | null>,
   };
@@ -612,6 +616,37 @@ runWithEmulator("EventsService emulator integration", () => {
       expect(projection?.livestream_live).toBe(live);
     }
   }, eventTypesenseIntegrationTimeoutMs);
+
+  it("persists uploaded event gallery images through the real web Firestore adapter", async () => {
+    const uid = authService.user.uid;
+    authService.user.data.isAdmin = true;
+    await adminDb().doc(`users/${uid}`).set({ is_admin: true });
+    const eventId = `gallery-emulator-${uid}` as EventId;
+    const linked: MediaSchema = { type: MediaType.Video, src: "https://youtu.be/uG9SCwcHA7k", isInStorage: false };
+    const hosted: MediaSchema = {
+      type: MediaType.Image,
+      src: "https://firebasestorage.googleapis.com/v0/b/demo-pkspot.appspot.com/o/event_media%2Fgallery.jpg?alt=media",
+      isInStorage: true,
+      origin: "user",
+    };
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Gallery event",
+      kind: "other",
+      start: admin.firestore.Timestamp.fromDate(new Date("2026-06-01T10:00:00Z")),
+      end: admin.firestore.Timestamp.fromDate(new Date("2026-06-01T12:00:00Z")),
+      created_by: { uid },
+      banner_src: "https://example.com/cover.jpg",
+      media: [linked],
+    });
+    await service.updateEvent(eventId, { media: [linked, hosted] });
+    const stored = (await adminDb().doc(`events/${eventId}`).get()).data();
+    expect(stored?.media).toEqual([linked, hosted]);
+    expect(stored?.banner_src).toBe("https://example.com/cover.jpg");
+    const loaded = await service.getEventById(eventId);
+    expect(loaded?.media).toEqual([linked, hosted]);
+    await service.updateEvent(eventId, { media: [linked] });
+    expect((await adminDb().doc(`events/${eventId}`).get()).data()?.media).toEqual([linked]);
+  });
 
   it("updates event edit fields through the real web Firestore adapter", async () => {
     const uid = authService.user.uid;

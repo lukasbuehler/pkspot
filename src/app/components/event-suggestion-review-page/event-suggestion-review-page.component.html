@@ -1,0 +1,68 @@
+<section class="suggestion-review">
+  <header>
+    <div>
+      <a mat-button routerLink="/moderation"><mat-icon>arrow_back</mat-icon><span i18n>Moderation</span></a>
+      <h1 class="mat-headline-medium" i18n="@@event_suggestions.heading">Event suggestions</h1>
+      <p class="mat-body-medium" i18n="@@event_suggestions.description">Review community event proposals before publishing.</p>
+    </div>
+    @if (isAdmin()) {
+      <button mat-stroked-button type="button" (click)="queue.reload()" [disabled]="queue.isLoading() || !!savingId() || loadingMore()">
+        <mat-icon>refresh</mat-icon><span i18n>Refresh</span>
+      </button>
+    }
+  </header>
+  @if (!authResolved()) {
+    <mat-progress-spinner mode="indeterminate" diameter="32" aria-label="Checking admin access" i18n-aria-label="@@event_suggestions.checking_access" />
+  } @else if (!isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else {
+    <mat-button-toggle-group [value]="status()" (valueChange)="setStatus($event)" aria-label="Suggestion status" i18n-aria-label="@@event_suggestions.filter">
+      <mat-button-toggle value="submitted" i18n="@@event_suggestions.pending">Pending</mat-button-toggle>
+      <mat-button-toggle value="approved" i18n="@@event_suggestions.approved">Approved</mat-button-toggle>
+      <mat-button-toggle value="rejected" i18n="@@event_suggestions.rejected">Rejected</mat-button-toggle>
+    </mat-button-toggle-group>
+    @if (queue.isLoading()) {
+      <mat-progress-spinner mode="indeterminate" diameter="32" aria-label="Loading suggestions" i18n-aria-label="@@event_suggestions.loading" />
+    } @else if (queue.error()) {
+      <p role="alert" i18n="@@event_suggestions.load_error">Could not load event suggestions. Please refresh and try again.</p>
+    } @else if (items().length === 0 && !hasMore()) {
+      <p i18n="@@event_suggestions.empty">No event suggestions in this queue.</p>
+    } @else {
+      <mat-accordion multi>
+        @for (item of items(); track item.id) {
+          <mat-expansion-panel [expanded]="$first">
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ item.name }}</mat-panel-title>
+              <mat-panel-description>{{ item.locationLabel }}</mat-panel-description>
+            </mat-expansion-panel-header>
+            @if (item.locationLabel) { <p class="suggestion-location mat-body-medium">{{ item.locationLabel }}</p> }
+            <dl>
+              <dt i18n="@@event_suggestions.dates">Event dates</dt><dd>{{ item.startLabel }} → {{ item.endLabel }} @if (item.time_zone) { <span>({{ item.time_zone }})</span> }</dd>
+              @if (item.organizer_name) { <dt i18n="@@event_suggestions.organizer">Organizer</dt><dd>{{ item.organizer_name }}</dd> }
+              <dt i18n="@@event_suggestions.submitted">Submitted</dt><dd>{{ item.time_created | systemDate: "medium" }}</dd>
+            </dl>
+            @if (item.description) { <p class="suggestion-description">{{ item.description }}</p> }
+            @if (item.source_url) {
+              <a mat-stroked-button [href]="item.source_url" target="_blank" rel="noopener noreferrer"><mat-icon>open_in_new</mat-icon><span i18n="@@event_suggestions.open_source">Open source</span></a>
+            }
+            @if (item.status === 'submitted') {
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@event_suggestions.note">Review note (optional)</mat-label>
+                <textarea matInput rows="2" maxlength="2000" [value]="notes()[item.id] ?? ''" (input)="setNote(item.id, note.value)" #note [disabled]="!!savingId()"></textarea>
+              </mat-form-field>
+              <p class="mat-body-small" i18n="@@event_suggestions.publish_hint">Approval publishes this as a public event.</p>
+              <div class="review-actions">
+                <button mat-flat-button type="button" (click)="review(item, 'approved')" [disabled]="!!savingId() || loadingMore()"><mat-icon>check</mat-icon><span i18n="@@event_suggestions.approve">Approve and publish</span></button>
+                <button mat-stroked-button type="button" (click)="review(item, 'rejected')" [disabled]="!!savingId() || loadingMore()"><mat-icon>close</mat-icon><span i18n="@@event_suggestions.reject">Reject</span></button>
+              </div>
+            } @else if (item.review; as review) {
+              @if (review.note) { <p class="suggestion-description">{{ review.note }}</p> }
+              @if (review.event_id) { <a mat-flat-button [routerLink]="['/events', review.event_id]" i18n="@@event_suggestions.view_event">View published event</a> }
+            }
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+      @if (hasMore()) { <button mat-stroked-button type="button" (click)="loadMore()" [disabled]="loadingMore() || !!savingId()" i18n="@@event_suggestions.more">Show more</button> }
+    }
+  }
+</section>

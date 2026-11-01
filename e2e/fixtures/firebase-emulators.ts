@@ -230,6 +230,8 @@ export async function signInThroughAccount(
 
   await page.locator('input[formControlName="email"]').fill(user.email);
   await page.locator('input[formControlName="password"]').fill(password);
+  // Text survives hydration, but the submit click is only handled afterwards.
+  await expect(page.locator("app-root[ngh]")).toHaveCount(0);
 
   await Promise.all([
     page.waitForURL(new RegExp(`${localizedPath(returnUrl)}$`, "u"), {

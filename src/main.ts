@@ -1,5 +1,5 @@
 /// <reference types="@angular/localize" />
 
-import { bootstrap } from "./main.bootstrap";
+import { startBrowserApplication } from "./browser-startup";
 
-bootstrap();
+startBrowserApplication();

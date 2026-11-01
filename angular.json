@@ -247,6 +247,14 @@
                 }
               ]
             },
+            "cloudflare-production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.default.ts",
+                  "with": "src/environments/environment.production.ts"
+                }
+              ]
+            },
             "cloudflare": {
               "fileReplacements": [
                 {
@@ -258,7 +266,7 @@
                 "scripts": true,
                 "styles": {
                   "minify": true,
-                  "inlineCritical": false
+                  "inlineCritical": true
                 },
                 "fonts": {
                   "inline": true

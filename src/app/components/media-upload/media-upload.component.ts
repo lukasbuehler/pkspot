@@ -98,8 +98,9 @@ export class MediaUpload implements OnInit, OnDestroy {
   readonly isUploading = output<boolean>();
 
   readonly mediaList = signal<UploadMedia[]>([]);
+  private readonly preparingSubmission = signal(false);
   readonly uploading = computed(() =>
-    this.mediaList().some((media) => media.state === "uploading"),
+    this.preparingSubmission() || this.mediaList().some((media) => media.state === "uploading"),
   );
   readonly hasPendingMedia = computed(() =>
     this.mediaList().some(
@@ -272,11 +273,47 @@ export class MediaUpload implements OnInit, OnDestroy {
 
     const generation = ++this.batchGeneration;
     this.isUploading.emit(true);
+    const spotId = this.moderationTargetId();
+    const isSpotSubmission = this.uploadToStorage() &&
+      this.storageFolder() === StorageBucket.SpotPictures &&
+      this.moderationTargetKind() === "spot" && !!spotId;
+    const uploadIds = candidates.map(() => generateUUID());
+    if (isSpotSubmission) {
+      this.preparingSubmission.set(true);
+      try {
+        await this.storageService.beginSpotMediaSubmission(spotId!, uploadIds);
+      } catch (error) {
+        console.error("Could not prepare media submission", error);
+        this.snackbar.open($localize`Error uploading media. Try again.`, $localize`Dismiss`, { duration: 5000 });
+        this.isUploading.emit(false);
+        return;
+      } finally {
+        this.preparingSubmission.set(false);
+      }
+    }
+    if (generation !== this.batchGeneration) return;
     const events = (
       await Promise.all(
-        candidates.map((media) => this.uploadMedia(media, generation)),
+        candidates.map((media, index) => this.uploadMedia(
+          media, generation, isSpotSubmission ? uploadIds[index] : undefined,
+        )),
       )
     ).filter((event): event is MediaUploadEvent => event !== null);
+
+    if (generation !== this.batchGeneration) return;
+    if (isSpotSubmission) {
+      const successful = new Set(events.map((event) => event.uploadId));
+      const failed = uploadIds.filter((id) => !successful.has(id));
+      if (failed.length) {
+        try {
+          await this.storageService.failSpotMediaSubmissionUploads(failed);
+        } catch (error) {
+          // The server expires abandoned transfers so approved siblings can
+          // still publish if this client loses its connection.
+          console.warn("Could not report failed media transfers", error);
+        }
+      }
+    }
 
     if (generation !== this.batchGeneration) return;
     if (events.length > 0) this.mediaBatchUploaded.emit(events);
@@ -338,6 +375,7 @@ export class MediaUpload implements OnInit, OnDestroy {
   private async uploadMedia(
     media: UploadMedia,
     generation: number,
+    reservedUploadId?: string,
   ): Promise<MediaUploadEvent | null> {
     this.updateMedia(media.id, {
       state: "uploading",
@@ -375,6 +413,7 @@ export class MediaUpload implements OnInit, OnDestroy {
           "public, max-age=31536000",
           this.moderationTargetKind() ?? undefined,
           this.moderationTargetId() ?? undefined,
+          reservedUploadId,
         );
       if (generation !== this.batchGeneration) return null;
 

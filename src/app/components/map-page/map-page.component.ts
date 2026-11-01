@@ -3,6 +3,11 @@ import { mapCentre, relevantMapCommunities, type CountryEvidence } from "./visib
 import {NativeMapShareService} from "../../services/native-map-share.service";
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
+import {
+  MovableViewHostDirective,
+  MovableViewOutletDirective,
+} from "./movable-view.directive";
+import { NativeTabBarService } from "../../services/native-tab-bar.service";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -310,6 +315,8 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     MapCommunityLandingPanelComponent,
     MapCheckInBannerComponent,
     MapFloatingControlsComponent,
+    MovableViewHostDirective,
+    MovableViewOutletDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -323,6 +330,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
   @ViewChild("drawerContainer") drawerContainer?: MatDrawerContainer;
+  private readonly _hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private _panelLayoutSwitchTimer?: ReturnType<typeof setTimeout>;
   @ViewChild("infoDrawer", { read: ElementRef })
   private _infoDrawerElement?: ElementRef<HTMLElement>;
   @ViewChild(BottomSheetComponent) bottomSheet?: BottomSheetComponent;
@@ -478,7 +487,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.spotMapData.updatePreviewFromSpot(spot);
   }
 
-  readonly alainMode = this.responsiveService.alainMode;
+  private readonly _nativeTabBar = inject(NativeTabBarService);
+  /** Reserves room for the web Alain menu, which the native iOS bar replaces. */
+  readonly alainMode = computed(
+    () =>
+      this.responsiveService.alainMode() && !this._nativeTabBar.available(),
+  );
 
   isServer: boolean;
 
@@ -1020,7 +1034,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       mode: this.mapObjectMode(),
       now,
       communityKeys: this._openCommunityKeys(),
+      communityArea: this._openCommunityArea(),
     });
+  });
+
+  /** The open community's circle; countries match by key only. */
+  private readonly _openCommunityArea = computed(() => {
+    const community = this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
+    const center = community?.boundsCenter;
+    const radiusM = community?.boundsRadiusM;
+    if (!community || community.scope === "country" || !center || center.length < 2) return null;
+    if (typeof radiusM !== "number" || !Number.isFinite(radiusM) || radiusM <= 0) return null;
+    return { center: { lat: center[0], lng: center[1] }, radiusM };
   });
 
   private readonly _openCommunityKeys = computed<string[] | null>(() => {
@@ -2372,6 +2397,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.isServer || this.isEditing() || !selectedSpotId) {
         return;
       }
+      // The initial public Spot is already in the SSR snapshot. Start live
+      // Firebase work only after the visitor accepts essential services.
+      if (!this._consentService.hasConsent()) return;
 
       const selectedSpotSub = this._spotsService
         .getSpotById$(selectedSpotId, this.locale)
@@ -2529,12 +2557,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Keep a lightweight pending-edit count for the selected spot so the
-    // main detail view can show that voting/review is pending.
+    // Voting badges are live browser UI. SSR and visitors without consent
+    // need only the public Spot, not its entire edit collection.
     effect((onCleanup) => {
       const spot = this.selectedSpot();
 
-      if (!(spot instanceof Spot)) {
+      if (this.isServer || !this._consentService.hasConsent() || !(spot instanceof Spot)) {
         this.pendingSpotEditsCount.set(0);
         return;
       }
@@ -2566,6 +2594,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isInitialized && usesMapDrawer) {
         this.sidenavOpen.set(true);
       }
+    });
+
+    // A layout switch should place the map at once, like a fresh layout.
+    // Only the sidenav toggle animates the drawer content margin.
+    effect(() => {
+      this.mapPanelLayout();
+      untracked(() => this._suppressDrawerContentTransition());
     });
 
     effect(() => {
@@ -4315,6 +4350,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._scheduleDrawerContentMarginRefresh();
   }
 
+  private _suppressDrawerContentTransition(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const host = this._hostElement.nativeElement;
+    host.classList.add("map-panel-layout-switching");
+    clearTimeout(this._panelLayoutSwitchTimer);
+    // Outlasts the margin refreshes scheduled for the same layout change.
+    this._panelLayoutSwitchTimer = setTimeout(() => {
+      host.classList.remove("map-panel-layout-switching");
+    }, 500);
+  }
+
   private _scheduleDrawerContentMarginRefresh(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -4407,6 +4456,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedPoi.set(null);
       this.pendingSpotPreview.set(null);
       this.selectedSpot.set(spot);
+      // A selected Spot should stay visible on the map: leave an Events or
+      // Communities filter, but keep a Spots filter.
+      const mode = this.mapObjectMode();
+      if (mode === "events" || mode === "communities") {
+        this.mapObjectModeChanged("all");
+      }
       this.resetPanelContentToTop();
 
       this._openInfoPanel();
@@ -5498,6 +5553,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     console.debug("destroying map page");
+    clearTimeout(this._panelLayoutSwitchTimer);
     if (this.checkInEnabled) {
       this.checkInService.showGlobalChip.set(true);
     }

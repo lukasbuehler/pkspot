@@ -6,6 +6,12 @@
 export const WHATS_NEW_RELEASE = "1.2";
 export const WHATS_NEW_STORAGE_KEY = "pkspot_whats_new_seen";
 
+/** Both welcome entry points record the same agreement and release state. */
+export function recordWelcomeAcceptance(storage: Pick<Storage, "setItem">, version: string): void {
+  storage.setItem("acceptedVersion", version);
+  storage.setItem(WHATS_NEW_STORAGE_KEY, WHATS_NEW_RELEASE);
+}
+
 export type WelcomeScreen =
   /** First visit: full welcome with the agreement. */
   | "welcome"

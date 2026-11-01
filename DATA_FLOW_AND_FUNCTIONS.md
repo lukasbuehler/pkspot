@@ -664,8 +664,12 @@ and target metadata. `processMediaIntakeUpload`:
    claims, hashes it, and invokes the media safety provider;
 4. on allow, writes one approved Storage object, applies one target side effect,
    updates review and status (`2 W`), and deletes the intake object;
-5. for a Spot, the side effect reads the uploader (`1 R`) and creates one
-   APPEND Spot edit (`1 W`), which then enters the edit review/application flow;
+5. for a Spot, it first reads the upload status (`1 R`). Older clients create
+   an individual APPEND edit; reserved submissions defer attachment until all
+   files have an outcome. The status trigger transaction reads the submission,
+   its statuses and approved reviews, then creates one deterministic APPEND edit
+   containing approved files. The edit application merges media transactionally
+   so concurrent submissions cannot overwrite each other;
 6. for a profile, it updates the user (`1 W`), which refreshes the public profile;
 7. on a flagged result, it writes review/status plus one scanner report and,
    for reportable matches, one restricted safety incident. Those writes invoke
@@ -1014,8 +1018,10 @@ Source modules: [`spotCreationFunctions.ts`](functions/src/spotCreationFunctions
 | `updateCommunityEvent` | verified-adult organizer App-Check callable | Transactionally verifies user ownership and rewrites the constrained Community event fields without changing tier, owner, slug, or prior broadcast choice. |
 | `cancelCommunityEvent` | verified-adult organizer App-Check callable | Transactionally verifies ownership and marks the Community event cancelled. |
 | `createFormalEvent` | verified-adult organization-leader/admin App-Check callable | Reads the caller/profile and organization authority where supplied; atomically writes an organization Event with immutable owner/organizer and slug. |
-| `submitEventSuggestion` | verified-adult App-Check callable | Validates input and writes one private `event_suggestions/{id}` review record. |
-| `reviewEventSuggestion` | verified-adult admin App-Check callable | Transactionally records rejection or creates one canonical organization Event and slug on approval. |
+| `submitEventSuggestion` | authenticated App-Check callable | Validates input and writes one private `event_suggestions/{id}` review record. |
+| `listEventSuggestions` | admin App-Check callable | Pages the private status-filtered suggestion queue; returns dates as ISO strings. |
+| `reviewEventSuggestion` | admin App-Check callable | Transactionally records rejection or creates one public Event and slug on approval, retaining country and source links. |
+| `onEventSuggestionEmailCreate` | create `event_suggestions/{suggestionId}` | Sends staff email to support through Resend; stores retry/idempotency delivery state in `event_suggestion_email_delivery`. |
 | `demoteCommunityEventsWhenProfileBecomesPrivate` | update `users/{uid}` | When unlisted authoring is enabled, converts affected public Community events to unlisted and removes discovery/broadcast fields. |
 
 Source modules: [`eventFunctions.ts`](functions/src/eventFunctions.ts),
@@ -1073,6 +1079,10 @@ Source modules: [`importFunctions.ts`](functions/src/importFunctions.ts),
 | Export | Trigger/interface | Primary interaction and cost shape |
 | --- | --- | --- |
 | `processMediaIntakeUpload` | finalize `media_intake/...` | Moderation/release pipeline in section 9. |
+| `beginSpotMediaSubmission` | authenticated, App Check callable | Reserves an immutable Spot submission and per-file received statuses before upload; ownership and target are checked by intake. |
+| `failSpotMediaSubmissionUploads` | authenticated, App Check callable | Marks only the caller's reserved transfers that have not started scanning as failed. |
+| `onSpotMediaSubmissionUploadStatus` | write `media_upload_status/{uploadId}` | Waits for all submitted files to finish, verifies scanner approvals, then creates one deterministic Spot edit containing approved photos. Replays are idempotent; later manual releases create a separate edit. |
+| `expireSpotMediaSubmissions` | every 30 minutes | Expires transfers inactive for one hour so disconnected clients cannot strand approved siblings. Delayed approvals are attached in a subsequent edit. |
 | `markMediaUploadSafe` | admin callable | Releases eligible quarantine/audit media and repairs target/report/action state. |
 | `markMediaUploadFalsePositive` | admin callable | Closes an ordinary scanner false positive without publishing or changing its target. |
 | `runMediaIntakeBackfill` | create maintenance doc | Lists intake objects, processes up to requested limit, writes summary, deletes trigger. |
@@ -1081,7 +1091,7 @@ Source modules: [`importFunctions.ts`](functions/src/importFunctions.ts),
 | `processImageUpload` | eligible Storage object finalize | Storage-only download, 3 derivative writes, original move; no Firestore. |
 | `backfillStorageImageSizes` | create maintenance doc | Lists source/archive prefixes, creates missing derivatives, writes summary, deletes trigger. |
 | `processVideoUpload` | video Storage finalize | Storage-only download, compressed video+thumbnail uploads, original delete. |
-| `cleanupAllOrphanedMedia` | admin callable | Scans referenced Firestore media and Storage objects; deletes unreferenced objects according to handler policy. |
+| `cleanupAllOrphanedMedia` | admin callable | Disabled with a failed-precondition response. Exact filename checks cannot safely distinguish derivatives, recovery candidates and deliberate removals; use the read-only reference audit. |
 
 Source modules: [`mediaModerationFunctions.ts`](functions/src/mediaModerationFunctions.ts),
 [`imageProcessingFunctions.ts`](functions/src/imageProcessingFunctions.ts),

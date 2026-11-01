@@ -3,22 +3,21 @@ import {
   Component,
   Inject,
   inject,
+  signal,
 } from "@angular/core";
-import { MatButtonModule } from "@angular/material/button";
 import {
   MatDialogRef,
   MAT_DIALOG_DATA,
-  MatDialogModule,
 } from "@angular/material/dialog";
-import { MatIcon } from "@angular/material/icon";
-import { RouterLink } from "@angular/router";
+import { Router } from "@angular/router";
 import { AnalyticsService } from "../../services/analytics.service";
 import { ConsentService } from "../../services/consent.service";
-import { WHATS_NEW_RELEASE, WHATS_NEW_STORAGE_KEY } from "../../services/whats-new";
+import { recordWelcomeAcceptance } from "../../services/whats-new";
+import { WelcomeContentComponent, type WelcomeLinkRequest } from "../welcome-content/welcome-content.component";
 
 @Component({
-  selector: "app-welcome-dialog",
-  imports: [MatDialogModule, MatButtonModule, MatIcon, RouterLink],
+  selector: "app-welcome-dialog-host",
+  imports: [WelcomeContentComponent],
   templateUrl: "./welcome-dialog.component.html",
   styleUrl: "./welcome-dialog.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +25,8 @@ import { WHATS_NEW_RELEASE, WHATS_NEW_STORAGE_KEY } from "../../services/whats-n
 export class WelcomeDialogComponent {
   private _analyticsService = inject(AnalyticsService);
   private _consentService = inject(ConsentService);
+  private readonly router = inject(Router);
+  readonly continuing = signal(false);
 
   constructor(
     public dialogRef: MatDialogRef<WelcomeDialogComponent>,
@@ -37,10 +38,14 @@ export class WelcomeDialogComponent {
   }
 
   agreeAndContinue(): void {
-    // store the accepted version of the terms of service in browser local storage
-    localStorage.setItem("acceptedVersion", this.data.version);
-    // A new user has just seen everything; skip this release's "what's new".
-    localStorage.setItem(WHATS_NEW_STORAGE_KEY, WHATS_NEW_RELEASE);
+    if (this.continuing()) return;
+    this.continuing.set(true);
+    try {
+      recordWelcomeAcceptance(localStorage, this.data.version);
+    } catch (error) {
+      this.continuing.set(false);
+      throw error;
+    }
 
     // Grant consent through the consent service
     this._consentService.grantConsent();
@@ -52,5 +57,11 @@ export class WelcomeDialogComponent {
       version: this.data.version,
       method: "welcome_dialog",
     });
+  }
+
+  navigate({ event, path }: WelcomeLinkRequest): void {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    void this.router.navigateByUrl(path);
   }
 }

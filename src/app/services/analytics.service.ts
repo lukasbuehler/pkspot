@@ -108,6 +108,9 @@ export class AnalyticsService {
    * Initialize PostHog analytics
    */
   async init(): Promise<void> {
+    // Treat GPC as an analytics opt-out before either SDK can make requests.
+    if (this.hasGlobalPrivacyControl()) return;
+
     if (this._initialized) {
       console.log("[AnalyticsDebug] Already initialized");
       return;
@@ -142,6 +145,8 @@ export class AnalyticsService {
       this._initialized = true;
       await this.registerSuperProperties();
       this.flushPendingUserIdentity();
+      // trackScreen requires _initialized, so the first view must follow setup.
+      if (this.isNative()) this.trackScreen(this.router.url);
     } catch (e) {
       console.error("[Analytics] Initialization failed", e);
     }
@@ -246,8 +251,6 @@ export class AnalyticsService {
       .subscribe((event: NavigationEnd) => {
         this.trackScreen(event.urlAfterRedirects);
       });
-
-    this.trackScreen(this.router.url);
   }
 
   /**
@@ -260,12 +263,6 @@ export class AnalyticsService {
 
     const { default: posthog } = await import("posthog-js");
     this._posthog = posthog;
-
-    // Check for Do Not Track
-    const dnt =
-      navigator.doNotTrack === "true" ||
-      navigator.doNotTrack === "1" ||
-      navigator.doNotTrack === "yes";
 
     // 1. Attempt to load persisted distinct_id
     let bootstrapConfig: {
@@ -290,8 +287,8 @@ export class AnalyticsService {
       api_host: host,
       person_profiles: "identified_only",
       defaults: "2025-11-30",
-      respect_dnt: true, // PostHog handles this internally usually, but we can be explicit with opt_out below if needed
-      opt_out_capturing_by_default: dnt, // Explicitly respect DNT for initial capture state
+      // GPC is enforced by this service instead of the retired DNT signal.
+      respect_dnt: false,
       autocapture: false,
       capture_pageview: false,
       capture_pageleave: false,
@@ -344,9 +341,18 @@ export class AnalyticsService {
    * Check if PostHog is available (only in browser/native, not SSR)
    */
   isAvailable(): boolean {
-    if (!this._initialized) return false;
+    if (!this._initialized || this.hasGlobalPrivacyControl()) return false;
     if (this.isNative()) return true;
     return isPlatformBrowser(this._platformId) && this._posthog !== null;
+  }
+
+  private hasGlobalPrivacyControl(): boolean {
+    return (
+      isPlatformBrowser(this._platformId) &&
+      typeof navigator !== "undefined" &&
+      (navigator as Navigator & { readonly globalPrivacyControl?: boolean })
+        .globalPrivacyControl === true
+    );
   }
 
   /**
@@ -1353,7 +1359,7 @@ export class AnalyticsService {
   private processEventBeforeSend(
     event: CaptureResult | null,
   ): CaptureResult | null {
-    if (!event) return event;
+    if (!event || this.hasGlobalPrivacyControl()) return null;
 
     // Drop events from obvious bots/crawlers
     try {

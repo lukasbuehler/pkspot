@@ -10,6 +10,8 @@ import bootstrap from "./src/main.server";
 import { LOCALE_ID, REQUEST, RESPONSE_INIT } from "@angular/core";
 import { getLegacySsrRedirectTarget } from "./src/server-redirects";
 
+import { prepareSsrDocument } from "./src/ssr-document";
+
 function getAllowedHosts(): string[] {
   const defaultHosts = ["localhost", "127.0.0.1", "[::1]"];
   const configuredHosts = (process.env["NG_ALLOWED_HOSTS"] ?? "")
@@ -98,7 +100,7 @@ export function app(): express.Express {
         new Headers(responseInit.headers).forEach((value, name) => {
           res.setHeader(name, value);
         });
-        res.send(html);
+        res.send(prepareSsrDocument(html));
       })
       .catch((err) => next(err));
   });

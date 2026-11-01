@@ -110,3 +110,127 @@ test('photo-free cards use distinct entity-specific background artwork', async (
   }
   for(let i=0;i<crops.length;i++) for(let j=i+1;j<crops.length;j++) assert.notDeepEqual(crops[i],crops[j]);
 });
+
+test('community layouts cover the whole image rectangle without gaps or overlap for 1–16 photos', () => {
+  const { communityPhotoTiles } = require('../../functions/lib/functions/src/shareCards/collage.js');
+  assert.deepEqual(communityPhotoTiles(0), []);
+  for (let count = 1; count <= 16; count++) {
+    const tiles = communityPhotoTiles(count);
+    assert.equal(tiles.length, count);
+    assert.equal(tiles.reduce((area, tile) => area + tile.width * tile.height, 0), 900 * 630);
+    for (const [index, tile] of tiles.entries()) {
+      assert.ok(tile.left >= 300 && tile.left + tile.width <= 1200);
+      assert.ok(tile.top >= 0 && tile.top + tile.height <= 630);
+      assert.ok(tile.width >= 225 && tile.height >= 157);
+      for (const other of tiles.slice(index + 1)) {
+        assert.ok(tile.left + tile.width <= other.left || other.left + other.width <= tile.left ||
+          tile.top + tile.height <= other.top || other.top + other.height <= tile.top);
+      }
+    }
+  }
+  assert.equal(communityPhotoTiles(20).length, 16);
+  assert.deepEqual(communityPhotoTiles(3).map(tile => tile.width * tile.height), [283500, 141750, 141750]);
+});
+
+test('community collage repacks broken photos before allocating tiles', async () => {
+  const photo = await sharp({create:{width:500,height:500,channels:4,background:'#21d322'}}).png().toBuffer();
+  const community = {...input,kind:'community',title:'Sydney'};
+  assert.deepEqual(await renderShareCard({...community,photos:[photo]},assets),
+    await renderShareCard({...community,photos:[Buffer.from('broken'),photo,Buffer.from('broken')]},assets));
+  const photos = Array(16).fill(photo);
+  const grid = await renderShareCard({...community,photos},assets);
+  assert.equal((await sharp(grid).metadata()).width, 1200);
+  const changed = [...photos]; changed[15] = Buffer.from('different');
+  assert.notEqual(shareCardFingerprint({...community,photos}), shareCardFingerprint({...community,photos:changed}));
+});
+
+test('title sizing keeps short titles large and Genesis words intact', async () => {
+  const { renderTitle } = require('../../functions/lib/functions/src/shareCards/title.js');
+  const short = await renderTitle('Sydney',630,246,assets.fontFile);
+  assert.equal(short.fontSize,76); assert.deepEqual(short.lines,['Sydney']);
+  const genesis = await renderTitle('FIMBULWINTERJAM GENESIS',630,246,assets.fontFile);
+  assert.ok(genesis.fontSize >= 48 && genesis.fontSize < 76);
+  assert.deepEqual(genesis.lines,['FIMBULWINTERJAM','GENESIS']);
+  assert.equal(genesis.truncated,false); assert.ok(genesis.info.width <= 630 && genesis.info.height <= 246);
+  const forced = await renderTitle('Find your spot.\nMake your move.',930,246,assets.fontFile);
+  assert.deepEqual(forced.lines,['Find your spot.','Make your move.']);
+});
+
+test('extreme titles stop at 48 and ellipsize inside the reserved rectangle', async () => {
+  const { renderTitle } = require('../../functions/lib/functions/src/shareCards/title.js');
+  for (const title of ['W'.repeat(240), 'Long event title with many words '.repeat(7)]) {
+    const result = await renderTitle(title,630,246,assets.fontFile);
+    assert.equal(result.fontSize,48); assert.equal(result.truncated,true);
+    assert.ok(result.lines.at(-1).endsWith('…'));
+    assert.ok(result.info.width <= 630 && result.info.height <= 246);
+  }
+});
+
+test('locality community cards show the country while retaining their Spot count', () => {
+  const data={published:true,displayName:'Zürich',scope:'locality',counts:{totalSpots:141},
+    geography:{countryCode:'CH',countryName:'Switzerland'}};
+  const english=projectCard('community',data);
+  assert.equal(english.input.locationLabel,'Switzerland');
+  assert.equal(english.input.subtitle,'141 Spots');
+  assert.equal(projectCard('community',data,'de-CH').input.locationLabel,'Schweiz');
+  assert.equal(projectCard('community',{...data,geography:{countryName:'Recorded country'}}).input.locationLabel,'Recorded country');
+  assert.equal(projectCard('community',{...data,scope:'country',displayName:'Switzerland'}).input.locationLabel,undefined);
+  assert.equal(projectCard('community',{...data,geography:{}}).input.locationLabel,undefined);
+});
+
+test('event cards include localized locality alongside the date and venue', () => {
+  const data={name:'An event',published:true,start:{seconds:1797033600},venue_string:'Parkourhall1',
+    locality_string:'Liège, Belgium',country_code:'BE',place_key:'town-key',
+    place_names:{key:'town-key',locality:{en:'Liège',de:'Lüttich',nl:'Luik'}}};
+  const english=projectCard('event',data);
+  assert.equal(english.input.locationLabel,'Liège');
+  assert.ok(english.input.subtitle.includes('Parkourhall1'));
+  assert.equal(projectCard('event',data,'de-CH').input.locationLabel,'Lüttich');
+  assert.equal(projectCard('event',data,'nl').input.locationLabel,'Luik');
+  assert.equal(projectCard('event',{...data,place_key:'moved-town'}).input.locationLabel,'Liège');
+  assert.equal(projectCard('event',{...data,place_names:undefined,venue_string:''}).input.locationLabel,'Liège');
+  assert.equal(projectCard('event',{name:'Unknown place',published:true}).input.locationLabel,undefined);
+  assert.notEqual(sourceFingerprint(english),sourceFingerprint(projectCard('event',{...data,locality_string:'Elsewhere',place_names:undefined})));
+});
+
+test('type labels have no accent bar and place context leaves the supporting row intact', async () => {
+  for(const kind of ['spot','event','community']) {
+    const png=await renderShareCard({...input,kind,title:'Zürich',locationLabel:'Switzerland',subtitle:'141 Spots'},assets);
+    const {data,info}=await sharp(png).raw().toBuffer({resolveWithObject:true});
+    const offset=(62*info.width+58)*info.channels;
+    assert.deepEqual([...data.subarray(offset,offset+3)],[24,25,31]);
+    // The location and count occupy independent bands and produce real glyphs.
+    for(const [top,height] of [[230,80],[429,72]]) {
+      const area=await sharp(png).extract({left:56,top,width:420,height}).stats();
+      assert.ok(area.channels[0].max>150);
+    }
+  }
+  const long={...input,kind:'event',title:'W'.repeat(240),locationLabel:'Järfälla',subtitle:'11 December 2026 · Parkourhall1'};
+  const png=await renderShareCard(long,assets);
+  assert.equal((await sharp(png).metadata()).height,630);
+  await assert.rejects(renderShareCard({...input,locationLabel:'x'.repeat(241)},assets));
+});
+
+test('event cards format full calendar ranges in the event time zone and locale', () => {
+  const base={name:'Camp',published:true,time_zone:'Europe/Zurich'};
+  const stamp=value=>({seconds:Date.parse(value)/1000});
+  const subtitle=(data,locale='en')=>projectCard('event',{...base,...data},locale).input.subtitle;
+  const range=(start,end,locale='en',timeZone='UTC')=>new Intl.DateTimeFormat(locale,
+    {day:'numeric',month:'short',year:'numeric',timeZone}).formatRange(new Date(start),new Date(end));
+  for(const [start,end] of [['2026-12-11','2026-12-13'],['2026-11-30','2026-12-02'],['2026-12-31','2027-01-02']]) {
+    for(const locale of ['en','de-CH']) {
+      assert.equal(subtitle({timing:{start_date:start,end_date:end,mode:'date_only'}},locale),range(start,end,locale));
+    }
+  }
+  const start=stamp('2026-12-11T23:30:00Z'); // Dec 12 at the venue, Dec 11 in UTC.
+  const single=new Intl.DateTimeFormat('en',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Zurich'}).format(new Date(start.seconds*1000));
+  for(const end of [undefined,stamp('2026-12-12T20:00:00Z'),stamp('2026-12-10T12:00:00Z'),{seconds:NaN}]) {
+    assert.equal(subtitle({start,end}),single);
+  }
+  assert.equal(subtitle({start,end:stamp('2026-12-13T20:00:00Z')}),range('2026-12-11T23:30:00Z','2026-12-13T20:00:00Z','en','Europe/Zurich'));
+  assert.equal(subtitle({start_seconds:start.seconds,end_seconds:Date.parse('2026-12-13T20:00:00Z')/1000}),
+    subtitle({start,end:stamp('2026-12-13T20:00:00Z')}));
+  assert.equal(subtitle({start,end:stamp('2026-12-15T00:00:00Z'),timing:{start_date:'2026-12-11',mode:'open_end'}}),new Intl.DateTimeFormat('en',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date('2026-12-11T00:00:00Z')));
+  assert.equal(subtitle({end:stamp('2026-12-15T00:00:00Z')}),'');
+  assert.equal(subtitle({start:{seconds:NaN}}),'');
+});

@@ -1,0 +1,16 @@
+.preparing {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+
+  p { margin: 0; }
+}
+
+.card {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+}

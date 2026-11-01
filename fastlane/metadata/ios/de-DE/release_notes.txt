@@ -1,11 +1,8 @@
-PK Spot 1.2: Trainingsupdate
+PK Spot 1.2.1: Feinschliff und Fehlerbehebungen
 
-Dein Training hat jetzt seinen eigenen Platz in PK Spot.
-
-• Checke an Spots ein und sieh private Statistiken wie deine meistbesuchten Spots und deine Trainingszeit.
-• Mach optional bei Local Legend mit und erhalte einen privaten Monatsrang an den Spots, an denen du trainierst.
-• Führe ein privates Trainingstagebuch mit Details zu deinen Einheiten und Aktivitätsdiagrammen.
-• Trage Erholungspausen ein, wenn du eine Auszeit vom Training brauchst.
-• Flüssigere Navigation, Kartenbedienung und Bottom Sheet.
-• Verbesserungen bei Events, Community-Abstimmungen, Spot-Bearbeitung, Folgen und Meldungen.
-• Fehlerbehebungen und Datenschutzverbesserungen in der ganzen App.
+• Die Suche zeigt die passendsten Namen jetzt zuerst.
+• Die Karte bleibt erhalten, wenn sich das Layout ändert.
+• Native Tab-Leiste auf dem iPhone.
+• Bessere Share Cards, und du kannst Communities jetzt teilen und ihnen folgen.
+• Schnelleres Laden.
+• Korrekturen bei Übersetzungen, Datenschutz und Fehlerbehebungen.

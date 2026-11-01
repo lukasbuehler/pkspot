@@ -1,7 +1,7 @@
 @if(!isEmbedded()) {
 <!-- is not embedded  -->
 <app-nav-rail-container>
-  @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'rail') {
+  @defer (when responsive.isInitialized()) { @if(usesNavigationRail()) {
   <app-nav-rail #desktopNavigationRail class="mat-elevation-z3">
     <a
       routerLink="/"
@@ -143,8 +143,8 @@
       <router-outlet></router-outlet>
     </div>
 
-    @if(alainMode()) {
-    <!-- Alain Mode: Menu button (shows in any view mode when alainMode is true) -->
+    @if(showsAlainMenu()) {
+    <!-- Alain Mode: Menu button (short layouts, unless a native tab bar navigates) -->
     <app-fab-menu
       id="alainMenuButton"
       [class.native-platform]="isNativePlatform"
@@ -158,7 +158,7 @@
     />
     } @else {
     <!-- Bottom navigation is a floating compact-phone affordance. -->
-    @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'bottom') {
+    @defer (when responsive.isInitialized()) { @if(usesFloatingBottomNavigation()) {
     <mat-toolbar
       class="floating-bottom-navigation mat-elevation-z2"
       [class.native-platform]="isNativePlatform"

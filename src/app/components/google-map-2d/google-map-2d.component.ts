@@ -116,6 +116,8 @@ interface SpotPreviewAreaOverlay {
 const SPOT_AREA_MIN_ZOOM = 14;
 const DEFAULT_SPOT_AREA_RADIUS_M = 10;
 const EVENT_MARKER_COLLISION_SIZE_PX = 48;
+/** Above the highest Spot marker priority (999), see `getSpotPriority`. */
+const EVENT_OVER_SPOT_COLLISION_PRIORITY = 1000;
 const COMMUNITY_FULL_MARKER_COLLISION_SIZE_PX = 44;
 const COMMUNITY_DOT_COLLISION_SIZE_PX = 24;
 const POINT_MARKER_DOT_COLLISION_SIZE_PX = 28;
@@ -1146,7 +1148,8 @@ export class GoogleMap2dComponent
           id: marker.id,
           kind: "event",
           location: marker.location,
-          priority: getMapMarkerPriority(marker),
+          // Events outrank every Spot pill (Spot priorities stop at 999).
+          priority: EVENT_OVER_SPOT_COLLISION_PRIORITY + getMapMarkerPriority(marker),
           widthPx: EVENT_MARKER_COLLISION_SIZE_PX,
           heightPx: EVENT_MARKER_COLLISION_SIZE_PX,
           anchor: "center",
