@@ -716,6 +716,8 @@ test.describe("Route visual regression @visual", () => {
     await expect.poll(() => requests.length).toBeGreaterThan(0);
     expect(await page.evaluate(() => localStorage.getItem("pkspot.youtubeEmbeds.v1"))).toBeNull();
     await page.goto("/de/settings/general");
+    // Clicks are only handled once the server-rendered page has hydrated.
+    await expect(page.locator("app-root[ngh]")).toHaveCount(0);
     await page.getByRole("button", {name: "Berechtigungen für externe Medien zurücksetzen"}).click();
     expect(await page.evaluate(() => localStorage.getItem("pkspot.youtubeEmbeds.v1"))).toBe("false");
     const count = requests.length;

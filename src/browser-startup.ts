@@ -2,8 +2,10 @@ import { Capacitor } from "@capacitor/core";
 import { isBot } from "./scripts/BrowserAgents";
 import { shouldShowEarlyWelcome } from "./app/startup/welcome-policy";
 import { loadApplication } from "./app/startup/application-loader";
+import { capturePreHydrationInput } from "./app/startup/pre-hydration-input";
 
 export function startBrowserApplication(): void {
+  capturePreHydrationInput();
   let earlyWelcome = false;
   try {
     earlyWelcome = shouldShowEarlyWelcome({
