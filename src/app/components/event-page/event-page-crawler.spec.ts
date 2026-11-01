@@ -1,4 +1,4 @@
-import { signal } from "@angular/core";
+import { signal, WritableSignal } from "@angular/core";
 import { convertToParamMap, ParamMap } from "@angular/router";
 import { describe, it, expect, vi } from "vitest";
 import { EventInfoPageComponent } from "./event-page.component";
@@ -15,11 +15,20 @@ describe("event crawler failures", () => {
       _structuredData: { removeStructuredData: vi.fn() },
       featureTelemetry: { failure: vi.fn() },
       event: signal(null), isLoadingEvent: loading, eventLoadFailed: failed,
-    }) as { _loadEventFromRoute(params: ParamMap): Promise<void> };
+      isEditingEvent: signal(true), canEditEvent: signal(true), canManageEvent: signal(true),
+    }) as {
+      _loadEventFromRoute(params: ParamMap): Promise<void>;
+      isEditingEvent: WritableSignal<boolean>;
+      canEditEvent: WritableSignal<boolean>;
+      canManageEvent: WritableSignal<boolean>;
+    };
     await component._loadEventFromRoute(convertToParamMap({ slug: "missing" }));
     expect(response.status).toBe(status);
     expect(meta.setRobotsContent).toHaveBeenCalledWith("noindex,follow");
     expect(loading()).toBe(false); expect(failed()).toBe(true);
+    expect(component.isEditingEvent()).toBe(false);
+    expect(component.canEditEvent()).toBe(false);
+    expect(component.canManageEvent()).toBe(false);
   });
 });
 
@@ -66,5 +75,21 @@ describe("restricted event metadata", () => {
     expect(meta.setEventMetaTags).not.toHaveBeenCalled();
     expect(structured.addStructuredData).not.toHaveBeenCalled();
     expect(structured.removeStructuredData).toHaveBeenCalledWith("event");
+  });
+});
+
+describe("custom organizer structured data", () => {
+  const build = (organizerName: string) => {
+    const component = Object.assign(Object.create(EventInfoPageComponent.prototype), {
+      _locale: "en",
+      _safeExternalUrl: (url?: string) => url,
+      seriesById: () => ({ tour: { organizer: "Swiss Parkour Association", organizer_url: "https://swissparkour.ch" } }),
+    }) as { _buildOrganizerStructuredData(event: unknown): Record<string, unknown> };
+    return component._buildOrganizerStructuredData({ organizerName, seriesIds: ["tour"] });
+  };
+
+  it("borrows the series URL only when the series names the same organizer", () => {
+    expect(build(" swiss parkour association ")["url"]).toBe("https://swissparkour.ch");
+    expect(build("Independent Jam Crew")["url"]).toBeUndefined();
   });
 });

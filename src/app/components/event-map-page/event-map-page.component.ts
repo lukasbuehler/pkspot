@@ -84,7 +84,6 @@ import {
   EventId,
   EventSchema,
 } from "../../../db/schemas/EventSchema";
-import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import {
@@ -841,10 +840,34 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private async _loadEventFromRoute(paramMap: ParamMap) {
     const slug =
-      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "";
     const requestVersion = ++this._eventLoadRequestVersion;
 
-    const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
+    let loaded: Awaited<
+      ReturnType<EventPageDataService["loadEventBySlugOrId"]>
+    >;
+    try {
+      loaded = await this._eventPageData.loadEventBySlugOrId(slug);
+    } catch {
+      if (requestVersion !== this._eventLoadRequestVersion) return;
+      // The event page owns the load-failure and retry UI.
+      this._router
+        .navigate(
+          this._isEmbedded()
+            ? ["/embedded/events", slug]
+            : ["/events", slug],
+          { queryParamsHandling: "preserve", replaceUrl: true },
+        )
+        .catch((navigationError) => {
+          // e.g. a failed lazy chunk import; don't leave the rejection unhandled.
+          this.featureTelemetry.failure(
+            "event-map-page",
+            "loadFailureRedirect",
+            navigationError,
+          );
+        });
+      return;
+    }
 
     if (requestVersion !== this._eventLoadRequestVersion) {
       return;
@@ -904,6 +927,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Invalidate in-flight event loads so a late failure can't redirect.
+    this._eventLoadRequestVersion++;
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
       if (this._minuteInterval !== undefined) {
         window.clearInterval(this._minuteInterval);

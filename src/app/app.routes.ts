@@ -493,18 +493,9 @@ export const routes: Routes = [
     data: { routeName: "Edit community event", editCommunityEvent: true, discoverable: false },
   },
   {
-    path: "event/swissjam25",
-    redirectTo: () => "/events/swissjam25",
+    path: "event/:slug",
+    redirectTo: (route) => `/events/${route.params["slug"]}`,
     pathMatch: "full",
-    data: { routeName: "Event" },
-  },
-  {
-    path: "events/swissjam25",
-    loadComponent: () =>
-      import("./components/event-page/event-page.component").then(
-        (m) => m.EventInfoPageComponent,
-      ),
-    resolve: { content: contentResolver },
     data: { routeName: "Event" },
   },
   {
