@@ -248,3 +248,6 @@ docs/
 /ideas/
 /mcp/submission/review-preparation.json
 /user_stories.md
+
+# ggshield scan cache, written by the pre-commit hook.
+/.cache_ggshield

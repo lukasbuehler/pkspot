@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+# Scans staged changes for secrets with GitGuardian's ggshield. The staged diff
+# is sent to the GitGuardian API. Setup: `brew install ggshield`, then
+# `ggshield auth login`. Skip one commit with `git commit -n`.
+set -u
+
+if ! command -v ggshield >/dev/null 2>&1; then
+  echo "pre-commit: ggshield is not installed, skipping the secret scan." >&2
+  exit 0
+fi
+
+# GitGuardian being unreachable warns instead of blocking; the GitHub check
+# still scans every pull request.
+ggshield secret scan pre-commit --no-fail-on-server-error "$@"
+status=$?
+
+# Exit code 3 means not authenticated, which should not block contributors.
+if [ "$status" -eq 3 ]; then
+  echo "pre-commit: run 'ggshield auth login' to enable the secret scan." >&2
+  exit 0
+fi
+exit "$status"
