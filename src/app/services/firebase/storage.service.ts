@@ -28,13 +28,13 @@ export class StorageService {
   private readonly functions = inject(FunctionsAdapterService);
 
   beginSpotMediaSubmission(spotId: string, uploadIds: string[]): Promise<unknown> {
-    return this.functions.call("beginSpotMediaSubmission", {
+    return this.functions.callAuthenticatedAppChecked("beginSpotMediaSubmission", {
       submission_id: generateUUID(), spot_id: spotId, upload_ids: uploadIds,
     });
   }
 
   failSpotMediaSubmissionUploads(uploadIds: string[]): Promise<unknown> {
-    return this.functions.call("failSpotMediaSubmissionUploads", { upload_ids: uploadIds });
+    return this.functions.callAuthenticatedAppChecked("failSpotMediaSubmissionUploads", { upload_ids: uploadIds });
   }
 
   private readonly isBrowser = typeof window !== "undefined";
