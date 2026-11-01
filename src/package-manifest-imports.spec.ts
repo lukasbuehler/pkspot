@@ -253,6 +253,16 @@ describe("package manifests", () => {
     expect(missingImports({ allowedRuntimePackages: allowed, files })).toEqual([]);
   });
 
+  it("pins @firebase/auth to the version firebase depends on", () => {
+    // A second copy would have its own auth and resolver instances.
+    const root = readPackageJson(repoRoot);
+    const firebase = readPackageJson(join(repoRoot, "node_modules/firebase"));
+
+    expect(root.dependencies?.["@firebase/auth"]).toBe(
+      firebase.dependencies?.["@firebase/auth"],
+    );
+  });
+
   it("functions package declares every runtime import reachable from functions source", () => {
     const functionsDir = join(repoRoot, "functions");
     const manifest = readPackageJson(functionsDir);

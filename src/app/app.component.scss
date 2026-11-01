@@ -35,6 +35,23 @@ mat-toolbar {
   }
 }
 
+// Mirrors `getNavigationLayout()` for the HTML the server sends to every device.
+.server-navigation-rail {
+  @media (max-width: 639.98px),
+    (max-height: 559.98px),
+    (max-width: 767.98px) and (max-height: 699.98px) {
+    display: none !important;
+  }
+}
+
+.server-floating-navigation {
+  @media (min-width: 640px) and (min-height: 560px),
+    (max-height: 499.98px),
+    (max-width: 767.98px) and (max-height: 699.98px) {
+    display: none !important;
+  }
+}
+
 .floating-bottom-navigation {
   box-sizing: border-box;
   width: auto;

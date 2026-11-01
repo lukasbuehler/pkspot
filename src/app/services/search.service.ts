@@ -70,6 +70,16 @@ export class SearchService {
   private readonly _assetUrls = inject(AssetUrlService);
   private readonly _locale = inject(LOCALE_ID);
 
+  // Map lists only render previews. Omit descriptions, links and other detail
+  // fields so a background community list does not compete with map tiles.
+  private readonly communityPreviewFields = [
+    "id", "communityKey", "displayName", "preferredSlug", "canonicalPath",
+    "scope", "geography", "counts.totalSpots", "image.url",
+    "merged_community_keys", "bounds_center", "bounds_radius_m",
+    "google_maps_place_id", "place_localization.names",
+    "place_localization.region.names", "place_name_overrides",
+  ].join(",");
+
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
   readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
   readonly TYPESENSE_COLLECTION_EVENTS = "events_v1";
@@ -449,6 +459,8 @@ export class SearchService {
             query_by: "displayName",
             filter_by: "published:!=false",
             sort_by: "counts.totalSpots:desc",
+            include_fields: this.communityPreviewFields,
+            highlight_fields: "none",
             per_page: perPage,
             page: 1,
           },
@@ -473,6 +485,8 @@ export class SearchService {
                   query_by: "displayName",
                   filter_by: "published:!=false",
                   sort_by: "counts.totalSpots:desc",
+                  include_fields: this.communityPreviewFields,
+                  highlight_fields: "none",
                   per_page: perPage,
                   page: index + 2,
                 },

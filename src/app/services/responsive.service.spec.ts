@@ -29,6 +29,19 @@ describe("ResponsiveService viewport lifecycle", () => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
+  it("treats a server-rendered page as laid out so hydration keeps its markup", () => {
+    const root = document.createElement("div");
+    root.setAttribute("ng-server-context", "ssr");
+    document.body.appendChild(root);
+    try {
+      expect(TestBed.inject(ResponsiveService).isInitialized()).toBe(true);
+    } finally {
+      root.remove();
+    }
+  });
+  it("waits for the viewport to settle without server markup", () => {
+    expect(TestBed.inject(ResponsiveService).isInitialized()).toBe(false);
+  });
   it("refreshes both dimensions while cold-launch layout settles without a resize event", () => {
     const service = TestBed.inject(ResponsiveService);
     size(720, 960);

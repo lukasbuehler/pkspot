@@ -121,8 +121,8 @@
 }
 
 <!-- No spots and no highlights text -->
-@if(renderedRemainingSpots().length === 0 && renderedHighlightedSpots().length
-=== 0) {
+@if(showEmptyText() && renderedRemainingSpots().length === 0 &&
+renderedHighlightedSpots().length === 0) {
 <div class="d-flex justify-content-center align-items-center h-100">
   <p
     class="mat-body-large"

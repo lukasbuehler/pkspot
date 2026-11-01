@@ -5,7 +5,8 @@ import {
   inject,
 } from "@angular/core";
 import { httpsCallable } from "firebase/functions";
-import { getAuth, getIdToken } from "firebase/auth";
+import { getIdToken } from "firebase/auth";
+import { getFirebaseAuth } from "./firebase-auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
@@ -218,7 +219,7 @@ export class FunctionsAdapterService {
       return (await FirebaseAuthentication.getIdToken()).token;
     }
 
-    const user = getAuth(this.firebaseApp).currentUser;
+    const user = getFirebaseAuth(this.firebaseApp).currentUser;
     return user ? getIdToken(user) : undefined;
   }
 

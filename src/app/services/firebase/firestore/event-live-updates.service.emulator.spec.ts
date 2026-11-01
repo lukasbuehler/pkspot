@@ -136,7 +136,7 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
             getAppType: () => "web",
           },
         },
-        { provide: FirebaseAppCheckService, useValue: { initialize: async () => undefined } },
+        { provide: FirebaseAppCheckService, useValue: { readyForDataRequests: async () => undefined } },
       ],
     }).compileComponents();
 

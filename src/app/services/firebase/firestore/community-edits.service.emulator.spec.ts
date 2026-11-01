@@ -148,7 +148,7 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
         },
         {
           provide: FirebaseAppCheckService,
-          useValue: { initialize: () => Promise.resolve() },
+          useValue: { readyForDataRequests: () => Promise.resolve() },
         },
       ],
     }).compileComponents();

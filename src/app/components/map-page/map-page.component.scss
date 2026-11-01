@@ -31,6 +31,89 @@ app-spot-map {
   inset: 0;
 }
 
+// Server-rendered panels wait here until the first browser render moves them
+// into the real sheet or drawer. The server does not know the viewport, so the
+// media queries mirror `getMapPanelLayout()` and the same HTML suits any device.
+.map-panel-home {
+  display: none;
+}
+
+.map-panel-home--server {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+
+  .map-panel-home__top {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: calc(
+        8px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px))
+      )
+      8px 8px;
+  }
+
+  .map-panel-home__panel {
+    position: absolute;
+    inset: calc(
+        72px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px))
+      )
+      0 0;
+    box-sizing: border-box;
+    padding-block-start: 30px;
+    overflow: hidden;
+    border-radius: 28px 28px 0 0;
+    background: var(--mat-sys-surface-container-low);
+    transform: translateY(
+      calc(
+        100% - 90px - max(var(--navigation-bottom-clearance, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+      )
+    );
+  }
+
+  @media (min-width: 768px) and (min-height: 560px),
+    (min-width: 640px) and (min-height: 700px),
+    (max-height: 499.98px) and (min-aspect-ratio: 13/10) {
+    .map-panel-home__top,
+    .map-panel-home__panel {
+      right: auto;
+      width: var(--map-overlay-panel-width);
+    }
+
+    .map-panel-home__top {
+      padding: 16px;
+      gap: 8px;
+    }
+
+    .map-panel-home__panel {
+      inset-block-start: 0;
+      padding-block-start: 132px;
+      border-radius: 0;
+      transform: none;
+    }
+  }
+
+  @media (min-width: 768px) and (min-height: 560px) {
+    .map-panel-home__top,
+    .map-panel-home__panel {
+      width: 50%;
+    }
+  }
+
+  @media (min-width: 1200px) and (min-height: 560px) {
+    .map-panel-home__top,
+    .map-panel-home__panel {
+      width: 33.33%;
+    }
+  }
+}
+
 // Panels, search, chips and island move between layouts; the outlet must not
 // add a layout box of its own between a host and the moved components.
 .map-movable-outlet,

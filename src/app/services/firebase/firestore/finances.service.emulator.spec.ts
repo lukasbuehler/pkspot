@@ -46,7 +46,7 @@ emulator('private finances through the app service and Firestore adapter', () =>
       FinancesService, FirestoreAdapterService,
       { provide: AuthenticationService, useValue: { isAdmin } },
       { provide: FIREBASE_FIRESTORE, useValue: db },
-      { provide: FirebaseAppCheckService, useValue: { initialize: async () => undefined } },
+      { provide: FirebaseAppCheckService, useValue: { readyForDataRequests: async () => undefined } },
       { provide: PlatformService, useValue: { isNative: () => false, getPlatform: () => 'web' } },
       { provide: FeatureTelemetryService, useValue: { run: (_provider: string, _operation: string, work: () => unknown) => work() } },
     ] });

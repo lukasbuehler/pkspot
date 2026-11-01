@@ -34,7 +34,7 @@ import {
   untracked,
   ElementRef,
 } from "@angular/core";
-import { Location } from "@angular/common";
+import { DOCUMENT, Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotLoadError } from "../../../db/models/SpotLoadError";
@@ -55,7 +55,10 @@ import {
 import { MapFloatingControlsComponent } from "../map/map-floating-controls/map-floating-controls.component";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { MapsApiService } from "../../services/maps-api.service";
+import {
+  getEarlyMapStartScript,
+  MapsApiService,
+} from "../../services/maps-api.service";
 import {
   filter,
   firstValueFrom,
@@ -518,7 +521,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   );
   // CSS resolves navigation and safe-area clearance; the observer keeps the
   // sheet gesture geometry and map controls in the same coordinate space.
-  readonly mapSheetClosedHeight = signal(178);
+  // The server's markup already holds the measuring element, so the sheet can
+  // take its real height at once instead of shifting when the observer fires.
+  readonly mapSheetClosedHeight = signal(
+    (typeof document === "undefined"
+      ? null
+      : document.querySelector(".map-sheet-peek-measure")?.clientHeight) || 178,
+  );
+
+  private readonly _document = inject(DOCUMENT);
+
+  /** Whether panels still sit where the server rendered them. */
+  readonly serverPanelsVisible = signal(
+    typeof document === "undefined" ||
+      document.querySelector(".map-panel-home--server") !== null,
+  );
 
   // Start closed to prevent flash. The drawer opens when its layout is ready.
   sidenavOpen = signal<boolean>(false);
@@ -712,34 +729,47 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       ? (this.focusedCommunitySpotPreviews() ?? [])
       : null,
   );
+  readonly mapViewportKnown = computed(() => this._viewport() !== null);
   mapObjectMode = signal<MapObjectMode>("all");
   mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
     const counts = this._displayMapObjectCounts();
+    // Counts describe the map's viewport; before it exists they would read 0.
+    const withCount = (count: number, label: string) =>
+      this.mapViewportKnown() ? `${count} ${label}` : label;
     return [
       { value: "all", label: $localize`:@@map_objects_all_chip_label:All` },
       {
         value: "spots",
-        label: `${counts.spots} ${this._pluralizeMapObjectCount(
+        label: withCount(
           counts.spots,
-          $localize`:@@map_objects_spot_singular:Spot`,
-          $localize`:@@map_objects_spot_plural:Spots`,
-        )}`,
+          this._pluralizeMapObjectCount(
+            counts.spots,
+            $localize`:@@map_objects_spot_singular:Spot`,
+            $localize`:@@map_objects_spot_plural:Spots`,
+          ),
+        ),
       },
       {
         value: "events",
-        label: `${counts.events} ${this._pluralizeMapObjectCount(
+        label: withCount(
           counts.events,
-          $localize`:@@map_objects_event_singular:Event`,
-          $localize`:@@map_objects_event_plural:Events`,
-        )}`,
+          this._pluralizeMapObjectCount(
+            counts.events,
+            $localize`:@@map_objects_event_singular:Event`,
+            $localize`:@@map_objects_event_plural:Events`,
+          ),
+        ),
       },
       {
         value: "communities",
-        label: `${counts.communities} ${this._pluralizeMapObjectCount(
+        label: withCount(
           counts.communities,
-          $localize`:@@map_objects_community_singular:Community`,
-          $localize`:@@map_objects_community_plural:Communities`,
-        )}`,
+          this._pluralizeMapObjectCount(
+            counts.communities,
+            $localize`:@@map_objects_community_singular:Community`,
+            $localize`:@@map_objects_community_plural:Communities`,
+          ),
+        ),
       },
     ];
   });
@@ -2126,6 +2156,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
     this._schedulePrerenderOfFullSpotList(inject(DestroyRef));
+    afterNextRender(() => this.serverPanelsVisible.set(false));
+    if (this.isServer) {
+      const earlyStart = this._document.createElement("script");
+      earlyStart.textContent = getEarlyMapStartScript();
+      this._document.head.appendChild(earlyStart);
+    }
 
     if (isPlatformBrowser(this.platformId)) {
       const denseMapPerformanceMode =

@@ -1,8 +1,13 @@
 @if(!isEmbedded()) {
 <!-- is not embedded  -->
 <app-nav-rail-container>
-  @defer (when responsive.isInitialized()) { @if(usesNavigationRail()) {
-  <app-nav-rail #desktopNavigationRail class="mat-elevation-z3">
+  <!-- The server renders both navigations; CSS shows the one fitting the viewport. -->
+  @if(usesNavigationRail() || isServer) {
+  <app-nav-rail
+    #desktopNavigationRail
+    class="mat-elevation-z3"
+    [class.server-navigation-rail]="isServer"
+  >
     <a
       routerLink="/"
       class="text-decoration-none text-center text-light text-wrap p-2 logo"
@@ -136,7 +141,7 @@
     </span>
     </div>
   </app-nav-rail>
-  } }
+  }
   <app-nav-rail-content class="flex-col">
     <!-- This is where the pages content gets displayed -->
     <div class="main-content flex-grow-1" cdkScrollable>
@@ -158,9 +163,10 @@
     />
     } @else {
     <!-- Bottom navigation is a floating compact-phone affordance. -->
-    @defer (when responsive.isInitialized()) { @if(usesFloatingBottomNavigation()) {
+    @if(usesFloatingBottomNavigation()) {
     <mat-toolbar
       class="floating-bottom-navigation mat-elevation-z2"
+      [class.server-floating-navigation]="isServer"
       [class.native-platform]="isNativePlatform"
     >
       @for (button of mobileLeadingNavbarButtons(); track button.id) { @if(button.link) {
@@ -264,7 +270,7 @@
         } }
       </mat-menu>
     </mat-toolbar>
-    } } }
+    } }
 
     <!-- Proactive Check-in Chip -->
     @if(checkInEnabled && checkInService.showGlobalChip() &&
@@ -330,16 +336,16 @@
 
     <!-- Terms and Privacy -->
 
-    @defer (when responsive.isInitialized()) { @if((!policyAccepted || !userId)
+    @if((!policyAccepted || !userId)
     && navigationLayout() === 'bottom' && !isNativePlatform) {
-    <div class="terms-footer">
+    <div class="terms-footer" [class.server-floating-navigation]="isServer">
       <a routerLink="/terms-of-service" i18n="@@terms.short">Terms</a>
       <a routerLink="/privacy-policy" i18n="@@policy.short">Policy</a>
       <a routerLink="/support" i18n>Support</a>
       <a routerLink="/impressum">Impressum</a>
       <span>©2026 PK Spot</span>
     </div>
-    } }
+    }
   </app-nav-rail-content>
 </app-nav-rail-container>
 

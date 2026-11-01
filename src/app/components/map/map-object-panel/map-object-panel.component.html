@@ -75,7 +75,10 @@
           ></app-map-event-list>
         </section>
       }
-      <section class="object-panel-section px-3">
+      <section
+        class="object-panel-section px-3"
+        [class.object-panel-section--pending]="!areaKnown()"
+      >
         <div
           class="peek-title"
           [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
@@ -87,6 +90,7 @@
         <app-spot-list
           class="d-block"
           [spots]="visibleSpots()"
+          [showEmptyText]="areaKnown()"
           [hideHeader]="true"
           [highlightedSpots]="highlightedSpots()"
           [mapZoom]="mapZoom()"

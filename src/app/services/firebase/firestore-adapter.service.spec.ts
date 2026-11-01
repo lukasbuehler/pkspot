@@ -178,7 +178,7 @@ const createMockPlatformService = (
 });
 
 const createMockAppCheckService = () => ({
-  initialize: vi.fn().mockResolvedValue(undefined),
+  readyForDataRequests: vi.fn().mockResolvedValue(undefined),
 });
 
 describe("FirestoreAdapterService", () => {
@@ -215,10 +215,10 @@ describe("FirestoreAdapterService", () => {
   });
 
   describe("getDocument (web)", () => {
-    it("waits for App Check initialization before using the web SDK", async () => {
+    it("waits for App Check readiness before using the web SDK", async () => {
       const { getDoc } = await import("firebase/firestore");
       let resolveAppCheck!: () => void;
-      mockAppCheckService.initialize.mockReturnValueOnce(
+      mockAppCheckService.readyForDataRequests.mockReturnValueOnce(
         new Promise<void>((resolve) => {
           resolveAppCheck = resolve;
         })
@@ -232,7 +232,7 @@ describe("FirestoreAdapterService", () => {
       resolveAppCheck();
       await resultPromise;
 
-      expect(mockAppCheckService.initialize).toHaveBeenCalledTimes(1);
+      expect(mockAppCheckService.readyForDataRequests).toHaveBeenCalledTimes(1);
       expect(getDoc).toHaveBeenCalled();
     });
 
@@ -530,9 +530,9 @@ describe("FirestoreAdapterService (native)", () => {
   });
 
   describe("getDocument (native)", () => {
-    it("waits for App Check initialization before using the native SDK", async () => {
+    it("waits for App Check readiness before using the native SDK", async () => {
       let resolveAppCheck!: () => void;
-      mockAppCheckService.initialize.mockReturnValueOnce(
+      mockAppCheckService.readyForDataRequests.mockReturnValueOnce(
         new Promise<void>((resolve) => {
           resolveAppCheck = resolve;
         })
@@ -546,7 +546,7 @@ describe("FirestoreAdapterService (native)", () => {
       resolveAppCheck();
       await resultPromise;
 
-      expect(mockAppCheckService.initialize).toHaveBeenCalledTimes(1);
+      expect(mockAppCheckService.readyForDataRequests).toHaveBeenCalledTimes(1);
       expect(FirebaseFirestore.getDocument).toHaveBeenCalledWith({
         reference: "collection/doc-id",
       });

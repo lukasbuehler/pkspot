@@ -33,6 +33,7 @@ vi.mock("firebase/auth", async (importOriginal) => {
   return {
     ...actual,
     getAuth: vi.fn(() => authMock),
+    initializeAuth: vi.fn(() => authMock),
     signInWithEmailAndPassword: vi.fn(),
     signInWithPopup: vi.fn(),
     signOut: vi.fn(),

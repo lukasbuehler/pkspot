@@ -98,6 +98,11 @@ export class FirebaseAppCheckService {
   });
   private readonly app = inject(FIREBASE_APP);
   private initializationPromise: Promise<void> | null = null;
+  private resolveFirstCheck!: () => void;
+  /** Settles after the first token check, without starting one. */
+  readonly firstCheckFinished = new Promise<void>((resolve) => {
+    this.resolveFirstCheck = resolve;
+  });
   private webAppCheck: AppCheck | null = null;
   private readonly _status = signal<FirebaseAppCheckStatus>({
     state: "idle",
@@ -112,13 +117,25 @@ export class FirebaseAppCheckService {
       return this.initializationPromise;
     }
 
-    this.initializationPromise = this.initializeOnce(settings).catch(
-      (error) => {
+    this.initializationPromise = this.initializeOnce(settings)
+      .then(() => this.resolveFirstCheck())
+      .catch((error) => {
         this.initializationPromise = null;
         throw error;
-      },
-    );
+      });
     return this.initializationPromise;
+  }
+
+  /**
+   * What a Firestore or Storage request waits for. On the web that is nothing:
+   * reCAPTCHA must not delay the first map, and no product enforces App Check
+   * for these requests. Requests sent before the deferred start carry no token,
+   * so wait for `initialize()` here before enforcing either product.
+   */
+  readyForDataRequests(): Promise<void> {
+    return this.platformService.getPlatform() === "web"
+      ? Promise.resolve()
+      : this.initialize();
   }
 
   async getTokenForRequest(): Promise<string> {

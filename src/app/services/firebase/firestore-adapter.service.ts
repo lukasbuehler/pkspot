@@ -123,7 +123,7 @@ export class FirestoreAdapterService {
   }
 
   private ensureAppCheckReady(): Promise<void> {
-    return this.appCheckService.initialize();
+    return this.appCheckService.readyForDataRequests();
   }
 
   private async trackPending<T>(operation: () => Promise<T>): Promise<T> {

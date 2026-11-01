@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../environments/environment.default";
+import { CURRENT_TERMS_VERSION } from "./consent-version";
 import {
   Observable,
   BehaviorSubject,
@@ -77,6 +78,34 @@ export function getGooglePlaceFields(
   return GOOGLE_PLACE_FIELDS[fieldSet];
 }
 
+const EARLY_MAPS_SCRIPT_ID = "pkspot-early-maps-api";
+
+function getGoogleMapsApiUrl(): string {
+  const mapIdParam = environment.mapId ? `&map_ids=${environment.mapId}` : "";
+  return (
+    `https://maps.googleapis.com/maps/api/js?key=${environment.keys.firebaseConfig.apiKey}` +
+    // Place search is loaded on demand so it cannot delay the first map.
+    `&libraries=marker&v=weekly${mapIdParam}&loading=async&callback=mapsCallback`
+  );
+}
+
+/**
+ * Source of an inline script that starts the Maps download while the HTML is
+ * parsed, so the map does not also wait for the app bundle to request it. Only
+ * the browser knows whether this visitor has consented, so the check lives in
+ * the script. reCAPTCHA stays out: it is three times larger, slowed hydration
+ * more than it sped up tiles, and returning visitors reuse a stored token.
+ */
+export function getEarlyMapStartScript(): string {
+  return (
+    `try{if(localStorage.getItem("acceptedVersion")===${JSON.stringify(CURRENT_TERMS_VERSION)}){` +
+    `window.mapsCallback=function(){window.pkspotMapsReady=true};` +
+    `var s=document.createElement("script");s.id=${JSON.stringify(EARLY_MAPS_SCRIPT_ID)};` +
+    `s.src=${JSON.stringify(getGoogleMapsApiUrl())};s.async=true;s.onerror=function(){s.remove()};` +
+    `document.head.appendChild(s)}}catch(e){}`
+  );
+}
+
 export function attachGoogleMapsAppCheck(
   settings: Pick<google.maps.Settings, "fetchAppCheckToken">,
   getToken: () => Promise<string>,
@@ -93,6 +122,11 @@ export class MapsApiService extends ConsentAwareService {
   private _analytics = inject(AnalyticsService);
   private _appSettings = inject(AppSettingsService);
   private _appCheck = inject(FirebaseAppCheckService);
+  private _resolveFirstTiles!: () => void;
+  /** Settles when a map has drawn its first tiles. */
+  readonly firstTilesLoaded = new Promise<void>((resolve) => {
+    this._resolveFirstTiles = resolve;
+  });
   private _isApiLoaded: WritableSignal<boolean> = signal(false);
   public isApiLoaded: Signal<boolean> = this._isApiLoaded;
 
@@ -160,6 +194,10 @@ export class MapsApiService extends ConsentAwareService {
     super();
   }
 
+  markFirstTilesLoaded(): void {
+    this._resolveFirstTiles();
+  }
+
   private _getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
       return error.message;
@@ -192,11 +230,22 @@ export class MapsApiService extends ConsentAwareService {
     this._isLoading$.next(true);
     this._loadingProgress$.next(25); // Starting to load
 
+    const mapsWindow = window as Window & {
+      mapsCallback?: () => void;
+      pkspotMapsReady?: boolean;
+    };
+    if (document.getElementById(EARLY_MAPS_SCRIPT_ID)) {
+      this._loadingProgress$.next(50);
+      if (mapsWindow.pkspotMapsReady) {
+        void this._finishGoogleMapsApiLoad();
+      } else {
+        mapsWindow.mapsCallback = () => void this._finishGoogleMapsApiLoad();
+      }
+      return;
+    }
+
     const script = document.createElement("script");
-    const mapIdParam = environment.mapId ? `&map_ids=${environment.mapId}` : "";
-    script.src =
-      `https://maps.googleapis.com/maps/api/js?key=${environment.keys.firebaseConfig.apiKey}` +
-      `&libraries=visualization,places,marker&v=weekly${mapIdParam}&loading=async&callback=mapsCallback`;
+    script.src = getGoogleMapsApiUrl();
     script.async = true;
     script.defer = true;
 
@@ -241,9 +290,15 @@ export class MapsApiService extends ConsentAwareService {
     const { Settings } = (await google.maps.importLibrary(
       "core",
     )) as google.maps.CoreLibrary;
-    attachGoogleMapsAppCheck(Settings.getInstance(), () =>
-      this._appCheck.getTokenForRequest(),
-    );
+    // Maps holds every tile request until `fetchAppCheckToken` resolves, so it
+    // is set only once a token exists. Maps does not enforce App Check; before
+    // enforcing it, the first requests must wait for the token again.
+    void this._appCheck.firstCheckFinished.then(() => {
+      if (this._appCheck.status().state !== "ready") return;
+      attachGoogleMapsAppCheck(Settings.getInstance(), () =>
+        this._appCheck.getTokenForRequest(),
+      );
+    });
   }
 
   storeLastLocationAndZoom(lastLocationAndZoom: LocationAndZoom) {
@@ -417,10 +472,14 @@ export class MapsApiService extends ConsentAwareService {
       return await this.executeWithConsent(async () => {
         if (
           typeof google === "undefined" ||
-          !google.maps?.places?.AutocompleteSuggestion
+          !google.maps?.importLibrary
         ) {
           return [];
         }
+
+        const { AutocompleteSuggestion } = await google.maps.importLibrary(
+          "places",
+        ) as google.maps.PlacesLibrary;
 
         // Use new AutocompleteSuggestion API instead of deprecated AutocompleteService
         const request: AutocompleteRequestWithOrigin = {
@@ -441,7 +500,7 @@ export class MapsApiService extends ConsentAwareService {
         // We'll filter results client-side after fetching suggestions.
 
         const { suggestions } =
-          await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+          await AutocompleteSuggestion.fetchAutocompleteSuggestions(
             request,
           );
 
@@ -511,7 +570,8 @@ export class MapsApiService extends ConsentAwareService {
 
     // Use consent-aware execution for Places API calls
     return this.executeWithConsent(async () => {
-      const place = new google.maps.places.Place({
+      const { Place } = await google.maps.importLibrary("places") as google.maps.PlacesLibrary;
+      const place = new Place({
         id: placeId,
         requestedLanguage: "en",
       });
@@ -860,6 +920,9 @@ export class MapsApiService extends ConsentAwareService {
     }
 
     return this.executeWithConsent(async () => {
+      const { Place, SearchNearbyRankPreference } = await google.maps.importLibrary(
+        "places",
+      ) as google.maps.PlacesLibrary;
       const request: google.maps.places.SearchNearbyRequest = {
         fields: ["id", "displayName", "location", "businessStatus", "types"],
         locationRestriction: {
@@ -867,14 +930,14 @@ export class MapsApiService extends ConsentAwareService {
           radius: 1000,
         },
         maxResultCount: maxResults,
-        rankPreference: google.maps.places.SearchNearbyRankPreference.DISTANCE,
+        rankPreference: SearchNearbyRankPreference.DISTANCE,
       };
 
       if (type) {
         request.includedPrimaryTypes = [type];
       }
 
-      const { places } = await google.maps.places.Place.searchNearby(request);
+      const { places } = await Place.searchNearby(request);
       return places.sort(
         (a, b) =>
           this._getDistanceFromPlaceMeters(location, a) -

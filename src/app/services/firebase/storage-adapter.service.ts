@@ -74,7 +74,7 @@ export class StorageAdapterService {
   }
 
   private ensureAppCheckReady(): Promise<void> {
-    return this.appCheckService.initialize();
+    return this.appCheckService.readyForDataRequests();
   }
 
   // ============================================================================

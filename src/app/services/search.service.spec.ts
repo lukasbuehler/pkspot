@@ -632,6 +632,15 @@ describe("SearchService", () => {
         page: 2,
         per_page: 250,
       });
+      for (const [parameters] of typesenseSearchMock.mock.calls) {
+        const fields = parameters.include_fields.split(",");
+        expect(fields).toEqual(expect.arrayContaining([
+          "bounds_center", "bounds_radius_m", "image.url",
+          "merged_community_keys", "place_localization.names",
+        ]));
+        expect(fields).not.toContain("description");
+        expect(parameters.highlight_fields).toBe("none");
+      }
     });
   });
 

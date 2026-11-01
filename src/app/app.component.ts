@@ -10,6 +10,7 @@ import {
   DestroyRef,
   ElementRef,
   inject,
+  PLATFORM_ID,
   OnInit,
   signal,
   TemplateRef,
@@ -56,7 +57,12 @@ import { isBot } from "../scripts/Helpers";
 import { isAcceptanceFreePath, withoutLocalePrefix } from "./startup/welcome-policy";
 import { EARLY_WELCOME_CONTEXT } from "./startup/welcome-acceptance";
 import { WELCOME_DIALOG_OPTIONS } from "./startup/welcome-dialog-options";
-import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
+import {
+  Location,
+  NgOptimizedImage,
+  PathLocationStrategy,
+  isPlatformServer,
+} from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
 import {
@@ -300,7 +306,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  hasAds = false;
   userId: string = "";
   policyAccepted: boolean = false;
   private _lastTrackedAuthUid: string | null = null;
@@ -356,6 +361,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   readonly usesFloatingBottomNavigation = computed(
     () => this.navigationLayout() === "bottom" && !this.usesNativeTabBar(),
   );
+
+  readonly isServer = isPlatformServer(inject(PLATFORM_ID));
 
   /** True when running as a native iOS or Android app via Capacitor */
   isNativePlatform: boolean = Capacitor.isNativePlatform();
@@ -565,7 +572,9 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         if (granted) {
           void this.loadDeferredRobotoFonts();
-          void this._appCheckFailureWarning.initializeAndWarn();
+          void this._appCheckFailureWarning.initializeAfterStartup(
+            this.isImmersiveMapRoute() || this.isEventMapRoute() ? 20_000 : 0,
+          );
 
           // set person + super-properties for consent so future events are labeled
           const version = this._consentService.CURRENT_TERMS_VERSION;
@@ -816,7 +825,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.hasAds = (window as { canRunAds?: boolean }).canRunAds ?? false;
     this.checkWelcomeDialogForCurrentRoute();
   }
 
@@ -1066,7 +1074,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf") format("truetype");
+  src: url("assets/fonts/Roboto/Roboto-Latin-Variable.woff2") format("woff2");
+  unicode-range: U+0-24F, U+259, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+300-30C, U+1E00-1EFF, U+2000-206F, U+20A0-20CF, U+2100-214F, U+2190-2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -1074,7 +1083,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url("assets/fonts/Roboto/Roboto-Italic-VariableFont_wdth,wght.ttf") format("truetype");
+  src: url("assets/fonts/Roboto/Roboto-Italic-Latin-Variable.woff2") format("woff2");
+  unicode-range: U+0-24F, U+259, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+300-30C, U+1E00-1EFF, U+2000-206F, U+20A0-20CF, U+2100-214F, U+2190-2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 html.pkspot-roboto-loaded body {
@@ -1533,7 +1543,9 @@ html.pkspot-roboto-loaded body {
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map((event) => event.urlAfterRedirects),
     ),
-    { initialValue: this.router.url },
+    // The router reports "/" until its first navigation ends. Read the address
+    // bar so hydration keeps the server's route classes and layout meanwhile.
+    { initialValue: inject(Location).path() },
   );
   readonly isImmersiveMapRoute = computed(() =>
     /^\/map(?:[/?]|$)/.test(this.currentNavUrl()),

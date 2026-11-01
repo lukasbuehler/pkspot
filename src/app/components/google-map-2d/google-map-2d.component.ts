@@ -1954,6 +1954,13 @@ export class GoogleMap2dComponent
       hasInitializedNativeMap: this._hasInitializedNativeMap,
     });
     this._recordMapProfile("ready");
+    if (this.googleMap.googleMap) {
+      google.maps.event.addListenerOnce(
+        this.googleMap.googleMap,
+        "tilesloaded",
+        () => this.mapsApiService.markFirstTilesLoaded(),
+      );
+    }
 
     if (this.googleMap.googleMap && !this._hasInitializedNativeMap) {
       const initialCamera = this._readCurrentCameraSnapshot("map-ready");

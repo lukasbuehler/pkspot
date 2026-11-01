@@ -67,7 +67,7 @@ emulator('owner-only training logs through the real service and adapter', () => 
       LogEntriesService, FirestoreAdapterService,
       { provide: AuthenticationService, useValue: { user: { uid: owner.uid } } },
       { provide: FIREBASE_FIRESTORE, useValue: owner.db },
-      { provide: FirebaseAppCheckService, useValue: { initialize: async () => undefined } },
+      { provide: FirebaseAppCheckService, useValue: { readyForDataRequests: async () => undefined } },
       { provide: PlatformService, useValue: { isNative: () => false, getPlatform: () => 'web' } },
       { provide: FeatureTelemetryService, useValue: {
         run: (_feature: string, _action: string, work: () => unknown) => work(),

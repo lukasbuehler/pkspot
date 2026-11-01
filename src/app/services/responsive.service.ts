@@ -45,10 +45,13 @@ export class ResponsiveService {
   /**
    * Tracks whether breakpoints have been determined.
    * Always false during SSR (we don't trust UA detection for layout).
-   * In browser: false until first BreakpointObserver emission.
-   * This ensures layout-specific components (@defer blocks) only render client-side.
+   * In browser: false until the viewport settles, because WebKit in the native
+   * app may settle its layout after bootstrap. A server-rendered page is already
+   * laid out, so waiting there would only replace its HTML with a loading state.
    */
-  readonly isInitialized = signal(false);
+  readonly isInitialized = signal(
+    this.isBrowser && document.querySelector("[ng-server-context]") !== null,
+  );
 
   /**
    * Mobile view: < 600px (xs & sm breakpoints)

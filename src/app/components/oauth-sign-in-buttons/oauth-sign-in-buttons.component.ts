@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -47,6 +48,10 @@ export class OAuthSignInButtonsComponent {
   readonly isSubmitting = computed(
     () => this.isSigningInGoogle() || this.isSigningInApple(),
   );
+
+  constructor() {
+    afterNextRender(() => this._authService.preparePopupSignIn());
+  }
 
   trySignInGoogle() {
     if (this.isSubmitting() || this.disabled()) {
