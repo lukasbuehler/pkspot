@@ -436,7 +436,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PK Spot.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "PK Spot";
@@ -446,7 +446,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -464,7 +464,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PK Spot.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "PK Spot";
@@ -474,7 +474,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -504,8 +504,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				CURRENT_PROJECT_VERSION = 19;
-				MARKETING_VERSION = 1.2;
+				CURRENT_PROJECT_VERSION = 20;
+				MARKETING_VERSION = 1.2.1;
 				GENERATE_INFOPLIST_FILE = NO;
 				PRODUCT_MODULE_NAME = PKSpotMapsShare;
 				SDKROOT = iphoneos;
@@ -528,8 +528,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				CURRENT_PROJECT_VERSION = 19;
-				MARKETING_VERSION = 1.2;
+				CURRENT_PROJECT_VERSION = 20;
+				MARKETING_VERSION = 1.2.1;
 				GENERATE_INFOPLIST_FILE = NO;
 				PRODUCT_MODULE_NAME = PKSpotMapsShare;
 				SDKROOT = iphoneos;

@@ -1,0 +1,8 @@
+PK Spot 1.2.1: Training Polishes & Bug Fixes
+
+• Search now puts the closest name matches first.
+• The map stays in place when the layout changes.
+• Native tab bar on iPhone.
+• Better share cards, and you can now share and follow communities.
+• Faster loading.
+• Translation, privacy and general bug fixes.

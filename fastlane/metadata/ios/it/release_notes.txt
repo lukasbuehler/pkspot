@@ -1,11 +1,8 @@
-PK Spot 1.2: Aggiornamento allenamento
+PK Spot 1.2.1: Rifiniture e correzioni
 
-Il tuo allenamento ora ha uno spazio tutto suo in PK Spot.
-
-• Fai check-in negli Spot e consulta statistiche private come gli Spot che visiti di più e il tuo tempo di allenamento.
-• Partecipa a Local Legend (facoltativo) per una classifica mensile privata negli Spot in cui ti alleni.
-• Tieni un diario di allenamento privato con i dettagli delle sessioni e i grafici delle attività.
-• Aggiungi pause di recupero quando ne hai bisogno.
-• Navigazione, controlli della mappa e pannello inferiore più fluidi.
-• Miglioramenti a Eventi, votazioni della community, modifica degli Spot, follow e segnalazioni.
-• Correzioni di bug e miglioramenti della privacy in tutta l’app.
+• La ricerca mostra prima i nomi più simili.
+• La mappa resta al suo posto quando cambia il layout.
+• Barra delle schede nativa su iPhone.
+• Schede di condivisione migliori, e ora puoi condividere e seguire le community.
+• Caricamento più veloce.
+• Correzioni di traduzioni, privacy e bug.

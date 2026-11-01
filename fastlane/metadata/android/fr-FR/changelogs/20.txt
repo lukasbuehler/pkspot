@@ -1,0 +1,8 @@
+PK Spot 1.2.1 : Améliorations et corrections
+
+• La recherche affiche d’abord les noms les plus proches.
+• La carte reste en place quand la mise en page change.
+• Barre d’onglets native sur iPhone.
+• De meilleures cartes de partage, et vous pouvez maintenant partager et suivre des communautés.
+• Chargement plus rapide.
+• Corrections de traductions, de confidentialité et de bugs.
