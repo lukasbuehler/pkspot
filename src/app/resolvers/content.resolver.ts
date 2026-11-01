@@ -288,15 +288,7 @@ async function resolveEventContent(
     }
   }
 
-  if (eventId === "swissjam25") {
-    // Hardcoded for SwissJam event
-    metaTagService.setStaticPageMetaTags(
-      "SwissJam 2025",
-      "Join us for the biggest parkour event in Switzerland! SwissJam 2025 brings together athletes from around the world.",
-      "assets/swissjam/swissjam0.jpg",
-      "/events/swissjam25"
-    );
-  } else if (eventId) {
+  if (eventId) {
     metaTagService.setStaticPageMetaTags(
       "Event",
       "Discover upcoming parkour and freerunning events near you.",

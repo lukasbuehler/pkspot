@@ -48,6 +48,7 @@ import {
 /** Server renders give up on Typesense after this long. */
 export const SSR_TYPESENSE_TIMEOUT_MS = 3000;
 
+
 export function getMapSpotSearchLimit(viewportZoom: number | undefined): number {
   if (typeof viewportZoom !== "number" || !Number.isFinite(viewportZoom)) {
     return 10;

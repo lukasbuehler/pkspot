@@ -12,7 +12,6 @@ import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import {
   EventBoundsSchema,
-  EventId,
   InlineEventSpotSchema,
 } from "../../../db/schemas/EventSchema";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
@@ -23,7 +22,6 @@ import { MarkerSchema } from "../../components/map/markers/map-marker.model";
 import { EventsService } from "../firebase/firestore/events.service";
 import { SpotsService } from "../firebase/firestore/spots.service";
 import { SpotChallengesService } from "../firebase/firestore/spot-challenges.service";
-import { SWISSJAM25_STATIC } from "../../components/event-page/swissjam25.static";
 import { SearchService } from "../search.service";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import type { EventSpotBinding } from "../../shared/event-program-spots";
@@ -61,11 +59,7 @@ export class EventPageDataService {
     } catch (err) {
       console.warn("EventPageDataService: failed to load event", err);
       // A network/permission failure is not evidence that the event was deleted.
-      if (slugOrId !== "swissjam25") throw err;
-    }
-
-    if (!loaded && slugOrId === "swissjam25") {
-      loaded = new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC, this._locale);
+      throw err;
     }
 
     return loaded;
@@ -73,11 +67,9 @@ export class EventPageDataService {
 
   observeEventBySlugOrId(slugOrId: string): Observable<PkEvent | null> {
     return this._eventsService.observeEventBySlugOrId(slugOrId).pipe(
-      map((loaded) => loaded ?? this._staticFallbackEvent(slugOrId)),
       catchError((err) => {
         console.warn("EventPageDataService: failed to observe event", err);
-        const fallback = this._staticFallbackEvent(slugOrId);
-        return fallback ? of(fallback) : throwError(() => err);
+        return throwError(() => err);
       }),
     );
   }
@@ -643,10 +635,5 @@ export class EventPageDataService {
       amenities: preview.amenities ?? {},
     };
     return new LocalSpot(data, this._locale);
-  }
-
-  private _staticFallbackEvent(slugOrId: string): PkEvent | null {
-    if (slugOrId !== "swissjam25") return null;
-    return new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC, this._locale);
   }
 }
