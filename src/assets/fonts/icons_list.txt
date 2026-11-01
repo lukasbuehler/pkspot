@@ -258,3 +258,4 @@ remove
 group
 military_tech
 insights
+arrow_forward
