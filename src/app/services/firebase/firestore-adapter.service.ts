@@ -1,9 +1,11 @@
 import { FeatureTelemetryService } from "../feature-telemetry.service";
+import { isPlatformServer } from "@angular/common";
 import {
   Injectable,
   inject,
   Injector,
   PendingTasks,
+  PLATFORM_ID,
   runInInjectionContext,
 } from "@angular/core";
 import { pendingUntilEvent } from "@angular/core/rxjs-interop";
@@ -44,6 +46,12 @@ import {
 import { transformFirestoreData } from "../../../scripts/Helpers";
 import { FirebaseAppCheckService } from "./app-check.service";
 import { FIREBASE_FIRESTORE } from "./firebase-client.providers";
+import { getFirebaseConfig } from "./firebase-emulator.config";
+import {
+  decodeFirestoreRestFields,
+  firestoreRestError,
+  FirestoreRestDocument,
+} from "./firestore-rest-document";
 
 /**
  * Query filter for Firestore queries.
@@ -96,14 +104,26 @@ export class FirestoreAdapterService {
 
   private platformService = inject(PlatformService);
   private appCheckService = inject(FirebaseAppCheckService);
-  private firestore = inject(FIREBASE_FIRESTORE);
   private injector = inject(Injector);
+  private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
+  private readonly serverDocumentReads = new Map<
+    string,
+    Promise<FirestoreRestDocument | null>
+  >();
   private readonly pendingTasks = inject(PendingTasks);
   private readonly iosWebCollectionTimeoutMs = 15000;
   private readonly firestoreRestBaseUrl = "https://firestore.googleapis.com/v1";
 
   // Track active listeners for cleanup
   private activeListeners = new Map<string, () => void>();
+
+  /**
+   * Resolved on first use, because creating an SDK client is costly and server
+   * rendering of public documents does not need one.
+   */
+  private get firestore() {
+    return this.injector.get(FIREBASE_FIRESTORE);
+  }
 
   constructor() {
     console.log(
@@ -431,7 +451,7 @@ export class FirestoreAdapterService {
   }
 
   private getFirestoreProjectId(): string {
-    const projectId = (this.firestore as any)?.app?.options?.projectId;
+    const projectId: unknown = getFirebaseConfig().projectId;
     return typeof projectId === "string" && projectId.length > 0
       ? projectId
       : "parkour-base-project";
@@ -892,10 +912,53 @@ export class FirestoreAdapterService {
       return this.trackPending(() =>
         this.platformService.isNative()
           ? this.getDocumentNative<T>(path)
-          : this.getDocumentWeb<T>(path),
+          : this.isServer
+            ? this.getDocumentHttp<T>(path)
+            : this.getDocumentWeb<T>(path),
       );
 
     }, false);
+  }
+
+  /**
+   * Server rendering reads with one plain request. The web SDK's getDoc opens a
+   * Listen channel, costing about ten round trips and most of a render's CPU.
+   * Each render has its own adapter, so repeated reads share one response, and
+   * decoding per caller keeps them from sharing mutable data.
+   * These requests carry no App Check token: see the enforcement checklist.
+   */
+  private async getDocumentHttp<T>(path: string): Promise<T | null> {
+    let pending = this.serverDocumentReads.get(path);
+    if (!pending) {
+      pending = this.fetchDocumentHttp(path);
+      this.serverDocumentReads.set(path, pending);
+    }
+    const document = await pending;
+    if (!document) return null;
+    return {
+      id: this.extractIdFromDocumentName(document.name),
+      ...decodeFirestoreRestFields(document.fields, (referencePath) =>
+        doc(this.firestore, referencePath),
+      ),
+    } as T;
+  }
+
+  private async fetchDocumentHttp(
+    path: string,
+  ): Promise<FirestoreRestDocument | null> {
+    const projectId = this.getFirestoreProjectId();
+    const documentPath = path.split("/").map(encodeURIComponent).join("/");
+    const response = await fetch(
+      `${this.firestoreRestBaseUrl}/projects/${projectId}/databases/(default)/documents/${documentPath}`,
+    );
+    if (response.status === 404) {
+      await response.body?.cancel();
+      return null;
+    }
+    if (!response.ok) {
+      throw await firestoreRestError(response);
+    }
+    return (await response.json()) as FirestoreRestDocument;
   }
 
   private async getDocumentWeb<T>(path: string): Promise<T | null> {
