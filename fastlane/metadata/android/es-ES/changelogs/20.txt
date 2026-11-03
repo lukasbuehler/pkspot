@@ -1,8 +1,6 @@
 PK Spot 1.2.1: Mejoras y correcciones
 
-• La búsqueda muestra primero los nombres que mejor coinciden.
-• El mapa se mantiene en su sitio cuando cambia el diseño.
-• Barra de pestañas nativa en iPhone.
+• Búsqueda mejorada: buscar por nombre ahora da mejores resultados
+• Actualización de seguridad de Firebase
 • Mejores tarjetas para compartir, y ahora puedes compartir y seguir comunidades.
-• Carga más rápida.
-• Correcciones de traducción, privacidad y errores.
+• Traducciones y correcciones generales.

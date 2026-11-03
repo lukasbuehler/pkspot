@@ -1,8 +1,7 @@
 PK Spot 1.2.1: Verfijning en bugfixes
 
-• Zoeken toont nu eerst de best passende namen.
-• De kaart blijft staan wanneer de lay-out verandert.
-• Native tabbalk op iPhone.
+• Verbeterd zoeken: zoeken op naam geeft nu betere resultaten
+• Firebase-beveiligingsupdate
+• Native tabbalk op iPhone en iPhone Duo.
 • Betere deelkaarten, en je kunt nu community’s delen en volgen.
-• Sneller laden.
-• Oplossingen voor vertalingen, privacy en bugs.
+• Vertalingen en algemene bugfixes.
