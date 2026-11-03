@@ -119,6 +119,8 @@ const visualPendingSpot: PendingSpotPanel = {
   rating: 4.6,
 };
 
+const VISUAL_LONG_SPOT_TITLE = "Riverside Training Walls and Rooftop Movement Center at the Old Harbour";
+
 @Component({
   selector: "app-spot-bottom-sheet-visual-test-page",
   imports: [BottomSheetComponent, MapSpotDetailsPanelComponent],
@@ -204,7 +206,7 @@ export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
     "visual-riverside-training-walls" as SpotId,
     this.route.snapshot.queryParamMap.has("report")
       ? {...visualSpotData, is_reported: true, report_reason: "torn down"}
-      : {...visualSpotData, recent_activity_min_30d: this.route.snapshot.queryParamMap.has("activity") ? 2 : null, ...(this.route.snapshot.queryParamMap.has("shortTitle")
+      : {...visualSpotData, ...(this.route.snapshot.queryParamMap.has("longTitle") ? {name: {en: VISUAL_LONG_SPOT_TITLE, de: VISUAL_LONG_SPOT_TITLE}} : {}), recent_activity_min_30d: this.route.snapshot.queryParamMap.has("activity") ? 2 : null, ...(this.route.snapshot.queryParamMap.has("shortTitle")
           ? {name: {en: "Lindenhof", de: "Lindenhof"}} : {})},
     "de",
   );

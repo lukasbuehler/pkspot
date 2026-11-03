@@ -8,6 +8,7 @@ import {
   MovableViewOutletDirective,
 } from "./movable-view.directive";
 import { NativeTabBarService } from "../../services/native-tab-bar.service";
+import { nativeTabBarOwnsNavigation } from "../../features/native-tab-bar";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -491,10 +492,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private readonly _nativeTabBar = inject(NativeTabBarService);
-  /** Reserves room for the web Alain menu, which the native iOS bar replaces. */
+  /** Reserves room for the web Alain menu, unless the native iOS bar replaces it. */
   readonly alainMode = computed(
     () =>
-      this.responsiveService.alainMode() && !this._nativeTabBar.available(),
+      this.responsiveService.alainMode() &&
+      !nativeTabBarOwnsNavigation(
+        this._nativeTabBar.available(),
+        false,
+        this.responsiveService.landscapePhone(),
+      ),
   );
 
   isServer: boolean;
@@ -730,6 +736,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       : null,
   );
   readonly mapViewportKnown = computed(() => this._viewport() !== null);
+  private _mapObjectsSearched = signal(false);
+  private _mapSpotsArrived = signal(false);
+  /** Events and communities for the first viewport arrive with this search. */
+  readonly mapObjectsLoaded = computed(
+    () => this._mapObjectsSearched() || this._denseMapPerformanceMode(),
+  );
+  /** The Spot list loads separately and later, unless the area has no Spots. */
+  readonly mapSpotListReady = computed(
+    () =>
+      this._denseMapPerformanceMode() ||
+      this._hasActiveSpotFilter() ||
+      (this._mapObjectsSearched() && this._mapSpotsArrived()),
+  );
   mapObjectMode = signal<MapObjectMode>("all");
   mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
     const counts = this._displayMapObjectCounts();
@@ -2245,10 +2264,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             this._visibleMapEvents.set(result.events);
             this._promotableEvents.set(result.promoEvents);
             this._visibleMapCommunities.set(visibleCommunities);
+            if (result.counts.spots === 0) this._mapSpotsArrived.set(true);
+            this._mapObjectsSearched.set(true);
           })
-          .catch((err) =>
-            console.warn("MapPage: failed to load map objects in bounds", err),
-          );
+          .catch((err) => {
+            console.warn("MapPage: failed to load map objects in bounds", err);
+            this._mapSpotsArrived.set(true);
+            this._mapObjectsSearched.set(true);
+          });
       }, 400);
 
       onCleanup(() => {
@@ -2651,11 +2674,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
+  onSpotPreviewsLoaded() {
+    this._mapSpotsArrived.set(true);
+  }
+
   setVisibleSpots(spots: Spot[]) {
     this._recordMapProfile("visible-spots-change", {
       count: spots?.length ?? 0,
     });
     this.visibleSpots = spots ?? [];
+    if (this.visibleSpots.length > 0) this._mapSpotsArrived.set(true);
     this._refreshVisibleCommunitiesFromLoadedList();
   }
 

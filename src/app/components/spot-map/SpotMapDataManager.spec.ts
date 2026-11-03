@@ -582,6 +582,59 @@ describe("SpotMapDataManager filters", () => {
   });
 });
 
+describe("SpotMapDataManager Spot preview loading", () => {
+  const tiles = {
+    zoom: 12,
+    tiles: [],
+    viewportBounds: { north: 1, south: 0, east: 1, west: 0 },
+  };
+
+  async function loadPreviews(searchSpotsInRawBounds: () => Promise<unknown>) {
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SearchService, { searchSpotsInRawBounds }],
+        ])
+      )
+    );
+    expect(manager.spotPreviewsLoaded()).toBe(false);
+
+    (
+      manager as unknown as {
+        _loadHighlightsForTiles: (
+          tiles: unknown,
+          options: { limit: number }
+        ) => void;
+      }
+    )._loadHighlightsForTiles(tiles, { limit: 8 });
+    await vi.waitFor(() => expect(searchSpotsInRawBounds).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve));
+    return manager;
+  }
+
+  it("reports loaded when the viewport has no previews", async () => {
+    const manager = await loadPreviews(
+      vi.fn().mockResolvedValue({ hits: [] })
+    );
+
+    expect(manager.visibleHighlightedSpots()).toEqual([]);
+    expect(manager.spotPreviewsLoaded()).toBe(true);
+  });
+
+  it("reports loaded when the search fails", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const manager = await loadPreviews(
+      vi.fn().mockRejectedValue(new Error("offline"))
+    );
+
+    expect(manager.spotPreviewsLoaded()).toBe(true);
+    consoleError.mockRestore();
+  });
+});
+
 describe("SpotMapDataManager amenity tiles", () => {
   it("treats a successful empty response as loaded", async () => {
     const getAmenityMarkers = vi.fn().mockResolvedValue([]);

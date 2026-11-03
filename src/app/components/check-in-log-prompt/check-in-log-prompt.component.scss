@@ -1,3 +1,9 @@
+// Usually nothing to show: an empty grid item would still add its parent's gap
+// when it appears after the sessions load, moving the page down.
+:host:empty {
+  display: none;
+}
+
 :host { display: block; }
 .prompt { display: flex; gap: 14px; margin-block: 24px; padding: 16px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; background: var(--mat-sys-surface-container-low); color: var(--mat-sys-on-surface); }
 .prompt-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; border-radius: 13px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-primary); }

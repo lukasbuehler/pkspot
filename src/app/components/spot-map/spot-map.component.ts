@@ -239,6 +239,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   readonly hasGeolocationChange = output<boolean>();
   readonly visibleSpotsChange = output<Spot[]>();
   readonly hightlightedSpotsChange = output<SpotPreviewData[]>();
+  readonly spotPreviewsLoaded = output<void>();
   readonly spotOpenRequested = output<LocalSpot | Spot | SpotPreviewData | SpotId>();
   readonly markerClickEvent = output<number | MarkerClickPayload>();
 
@@ -595,6 +596,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         this.hightlightedSpotsChange,
         visibleHighlightedSpots,
       );
+    });
+
+    effect(() => {
+      if (this._spotMapDataManager.spotPreviewsLoaded()) {
+        this._emitWhileAlive(this.spotPreviewsLoaded, undefined);
+      }
     });
 
     // Update check-in service with selected spot

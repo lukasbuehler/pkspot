@@ -12,6 +12,11 @@
   min-height: 100dvh;
 }
 
+// An Events section can still appear above this heading, which would move it.
+.peek-title--pending {
+  visibility: hidden;
+}
+
 .object-panel-section h2 {
   color: var(--mat-sys-on-surface);
 }

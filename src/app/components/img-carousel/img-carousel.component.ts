@@ -47,6 +47,9 @@ import type { PendingMediaPreview } from "../../services/firebase/firestore/medi
 
 export type ImgCarouselImageFit = "cover" | "contain";
 
+/** Photos are mostly landscape; used until an image has loaded its real size. */
+const DEFAULT_IMAGE_ASPECT_RATIO = 4 / 3;
+
 @Component({
   selector: "app-img-carousel",
   imports: [
@@ -642,7 +645,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   getImageAspectRatio(index: number): string {
-    return String(this.youtubeIds()[index] ? 16 / 9 : this.imageAspectRatios().get(index) ?? 1);
+    return String(this.youtubeIds()[index] ? 16 / 9 : this.imageAspectRatios().get(index) ?? DEFAULT_IMAGE_ASPECT_RATIO);
   }
 
   getImagePreviewFit(index: number): ImgCarouselImageFit {
@@ -926,7 +929,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
         this.getPreviewFullWidth(
           viewportWidth,
           viewportHeight,
-          this.imageAspectRatios().get(mediaItems.length + index) ?? 1,
+          this.imageAspectRatios().get(mediaItems.length + index) ??
+            DEFAULT_IMAGE_ASPECT_RATIO,
         ),
       );
     }
@@ -954,7 +958,9 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     viewportHeight: number,
     aspectRatio: number,
   ): number {
-    const imageAspectRatio = Number.isFinite(aspectRatio) ? aspectRatio : 1;
+    const imageAspectRatio = Number.isFinite(aspectRatio)
+      ? aspectRatio
+      : DEFAULT_IMAGE_ASPECT_RATIO;
     const naturalWidth = viewportHeight * imageAspectRatio;
     const maxWidth = Math.min(420, viewportWidth * 0.76);
     return Math.max(112, Math.min(naturalWidth, maxWidth));

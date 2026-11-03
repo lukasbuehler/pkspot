@@ -92,6 +92,9 @@ app-spot-map {
     }
 
     .map-panel-home__panel {
+      // The server assumes a closed sheet, which collapses panel headers. This
+      // layout is a sidebar, so its content is always fully open.
+      --sheet-open-progress: 1;
       inset-block-start: 0;
       padding-block-start: 132px;
       border-radius: 0;

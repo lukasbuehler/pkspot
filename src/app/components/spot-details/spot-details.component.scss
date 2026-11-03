@@ -74,8 +74,9 @@ form {
 
 .spot-title-text {
   min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .spot-kind-label {
@@ -388,12 +389,6 @@ div.google-img-container {
 
 
 // Keep the preview title compact until the full Spot metadata is available.
-.spot-title-text.spot-loading-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 // Only missing title text receives a skeleton.
 .spot-loading-title {
   display: inline-block;
