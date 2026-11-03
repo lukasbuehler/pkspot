@@ -9,7 +9,10 @@ import {
 } from "@angular/core";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { isPlatformBrowser } from "@angular/common";
-import { getNavigationLayout } from "../features/navigation-layout";
+import {
+  getNavigationLayout,
+  isLandscapePhoneViewport,
+} from "../features/navigation-layout";
 
 /**
  * Responsive view mode based on screen size breakpoints
@@ -84,6 +87,11 @@ export class ResponsiveService {
     this.getViewportHeight(),
   );
   readonly viewportHeight = this._viewportHeight.asReadonly();
+
+  readonly landscapePhone = computed(() => isLandscapePhoneViewport({
+    width: this.viewportWidth(),
+    height: this.viewportHeight(),
+  }));
 
   readonly navigationLayout = computed(() => getNavigationLayout({
     width: this.viewportWidth(),

@@ -69,16 +69,16 @@ export function nativeTabSymbol(materialIcon: string): string {
 }
 
 /**
- * Where the native bar exists it replaces every web navigation: the bottom
- * bar, the rail and the short-layout Alain menu. iOS keeps the bar visible in
- * landscape and moves it into the iPhone Duo's vertical bar, so the web
- * never needs its fallback menu there.
+ * Where the native bar exists it replaces the web bottom bar and rail, and the
+ * iPhone Duo keeps it in its vertical bar. A regular iPhone in landscape uses
+ * the Alain menu instead: the floating bar takes too much of the little height.
  */
 export function nativeTabBarOwnsNavigation(
   available: boolean,
   embedded: boolean,
+  landscapePhone: boolean,
 ): boolean {
-  return available && !embedded;
+  return available && !embedded && !landscapePhone;
 }
 
 /**

@@ -19,11 +19,22 @@ const RAIL_MIN_HEIGHT = 560;
  * split screen, keep the bottom sheet so the map stays wide enough to use.
  */
 const SIDE_DRAWER_MIN_ASPECT = 1.3;
+const LANDSCAPE_PHONE_MIN_ASPECT = 1.6;
 
 export function isAlainViewport({ width, height }: NavigationViewport): boolean {
   if (width === null || height === null) return false;
 
   return height < 500 || (width < 768 && height < 700);
+}
+
+/**
+ * A regular iPhone on its side. The iPhone Duo's square-ish screen is also short
+ * enough for Alain mode, but its tab bar sits in a side column and costs no height.
+ */
+export function isLandscapePhoneViewport({ width, height }: NavigationViewport): boolean {
+  if (width === null || height === null) return false;
+
+  return height < 500 && width >= height * LANDSCAPE_PHONE_MIN_ASPECT;
 }
 
 export function getNavigationLayout(

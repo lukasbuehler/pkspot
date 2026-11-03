@@ -349,6 +349,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     nativeTabBarOwnsNavigation(
       this._nativeTabBar.available(),
       this.isEmbedded() === true,
+      this.responsive.landscapePhone(),
     ),
   );
   /** The web Alain menu, unless the native tab bar replaces it. */
