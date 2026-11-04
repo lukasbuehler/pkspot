@@ -89,6 +89,42 @@ describe("MapsApiService library loading", () => {
     }
   });
 
+  it("loads Maps again after an adopted early script fails", () => {
+    const early = document.createElement("script");
+    early.id = "pkspot-early-maps-api";
+    early.onerror = () => early.remove();
+    document.head.appendChild(early);
+    const isLoading$ = new BehaviorSubject(false);
+    const loadingProgress$ = new BehaviorSubject(0);
+    const service = createService({
+      isApiLoaded: () => false,
+      _isLoading$: isLoading$,
+      _loadingProgress$: loadingProgress$,
+    });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const retryScript = () =>
+      document.querySelector<HTMLScriptElement>(
+        'script[src^="https://maps.googleapis.com/maps/api/js"]',
+      );
+    try {
+      service.loadGoogleMapsApi();
+      expect(isLoading$.value).toBe(true);
+
+      early.dispatchEvent(new Event("error"));
+      expect(isLoading$.value).toBe(false);
+      expect(loadingProgress$.value).toBe(0);
+
+      service.loadGoogleMapsApi();
+      expect(isLoading$.value).toBe(true);
+      expect(retryScript()).not.toBeNull();
+    } finally {
+      consoleError.mockRestore();
+      early.remove();
+      retryScript()?.remove();
+      delete (window as Window & { mapsCallback?: () => void }).mapsCallback;
+    }
+  });
+
   it("loads Places on demand before autocomplete, detail and nearby calls", async () => {
     const fetchFields = vi.fn().mockResolvedValue(undefined);
     const suggestions = vi.fn().mockResolvedValue({ suggestions: [] });

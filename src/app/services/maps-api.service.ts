@@ -234,8 +234,14 @@ export class MapsApiService extends ConsentAwareService {
       mapsCallback?: () => void;
       pkspotMapsReady?: boolean;
     };
-    if (document.getElementById(EARLY_MAPS_SCRIPT_ID)) {
+    const earlyScript = document.getElementById(EARLY_MAPS_SCRIPT_ID);
+    if (earlyScript) {
       this._loadingProgress$.next(50);
+      // The early script removes itself on failure, so the next call starts a
+      // fresh download once the loading state is reset here.
+      earlyScript.addEventListener("error", () =>
+        this._handleGoogleMapsScriptError(),
+      );
       if (mapsWindow.pkspotMapsReady) {
         void this._finishGoogleMapsApiLoad();
       } else {
@@ -254,11 +260,7 @@ export class MapsApiService extends ConsentAwareService {
       this._loadingProgress$.next(75); // Script loaded, waiting for callback
     };
 
-    script.onerror = () => {
-      this._isLoading$.next(false);
-      this._loadingProgress$.next(0);
-      console.error("Failed to load Google Maps API");
-    };
+    script.onerror = () => this._handleGoogleMapsScriptError();
 
     document.body.appendChild(script);
     this._loadingProgress$.next(50); // Script added to DOM
@@ -267,6 +269,12 @@ export class MapsApiService extends ConsentAwareService {
     (window as Window & { mapsCallback?: () => void }).mapsCallback = () => {
       void this._finishGoogleMapsApiLoad();
     };
+  }
+
+  private _handleGoogleMapsScriptError(): void {
+    this._isLoading$.next(false);
+    this._loadingProgress$.next(0);
+    console.error("Failed to load Google Maps API");
   }
 
   private async _finishGoogleMapsApiLoad(): Promise<void> {
