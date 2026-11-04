@@ -13,7 +13,9 @@
     }
 
     @if (detailChips().length > 0) {
+      <!-- These lists shrink to the selected chips while hydrating; reusing the server chips scrambled their order. -->
       <app-filter-chips-bar
+        ngSkipHydration
         class="detail-filters"
         [presetFilters]="detailChips()"
         [selectedFilters]="selectedDetails()"
@@ -29,6 +31,7 @@
 
     @if (regionChips().length > 0) {
       <app-filter-chips-bar
+        ngSkipHydration
         class="region-filters"
         [presetFilters]="regionChips()"
         [selectedFilters]="selectedRegions()"

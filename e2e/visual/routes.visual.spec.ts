@@ -939,6 +939,11 @@ test.describe("Route visual regression @visual", () => {
         await expect(page.locator(".train-rail a[href$='/sign-in']")).toBeVisible();
       }
 
+      if (route.name === "events-community-europe") {
+        // A filter in the URL must not reorder the chips while hydrating.
+        await expect(page.locator(".detail-filters mat-chip-option").first()).toContainText("Wettkampf");
+      }
+
       if (route.name === "events-mobile-list") {
         const filters = page.locator(".detail-filters");
         await expect(filters).toBeVisible();
@@ -2366,6 +2371,11 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.waitForLoadState("load");
   await expect(page.locator("#app-splash-screen")).toHaveCount(0);
   await page.waitForTimeout(900);
+  // Under load the fallback font can still be showing after the page has settled.
+  await page.evaluate(async () => {
+    await Promise.all(["400 16px Roboto", "500 16px Roboto"].map(font => document.fonts.load(font)));
+    await document.fonts.ready;
+  });
 
   if (route.name === "event-plan-community-authoring") {
     await expect(page.locator("app-session-planner-page form")).toBeVisible();

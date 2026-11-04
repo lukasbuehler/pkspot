@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { MapPage } from "../pages/map.page";
 
 /**
@@ -9,6 +9,14 @@ import { MapPage } from "../pages/map.page";
  * We use higher tolerance and focus on stable UI elements.
  * Uses 'de' locale for SSR dev build compatibility.
  */
+/** A live event in the area would add a section above the Spots and move them. */
+async function hideLiveEventSection(page: Page): Promise<void> {
+  await page.addStyleTag({
+    content:
+      ".object-panel-section:has(app-map-event-list) { display: none !important; }",
+  });
+}
+
 test.describe("Map Page Visual Regression @visual", () => {
   let mapPage: MapPage;
 
@@ -47,6 +55,7 @@ test.describe("Map Page Visual Regression @visual", () => {
     await mapPage.goto("de");
     await mapPage.waitForMapReady();
     await page.waitForTimeout(2000);
+    await hideLiveEventSection(page);
     await expect(
       page.locator("app-bottom-sheet app-map-object-panel .area-header"),
     ).toHaveCSS("padding-top", "0px");
@@ -93,6 +102,7 @@ test.describe("Map Page Visual Regression @visual", () => {
     const map = page.locator("app-spot-map .gm-style[data-visual-map]");
     const panel = page.locator("app-map-object-panel[data-visual-panel]");
     // Live pins, counts and photos change independently of the layout.
+    await hideLiveEventSection(page);
     await page.addStyleTag({
       content: "gmp-advanced-marker { visibility: hidden !important; }",
     });
