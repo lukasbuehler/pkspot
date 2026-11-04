@@ -740,6 +740,12 @@ test.describe("Route visual regression @visual", () => {
         await expect(page.locator("app-youtube-player .youtube-watch")).toBeVisible();
       }
 
+      if (route.name === "event-create-authoring") {
+        // The form is taller once the location map has replaced its placeholder.
+        await expect(page.locator(".bounds-picker-loading")).toHaveCount(0, { timeout: 20_000 });
+        await expect(page.locator(".bounds-picker google-map").first()).toBeVisible();
+      }
+
       if (route.path === "/moderation/event-suggestions" && route.admin) {
         await expect(page.locator("app-event-suggestion-review-page mat-expansion-panel")).toHaveCount(2);
         await expect(page.locator("app-event-suggestion-review-page")).toContainText("Zürich Community Jam");
