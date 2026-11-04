@@ -1,6 +1,5 @@
 PK Spot 1.2.1 : Améliorations et corrections
 
 • Recherche améliorée : la recherche par nom donne maintenant de meilleurs résultats
-• Mise à jour de sécurité Firebase
 • De meilleures cartes de partage, et vous pouvez maintenant partager et suivre des communautés.
 • Traductions et corrections de bugs générales.

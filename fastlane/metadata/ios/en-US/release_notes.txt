@@ -1,4 +1,4 @@
-PK Spot 1.2.1: Training Polishes & Bug Fixes
+PK Spot 1.2.1: Polish & Bug Fixes
 
 • Improved search: Searching by names now yields better results
 • Firebase Security update

@@ -1,6 +1,5 @@
 PK Spot 1.2.1: Verfijning en bugfixes
 
 • Verbeterd zoeken: zoeken op naam geeft nu betere resultaten
-• Firebase-beveiligingsupdate
 • Betere deelkaarten, en je kunt nu community’s delen en volgen.
 • Vertalingen en algemene bugfixes.

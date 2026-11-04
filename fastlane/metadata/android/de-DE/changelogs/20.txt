@@ -1,6 +1,5 @@
 PK Spot 1.2.1: Feinschliff und Fehlerbehebungen
 
 • Verbesserte Suche: Die Suche nach Namen liefert jetzt bessere Ergebnisse
-• Firebase-Sicherheitsupdate
 • Bessere Share Cards, und du kannst Communities jetzt teilen und ihnen folgen.
 • Übersetzungen und allgemeine Fehlerbehebungen.
