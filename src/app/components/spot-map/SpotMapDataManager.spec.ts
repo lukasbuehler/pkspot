@@ -633,6 +633,35 @@ describe("SpotMapDataManager Spot preview loading", () => {
     expect(manager.spotPreviewsLoaded()).toBe(true);
     consoleError.mockRestore();
   });
+
+  it("ignores a stale failure while a newer search is pending", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    let rejectStale!: (error: Error) => void;
+    const stale = new Promise<{ hits: never[] }>((_, reject) => {
+      rejectStale = reject;
+    });
+    const newer = new Promise<{ hits: never[] }>(() => undefined);
+    const manager = await loadPreviews(
+      vi.fn().mockReturnValueOnce(stale).mockReturnValueOnce(newer)
+    );
+
+    (
+      manager as unknown as {
+        _loadHighlightsForTiles: (
+          tiles: unknown,
+          options: { limit: number }
+        ) => void;
+      }
+    )._loadHighlightsForTiles(tiles, { limit: 8 });
+    rejectStale(new Error("offline"));
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(manager.spotPreviewsLoaded()).toBe(false);
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
 });
 
 describe("SpotMapDataManager amenity tiles", () => {

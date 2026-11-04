@@ -135,6 +135,7 @@
       <app-spot-list
         class="px-3 d-block"
         [spots]="visibleSpots()"
+        [showEmptyText]="spotListReady()"
         [hideHeader]="true"
         [highlightedSpots]="highlightedSpots()"
         [mapZoom]="mapZoom()"

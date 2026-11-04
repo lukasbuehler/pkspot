@@ -2269,7 +2269,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           })
           .catch((err) => {
             console.warn("MapPage: failed to load map objects in bounds", err);
-            this._mapSpotsArrived.set(true);
+            if (requestVersion !== this._mapObjectSearchVersion) return;
+            // The Spot list stays pending until the separate preview search settles.
             this._mapObjectsSearched.set(true);
           });
       }, 400);

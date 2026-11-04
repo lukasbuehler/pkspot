@@ -1184,6 +1184,10 @@ export class SpotMapDataManager {
         this._visibleHighlightedSpots.set(previews);
       })
       .catch((err) => {
+        if (requestId !== this._spotPreviewRequestId) {
+          return;
+        }
+
         console.error("Typesense highlight search failed:", err);
         this._spotPreviewsLoaded.set(true);
         // Only clear if we actually had spots

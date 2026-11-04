@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 # Scans staged changes for secrets with GitGuardian's ggshield. The staged diff
-# is sent to the GitGuardian API. Setup: `brew install ggshield`, then
-# `ggshield auth login`. Skip one commit with `git commit -n`.
+# is sent to the GitGuardian API. Setup: `brew install ggshield` (1.50.0 or
+# newer, for --no-fail-on-server-error), then `ggshield auth login`. Skip one
+# commit with `git commit -n`.
 set -u
 
 if ! command -v ggshield >/dev/null 2>&1; then
