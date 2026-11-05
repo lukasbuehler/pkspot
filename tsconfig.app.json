@@ -2,6 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../out-tsc/app",
+    // Keep type-check results out of the shared .angular/cache/.tsbuildinfo.
+    // `ng serve`, `ng build` and every git worktree read and write that one
+    // file, so a long-running dev server could save a false error that later
+    // builds would report until the cache was cleared.
+    "incremental": false,
     "types": ["node", "@angular/localize"]
   },
   "files": [
