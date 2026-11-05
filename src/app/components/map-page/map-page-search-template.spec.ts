@@ -36,9 +36,8 @@ describe("MapPageComponent search template", () => {
   it("does not hide route-resolved panel content behind the browser layout gate during SSR", () => {
     const template = readFileSync(templatePath, "utf8");
 
-    expect(template).toContain(
-      "@if (!responsiveService.isInitialized() && !isServer)",
-    );
+    expect(template).toContain("[appMovableViewHost]=\"sidebarContent\"");
+    expect(template).toContain("@if (!responsiveService.isInitialized())");
     expect(template).toContain('<ng-template #sidebarContent>');
     expect(template).toContain('<app-map-community-landing-panel');
   });

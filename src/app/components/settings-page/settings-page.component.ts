@@ -320,6 +320,8 @@ export class SettingsPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Account deletion may reauthenticate through a provider popup.
+    this.authService.preparePopupSignIn();
     this._metaTagService.setStaticPageMetaTags(
       $localize`Settings`,
       $localize`Manage your profile and account settings.`

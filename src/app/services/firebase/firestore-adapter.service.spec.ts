@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi, Mock } from "vitest";
+import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import {
   GeoPoint,
@@ -178,7 +179,7 @@ const createMockPlatformService = (
 });
 
 const createMockAppCheckService = () => ({
-  initialize: vi.fn().mockResolvedValue(undefined),
+  readyForDataRequests: vi.fn().mockResolvedValue(undefined),
 });
 
 describe("FirestoreAdapterService", () => {
@@ -214,11 +215,112 @@ describe("FirestoreAdapterService", () => {
     });
   });
 
+  describe("getDocument (server rendering)", () => {
+    const documentResponse = () =>
+      new Response(
+        JSON.stringify({
+          name: "projects/p/databases/(default)/documents/spots/abc",
+          fields: {
+            name: { stringValue: "Spot" },
+            location: { geoPointValue: { latitude: 47, longitude: 8 } },
+          },
+        }),
+      );
+    let fetchMock: Mock;
+    let firestoreFactory: Mock;
+
+    beforeEach(() => {
+      fetchMock = vi.fn(async () => documentResponse());
+      vi.stubGlobal("fetch", fetchMock);
+      firestoreFactory = vi.fn(() => mockFirestore);
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          FirestoreAdapterService,
+          { provide: PLATFORM_ID, useValue: "server" },
+          { provide: FIREBASE_FIRESTORE, useFactory: firestoreFactory },
+          { provide: PlatformService, useValue: mockPlatformService },
+          { provide: FirebaseAppCheckService, useValue: mockAppCheckService },
+        ],
+      });
+      service = TestBed.inject(FirestoreAdapterService);
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("reads with one request and without creating an SDK client", async () => {
+      const { getDoc } = await import("firebase/firestore");
+
+      const result = await service.getDocument<Record<string, unknown>>(
+        "spots/abc",
+      );
+
+      expect(result).toEqual({
+        id: "abc",
+        name: "Spot",
+        location: new GeoPoint(47, 8),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(String(fetchMock.mock.calls[0][0])).toMatch(
+        /\/databases\/\(default\)\/documents\/spots\/abc$/,
+      );
+      expect(getDoc).not.toHaveBeenCalled();
+      expect(firestoreFactory).not.toHaveBeenCalled();
+    });
+
+    it("shares a response between repeated reads but not its data", async () => {
+      const first = await service.getDocument<{ name: string }>("spots/abc");
+      first!.name = "Changed";
+      const second = await service.getDocument<{ name: string }>("spots/abc");
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(second!.name).toBe("Spot");
+    });
+
+    it("escapes path segments such as place name keys", async () => {
+      await service.getDocument("place_names/FR:marseille:43:5");
+
+      expect(String(fetchMock.mock.calls[0][0])).toContain(
+        "/documents/place_names/FR%3Amarseille%3A43%3A5",
+      );
+    });
+
+    it("returns null for a missing document", async () => {
+      fetchMock.mockResolvedValueOnce(new Response("{}", { status: 404 }));
+
+      await expect(service.getDocument("spots/missing")).resolves.toBeNull();
+    });
+
+    it("reports denied reads with the code the web SDK uses", async () => {
+      fetchMock.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ error: { status: "PERMISSION_DENIED" } }),
+          { status: 403 },
+        ),
+      );
+
+      await expect(service.getDocument("events/secret")).rejects.toMatchObject({
+        code: "permission-denied",
+      });
+    });
+
+    it("fails on errors without a readable status", async () => {
+      fetchMock.mockResolvedValueOnce(new Response("down", { status: 502 }));
+
+      await expect(service.getDocument("spots/abc")).rejects.toMatchObject({
+        code: "unknown",
+        message: expect.stringContaining("502"),
+      });
+    });
+  });
+
   describe("getDocument (web)", () => {
-    it("waits for App Check initialization before using the web SDK", async () => {
+    it("waits for App Check readiness before using the web SDK", async () => {
       const { getDoc } = await import("firebase/firestore");
       let resolveAppCheck!: () => void;
-      mockAppCheckService.initialize.mockReturnValueOnce(
+      mockAppCheckService.readyForDataRequests.mockReturnValueOnce(
         new Promise<void>((resolve) => {
           resolveAppCheck = resolve;
         })
@@ -232,7 +334,7 @@ describe("FirestoreAdapterService", () => {
       resolveAppCheck();
       await resultPromise;
 
-      expect(mockAppCheckService.initialize).toHaveBeenCalledTimes(1);
+      expect(mockAppCheckService.readyForDataRequests).toHaveBeenCalledTimes(1);
       expect(getDoc).toHaveBeenCalled();
     });
 
@@ -530,9 +632,9 @@ describe("FirestoreAdapterService (native)", () => {
   });
 
   describe("getDocument (native)", () => {
-    it("waits for App Check initialization before using the native SDK", async () => {
+    it("waits for App Check readiness before using the native SDK", async () => {
       let resolveAppCheck!: () => void;
-      mockAppCheckService.initialize.mockReturnValueOnce(
+      mockAppCheckService.readyForDataRequests.mockReturnValueOnce(
         new Promise<void>((resolve) => {
           resolveAppCheck = resolve;
         })
@@ -546,7 +648,7 @@ describe("FirestoreAdapterService (native)", () => {
       resolveAppCheck();
       await resultPromise;
 
-      expect(mockAppCheckService.initialize).toHaveBeenCalledTimes(1);
+      expect(mockAppCheckService.readyForDataRequests).toHaveBeenCalledTimes(1);
       expect(FirebaseFirestore.getDocument).toHaveBeenCalledWith({
         reference: "collection/doc-id",
       });

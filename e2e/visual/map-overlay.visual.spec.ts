@@ -27,8 +27,9 @@ test("keeps map creation stable as sheet actions change @visual", async ({ page 
   await acceptCurrentTerms(page);
   await page.setViewportSize({ width: 960, height: 600 });
   await page.goto("/de/__visual/map-overlay");
-  // Clicks are only handled once the server-rendered page has hydrated.
-  await expect(page.locator("app-root[ngh]")).toHaveCount(0);
+  // Clicks are only handled once the server-rendered page has hydrated. The
+  // routed page and its nested views hydrate after the app root.
+  await expect(page.locator("[ngh]")).toHaveCount(0);
   const surface = page.locator(".map-controls-surface");
   await surface.evaluate(element => {
     element.style.setProperty("--map-leading-safe-area", "48px");

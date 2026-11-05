@@ -6,6 +6,17 @@
   margin-bottom: 1.25rem;
 }
 
+// Keep what follows below the fold until the list has loaded, so its arrival
+// does not shift visible content.
+.object-panel-section--pending {
+  min-height: 100dvh;
+}
+
+// An Events section can still appear above this heading, which would move it.
+.peek-title--pending {
+  visibility: hidden;
+}
+
 .object-panel-section h2 {
   color: var(--mat-sys-on-surface);
 }

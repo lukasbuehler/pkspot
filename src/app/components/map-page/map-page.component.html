@@ -115,6 +115,8 @@
         [weather]="mapWeatherResponse()"
         [spotListLimit]="spotListLimit()"
         [mapZoom]="spotMap ? spotMap.mapZoom() : null"
+        [areaKnown]="mapObjectsLoaded()"
+        [spotListReady]="mapSpotListReady()"
         [openProgress]="
           usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
@@ -154,6 +156,7 @@
         [minZoom]="2"
         (visibleSpotsChange)="setVisibleSpots($event)"
         (hightlightedSpotsChange)="highlightedSpots = $event"
+        (spotPreviewsLoaded)="onSpotPreviewsLoaded()"
         (filterBoundsChange)="onFilterBoundsChange($event)"
         (viewportBoundsChange)="onViewportBoundsChange($event)"
         (visibleViewportChange)="onVisibleViewportChange($event)"
@@ -315,42 +318,55 @@
      every layout. The drawer and bottom-sheet layouts show them through
      `appMovableViewOutlet`, so crossing the layout breakpoint moves them
      instead of recreating them: panels keep their loaded data, the search
-     field its typed text and the chips and island their state. On the server
-     they render in place instead. -->
-<div class="map-panel-home" hidden>
-  <ng-container
-    [appMovableViewHost]="sidebarContent"
-    #panelView="movableViewHost"
-  ></ng-container>
-  <ng-container
-    [appMovableViewHost]="searchField"
-    #searchView="movableViewHost"
-  ></ng-container>
-  <ng-container
-    [appMovableViewHost]="chips"
-    #chipsView="movableViewHost"
-  ></ng-container>
-  <ng-container
-    [appMovableViewHost]="mapIsland"
-    #islandView="movableViewHost"
-  ></ng-container>
+     field its typed text and the chips and island their state. Until the first
+     browser render has finished they stay here, where the server rendered them,
+     and CSS gives them the geometry of the layout they are about to move into. -->
+<div
+  class="map-panel-home"
+  [class.map-panel-home--server]="serverPanelsVisible()"
+  [@.disabled]="serverPanelsVisible()"
+>
+  <div class="map-panel-home__top">
+    <div>
+      <ng-container
+        [appMovableViewHost]="searchField"
+        #searchView="movableViewHost"
+      ></ng-container>
+    </div>
+    <div>
+      <ng-container
+        [appMovableViewHost]="chips"
+        #chipsView="movableViewHost"
+      ></ng-container>
+    </div>
+    <div>
+      <ng-container
+        [appMovableViewHost]="mapIsland"
+        #islandView="movableViewHost"
+      ></ng-container>
+    </div>
+  </div>
+  <div class="map-panel-home__panel">
+    <ng-container
+      [appMovableViewHost]="sidebarContent"
+      #panelView="movableViewHost"
+    ></ng-container>
+  </div>
 </div>
 
 <ng-template #movableOutlet let-view>
-  @if (isServer) {
-    <ng-container *ngTemplateOutlet="view.template()"></ng-container>
-  } @else {
-    <div class="map-movable-outlet" [appMovableViewOutlet]="view"></div>
-  }
+  <div class="map-movable-outlet" [appMovableViewOutlet]="view"></div>
 </ng-template>
 
-@if (!responsiveService.isInitialized() && !isServer) {
-  <div
-    class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
-  >
-    <mat-icon class="map-status-icon">map</mat-icon>
-    <p class="mat-title-medium" i18n>Preparing map layout...</p>
-  </div>
+@if (!responsiveService.isInitialized()) {
+  @if (!isServer) {
+    <div
+      class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
+    >
+      <mat-icon class="map-status-icon">map</mat-icon>
+      <p class="mat-title-medium" i18n>Preparing map layout...</p>
+    </div>
+  }
 } @else {
   @if (usesMapDrawer()) {
     <div
@@ -388,6 +404,7 @@
     [class.map-overlay-drawer]="usesOverlayMapDrawer()"
     [class.map-panel-container--sheet]="usesMapBottomSheet()"
     [hasBackdrop]="false"
+    [@.disabled]="serverPanelsVisible()"
   >
     @if (usesMapDrawer()) {
       <mat-drawer

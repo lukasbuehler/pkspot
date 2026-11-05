@@ -8,8 +8,8 @@ import { isPlatformBrowser } from "@angular/common";
 import {
   OAuthProvider,
   GoogleAuthProvider,
-  getAuth,
   Auth,
+  browserPopupRedirectResolver,
   signInWithEmailAndPassword,
   signInWithPopup,
   signInWithCredential,
@@ -32,6 +32,7 @@ import {
   type UserCredential,
   connectAuthEmulator,
 } from "firebase/auth";
+import { getFirebaseAuth, preloadPopupSignIn } from "./firebase-auth";
 import {
   BehaviorSubject,
   filter,
@@ -353,7 +354,7 @@ export class AuthenticationService extends ConsentAwareService {
       return null as unknown as Auth;
     }
 
-    this._auth = getAuth(this._firebaseApp);
+    this._auth = getFirebaseAuth(this._firebaseApp);
     const emulatorSettings = getFirebaseEmulatorSettings();
     if (emulatorSettings && !authEmulatorConnected) {
       connectAuthEmulator(this._auth, emulatorSettings.auth.url, {
@@ -634,6 +635,14 @@ export class AuthenticationService extends ConsentAwareService {
   // Sign In with Google
   // ============================================
 
+  /** Call while Google or Apple sign-in controls are visible on the page. */
+  public preparePopupSignIn(): void {
+    if (!this._isBrowser || this._isNative) return;
+    this.executeWhenConsent(() => preloadPopupSignIn(this.auth)).catch(
+      (error) => console.warn("Could not prepare popup sign-in", error)
+    );
+  }
+
   public async signInGoogle(): Promise<void> {
     if (this._isNative) {
       return this._signInGoogleNative();
@@ -663,7 +672,8 @@ export class AuthenticationService extends ConsentAwareService {
 
       const googleSignInResponse = await signInWithPopup(
         this.auth,
-        googleAuthProvider
+        googleAuthProvider,
+        browserPopupRedirectResolver
       );
 
       // check if the user exists in the database
@@ -893,7 +903,8 @@ export class AuthenticationService extends ConsentAwareService {
 
       const appleSignInResponse = await signInWithPopup(
         this.auth,
-        appleAuthProvider
+        appleAuthProvider,
+        browserPopupRedirectResolver
       );
 
       // check if the user exists in the database
@@ -1342,7 +1353,11 @@ export class AuthenticationService extends ConsentAwareService {
       return Promise.reject(new Error("Unsupported provider: " + providerId));
     }
 
-    await reauthenticateWithPopup(this.auth.currentUser, provider);
+    await reauthenticateWithPopup(
+      this.auth.currentUser,
+      provider,
+      browserPopupRedirectResolver
+    );
   }
 
   private async _reauthenticateWithProviderNative(

@@ -206,6 +206,30 @@ describe("FirebaseAppCheckService", () => {
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["web", 0],
+    ["ios", 1],
+  ] as const)(
+    "starts App Check for a data request on %s only %i times",
+    async (platform, expectedStarts) => {
+      TestBed.configureTestingModule({
+        providers: [
+          FirebaseAppCheckService,
+          { provide: PLATFORM_ID, useValue: "browser" },
+          { provide: FIREBASE_APP, useValue: { name: "[DEFAULT]" } },
+          { provide: PlatformService, useValue: createPlatformService(platform) },
+          { provide: AnalyticsService, useValue: createAnalyticsService() },
+        ],
+      });
+      const service = TestBed.inject(FirebaseAppCheckService);
+      const initialize = vi.spyOn(service, "initialize").mockResolvedValue();
+
+      await service.readyForDataRequests();
+
+      expect(initialize).toHaveBeenCalledTimes(expectedStarts);
+    },
+  );
+
   it("returns a web token for App Check protected requests", async () => {
     TestBed.configureTestingModule({
       providers: [

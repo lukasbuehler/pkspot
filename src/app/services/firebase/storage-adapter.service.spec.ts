@@ -40,7 +40,7 @@ const createPlatformService = (isNative: boolean) => ({
 });
 
 const createAppCheckService = () => ({
-  initialize: vi.fn().mockResolvedValue(undefined),
+  readyForDataRequests: vi.fn().mockResolvedValue(undefined),
 });
 
 const storage = {
@@ -56,11 +56,11 @@ describe("StorageAdapterService", () => {
     vi.clearAllMocks();
   });
 
-  it("waits for App Check initialization before using the web SDK", async () => {
+  it("waits for App Check readiness before using the web SDK", async () => {
     const { getDownloadURL } = await import("firebase/storage");
     const appCheck = createAppCheckService();
     let resolveAppCheck!: () => void;
-    appCheck.initialize.mockReturnValueOnce(
+    appCheck.readyForDataRequests.mockReturnValueOnce(
       new Promise<void>((resolve) => {
         resolveAppCheck = resolve;
       })
@@ -85,14 +85,14 @@ describe("StorageAdapterService", () => {
     resolveAppCheck();
     await expect(resultPromise).resolves.toBe("https://example.com/file.jpg");
 
-    expect(appCheck.initialize).toHaveBeenCalledTimes(1);
+    expect(appCheck.readyForDataRequests).toHaveBeenCalledTimes(1);
     expect(getDownloadURL).toHaveBeenCalled();
   });
 
-  it("waits for App Check initialization before using the native plugin", async () => {
+  it("waits for App Check readiness before using the native plugin", async () => {
     const appCheck = createAppCheckService();
     let resolveAppCheck!: () => void;
-    appCheck.initialize.mockReturnValueOnce(
+    appCheck.readyForDataRequests.mockReturnValueOnce(
       new Promise<void>((resolve) => {
         resolveAppCheck = resolve;
       })
@@ -117,7 +117,7 @@ describe("StorageAdapterService", () => {
     resolveAppCheck();
     await expect(resultPromise).resolves.toBe("https://example.com/native.jpg");
 
-    expect(appCheck.initialize).toHaveBeenCalledTimes(1);
+    expect(appCheck.readyForDataRequests).toHaveBeenCalledTimes(1);
     expect(FirebaseStorage.getDownloadUrl).toHaveBeenCalledWith({
       path: "spot-pictures/file.jpg",
     });

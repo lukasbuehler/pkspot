@@ -198,7 +198,8 @@ test.describe("Spot Details Visual Regression @visual", () => {
 
     const title = details.locator('.spot-title-text').first();
     await expect(title).toHaveText('Riverside Training Walls');
-    expect(await title.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+    await expect(title).toHaveCSS("white-space", "nowrap");
+    await expect(title).toHaveCSS("text-overflow", "ellipsis");
     await expect(details).toContainText(/Details|Eigenschaften/u);
     await expect(details).toContainText(
       /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
@@ -360,3 +361,74 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
     await expect.poll(async () => (await activity.boundingBox())?.height).toBe(0);
   });
 }
+
+// The server renders before any browser measurement, so compare its layout with
+// the hydrated page instead of trusting either on its own. Geometry, not pixels:
+// the two differ in fonts and images that are still loading.
+test.describe("Spot details server rendering @visual", () => {
+  const longTitle = /^Riverside Training Walls and Rooftop/u;
+  const route = "/de/__visual/spot-bottom-sheet?state=loaded&longTitle";
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
+    test(`keeps the layout when hydrating at ${viewport.width}px`, async ({ browser, page }) => {
+      const server = await browser.newContext({ javaScriptEnabled: false, viewport });
+      const serverPage = await server.newPage();
+      await serverPage.goto(route, { waitUntil: "domcontentloaded" });
+
+      await page.setViewportSize(viewport);
+      await acceptCurrentTerms(page);
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("[ngh]")).toHaveCount(0);
+
+      for (const current of [serverPage, page]) {
+        const details = current.locator("app-spot-details");
+        await expect(details.locator(".spot-title-text").first()).toHaveText(longTitle);
+        await expect(details.locator("app-spot-rating").first()).toBeAttached();
+        await expect(details.getByRole("button", { name: /Share|Teilen/u }).first()).toBeAttached();
+      }
+
+      const measure = async (selector: string) => {
+        const [serverBox, hydratedBox] = await Promise.all([
+          serverPage.locator("app-spot-details").locator(selector).first().boundingBox(),
+          page.locator("app-spot-details").locator(selector).first().boundingBox(),
+        ]);
+        expect(serverBox, `${selector} on the server`).not.toBeNull();
+        expect(hydratedBox, `${selector} after hydrating`).not.toBeNull();
+        return { server: serverBox!, hydrated: hydratedBox! };
+      };
+
+      const title = await measure(".spot-title-text");
+      expect(title.server.height).toBeCloseTo(title.hydrated.height, 0);
+      expect(title.server.height).toBeLessThan(48);
+      await expect(page.locator("app-spot-details .spot-title-text").first()).toHaveCSS(
+        "text-overflow",
+        "ellipsis",
+      );
+
+      const carousel = await measure("app-img-carousel");
+      expect(Math.abs(carousel.server.height - carousel.hydrated.height)).toBeLessThanOrEqual(2);
+      const photo = await measure("app-img-carousel .spot-img-container");
+      expect(photo.server.width).toBeGreaterThanOrEqual(photo.server.height);
+
+      await server.close();
+    });
+  }
+
+  // Spot headers collapse with the sheet's progress, and the server assumes a
+  // closed sheet. Only the phone layout may render its header collapsed.
+  for (const [viewport, expected] of [
+    [{ width: 390, height: 844 }, ""],
+    [{ width: 1280, height: 800 }, "1"],
+  ] as const) {
+    test(`renders the map panel open state for ${viewport.width}px`, async ({ browser }) => {
+      const context = await browser.newContext({ javaScriptEnabled: false, viewport });
+      const page = await context.newPage();
+      await page.goto("/de/map", { waitUntil: "domcontentloaded" });
+      const progress = await page.locator(".map-panel-home__panel").evaluate(element =>
+        getComputedStyle(element).getPropertyValue("--sheet-open-progress").trim(),
+      );
+      expect(progress).toBe(expected);
+      await context.close();
+    });
+  }
+});

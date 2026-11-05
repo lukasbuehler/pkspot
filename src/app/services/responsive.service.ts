@@ -9,7 +9,10 @@ import {
 } from "@angular/core";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { isPlatformBrowser } from "@angular/common";
-import { getNavigationLayout } from "../features/navigation-layout";
+import {
+  getNavigationLayout,
+  isLandscapePhoneViewport,
+} from "../features/navigation-layout";
 
 /**
  * Responsive view mode based on screen size breakpoints
@@ -45,10 +48,13 @@ export class ResponsiveService {
   /**
    * Tracks whether breakpoints have been determined.
    * Always false during SSR (we don't trust UA detection for layout).
-   * In browser: false until first BreakpointObserver emission.
-   * This ensures layout-specific components (@defer blocks) only render client-side.
+   * In browser: false until the viewport settles, because WebKit in the native
+   * app may settle its layout after bootstrap. A server-rendered page is already
+   * laid out, so waiting there would only replace its HTML with a loading state.
    */
-  readonly isInitialized = signal(false);
+  readonly isInitialized = signal(
+    this.isBrowser && document.querySelector("[ng-server-context]") !== null,
+  );
 
   /**
    * Mobile view: < 600px (xs & sm breakpoints)
@@ -81,6 +87,11 @@ export class ResponsiveService {
     this.getViewportHeight(),
   );
   readonly viewportHeight = this._viewportHeight.asReadonly();
+
+  readonly landscapePhone = computed(() => isLandscapePhoneViewport({
+    width: this.viewportWidth(),
+    height: this.viewportHeight(),
+  }));
 
   readonly navigationLayout = computed(() => getNavigationLayout({
     width: this.viewportWidth(),

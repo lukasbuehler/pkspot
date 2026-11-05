@@ -61,6 +61,9 @@ export class MapObjectPanelComponent {
   popularCommunities = input<CommunitySearchPreview[]>([]);
   spotListLimit = input<number | undefined>(undefined);
   mapZoom = input<number | null>(null);
+  /** Whether the lists describe a real map area yet. */
+  areaKnown = input(true);
+  spotListReady = input(true);
   enableSpotListAnimation = input(true);
   openProgress = input(1);
   weather = input<WeatherResponse | null>(null);

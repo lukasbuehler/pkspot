@@ -43,6 +43,29 @@ describe("ShareCardService failure isolation", () => {
     expect(nativeShare).toHaveBeenCalledWith({url:"https://pkspot.app/map/spots/spot",title:"Spot",imageBase64:undefined});
     expect(failure).toHaveBeenCalledWith("share-card","prepare-preview",{code:"unavailable"});
   });
+  it("shows a web card that finishes after the deadline", async () => {
+    vi.useFakeTimers(); platform.native = false;
+    let finish!: (card: {imageUrl:string;reused:boolean}) => void;
+    call.mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+    const service=TestBed.inject(ShareCardService);
+    const work=service.share({kind:"spot",id:"spot"},"https://pkspot.app/map/spots/spot","Spot");
+    await vi.advanceTimersByTimeAsync(8000); await work;
+    expect(dialogData().state()).toEqual({status:"fallback"});
+    finish({imageUrl:"https://example.test/card.png",reused:false});
+    await vi.advanceTimersByTimeAsync(0);
+    expect(dialogData().state()).toEqual({status:"ready",imageUrl:"https://example.test/card.png"});
+  });
+  it("ignores a late web card after the dialog closed", async () => {
+    vi.useFakeTimers(); platform.native = false;
+    let finish!: (card: {imageUrl:string;reused:boolean}) => void;
+    call.mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+    const work=TestBed.inject(ShareCardService).share({kind:"spot",id:"spot"},"https://pkspot.app/map/spots/spot","Spot");
+    await vi.advanceTimersByTimeAsync(8000); await work;
+    closed();
+    finish({imageUrl:"https://example.test/card.png",reused:false});
+    await vi.advanceTimersByTimeAsync(0);
+    expect(dialogData().state()).toEqual({status:"fallback"});
+  });
   it("bounds a hung preparation and releases the busy state", async () => {
     vi.useFakeTimers(); call.mockReturnValue(new Promise(() => { /* Intentionally pending to exercise the deadline. */ }));
     const service=TestBed.inject(ShareCardService);
@@ -50,7 +73,9 @@ describe("ShareCardService failure isolation", () => {
     expect(service.preparing()).toBe(true);
     expect(open).toHaveBeenCalledOnce();
     expect(close).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(8000); await work;
+    await vi.advanceTimersByTimeAsync(8000);
+    expect(close).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(7000); await work;
     expect(close).toHaveBeenCalledOnce();
     expect(service.preparing()).toBe(false); expect(nativeShare).toHaveBeenCalledOnce();
     expect(failure).toHaveBeenCalledWith("share-card","prepare-preview",{code:"deadline-exceeded"});
@@ -94,7 +119,7 @@ describe("ShareCardService failure isolation", () => {
     const first = service.share({kind: "spot", id: "spot"}, link, "Spot");
     await service.share({kind: "spot", id: "spot"}, link, "Spot");
     expect(call).toHaveBeenCalledOnce();
-    await vi.advanceTimersByTimeAsync(8000); await first;
+    await vi.advanceTimersByTimeAsync(15000); await first;
     expect(nativeShare).toHaveBeenCalledOnce();
   });
   it("respects cancellation without opening a second share sheet", async () => {

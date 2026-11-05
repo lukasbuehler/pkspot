@@ -5,6 +5,7 @@ import {
   getMapPanelLayout,
   getNavigationLayout,
   isAlainViewport,
+  isLandscapePhoneViewport,
 } from "./navigation-layout";
 
 describe("navigation layout", () => {
@@ -89,5 +90,20 @@ describe("navigation layout", () => {
     );
     expect(settingsStyles).not.toMatch(/overflow-y:\s*scroll/);
     expect(settingsStyles).not.toMatch(/padding-bottom:\s*100px/);
+  });
+});
+
+describe("isLandscapePhoneViewport", () => {
+  it("matches regular iPhones on their side", () => {
+    expect(isLandscapePhoneViewport({ width: 844, height: 390 })).toBe(true);
+    expect(isLandscapePhoneViewport({ width: 667, height: 375 })).toBe(true);
+    expect(isLandscapePhoneViewport({ width: 956, height: 440 })).toBe(true);
+  });
+
+  it("excludes portrait phones and the iPhone Duo", () => {
+    expect(isLandscapePhoneViewport({ width: 390, height: 844 })).toBe(false);
+    expect(isLandscapePhoneViewport({ width: 466, height: 678 })).toBe(false);
+    expect(isLandscapePhoneViewport({ width: 678, height: 466 })).toBe(false);
+    expect(isLandscapePhoneViewport({ width: null, height: 390 })).toBe(false);
   });
 });

@@ -70,12 +70,18 @@
     position: absolute;
     top: 0;
     height: 100%;
-    width: 120px;
+    // Sized by its aspect ratio until the browser lays the carousel out.
+    width: auto;
 
     border-radius: var(--carousel-shape);
     overflow: hidden;
     transform: translateZ(0);
     will-change: left, width, opacity;
+
+    // Unpositioned server-rendered images overlap; keep the first one on top.
+    &:first-child {
+      z-index: 1;
+    }
 
     .spot-img-frame {
       position: absolute;

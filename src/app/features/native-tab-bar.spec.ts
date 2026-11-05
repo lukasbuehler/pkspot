@@ -70,9 +70,10 @@ describe("native tab bar state", () => {
   });
 
   it("owns navigation wherever the native bar exists, except embedded views", () => {
-    expect(nativeTabBarOwnsNavigation(true, false)).toBe(true);
-    expect(nativeTabBarOwnsNavigation(true, true)).toBe(false);
-    expect(nativeTabBarOwnsNavigation(false, false)).toBe(false);
+    expect(nativeTabBarOwnsNavigation(true, false, false)).toBe(true);
+    expect(nativeTabBarOwnsNavigation(true, true, false)).toBe(false);
+    expect(nativeTabBarOwnsNavigation(false, false, false)).toBe(false);
+    expect(nativeTabBarOwnsNavigation(true, false, true)).toBe(false);
   });
 
   it("converts computed theme colors for native", () => {

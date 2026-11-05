@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { FirebaseApp } from "firebase/app";
 import { httpsCallable } from "firebase/functions";
-import { getAuth, getIdToken } from "firebase/auth";
+import { getIdToken, initializeAuth } from "firebase/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { environment } from "../../../environments/environment.default";
@@ -19,8 +19,13 @@ vi.mock("firebase/functions", () => ({
 }));
 
 vi.mock("firebase/auth", () => ({
+  browserLocalPersistence: {},
+  browserPopupRedirectResolver: class {},
+  browserSessionPersistence: {},
   getAuth: vi.fn(),
   getIdToken: vi.fn(),
+  indexedDBLocalPersistence: {},
+  initializeAuth: vi.fn(),
 }));
 
 vi.mock("@capacitor-firebase/authentication", () => ({
@@ -237,7 +242,7 @@ describe("FunctionsAdapterService", () => {
 
   it("sends authenticated web App Check requests with both tokens", async () => {
     const user = {};
-    vi.mocked(getAuth).mockReturnValue({ currentUser: user } as never);
+    vi.mocked(initializeAuth).mockReturnValue({ currentUser: user } as never);
     vi.mocked(getIdToken).mockResolvedValue("web-id-token");
     const service = TestBed.inject(FunctionsAdapterService);
 

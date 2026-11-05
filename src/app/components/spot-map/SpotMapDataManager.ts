@@ -104,6 +104,9 @@ export class SpotMapDataManager {
   public visibleSpots = this._visibleSpots.asReadonly();
   public visibleAmenityMarkers = this._visibleAmenityMarkers.asReadonly();
   public visibleHighlightedSpots = this._visibleHighlightedSpots.asReadonly();
+  private _spotPreviewsLoaded = signal(false);
+  /** True once a search for the viewport's Spot previews has answered, even if it found none. */
+  public spotPreviewsLoaded = this._spotPreviewsLoaded.asReadonly();
 
   private _lastVisibleTiles = signal<TilesObject | null>(null);
 
@@ -1171,6 +1174,8 @@ export class SpotMapDataManager {
           .sort((a, b) => this._sortPreviewsByPriority(a, b))
           .slice(0, options.limit);
 
+        this._spotPreviewsLoaded.set(true);
+
         if (this._hasSameHighlightedPreviewRenderData(previews)) {
           return;
         }
@@ -1179,7 +1184,12 @@ export class SpotMapDataManager {
         this._visibleHighlightedSpots.set(previews);
       })
       .catch((err) => {
+        if (requestId !== this._spotPreviewRequestId) {
+          return;
+        }
+
         console.error("Typesense highlight search failed:", err);
+        this._spotPreviewsLoaded.set(true);
         // Only clear if we actually had spots
         if (this._visibleHighlightedSpots().length > 0) {
           this._visibleHighlightedSpots.set([]);

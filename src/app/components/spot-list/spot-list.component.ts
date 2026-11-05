@@ -55,6 +55,8 @@ export class SpotListComponent {
 
   text = input<string>($localize`Spots in this area`);
   hideHeader = input<boolean>(false);
+  /** Off while the list cannot know yet whether the area is empty. */
+  showEmptyText = input<boolean>(true);
 
   viewMode = signal<SpotListViewMode>("grid");
 

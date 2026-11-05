@@ -1,8 +1,5 @@
 PK Spot 1.2.1: Rifiniture e correzioni
 
-• La ricerca mostra prima i nomi più simili.
-• La mappa resta al suo posto quando cambia il layout.
-• Barra delle schede nativa su iPhone.
+• Ricerca migliorata: la ricerca per nome ora dà risultati migliori
 • Schede di condivisione migliori, e ora puoi condividere e seguire le community.
-• Caricamento più veloce.
-• Correzioni di traduzioni, privacy e bug.
+• Traduzioni e correzioni di bug generali.

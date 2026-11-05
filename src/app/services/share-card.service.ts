@@ -51,7 +51,9 @@ export class ShareCardService {
     });
     let imageBase64: string | undefined;
     try {
-      const prepared = await this.prepare(target);
+      // Unlike the web dialog, the sheet opens only once, so a card finishing
+      // later is lost. Allow for a cold start, which can take over 10 seconds.
+      const prepared = await this.prepare(target, undefined, 15000);
       if (prepared) {
         try { imageBase64 = await this.loadImage(prepared.imageUrl); }
         catch (error) { this.telemetry.failure("share-card", "download-preview", error); }
@@ -74,19 +76,36 @@ export class ShareCardService {
     });
     let closed = false;
     ref.afterClosed().subscribe(() => { closed = true; this.dialogOpen = false; this.active.set(false); });
-    const prepared = await this.prepare(target);
+    // A cold start plus a first App Check token can outlast the deadline. The
+    // actions unlock then, and a card finishing later still replaces the fallback.
+    const prepared = await this.prepare(target, (late) => {
+      if (!closed) state.set({ status: "ready", imageUrl: late.imageUrl });
+    });
     // Closing the dialog while preparing cancels without sharing.
-    if (!closed) state.set(prepared ? { status: "ready", imageUrl: prepared.imageUrl } : { status: "fallback" });
+    if (!closed && state().status === "preparing") {
+      state.set(prepared ? { status: "ready", imageUrl: prepared.imageUrl } : { status: "fallback" });
+    }
   }
 
-  /** Returns undefined (after reporting) when the card could not be prepared. */
-  private async prepare(target: ShareCardTarget): Promise<PreparedCard | undefined> {
+  /**
+   * Returns undefined (after reporting) when the card could not be prepared in
+   * time. `onLate` receives a card that finishes after the deadline.
+   */
+  private async prepare(
+    target: ShareCardTarget,
+    onLate?: (card: PreparedCard) => void,
+    timeoutMs = 8000,
+  ): Promise<PreparedCard | undefined> {
+    const work = this.functions.callAppChecked<ShareCardTarget, PreparedCard>("prepareShareCard", target);
     try {
-      const prepared = await this.withTimeout(this.functions.callAppChecked<ShareCardTarget, PreparedCard>("prepareShareCard", target), 8000);
+      const prepared = await this.withTimeout(work, timeoutMs);
       this.telemetry.outcome("share-card", prepared.reused ? "reuse" : "generate", true);
       return prepared;
     } catch (error) {
       this.telemetry.failure("share-card", "prepare-preview", error);
+      if ((error as { code?: unknown } | null)?.code === "deadline-exceeded") {
+        void work.then((late) => onLate?.(late)).catch(() => { /* Already reported as a timeout. */ });
+      }
       return undefined;
     }
   }

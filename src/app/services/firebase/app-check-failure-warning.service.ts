@@ -2,6 +2,8 @@ import { isPlatformBrowser } from "@angular/common";
 import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { AppCheckErrorDialogComponent } from "../../components/app-check-error-dialog/app-check-error-dialog.component";
+import { MapsApiService } from "../maps-api.service";
+import { PlatformService } from "../platform.service";
 import { FirebaseAppCheckService } from "./app-check.service";
 
 @Injectable({ providedIn: "root" })
@@ -9,7 +11,23 @@ export class AppCheckFailureWarningService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly appCheck = inject(FirebaseAppCheckService);
   private readonly dialog = inject(MatDialog);
+  private readonly maps = inject(MapsApiService);
+  private readonly platformService = inject(PlatformService);
   private warningShown = false;
+
+  /**
+   * Starts App Check once a map has drawn or `maxWaitMs` has passed. On the web
+   * it downloads about 1 MB of reCAPTCHA, which would compete with map tiles.
+   */
+  async initializeAfterStartup(maxWaitMs: number): Promise<void> {
+    if (this.platformService.getPlatform() === "web") {
+      await Promise.race([
+        this.maps.firstTilesLoaded,
+        new Promise((resolve) => setTimeout(resolve, maxWaitMs)),
+      ]);
+    }
+    await this.initializeAndWarn();
+  }
 
   async initializeAndWarn(): Promise<void> {
     try {

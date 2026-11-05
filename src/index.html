@@ -101,14 +101,15 @@
       href="assets/icons/favicon-16x16.png"
     />
 
-    <!--
-    <script
-      data-ad-client="ca-pub-3402332703216337"
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
-    ></script>-->
-
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="assets/fonts/material-symbols-optimized.woff2?v=80faf74bb7"
+      crossorigin
+    />
 
     <!-- Load font stylesheet (Inlined to avoid blocking request) -->
     <style>
@@ -117,7 +118,8 @@
         font-family: "Material Symbols Rounded";
         font-style: normal;
         font-weight: 100 700;
-        font-display: swap;
+        /* Swapping would show icon names such as "map" as text until it loads. */
+        font-display: block;
         src: url("assets/fonts/material-symbols-optimized.woff2?v=80faf74bb7")
           format("woff2");
       }
@@ -266,7 +268,5 @@
     <noscript i18n
       >Please enable JavaScript to continue using this application.</noscript
     >
-    <!-- Load ad / bidding script async & after interactive to avoid blocking critical path -->
-    <!-- <script src="assets/js/prebid-ads.js" async defer></script> -->
   </body>
 </html>

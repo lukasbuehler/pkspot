@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  EmbeddedViewRef,
   OnDestroy,
+  RendererFactory2,
   signal,
 } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
@@ -13,6 +15,7 @@ import type { MapPanelLayout } from "../../features/navigation-layout";
 import {
   MovableViewHostDirective,
   MovableViewOutletDirective,
+  moveViewNodes,
 } from "./movable-view.directive";
 
 let created = { map: 0, panel: 0 };
@@ -170,5 +173,48 @@ describe("MovableViewOutletDirective", () => {
     const { fixture } = await setup();
     fixture.destroy();
     expect(destroyed).toEqual({ map: 1, panel: 1 });
+  });
+});
+
+describe("MovableViewHostDirective hydration", () => {
+  @Component({
+    imports: [MovableViewHostDirective, MovableViewOutletDirective],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
+      <div class="home">
+        <ng-template #content><span class="moved">content</span></ng-template>
+        <ng-container [appMovableViewHost]="content" #host="movableViewHost" />
+      </div>
+      <div class="outlet" [appMovableViewOutlet]="host"></div>
+    `,
+  })
+  class HydrationHostComponent {}
+
+  it("moves the view into the outlet straight away without server markup", () => {
+    const fixture = TestBed.createComponent(HydrationHostComponent);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector(".outlet .moved")).not.toBeNull();
+  });
+
+  it("keeps focus on an element in a moved view", () => {
+    const parent = document.createElement("div");
+    const home = document.createElement("div");
+    const input = document.createElement("input");
+    home.appendChild(input);
+    document.body.append(home, parent);
+    input.focus();
+
+    moveViewNodes(
+      TestBed.inject(RendererFactory2).createRenderer(null, null),
+      { rootNodes: [input] } as unknown as EmbeddedViewRef<unknown>,
+      parent,
+    );
+
+    expect(input.parentElement).toBe(parent);
+    expect(document.activeElement).toBe(input);
+    home.remove();
+    parent.remove();
   });
 });
