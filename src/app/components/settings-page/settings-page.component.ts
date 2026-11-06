@@ -8,7 +8,9 @@ import {
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
+  PLATFORM_ID,
 } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
@@ -107,6 +109,7 @@ export class SettingsPageComponent implements OnInit {
   readonly mapProfiler = injectFeatureTelemetry(MapPerformanceProfilerService);
   readonly appVersion = version;
   readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
+  private readonly isBrowser = isPlatformBrowser(injectFeatureTelemetry(PLATFORM_ID));
 
   async copyMapDiagnostics(): Promise<void> {
     try {
@@ -336,7 +339,9 @@ export class SettingsPageComponent implements OnInit {
         this._dialog.open(AdultVerificationDialogComponent);
       }
       this.syncProfileAccessSettings();
-      if (!user || !user.uid) {
+      // SSR never sees the session, so only the browser may send a signed-out
+      // visitor to sign in; a server redirect would strand signed-in users.
+      if (this.isBrowser && (!user || !user.uid)) {
         this.router.navigate(["/account"]);
       }
     });
