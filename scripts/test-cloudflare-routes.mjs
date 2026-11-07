@@ -129,6 +129,9 @@ async function page(base, route, title, status = 200) {
   );
   if (title)
     assert.match(html.match(/<title>(.*?)<\/title>/)?.[1] ?? "", title, route);
+  // The title alone would still pass if the default Profile tab rendered.
+  if (route === "/en/settings/account")
+    assert.match(html, /Manage your account settings including email, password, and account\s+deletion\./u, route);
   if (route.includes("/map/spots/imax")) {
     assert.match(
       html,

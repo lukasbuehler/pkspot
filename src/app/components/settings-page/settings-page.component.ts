@@ -9,7 +9,9 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   PLATFORM_ID,
+  effect,
 } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { isPlatformBrowser } from "@angular/common";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -110,6 +112,18 @@ export class SettingsPageComponent implements OnInit {
   readonly appVersion = version;
   readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
   private readonly isBrowser = isPlatformBrowser(injectFeatureTelemetry(PLATFORM_ID));
+  private readonly auth = injectFeatureTelemetry(AuthenticationService);
+  private readonly authUser = toSignal(this.auth.authState$, {
+    initialValue: null,
+  });
+
+  // authState$ starts with null before Firebase restores the session, so only
+  // redirect once the first auth state is known. SSR never sees the session, so
+  // a server redirect would strand signed-in users on the sign-in page.
+  private readonly redirectSignedOutVisitor = effect(() => {
+    if (!this.isBrowser || !this.auth.initialAuthStateResolved()) return;
+    if (!this.authUser()?.uid) void this.router.navigate(["/account"]);
+  });
 
   async copyMapDiagnostics(): Promise<void> {
     try {
@@ -339,11 +353,6 @@ export class SettingsPageComponent implements OnInit {
         this._dialog.open(AdultVerificationDialogComponent);
       }
       this.syncProfileAccessSettings();
-      // SSR never sees the session, so only the browser may send a signed-out
-      // visitor to sign in; a server redirect would strand signed-in users.
-      if (this.isBrowser && (!user || !user.uid)) {
-        this.router.navigate(["/account"]);
-      }
     });
 
     let tab: string = this.route.snapshot.paramMap.get("tab") || "";
