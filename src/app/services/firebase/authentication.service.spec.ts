@@ -155,6 +155,52 @@ describe("AuthenticationService", () => {
     expect(authMock.onAuthStateChanged).toHaveBeenCalled();
   });
 
+  it("marks the auth state unresolved as soon as consent is granted, even without a detected session", () => {
+    TestBed.resetTestingModule();
+    vi.clearAllMocks();
+    localStorage.clear();
+    const consentGranted$ = new BehaviorSubject<boolean>(false);
+    let consent = false;
+
+    TestBed.configureTestingModule({
+      providers: [
+        AuthenticationService,
+        { provide: UsersService, useValue: usersServiceSpy },
+        {
+          provide: FIREBASE_APP,
+          useValue: {
+            name: "test-app",
+            options: {},
+            automaticDataCollectionEnabled: false,
+          } satisfies Partial<FirebaseApp>,
+        },
+        {
+          provide: ConsentService,
+          useValue: {
+            ...consentServiceSpy,
+            hasConsent: vi.fn(() => consent),
+            // Never settles, so only the synchronous consent path can start auth.
+            executeWhenConsent: vi.fn(() => new Promise(() => undefined)),
+            consentGranted$: consentGranted$.asObservable(),
+          },
+        },
+        { provide: AnalyticsService, useValue: analyticsServiceSpy },
+        { provide: RestoreCredentialsService, useValue: restoreCredentialsSpy },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    const pendingService = TestBed.inject(AuthenticationService);
+    expect(pendingService.initialAuthStateResolved()).toBe(true);
+    expect(authMock.onAuthStateChanged).not.toHaveBeenCalled();
+
+    consent = true;
+    consentGranted$.next(true);
+
+    expect(pendingService.initialAuthStateResolved()).toBe(false);
+    expect(authMock.onAuthStateChanged).toHaveBeenCalled();
+  });
+
   it("uses an injected store screenshot auth user without initializing Firebase auth", () => {
     TestBed.resetTestingModule();
     vi.clearAllMocks();
