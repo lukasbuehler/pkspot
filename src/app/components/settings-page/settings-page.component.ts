@@ -8,6 +8,7 @@ import {
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   PLATFORM_ID,
   effect,
 } from "@angular/core";
@@ -113,6 +114,7 @@ export class SettingsPageComponent implements OnInit {
   readonly appVersion = version;
   readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
   private readonly isBrowser = isPlatformBrowser(injectFeatureTelemetry(PLATFORM_ID));
+  private readonly changeDetector = injectFeatureTelemetry(ChangeDetectorRef);
   private readonly auth = injectFeatureTelemetry(AuthenticationService);
   private readonly authUser = toSignal(this.auth.authState$, {
     initialValue: null,
@@ -358,6 +360,9 @@ export class SettingsPageComponent implements OnInit {
         this._dialog.open(AdultVerificationDialogComponent);
       }
       this.syncProfileAccessSettings();
+      // authState$ re-emits the same mutated user object when the profile
+      // loads, so no signal changes. Mark the OnPush view for the new fields.
+      this.changeDetector.markForCheck();
     });
 
     let tab: string = this.route.snapshot.paramMap.get("tab") || "";
