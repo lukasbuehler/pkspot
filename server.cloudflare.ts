@@ -1,3 +1,5 @@
+// Must load before any application chunk evaluates.
+import "./src/cloudflare-runtime-polyfills";
 import { AngularAppEngine, createRequestHandler } from "@angular/ssr";
 import { SsrRequestScope } from "./src/ssr-request-scope";
 import { createCloudflareRequestHandler } from "./src/cloudflare-request-handler";

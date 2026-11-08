@@ -322,11 +322,16 @@ export class AuthenticationService extends ConsentAwareService {
    * Call this method when consent is granted to restore any pending authentication session
    */
   public restorePendingSession() {
-    if (this._hasPendingSession && !this._authStateListenerInitialized) {
+    if (this._authStateListenerInitialized) return;
+    if (this._hasPendingSession) {
       console.log("Restoring pending authentication session after consent");
-      void this._initializeAuthAfterConsent();
-      this._hasPendingSession = false;
     }
+    // Start even when no session was detected: IndexedDB and native sessions
+    // leave no localStorage keys. Starting synchronously resets
+    // initialAuthStateResolved before consent-gated readers react, so a stored
+    // session is never mistaken for a sign-out.
+    void this._initializeAuthAfterConsent();
+    this._hasPendingSession = false;
   }
 
   private _initializeAuthAfterConsent(): Promise<void> {

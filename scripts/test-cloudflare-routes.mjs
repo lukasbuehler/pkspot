@@ -28,6 +28,9 @@ const routes = [
   ["/en/about", /About \| PK Spot/],
   ["/en/privacy-policy", /Privacy Policy \| PK Spot/],
   ["/en/account", /Sign in \| PK Spot/],
+  // Settings imports the image cropper, which needs blob URLs while loading.
+  ["/en/settings", /Settings.*\| PK Spot/],
+  ["/en/settings/account", /Settings.*\| PK Spot/],
 ];
 const processes = [];
 let checks = 0;
@@ -126,6 +129,9 @@ async function page(base, route, title, status = 200) {
   );
   if (title)
     assert.match(html.match(/<title>(.*?)<\/title>/)?.[1] ?? "", title, route);
+  // The title alone would still pass if the default Profile tab rendered.
+  if (route === "/en/settings/account")
+    assert.match(html, /Manage your account settings including email, password, and account\s+deletion\./u, route);
   if (route.includes("/map/spots/imax")) {
     assert.match(
       html,
@@ -304,7 +310,7 @@ try {
   const workerLogs = processes[0].logs;
   assert.doesNotMatch(
     workerLogs,
-    /Cannot perform I\/O|code had hung|XMLHttpRequest is not defined|client is offline|SSR cleanup failed|Firestore shutting down/i,
+    /Cannot perform I\/O|code had hung|XMLHttpRequest is not defined|client is offline|SSR cleanup failed|Firestore shutting down|is not implemented/i,
   );
   console.log(`Cloudflare route regression smoke passed (${checks} checks).`);
 } catch (error) {

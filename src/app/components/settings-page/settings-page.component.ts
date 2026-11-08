@@ -8,11 +8,18 @@ import {
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  DestroyRef,
+  PLATFORM_ID,
+  effect,
 } from "@angular/core";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
+import { isPlatformBrowser } from "@angular/common";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { ConsentService } from "../../services/consent.service";
 import { EditProfileComponent } from "../edit-profile/edit-profile.component";
 import {
   SpeedDialFabButtonConfig,
@@ -107,6 +114,25 @@ export class SettingsPageComponent implements OnInit {
   readonly mapProfiler = injectFeatureTelemetry(MapPerformanceProfilerService);
   readonly appVersion = version;
   readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
+  private readonly isBrowser = isPlatformBrowser(injectFeatureTelemetry(PLATFORM_ID));
+  private readonly changeDetector = injectFeatureTelemetry(ChangeDetectorRef);
+  private readonly destroyRef = injectFeatureTelemetry(DestroyRef);
+  private readonly auth = injectFeatureTelemetry(AuthenticationService);
+  private readonly authUser = toSignal(this.auth.authState$, {
+    initialValue: null,
+  });
+
+  private readonly hasConsent = injectFeatureTelemetry(ConsentService).hasConsent;
+
+  // authState$ starts with null before Firebase restores the session, so only
+  // redirect once the first auth state is known. Before consent, a stored
+  // session is pending rather than signed out. SSR never sees the session, so
+  // a server redirect would strand signed-in users on the sign-in page.
+  private readonly redirectSignedOutVisitor = effect(() => {
+    if (!this.isBrowser || !this.hasConsent()) return;
+    if (!this.auth.initialAuthStateResolved()) return;
+    if (!this.authUser()?.uid) void this.router.navigate(["/account"]);
+  });
 
   async copyMapDiagnostics(): Promise<void> {
     try {
@@ -329,17 +355,19 @@ export class SettingsPageComponent implements OnInit {
 
     let resumeVerification = this.route.snapshot.queryParamMap.get("oneid") === "return";
     this.emailAddress = this.authService?.user?.email || "";
-    this.authService.authState$.subscribe((user) => {
-      this.emailAddress = user?.email;
-      if (user?.uid && resumeVerification) {
-        resumeVerification = false;
-        this._dialog.open(AdultVerificationDialogComponent);
-      }
-      this.syncProfileAccessSettings();
-      if (!user || !user.uid) {
-        this.router.navigate(["/account"]);
-      }
-    });
+    this.authService.authState$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        this.emailAddress = user?.email;
+        if (user?.uid && resumeVerification) {
+          resumeVerification = false;
+          this._dialog.open(AdultVerificationDialogComponent);
+        }
+        this.syncProfileAccessSettings();
+        // authState$ re-emits the same mutated user object when the profile
+        // loads, so no signal changes. Mark the OnPush view for the new fields.
+        this.changeDetector.markForCheck();
+      });
 
     let tab: string = this.route.snapshot.paramMap.get("tab") || "";
     if (tab) {
