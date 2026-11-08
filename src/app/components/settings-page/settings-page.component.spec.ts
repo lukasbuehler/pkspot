@@ -28,11 +28,14 @@ type StubUser = {
 };
 
 describe("SettingsPageComponent", () => {
-  it("shows the stored profile access once the profile loads after the first render", async () => {
+  let user: StubUser;
+  let authState$: BehaviorSubject<StubUser | null>;
+
+  beforeEach(() => {
     // The real service mutates and re-emits one user object, as it does when
     // Firestore returns the profile after the auth session is restored.
-    const user: StubUser = { uid: "user-1", email: "rider@example.com" };
-    const authState$ = new BehaviorSubject<StubUser | null>(user);
+    user = { uid: "user-1", email: "rider@example.com" };
+    authState$ = new BehaviorSubject<StubUser | null>(user);
 
     TestBed.configureTestingModule({
       imports: [SettingsPageComponent],
@@ -78,11 +81,13 @@ describe("SettingsPageComponent", () => {
         { provide: LocationAccessService, useValue: {} },
       ],
     });
-    // Render only the profile access state so the test isolates change detection.
+    // Render only the profile access state so the tests isolate change detection.
     TestBed.overrideComponent(SettingsPageComponent, {
       set: { template: "{{ profilePrivacy }}", imports: [] },
     });
+  });
 
+  it("shows the stored profile access once the profile loads after the first render", async () => {
     const fixture = TestBed.createComponent(SettingsPageComponent);
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent.trim()).toBe("private");
@@ -98,5 +103,15 @@ describe("SettingsPageComponent", () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent.trim()).toBe("public");
+  });
+
+  it("stops following auth updates once settings is destroyed", async () => {
+    const fixture = TestBed.createComponent(SettingsPageComponent);
+    await fixture.whenStable();
+    expect(authState$.observed).toBe(true);
+
+    fixture.destroy();
+
+    expect(authState$.observed).toBe(false);
   });
 });

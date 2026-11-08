@@ -201,6 +201,56 @@ describe("AuthenticationService", () => {
     expect(authMock.onAuthStateChanged).toHaveBeenCalled();
   });
 
+  it("registers the auth listener once when both consent paths complete", async () => {
+    TestBed.resetTestingModule();
+    vi.clearAllMocks();
+    localStorage.clear();
+    const consentGranted$ = new BehaviorSubject<boolean>(false);
+    let consent = false;
+    let grantDeferredConsent = () => undefined as void;
+
+    TestBed.configureTestingModule({
+      providers: [
+        AuthenticationService,
+        { provide: UsersService, useValue: usersServiceSpy },
+        {
+          provide: FIREBASE_APP,
+          useValue: {
+            name: "test-app",
+            options: {},
+            automaticDataCollectionEnabled: false,
+          } satisfies Partial<FirebaseApp>,
+        },
+        {
+          provide: ConsentService,
+          useValue: {
+            ...consentServiceSpy,
+            hasConsent: vi.fn(() => consent),
+            // Mirrors waitForConsent(): the queued callback runs after the grant.
+            executeWhenConsent: vi.fn(
+              (fn: () => unknown) =>
+                new Promise((resolve) => {
+                  grantDeferredConsent = () => resolve(fn());
+                }),
+            ),
+            consentGranted$: consentGranted$.asObservable(),
+          },
+        },
+        { provide: AnalyticsService, useValue: analyticsServiceSpy },
+        { provide: RestoreCredentialsService, useValue: restoreCredentialsSpy },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    TestBed.inject(AuthenticationService);
+    consent = true;
+    consentGranted$.next(true);
+    grantDeferredConsent();
+    await Promise.resolve();
+
+    expect(authMock.onAuthStateChanged).toHaveBeenCalledTimes(1);
+  });
+
   it("uses an injected store screenshot auth user without initializing Firebase auth", () => {
     TestBed.resetTestingModule();
     vi.clearAllMocks();

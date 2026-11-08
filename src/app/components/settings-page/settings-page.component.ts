@@ -9,10 +9,11 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  DestroyRef,
   PLATFORM_ID,
   effect,
 } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { isPlatformBrowser } from "@angular/common";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -115,6 +116,7 @@ export class SettingsPageComponent implements OnInit {
   readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
   private readonly isBrowser = isPlatformBrowser(injectFeatureTelemetry(PLATFORM_ID));
   private readonly changeDetector = injectFeatureTelemetry(ChangeDetectorRef);
+  private readonly destroyRef = injectFeatureTelemetry(DestroyRef);
   private readonly auth = injectFeatureTelemetry(AuthenticationService);
   private readonly authUser = toSignal(this.auth.authState$, {
     initialValue: null,
@@ -353,17 +355,19 @@ export class SettingsPageComponent implements OnInit {
 
     let resumeVerification = this.route.snapshot.queryParamMap.get("oneid") === "return";
     this.emailAddress = this.authService?.user?.email || "";
-    this.authService.authState$.subscribe((user) => {
-      this.emailAddress = user?.email;
-      if (user?.uid && resumeVerification) {
-        resumeVerification = false;
-        this._dialog.open(AdultVerificationDialogComponent);
-      }
-      this.syncProfileAccessSettings();
-      // authState$ re-emits the same mutated user object when the profile
-      // loads, so no signal changes. Mark the OnPush view for the new fields.
-      this.changeDetector.markForCheck();
-    });
+    this.authService.authState$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        this.emailAddress = user?.email;
+        if (user?.uid && resumeVerification) {
+          resumeVerification = false;
+          this._dialog.open(AdultVerificationDialogComponent);
+        }
+        this.syncProfileAccessSettings();
+        // authState$ re-emits the same mutated user object when the profile
+        // loads, so no signal changes. Mark the OnPush view for the new fields.
+        this.changeDetector.markForCheck();
+      });
 
     let tab: string = this.route.snapshot.paramMap.get("tab") || "";
     if (tab) {
