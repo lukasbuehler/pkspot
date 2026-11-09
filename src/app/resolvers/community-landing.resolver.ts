@@ -1,5 +1,6 @@
-import { inject, RESPONSE_INIT } from "@angular/core";
-import { ResolveFn } from "@angular/router";
+import { inject, PLATFORM_ID, RESPONSE_INIT } from "@angular/core";
+import { isPlatformServer } from "@angular/common";
+import { ResolveFn, Router } from "@angular/router";
 import {
   buildCommunityLandingPath,
   normalizeCommunitySlug,
@@ -7,6 +8,7 @@ import {
 import { humanizeSlugSegment } from "../../scripts/SpotLandingHelpers";
 import { MetaTagService } from "../services/meta-tag.service";
 import { StructuredDataService } from "../services/structured-data.service";
+import { permanentCanonicalRedirect } from "./canonical-redirect";
 import {
   CommunityLandingPageData,
   LandingPagesService,
@@ -26,6 +28,8 @@ export const communityLandingResolver: ResolveFn<
   const metaTagService = inject(MetaTagService);
   const structuredDataService = inject(StructuredDataService);
   const responseInit = inject(RESPONSE_INIT);
+  const router = inject(Router);
+  const isServer = isPlatformServer(inject(PLATFORM_ID));
 
   const requestedSlug = normalizeCommunitySlug(route.paramMap.get("slug"));
   const pageData = await landingPagesService.getCommunityPage(requestedSlug);
@@ -84,7 +88,32 @@ export const communityLandingResolver: ResolveFn<
     };
   }
 
-  if (responseInit) responseInit.status = 200;
+  // Slugs of merged or renamed communities resolve to the page of the
+  // community they now belong to (for example a suburb merged into its city).
+  // Crawlers get a permanent redirect so only the canonical URL is indexed;
+  // in-app navigation keeps rendering the resolved page and the map page
+  // rewrites the address bar to the canonical path. Only redirect to the
+  // community's own preferred-slug path so inconsistent data cannot produce a
+  // redirect loop or send crawlers off the community namespace.
+  const canonicalSlug = normalizeCommunitySlug(pageData.preferredSlug);
+  if (
+    isServer &&
+    canonicalSlug &&
+    route.paramMap.get("slug") !== canonicalSlug &&
+    pageData.canonicalPath === buildCommunityLandingPath(canonicalSlug)
+  ) {
+    return permanentCanonicalRedirect(
+      router,
+      responseInit,
+      pageData.canonicalPath,
+      route.queryParams,
+    );
+  }
+
+  // A canonical redirect re-runs this resolver for the target community in
+  // the same server request. Keep its 301: Angular SSR reads the status when
+  // it turns the finished navigation into the redirect response.
+  if (responseInit && responseInit.status !== 301) responseInit.status = 200;
 
   metaTagService.setCommunityLandingMetaTags(
     pageData.title,

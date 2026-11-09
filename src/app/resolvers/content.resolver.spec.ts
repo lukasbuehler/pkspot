@@ -4,7 +4,13 @@ import { DOCUMENT } from "@angular/common";
 import { TestBed } from "@angular/core/testing";
 import { LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
-import { ActivatedRouteSnapshot, convertToParamMap } from "@angular/router";
+import {
+  ActivatedRouteSnapshot,
+  RedirectCommand,
+  Router,
+  UrlTree,
+  convertToParamMap,
+} from "@angular/router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { contentResolver } from "./content.resolver";
 import { MetaTagService } from "../services/meta-tag.service";
@@ -351,7 +357,108 @@ describe("contentResolver", () => {
     ).toBe("https://pkspot.app/en/map/spots/imax");
   });
 
-  it("should use the resolved spot slug for canonical links when the requested route used an id", async () => {
+  describe("permanent redirects from alternate Spot URLs", () => {
+    const routerUrl = (command: unknown): string =>
+      TestBed.inject(Router).serializeUrl(
+        (command as RedirectCommand).redirectTo as UrlTree,
+      );
+
+    it.each([
+      ["a Spot ID", "spot-imax", "spots/:spot", "/map/spots/imax"],
+      ["an outdated slug", "imax-old", "spots/:spot", "/map/spots/imax"],
+    ] as const)("redirects %s to the current slug with 301", async (_label, requested, path, expected) => {
+      const response: ResponseInit = {};
+      TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });
+      slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot-imax");
+      spotsService.getSpotById.mockResolvedValue(buildImaxSpot());
+
+      const result = await TestBed.runInInjectionContext(() =>
+        contentResolver(createRouteSnapshot(requested, path) as any),
+      );
+
+      expect(result).toBeInstanceOf(RedirectCommand);
+      expect(routerUrl(result)).toBe(expected);
+      expect(response.status).toBe(301);
+    });
+
+    it("redirects a second Spot ID generically and keeps query parameters", async () => {
+      const response: ResponseInit = {};
+      TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });
+      const otherSpot = buildImaxSpot();
+      Object.assign(otherSpot, { id: "spot-freeway", slug: "freewaypark" });
+      slugsService.getSpotIdFromSpotSlug.mockRejectedValue("No slug found");
+      spotsService.getSpotById.mockResolvedValue(otherSpot);
+      const route = createRouteSnapshot("TQTuRRNgIducSyQLDJ9K");
+      Object.assign(route, { queryParams: { utm_source: "share" } });
+
+      const result = await TestBed.runInInjectionContext(() =>
+        contentResolver(route as any),
+      );
+
+      expect(routerUrl(result)).toBe("/map/spots/freewaypark?utm_source=share");
+      expect(response.status).toBe(301);
+    });
+
+    it("keeps the challenge list and challenge child paths", async () => {
+      slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot-imax");
+      spotsService.getSpotById.mockResolvedValue(buildImaxSpot());
+
+      const listRoute = createRouteSnapshot("spot-imax");
+      const cRoute = {
+        routeConfig: { path: "c" },
+        paramMap: convertToParamMap({}),
+        parent: listRoute,
+        children: [] as any[],
+      };
+      listRoute.children = [cRoute];
+      const listResult = await TestBed.runInInjectionContext(() =>
+        contentResolver(listRoute as any),
+      );
+      expect(routerUrl(listResult)).toBe("/map/spots/imax/c");
+
+      const challengeParent = createRouteSnapshot("spot-imax");
+      const challengeList = {
+        routeConfig: { path: "c" },
+        paramMap: convertToParamMap({}),
+        parent: challengeParent,
+        children: [] as any[],
+      };
+      const challengeRoute = {
+        routeConfig: { path: ":challenge" },
+        paramMap: convertToParamMap({ challenge: "wall-run" }),
+        parent: challengeList,
+        children: [] as any[],
+      };
+      challengeList.children = [challengeRoute];
+      challengeParent.children = [challengeList];
+      const challengeResult = await TestBed.runInInjectionContext(() =>
+        contentResolver(challengeRoute as any),
+      );
+      expect(routerUrl(challengeResult)).toBe("/map/spots/imax/c/wall-run");
+    });
+
+    it("renders slug URLs and slugless Spot ID URLs without redirecting", async () => {
+      const response: ResponseInit = {};
+      TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });
+      slugsService.getSpotIdFromSpotSlug.mockRejectedValue("No slug found");
+      const slugless = buildImaxSpot();
+      Object.assign(slugless, { slug: undefined });
+      spotsService.getSpotById.mockResolvedValue(slugless);
+
+      const result = await TestBed.runInInjectionContext(() =>
+        contentResolver(createRouteSnapshot("spot-imax") as any),
+      );
+
+      expect(result).not.toBeInstanceOf(RedirectCommand);
+      expect(response.status).toBeUndefined();
+      expect(getLinkHref(testDocument, 'link[rel="canonical"]')).toBe(
+        "https://pkspot.app/en/map/spots/spot-imax",
+      );
+    });
+  });
+
+  it("should use the resolved spot slug for canonical links when the browser opens an id route", async () => {
+    TestBed.overrideProvider(PLATFORM_ID, { useValue: "browser" });
     const imaxSpot = buildImaxSpot();
     const route = createRouteSnapshot("spot-imax");
 

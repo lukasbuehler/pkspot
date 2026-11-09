@@ -2,7 +2,13 @@ import { PLATFORM_ID, RESPONSE_INIT } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { handleSpotResolutionError } from "./spot-resolution-error";
 import { inject } from "@angular/core";
-import { ResolveFn, ActivatedRouteSnapshot } from "@angular/router";
+import {
+  ResolveFn,
+  ActivatedRouteSnapshot,
+  RedirectCommand,
+  Router,
+} from "@angular/router";
+import { permanentCanonicalRedirect } from "./canonical-redirect";
 import { LOCALE_ID } from "@angular/core";
 import { SpotsService } from "../services/firebase/firestore/spots.service";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
@@ -80,6 +86,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
         response,
         isBrowser,
         initialSnapshots,
+        router: inject(Router),
       });
 
     case "event":
@@ -160,7 +167,7 @@ async function resolveSpotContent(
   route: ActivatedRouteSnapshot,
   result: RouteContentData,
   services: any
-): Promise<RouteContentData> {
+): Promise<RouteContentData | RedirectCommand> {
   const spotIdOrSlug = getParamFromRouteTree(route, "spot");
   const challengeId = getParamFromRouteTree(route, "challenge");
 
@@ -206,6 +213,23 @@ async function resolveSpotContent(
       result.contentType === "spot" ? spotIdOrSlug : undefined,
     );
     result.spot = spot;
+
+    // Spot ID URLs and outdated slugs stay reachable, but crawlers get a
+    // permanent redirect to the Spot's current slug so only the canonical URL
+    // is indexed. The browser keeps resolving in place; the map page rewrites
+    // the address bar to the slug path itself.
+    if (!services.isBrowser && spot.slug && spotIdOrSlug !== spot.slug) {
+      const canonicalPath =
+        challengeId || routeTreeHasPath(route, "c")
+          ? buildSpotChallengeCanonicalPath(spot.slug, challengeId)
+          : buildSpotCanonicalPath(spot.slug);
+      return permanentCanonicalRedirect(
+        services.router,
+        services.response,
+        canonicalPath,
+        route.queryParams,
+      );
+    }
 
     // If we also have a challenge, get that too
     if (challengeId && result.contentType === "challenge") {
@@ -440,6 +464,21 @@ function resolveStaticContent(
 /**
  * Helper function to get a parameter from anywhere in the route tree
  */
+/** Whether the matched route branch (ancestors or descendants) has `path`. */
+function routeTreeHasPath(
+  route: ActivatedRouteSnapshot,
+  path: string,
+): boolean {
+  for (let node: ActivatedRouteSnapshot | null = route; node; node = node.parent) {
+    if (node.routeConfig?.path === path) return true;
+  }
+  const hasDescendant = (node: ActivatedRouteSnapshot): boolean =>
+    node.children.some(
+      (child) => child.routeConfig?.path === path || hasDescendant(child),
+    );
+  return hasDescendant(route);
+}
+
 function getParamFromRouteTree(
   route: ActivatedRouteSnapshot,
   paramName: string
