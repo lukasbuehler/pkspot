@@ -472,6 +472,11 @@ async function buildSceneHtml({
         inset 0 0 0 2px rgba(255, 255, 255, 0.08),
         inset 0 0 0 7px rgba(0, 0, 0, 0.74);
     }
+    /* Tablets have no frame asset; keep the bezel darker than its rim. */
+    .device.android-tablet .shell {
+      background: linear-gradient(145deg, #0c0d11 0%, #030304 50%, #0a0b0e 100%);
+      box-shadow: inset 0 0 0 3px #3a3e48;
+    }
     .screen {
       position: relative;
       width: 100%;
