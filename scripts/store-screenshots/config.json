@@ -237,8 +237,8 @@
       },
       "frame": {
         "kind": "android-tablet",
-        "border": 16,
-        "radius": 34
+        "border": 40,
+        "radius": 56
       }
     },
     {
@@ -267,8 +267,8 @@
       },
       "frame": {
         "kind": "android-tablet",
-        "border": 14,
-        "radius": 28
+        "border": 30,
+        "radius": 44
       }
     }
   ],
