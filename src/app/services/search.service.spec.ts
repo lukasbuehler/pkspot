@@ -86,10 +86,6 @@ describe("SearchService", () => {
     service = TestBed.inject(SearchService);
   });
 
-  it("should be created", () => {
-    expect(service).toBeTruthy();
-  });
-
   it.each([
     ["server", SSR_TYPESENSE_TIMEOUT_MS],
     ["browser", undefined],

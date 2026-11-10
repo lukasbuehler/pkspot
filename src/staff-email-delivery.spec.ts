@@ -1,3 +1,4 @@
+// @vitest-environment node
 import {beforeEach, afterEach, describe, expect, it, vi} from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -19,21 +20,52 @@ vi.mock("../functions/node_modules/firebase-admin/lib/index.js", () => {
   return {firestore};
 });
 import {onContactMessageEmailCreate} from "../functions/src/contactEmailFunctions";
+import {onEventSuggestionEmailCreate} from "../functions/src/eventSuggestionEmailFunctions";
 
-const deliver = onContactMessageEmailCreate as unknown as (event: {
-  params: {messageId: string};
+interface TriggerEvent {
+  params: Record<string, string>;
   data: {createTime: {toMillis: () => number}; data: () => Record<string, unknown>};
-}) => Promise<void>;
-const event = (id: string, ageHours = 0) => ({
-  params: {messageId: id},
-  data: {
-    createTime: {toMillis: () => Date.now() - ageHours * 60 * 60 * 1000},
-    data: () => ({contact_info: "visitor@example.org", message: "hello"}),
-  },
-});
-const status = (id: string) => mocks.documents.get(`contact_email_delivery/${id}`);
+}
 
-describe("support email delivery", () => {
+// Both staff email triggers share deliverStaffEmail, so each runs the same
+// delivery contract against its own params, idempotency prefix and status
+// collection.
+const triggers = [
+  {
+    name: "support",
+    deliver: onContactMessageEmailCreate as unknown as (event: TriggerEvent) => Promise<void>,
+    param: "messageId",
+    idempotencyPrefix: "contact",
+    statusCollection: "contact_email_delivery",
+    document: () => ({contact_info: "visitor@example.org", message: "hello"}),
+  },
+  {
+    name: "event suggestion",
+    deliver: onEventSuggestionEmailCreate as unknown as (event: TriggerEvent) => Promise<void>,
+    param: "suggestionId",
+    idempotencyPrefix: "event-suggestion",
+    statusCollection: "event_suggestion_email_delivery",
+    document: () => ({
+      status: "submitted",
+      name: "Community Jam",
+      submitter_id: "viewer",
+      start: {toDate: () => new Date("2026-11-01T12:00:00Z")},
+      end: {toDate: () => new Date("2026-11-01T14:00:00Z")},
+    }),
+  },
+];
+
+describe.each(triggers)("$name email delivery", (trigger) => {
+  const {deliver} = trigger;
+  const event = (id: string, ageHours = 0): TriggerEvent => ({
+    params: {[trigger.param]: id},
+    data: {
+      createTime: {toMillis: () => Date.now() - ageHours * 60 * 60 * 1000},
+      data: trigger.document,
+    },
+  });
+  const status = (id: string) => mocks.documents.get(`${trigger.statusCollection}/${id}`);
+
   beforeEach(() => {
     mocks.documents.clear();
     mocks.fetch.mockReset();
@@ -46,7 +78,7 @@ describe("support email delivery", () => {
     await deliver(event("a"));
     await deliver(event("a"));
     expect(mocks.fetch).toHaveBeenCalledOnce();
-    expect(mocks.fetch.mock.calls[0][1].headers["Idempotency-Key"]).toBe("contact-a");
+    expect(mocks.fetch.mock.calls[0][1].headers["Idempotency-Key"]).toBe(`${trigger.idempotencyPrefix}-a`);
     expect(status("a")).toMatchObject({status: "sent"});
   });
 

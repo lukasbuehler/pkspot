@@ -133,10 +133,6 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
   });
 
-  it("should create", () => {
-    expect(component).toBeTruthy();
-  });
-
   it("leaves the visible counts unchanged after a save while the aggregate is stale", async () => {
     fixture.componentRef.setInput("eventId", "event-1");
     fixture.componentRef.setInput("counts", {

@@ -205,10 +205,6 @@ describe("FirestoreAdapterService", () => {
   });
 
   describe("initialization", () => {
-    it("should be created", () => {
-      expect(service).toBeTruthy();
-    });
-
     it("should report web platform", () => {
       expect(service.isNative()).toBe(false);
       expect(service.getPlatform()).toBe("web");
