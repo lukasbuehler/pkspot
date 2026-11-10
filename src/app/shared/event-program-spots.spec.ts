@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { GeoPoint } from "firebase/firestore";
 import { LocalSpot } from "../../db/models/Spot";
 import type { EventProgramItem } from "../../db/models/Event";

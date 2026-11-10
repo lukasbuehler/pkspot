@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { eventTimeZoneAt } from "../functions/src/event-time-zone";
 

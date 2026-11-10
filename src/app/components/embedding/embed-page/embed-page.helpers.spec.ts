@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { convertToParamMap } from "@angular/router";
 import { describe, expect, it } from "vitest";
 import {

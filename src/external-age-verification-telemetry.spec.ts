@@ -1,3 +1,4 @@
+// @vitest-environment node
 import {describe, expect, it, vi} from "vitest";
 vi.mock("../functions/node_modules/firebase-functions/lib/logger/index.js", () => ({info: vi.fn(), error: vi.fn()}));
 import * as logger from "../functions/node_modules/firebase-functions/lib/logger/index.js";

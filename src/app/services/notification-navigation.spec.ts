@@ -1,3 +1,4 @@
+// @vitest-environment node
 import {
   NOTIFICATION_INTENT_TYPES,
   type NotificationIntentType,

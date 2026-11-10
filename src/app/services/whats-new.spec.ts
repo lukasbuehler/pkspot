@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { WHATS_NEW_RELEASE, welcomeScreenFor } from "./whats-new";
 

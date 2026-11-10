@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import type { EventProgramItem } from "../../db/models/Event";
 import { eventProgramMoment } from "./event-program-now";

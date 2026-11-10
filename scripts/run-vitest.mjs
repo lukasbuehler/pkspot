@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { availableParallelism } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { withHeavyCommandLock } from "./resource-lock.mjs";
@@ -13,7 +14,10 @@ const vitestBin = path.join(
   process.platform === "win32" ? "vitest.cmd" : "vitest"
 );
 
-const maxWorkers = readPositiveInteger("PKSPOT_VITEST_MAX_WORKERS", 2);
+// Half the cores, between 2 and 4 forks. Four forks peak around 3.5 GB in
+// total and halve the suite's wall time versus two; CI pins its own value.
+const defaultMaxWorkers = Math.min(4, Math.max(2, Math.floor(availableParallelism() / 2)));
+const maxWorkers = readPositiveInteger("PKSPOT_VITEST_MAX_WORKERS", defaultMaxWorkers);
 const maxOldSpaceMb = readPositiveInteger(
   "PKSPOT_VITEST_MAX_OLD_SPACE_MB",
   4096

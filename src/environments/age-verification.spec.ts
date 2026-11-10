@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { environment as defaults } from "./environment.default";
 import { environment as production } from "./environment.production";

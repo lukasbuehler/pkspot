@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { calculateViewportTiles, MAX_VIEWPORT_TILES } from './viewport-tiles';
 

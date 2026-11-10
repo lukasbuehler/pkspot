@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { parseSessionInput, sessionAdult, sessionParticipation } from "../../../functions/src/plannedSessionPolicy";
 import type { UserSchema } from "./UserSchema";

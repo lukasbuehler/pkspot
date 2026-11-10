@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { Spot } from "../../../db/models/Spot";
 import { SpotChallenge } from "../../../db/models/SpotChallenge";

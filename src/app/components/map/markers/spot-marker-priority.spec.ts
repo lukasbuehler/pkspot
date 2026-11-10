@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { SpotAccess } from "../../../../db/schemas/SpotTypeAndAccess";
 import { getSpotMarkerPriority } from "./spot-marker-priority";

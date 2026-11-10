@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { ONEID_APPROVAL_BASIS, hasApprovedOneIdAdultPolicy, shouldApplyOneIdPolicy, validateOneIdThresholdResult } from "../functions/src/externalAgeVerificationPolicy";
 import { hasVerifiedAdultEligibility } from "../functions/src/userProfileProjection";

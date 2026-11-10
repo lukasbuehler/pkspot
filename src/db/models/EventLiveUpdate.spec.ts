@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { Timestamp } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
 import { EventLiveUpdate } from "./EventLiveUpdate";

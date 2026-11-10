@@ -1,3 +1,4 @@
+// @vitest-environment node
 import {describe, expect, it} from "vitest";
 import {Timestamp} from "firebase/firestore";
 import {buildEventSuggestionEmail} from "../functions/src/eventSuggestionEmail";

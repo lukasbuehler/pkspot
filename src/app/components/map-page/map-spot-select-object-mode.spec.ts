@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { signal } from "@angular/core";
 import { describe, expect, it, vi } from "vitest";
 import type { MapObjectMode } from "../map/map-object-mode.model";
