@@ -56,6 +56,23 @@ describe("ImgCarouselComponent", () => {
     expect(fixture.nativeElement.querySelector("img, video, iframe, .external-media-gate-card")).toBeNull();
   });
 
+  it("shows a trailing Google photo with its credit and never opens it in the viewer", () => {
+    const fixture = createFixture();
+    fixture.componentRef.setInput("media", []);
+    fixture.componentRef.setInput("trailingPhoto", {
+      src: "https://places.googleapis.com/photo.jpg",
+      attribution: "Ada Lovelace",
+    });
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector(".trailing-photo-card") as HTMLElement;
+    expect(card.querySelector("img")?.getAttribute("src")).toBe("https://places.googleapis.com/photo.jpg");
+    expect(card.querySelector(".trailing-photo-attribution")?.textContent).toContain("Ada Lovelace");
+
+    fixture.componentInstance.imageClick(Number(card.dataset["mediaIndex"]));
+    expect(TestBed.inject(MatDialog).open).not.toHaveBeenCalled();
+  });
+
   it("renders external videos with an external media source link", () => {
     localStorage.setItem(
       "pkspot.showExternalMedia.v1",

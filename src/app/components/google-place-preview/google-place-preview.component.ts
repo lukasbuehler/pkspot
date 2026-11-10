@@ -9,6 +9,7 @@ import {
   input,
   ChangeDetectionStrategy,
 } from "@angular/core";
+import { outputFromObservable, toObservable } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import {
   MatCard,
@@ -27,6 +28,18 @@ import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-open
 import { PlatformService } from "../../services/platform.service";
 import { NativeGooglePlacePhotoService } from "../../services/native-google-place-photo.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+
+/** The place photo this preview shows, so the Spot gallery can reuse it. */
+export interface GooglePlacePhoto {
+  placeId: string;
+  src: string;
+  attribution: string | null;
+}
+
+// One Place Photo request costs the same at any size, so ask for one large
+// enough for the Spot gallery and let the small preview scale it down.
+const PLACE_PHOTO_MAX_WIDTH = 800;
+const PLACE_PHOTO_MAX_HEIGHT = 600;
 
 @Component({
   selector: "app-google-place-preview",
@@ -69,7 +82,11 @@ export class GooglePlacePreviewComponent {
     if (!p) return null;
     if (this._isIosWebKit()) return this.nativePhotoUrl();
     try {
-      return this._maps.getPhotoURLOfGooglePlace(p, 300, 200);
+      return this._maps.getPhotoURLOfGooglePlace(
+        p,
+        PLACE_PHOTO_MAX_WIDTH,
+        PLACE_PHOTO_MAX_HEIGHT,
+      );
     } catch {
       return null;
     }
@@ -85,6 +102,16 @@ export class GooglePlacePreviewComponent {
     );
     return this._formatAttributions(attributions);
   });
+
+  private readonly _photo = computed<GooglePlacePhoto | null>(() => {
+    const placeId = this.placeId();
+    const src = this.photoUrl();
+    return placeId && src
+      ? { placeId, src, attribution: this.photoAttributionText() }
+      : null;
+  });
+  /** Emits the loaded photo (or null) without a second Places request. */
+  readonly photoChange = outputFromObservable(toObservable(this._photo));
 
   websiteUrl = computed<string | null>(() => {
     const p = this.place();
@@ -233,8 +260,8 @@ export class GooglePlacePreviewComponent {
 
     const photo = await this._nativePhoto.getPhoto(
       placeId,
-      300,
-      200,
+      PLACE_PHOTO_MAX_WIDTH,
+      PLACE_PHOTO_MAX_HEIGHT,
     );
 
     if (requestId !== this._nativePhotoRequestId) {

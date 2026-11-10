@@ -454,12 +454,14 @@
           <!-- spot media carousel  -->
           @if (
             (spot()?.media() && spot()!.media().length > 0) ||
-            processingSpotMedia().length > 0
+            processingSpotMedia().length > 0 ||
+            galleryGooglePhoto()
           ) {
             <app-img-carousel
               [imageDescription]="spot()?.name() ?? 'PK Spot'"
               [media]="$safeNavigationMigration(spot()?.media())"
               [processingMedia]="processingSpotMedia()"
+              [trailingPhoto]="galleryGooglePhoto()"
               [spotId]="getSpotId()"
               class="mb-3"
               (mediaRemove)="mediaRemoved($event)"
@@ -534,7 +536,10 @@
             >
               This spot on Google Maps®
             </h4>
-            <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
+            <app-google-place-preview
+              [placeId]="spot()!.googlePlaceId()"
+              (photoChange)="onGooglePlacePhotoChange($event)"
+            />
           </div>
         }
 
