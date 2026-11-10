@@ -222,6 +222,11 @@ type CommunityCountryFocusData = {
 
 type MapViewportBbox = VisibleViewport["bbox"];
 
+type FilteredSpotSearchResult = {
+  previews: SpotPreviewData[];
+  found: number;
+};
+
 interface CommunitySpotFocus {
   communityKey: string;
   scope: CommunityLandingPageData["scope"] | MapIslandCommunity["scope"];
@@ -677,6 +682,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _authStateSubscription?: Subscription;
   private _privateDataSubscription?: Subscription;
   private _privateDataUserId: string | null = null;
+  /** False until the signed-in user's saved and visited lists have arrived. */
+  private _privateDataLoaded = false;
 
   isSignedIn = signal<boolean>(false);
   savedSpotIds = signal<string[]>([]);
@@ -743,12 +750,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     () => this._mapObjectsSearched() || this._denseMapPerformanceMode(),
   );
   /** The Spot list loads separately and later, unless the area has no Spots. */
-  readonly mapSpotListReady = computed(
-    () =>
-      this._denseMapPerformanceMode() ||
-      this._hasActiveSpotFilter() ||
-      (this._mapObjectsSearched() && this._mapSpotsArrived()),
-  );
+  readonly mapSpotListReady = computed(() => this._isMapSpotListReady());
   mapObjectMode = signal<MapObjectMode>("all");
   mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
     const counts = this._displayMapObjectCounts();
@@ -3445,6 +3447,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private _pendingFilter: string | null = null;
 
+  /** Whether the current filter's search has finished, successfully or not. */
+  private _filteredSearchSettled = signal(false);
+  /** Identifies the latest filtered search, so older responses can be ignored. */
+  private _filteredSearchVersion = 0;
+
   private _cloneCustomFilterParams(
     params: CustomFilterParams | null | undefined,
   ): CustomFilterParams | null {
@@ -3741,6 +3748,97 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return Boolean(this.selectedFilter() || this.customFilterParams());
   }
 
+  private _isMapSpotListReady(): boolean {
+    if (this._denseMapPerformanceMode()) return true;
+    return this._hasActiveSpotFilter()
+      ? this._filteredSearchSettled()
+      : this._mapObjectsSearched() && this._mapSpotsArrived();
+  }
+
+  /**
+   * Starts a new filtered search generation: the list is pending again, and
+   * any request still in flight is outdated. Returns the new generation.
+   */
+  private _markFilteredSearchPending(): number {
+    this._filteredSearchSettled.set(false);
+    return ++this._filteredSearchVersion;
+  }
+
+  /** For a filter with no search to wait for. Outdates requests in flight. */
+  private _settleFilteredSearch(): void {
+    this._filteredSearchVersion++;
+    this._filteredSearchSettled.set(true);
+  }
+
+  /**
+   * Runs one filtered search. Only the latest search may publish its result or
+   * settle the list; a failure settles it too, so it can't stay pending.
+   */
+  private async _runFilteredSearch(
+    search: () => Promise<FilteredSpotSearchResult>,
+  ): Promise<void> {
+    const version = this._markFilteredSearchPending();
+    const filter = this._activeFilter;
+    try {
+      const { previews, found } = await search();
+      if (version === this._filteredSearchVersion) {
+        this._setFilteredSpotPreviews(previews, found);
+      }
+    } catch (err) {
+      console.error(`Error searching for ${filter} spots:`, err);
+      if (version === this._filteredSearchVersion) {
+        // Without a result, nothing says that no Spots match the filter.
+        this.noSpotsForFilter.set(false);
+      }
+    } finally {
+      if (version === this._filteredSearchVersion) {
+        this._filteredSearchSettled.set(true);
+      }
+    }
+  }
+
+  private _filteredSearchResultFromHits(result: {
+    hits?: unknown[];
+    found?: number;
+  }): FilteredSpotSearchResult {
+    const previews: SpotPreviewData[] = (result.hits || [])
+      .filter((h: any) => !!h)
+      .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+    return { previews, found: result.found ?? previews.length };
+  }
+
+  private _searchPresetFilter(
+    bounds: google.maps.LatLngBounds,
+    filterMode: SpotFilterMode,
+  ): Promise<void> {
+    return this._runFilteredSearch(async () =>
+      this._filteredSearchResultFromHits(
+        await this._searchService.searchSpotsInBoundsWithFilter(
+          bounds,
+          filterMode,
+          getMapSpotSearchLimit(this._viewport()?.zoom),
+          this._viewport()?.zoom,
+        ),
+      ),
+    );
+  }
+
+  private _searchCustomFilter(
+    bounds: google.maps.LatLngBounds,
+    params: CustomFilterParams,
+  ): Promise<void> {
+    return this._runFilteredSearch(async () =>
+      this._filteredSearchResultFromHits(
+        await this._searchService.searchSpotsWithCustomFilter(
+          bounds,
+          params,
+          getMapSpotSearchLimit(this._viewport()?.zoom),
+          this._viewport()?.zoom,
+        ),
+      ),
+    );
+  }
+
   private _setFilteredSpotCount(count: number): void {
     this.mapObjectCounts.update((current) => ({
       ...current,
@@ -3753,6 +3851,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _clearSpotFilterState(): void {
+    // A response still in flight must not repopulate the cleared list.
+    this._markFilteredSearchPending();
     this._activeFilter = "";
     this._pendingFilter = null;
     this.noSpotsForFilter.set(false);
@@ -3813,58 +3913,23 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Handle custom filter mode with stored params
     if (this._activeFilter === "custom") {
       const customParams = this.customFilterParams();
-      if (!customParams) return;
+      if (!customParams) {
+        this._settleFilteredSearch();
+        return;
+      }
 
-      this._searchService
-        .searchSpotsWithCustomFilter(
-          bounds,
-          customParams,
-          getMapSpotSearchLimit(this._viewport()?.zoom),
-          this._viewport()?.zoom,
-        )
-        .then((result) => {
-          const previews: SpotPreviewData[] = (result.hits || [])
-            .filter((h: any) => !!h)
-            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
-
-          this._setFilteredSpotPreviews(
-            previews,
-            result.found ?? previews.length,
-          );
-        })
-        .catch((err) => {
-          console.error(
-            "Error re-searching custom filter on bounds change:",
-            err,
-          );
-        });
+      void this._searchCustomFilter(bounds, customParams);
       return;
     }
 
     // Handle preset filter modes
     const filterMode = getFilterModeFromUrlParam(this._activeFilter);
-    if (filterMode === SpotFilterMode.None) return;
+    if (filterMode === SpotFilterMode.None) {
+      this._settleFilteredSearch();
+      return;
+    }
 
-    this._searchService
-      .searchSpotsInBoundsWithFilter(
-        bounds,
-        filterMode,
-        getMapSpotSearchLimit(this._viewport()?.zoom),
-        this._viewport()?.zoom,
-      )
-      .then((result) => {
-        const previews: SpotPreviewData[] = (result.hits || [])
-          .filter((h: any) => !!h)
-          .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
-
-        this._setFilteredSpotPreviews(
-          previews,
-          result.found ?? previews.length,
-        );
-      })
-      .catch((err) => {
-        console.error("Error re-searching for filter on bounds change:", err);
-      });
+    void this._searchPresetFilter(bounds, filterMode);
   }
 
   /**
@@ -3908,6 +3973,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Track the active filter for re-searching on pan
     this._activeFilter = selectedChip;
+
+    // Pending until this filter's search settles, including while it waits for
+    // bounds. The previous filter's "no matches" no longer applies either.
+    this._markFilteredSearchPending();
+    this.noSpotsForFilter.set(false);
 
     // Clear custom filter when selecting a preset chip
     if (selectedChip !== "custom") {
@@ -3976,8 +4046,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    // A custom filter chosen before the map existed runs once the map is ready.
+    const customParams = this.customFilterParams();
+    if (selectedChip === "custom" && customParams) {
+      this._startCustomFilter(customParams);
+      return;
+    }
+
     if (filterMode === SpotFilterMode.None) {
       console.warn("Unknown filter chip:", selectedChip);
+      this._settleFilteredSearch();
       return;
     }
 
@@ -4000,28 +4078,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedSpot.set(null);
     }
 
-    this._searchService
-      .searchSpotsInBoundsWithFilter(
-        bounds,
-        filterMode,
-        getMapSpotSearchLimit(this._viewport()?.zoom),
-        this._viewport()?.zoom,
-      )
-      .then((result) => {
-        const hits = result.hits || [];
+    void this._searchPresetFilter(bounds, filterMode);
+  }
 
-        const previews: SpotPreviewData[] = hits
-          .filter((h: any) => !!h)
-          .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+  private _startCustomFilter(params: CustomFilterParams): void {
+    // Set filter mode on spotMap
+    if (this.spotMap) {
+      this.spotMap.spotFilterMode.set(SpotFilterMode.Custom);
+    }
 
-        this._setFilteredSpotPreviews(
-          previews,
-          result.found ?? previews.length,
-        );
-      })
-      .catch((err) => {
-        console.error(`Error searching for ${selectedChip} spots:`, err);
-      });
+    // Run the search with custom params
+    const bounds = this.spotMap?.bounds;
+    if (!bounds) {
+      console.debug("Custom filter set, waiting for bounds...");
+      return;
+    }
+
+    if (this.selectedSpot()) {
+      this._spotLoadRequestVersion++;
+      this.selectedSpot.set(null);
+    }
+
+    void this._searchCustomFilter(bounds, params);
   }
 
   eventFilterChanged(selectedFilter: string): void {
@@ -4116,45 +4194,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedFilter.set("custom");
       this._activeFilter = "custom";
 
-      // Set filter mode on spotMap
-      if (this.spotMap) {
-        this.spotMap.spotFilterMode.set(SpotFilterMode.Custom);
-      }
-
-      // Run the search with custom params
-      const bounds = this.spotMap?.bounds;
-      if (!bounds) {
-        console.debug("Custom filter set, waiting for bounds...");
-        return;
-      }
-
-      if (this.selectedSpot()) {
-        this._spotLoadRequestVersion++;
-        this.selectedSpot.set(null);
-      }
-
-      this._searchService
-        .searchSpotsWithCustomFilter(
-          bounds,
-          result,
-          getMapSpotSearchLimit(this._viewport()?.zoom),
-          this._viewport()?.zoom,
-        )
-        .then((searchResult) => {
-          const hits = searchResult.hits || [];
-
-          const previews: SpotPreviewData[] = hits
-            .filter((h: any) => !!h)
-            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
-
-          this._setFilteredSpotPreviews(
-            previews,
-            searchResult.found ?? previews.length,
-          );
-        })
-        .catch((err) => {
-          console.error("Error searching with custom filter:", err);
-        });
+      this._markFilteredSearchPending();
+      this.noSpotsForFilter.set(false);
+      this._startCustomFilter(result);
     });
   }
 
@@ -5410,6 +5452,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this._privateDataUserId = uid;
+    this._privateDataLoaded = false;
     this._privateDataSubscription?.unsubscribe();
     this._privateDataSubscription = undefined;
     this.savedSpotIds.set([]);
@@ -5448,15 +5491,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
 
-          if (this._activeFilter === "saved" && this.spotMap?.bounds) {
-            void this._applySavedFilter(this.spotMap.bounds);
-          }
-          if (this._activeFilter === "visited" && this.spotMap?.bounds) {
-            void this._applyVisitedFilter(this.spotMap.bounds);
-          }
+          this._privateDataLoaded = true;
+          this._reapplyPrivateListFilter();
         },
         (error) => {
           console.error("Failed to load private spot lists", error);
+          // Stop waiting for the lists, so the filter's list can settle.
+          this._privateDataLoaded = true;
+          this._reapplyPrivateListFilter();
         },
       );
   }
@@ -5525,60 +5567,67 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     await this._visitedPreviewLoadPromise;
   }
 
-  private async _applySavedFilter(
-    bounds: google.maps.LatLngBounds,
-  ): Promise<void> {
-    const savedIds = this.savedSpotIds();
-
-    if (!this.spotMap || savedIds.length === 0) {
-      this._setFilteredSpotPreviews([]);
-      return;
+  private _reapplyPrivateListFilter(): void {
+    if (this._activeFilter === "saved" && this.spotMap?.bounds) {
+      void this._applySavedFilter(this.spotMap.bounds);
     }
-
-    await this._ensureSavedSpotPreviewsLoaded(savedIds);
-
-    const previewsInBounds: SpotPreviewData[] = [];
-    for (const id of savedIds) {
-      const preview = this._savedSpotPreviewCache.get(id);
-      if (!preview) continue;
-
-      const loc = this._getPreviewLocation(preview);
-      if (!loc) continue;
-
-      if (bounds.contains(loc)) {
-        previewsInBounds.push(preview);
-      }
+    if (this._activeFilter === "visited" && this.spotMap?.bounds) {
+      void this._applyVisitedFilter(this.spotMap.bounds);
     }
-
-    this._setFilteredSpotPreviews(previewsInBounds);
   }
 
-  private async _applyVisitedFilter(
-    bounds: google.maps.LatLngBounds,
-  ): Promise<void> {
-    const visitedIds = this.visitedSpotIds();
+  private _applySavedFilter(bounds: google.maps.LatLngBounds): Promise<void> {
+    return this._applyPrivateListFilter(
+      bounds,
+      this.savedSpotIds(),
+      this._savedSpotPreviewCache,
+      (ids) => this._ensureSavedSpotPreviewsLoaded(ids),
+    );
+  }
 
-    if (!this.spotMap || visitedIds.length === 0) {
-      this._setFilteredSpotPreviews([]);
+  private _applyVisitedFilter(bounds: google.maps.LatLngBounds): Promise<void> {
+    return this._applyPrivateListFilter(
+      bounds,
+      this.visitedSpotIds(),
+      this._visitedSpotPreviewCache,
+      (ids) => this._ensureVisitedSpotPreviewsLoaded(ids),
+    );
+  }
+
+  private async _applyPrivateListFilter(
+    bounds: google.maps.LatLngBounds,
+    spotIds: string[],
+    previewCache: Map<string, SpotPreviewData>,
+    loadPreviews: (spotIds: string[]) => Promise<void>,
+  ): Promise<void> {
+    // An empty list means nothing until it has loaded. Its arrival re-applies.
+    if (!this._privateDataLoaded) {
+      this._markFilteredSearchPending();
       return;
     }
 
-    await this._ensureVisitedSpotPreviewsLoaded(visitedIds);
-
-    const previewsInBounds: SpotPreviewData[] = [];
-    for (const id of visitedIds) {
-      const preview = this._visitedSpotPreviewCache.get(id);
-      if (!preview) continue;
-
-      const loc = this._getPreviewLocation(preview);
-      if (!loc) continue;
-
-      if (bounds.contains(loc)) {
-        previewsInBounds.push(preview);
+    await this._runFilteredSearch(async () => {
+      if (!this.spotMap || spotIds.length === 0) {
+        return { previews: [], found: 0 };
       }
-    }
 
-    this._setFilteredSpotPreviews(previewsInBounds);
+      await loadPreviews(spotIds);
+
+      const previews: SpotPreviewData[] = [];
+      for (const id of spotIds) {
+        const preview = previewCache.get(id);
+        if (!preview) continue;
+
+        const loc = this._getPreviewLocation(preview);
+        if (!loc) continue;
+
+        if (bounds.contains(loc)) {
+          previews.push(preview);
+        }
+      }
+
+      return { previews, found: previews.length };
+    });
   }
 
   private _getPreviewLocation(
