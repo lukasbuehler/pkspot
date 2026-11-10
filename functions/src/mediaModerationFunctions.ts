@@ -14,6 +14,7 @@ import nodeModule = require("module");
 import { googleAPIKey } from "./secrets";
 import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
 import { withMediaReleaseLock } from "./mediaReviewState";
+import { removePrivateImageMetadata } from "./publishedImageMetadata";
 import { classifySafeSearch } from "../../src/db/utils/media-safety";
 import type { MediaSafetySeverity } from "../../src/db/schemas/MediaModerationSchema";
 
@@ -238,6 +239,22 @@ const parseIntakeMetadata = (
     cacheControl: metadata["cache_control"],
   };
 };
+
+/**
+ * Re-encode without metadata, applying the EXIF orientation to the pixels.
+ * Only used when lossless stripping cannot parse the file.
+ */
+const reencodeWithoutMetadata = (bytes: Buffer): Promise<Buffer> =>
+  sharp(bytes, { animated: true }).rotate().keepIccProfile().toBuffer();
+
+/**
+ * Bytes to release publicly. Images never keep location or other private
+ * metadata; videos are released unchanged.
+ */
+const publishableBytes = (bytes: Buffer, kind: "image" | "video"): Promise<Buffer> =>
+  kind === "image"
+    ? removePrivateImageMetadata(bytes, reencodeWithoutMetadata)
+    : Promise.resolve(bytes);
 
 const validateImage = async (bytes: Buffer): Promise<void> => {
   const metadata = await sharp(bytes).metadata();
@@ -917,7 +934,7 @@ export const markMediaUploadSafe = onCall<MarkMediaUploadSafeRequest>(
           );
         }
       } else {
-        await approvedFile.save(bytes, {
+        await approvedFile.save(await publishableBytes(bytes, kind), {
           resumable: false,
           metadata: {
             contentType,
@@ -1139,7 +1156,7 @@ const processIntakeObject = async (params: {
     const approvedPath = destinationPathFor(intake, parsedPath.filename);
     const approvedUrl = publicUrlFor(params.bucket.name, approvedPath);
     const approvedFile = params.bucket.file(approvedPath);
-    await approvedFile.save(bytes, {
+    await approvedFile.save(await publishableBytes(bytes, kind), {
       resumable: false,
       metadata: {
         contentType,
