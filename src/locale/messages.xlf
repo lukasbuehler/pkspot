@@ -1840,6 +1840,11 @@
         <source>Date</source>
       </segment>
     </unit>
+    <unit id="3977243832602167967">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {Community} other {Communities}}</source>
+      </segment>
+    </unit>
     <unit id="8497528947328199741">
       <segment>
         <source>Time</source>
@@ -9621,6 +9626,11 @@
         <source>Incorrect password. Please try again.</source>
       </segment>
     </unit>
+    <unit id="212451686427567100">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}</source>
+      </segment>
+    </unit>
     <unit id="212841987551167718">
       <segment>
         <source>Mark safe and release</source>
@@ -17120,6 +17130,16 @@
     <unit id="community_event.updated">
       <segment>
         <source>Your community event is updated.</source>
+      </segment>
+    </unit>
+    <unit id="community_links.event_heading">
+      <segment>
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </source>
+      </segment>
+    </unit>
+    <unit id="community_links.spot_heading">
+      <segment>
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </source>
       </segment>
     </unit>
     <unit id="community_event.created">
