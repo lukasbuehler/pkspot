@@ -9,21 +9,9 @@
         {links().length, plural, =1 {Community} other {Communities}}
       </h4>
     }
-    <ul class="community-links-list">
-      @for (link of links(); track link.key) {
-        <li>
-          <a [routerLink]="link.path" class="community-link">
-            <app-entity-preview-card
-              [title]="link.name"
-              [imageSrc]="link.imageUrl"
-              [imageAlt]="link.name"
-              [isCompact]="true"
-              [clickable]="true"
-              icon="groups"
-            />
-          </a>
-        </li>
-      }
-    </ul>
+    <app-map-community-list
+      [communities]="links()"
+      (selectCommunity)="openCommunity($event)"
+    />
   </div>
 }

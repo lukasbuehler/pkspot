@@ -10,6 +10,10 @@ import {
 import { NativeTabBarService } from "../../services/native-tab-bar.service";
 import { nativeTabBarOwnsNavigation } from "../../features/native-tab-bar";
 import { inject as injectFeatureTelemetry } from "@angular/core";
+import {
+  COMMUNITY_PATH_OPENER,
+  type CommunityPathOpener,
+} from "../community-links/community-path-opener";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
@@ -34,6 +38,7 @@ import {
   ChangeDetectionStrategy,
   untracked,
   ElementRef,
+  forwardRef,
 } from "@angular/core";
 import { DOCUMENT, Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -327,9 +332,18 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     MovableViewHostDirective,
     MovableViewOutletDirective,
   ],
+  providers: [
+    // Community links in map panels open the community panel in place.
+    {
+      provide: COMMUNITY_PATH_OPENER,
+      useExisting: forwardRef(() => MapPageComponent),
+    },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MapPageComponent
+  implements OnInit, AfterViewInit, OnDestroy, CommunityPathOpener
+{
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
 
   private readonly _eventPromoDismissalsStorageKey =
