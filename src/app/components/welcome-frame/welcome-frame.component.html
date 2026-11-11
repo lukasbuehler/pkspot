@@ -1,0 +1,19 @@
+<div class="welcome-frame__backdrop"></div>
+<div class="welcome-frame__wrapper">
+  <div class="welcome-frame__pane">
+    <div
+      class="mat-mdc-dialog-container mdc-dialog--open mat-mdc-dialog-container-with-actions"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      [attr.aria-labelledby]="labelledBy()"
+      [cdkTrapFocus]="interactive()"
+    >
+      <div class="mat-mdc-dialog-inner-container">
+        <div class="mat-mdc-dialog-surface">
+          <ng-content />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
