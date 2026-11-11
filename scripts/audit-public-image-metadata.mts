@@ -9,6 +9,7 @@
  *   node scripts/audit-public-image-metadata.mts [--output report.json]
  *   node scripts/audit-public-image-metadata.mts --apply      # rewrite in place
  *   node scripts/audit-public-image-metadata.mts --local <dir> # test on files
+ *   node scripts/audit-public-image-metadata.mts --apply --only <path> # one object
  *
  * Production runs use GOOGLE_APPLICATION_CREDENTIALS or
  * scripts/serviceAccountKey.json, like scripts/audit-media-references.cjs.
@@ -35,6 +36,18 @@ export const PUBLIC_IMAGE_PREFIXES = [
 ] as const;
 
 const DERIVATIVE_RE = /_\d+x\d+(?=\.[^/.]+$|$)/;
+
+/** Image content type from the file signature, for objects saved without one. */
+export function sniffImageContentType(bytes: Uint8Array): string | undefined {
+  const starts = (...signature: number[]) => signature.every((byte, i) => bytes[i] === byte);
+  if (starts(0xff, 0xd8, 0xff)) return "image/jpeg";
+  if (starts(0x89, 0x50, 0x4e, 0x47)) return "image/png";
+  if (starts(0x47, 0x49, 0x46, 0x38)) return "image/gif";
+  if (starts(0x52, 0x49, 0x46, 0x46) && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP") {
+    return "image/webp";
+  }
+  return undefined;
+}
 
 export type ImageFinding = "clean" | "private-metadata" | "unparsable";
 
@@ -91,10 +104,11 @@ interface ScannedObject {
 
 async function scan(
   objects: AsyncIterable<ScannedObject>,
-  options: { apply: boolean; includeDerivatives: boolean },
+  options: { apply: boolean; includeDerivatives: boolean; only?: string },
 ): Promise<Report> {
   const report = emptyReport();
   for await (const object of objects) {
+    if (options.only && object.path !== options.only) continue;
     const prefix = PUBLIC_IMAGE_PREFIXES.find((candidate) => object.path.startsWith(candidate));
     if (!prefix) continue;
     if (object.contentType && !object.contentType.startsWith("image/")) {
@@ -140,14 +154,15 @@ async function* localObjects(root: string): AsyncIterable<ScannedObject> {
   }
 }
 
-async function* storageObjects(): AsyncIterable<ScannedObject> {
+async function* storageObjects(only?: string): AsyncIterable<ScannedObject> {
   const admin = require("firebase-admin");
   const keyPath = process.env["GOOGLE_APPLICATION_CREDENTIALS"] || "scripts/serviceAccountKey.json";
   const key = JSON.parse(await readFile(resolve(keyPath), "utf8"));
   admin.initializeApp({ credential: admin.credential.cert(key), projectId: key.project_id });
   const bucket = admin.storage().bucket(`${key.project_id}.appspot.com`);
   for (const prefix of PUBLIC_IMAGE_PREFIXES) {
-    const [files] = await bucket.getFiles({ prefix });
+    if (only && !only.startsWith(prefix)) continue;
+    const [files] = await bucket.getFiles({ prefix: only ?? prefix });
     for (const file of files) {
       const metadata = file.metadata;
       yield {
@@ -158,7 +173,8 @@ async function* storageObjects(): AsyncIterable<ScannedObject> {
           file.save(Buffer.from(bytes), {
             resumable: false,
             metadata: {
-              contentType: metadata.contentType,
+              // Saving without a type would default to application/octet-stream.
+              contentType: metadata.contentType ?? sniffImageContentType(bytes),
               cacheControl: metadata.cacheControl,
               metadata: metadata.metadata,
             },
@@ -178,9 +194,11 @@ async function main(): Promise<void> {
   const includeDerivatives = process.argv.includes("--include-derivatives");
   const local = argument("--local");
   const output = argument("--output");
-  const report = await scan(local ? localObjects(local) : storageObjects(), {
+  const only = argument("--only");
+  const report = await scan(local ? localObjects(local) : storageObjects(only), {
     apply,
     includeDerivatives,
+    only,
   });
   console.log(
     JSON.stringify(
@@ -194,6 +212,7 @@ async function main(): Promise<void> {
         unparsable: report.unparsable.length,
         rewritten: report.rewritten.length,
         rewriteFailed: report.rewriteFailed.length,
+        ...(only ? { rewrittenPaths: report.rewritten, failedPaths: report.rewriteFailed } : {}),
       },
       null,
       2,
