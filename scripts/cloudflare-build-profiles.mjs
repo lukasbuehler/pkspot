@@ -38,6 +38,9 @@ export function createWranglerConfig(profile) {
     preview_urls: profile.publicUrls,
     assets: { binding: "ASSETS", directory: "browser" },
     observability: { enabled: true },
+    // Keys the Worker's SSR HTML cache, so a deploy never serves pages that
+    // reference bundles from the previous version.
+    version_metadata: { binding: "CF_VERSION_METADATA" },
     // Routes are intentionally absent. The staging domain remains managed in
     // Cloudflare; building/deploying production must not take over pkspot.app.
   };

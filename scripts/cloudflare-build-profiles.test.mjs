@@ -37,6 +37,12 @@ test("building and deploying production cannot attach a domain or expose product
   assert.deepEqual(config.assets, { binding: "ASSETS", directory: "browser" });
 });
 
+test("both Workers expose the deployment id that keys cached SSR HTML", () => {
+  for (const profile of [staging, production]) {
+    assert.deepEqual(createWranglerConfig(profile).version_metadata, { binding: "CF_VERSION_METADATA" });
+  }
+});
+
 test("only staging assets get noindex while immutable cache rules remain intact", () => {
   const base = readFileSync("src/cloudflare-headers", "utf8");
   assert.match(createAssetHeaders(base, staging), /X-Robots-Tag: noindex, nofollow, noarchive/);
