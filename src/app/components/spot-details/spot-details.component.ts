@@ -29,6 +29,7 @@ import {
   output,
   PLATFORM_ID,
   resource,
+  untracked,
 } from "@angular/core";
 import {
   MatProgressBar,
@@ -841,6 +842,14 @@ export class SpotDetailsComponent
   // Live updates subscription for the current Spot
   private _spotSnapshotSub: Subscription | null = null;
   private _lastSubscribedSpotId: string | null = null;
+  /**
+   * The newest live snapshot that arrived while the Spot was being edited.
+   * Replacing the Spot mid-edit would hand the form and the save button a
+   * fresh server copy while the map keeps writing the dragged pin and outline
+   * into the instance it passed in, so the moved pin (and any earlier field
+   * edits) would silently be dropped from the saved diff.
+   */
+  private _snapshotHeldDuringEdit: Spot | null = null;
   private _privateDataSub: Subscription | null = null;
   private _authStateSub: Subscription | null = null;
   private _bookmarkedSpotIds = new Set<string>();
@@ -1256,6 +1265,14 @@ export class SpotDetailsComponent
       }
     });
 
+    // Editing can end from either side (discard here, or the map closing the
+    // editor), so react to the mode itself rather than to one button.
+    effect(() => {
+      if (!this.isEditing()) {
+        untracked(() => this._applySnapshotHeldDuringEdit());
+      }
+    });
+
     // Keep spot-specific structured data and meta tags in sync as spot changes.
     effect(() => {
       this._syncSpotSeoData(this.spot());
@@ -1410,6 +1427,9 @@ export class SpotDetailsComponent
         }
       }
 
+      // The saved draft is newer than anything held back; the edit's own
+      // snapshot follows once it is processed.
+      this._snapshotHeldDuringEdit = null;
       this.saveClick.emit(spot);
     } finally {
       this._isSaveFlowPending.set(false);
@@ -2353,15 +2373,29 @@ export class SpotDetailsComponent
       .subscribe({
         next: (incoming: Spot) => {
           const current = this.spot();
-          if (current instanceof Spot && current.id === incoming.id) {
-            this.spot.set(incoming);
+          if (!(current instanceof Spot) || current.id !== incoming.id) return;
+          if (this.isEditing()) {
+            this._snapshotHeldDuringEdit = incoming;
+            return;
           }
+          this.spot.set(incoming);
         },
         error: (err) => console.warn("Live spot update error", err),
       });
   }
 
+  /** Shows the snapshot held back during editing, once editing has ended. */
+  private _applySnapshotHeldDuringEdit(): void {
+    const held = this._snapshotHeldDuringEdit;
+    this._snapshotHeldDuringEdit = null;
+    const current = this.spot();
+    if (held && current instanceof Spot && current.id === held.id) {
+      this.spot.set(held);
+    }
+  }
+
   private _unsubscribeFromLiveSpot() {
+    this._snapshotHeldDuringEdit = null;
     if (this._spotSnapshotSub) {
       this._spotSnapshotSub.unsubscribe();
       this._spotSnapshotSub = null;

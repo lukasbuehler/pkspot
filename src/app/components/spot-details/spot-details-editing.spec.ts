@@ -6,7 +6,7 @@ import { provideRouter } from "@angular/router";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatSlideToggle } from "@angular/material/slide-toggle";
-import { of } from "rxjs";
+import { of, Subject } from "rxjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import type { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
@@ -96,6 +96,8 @@ const analytics = { trackEvent: vi.fn(), reportError: vi.fn() };
 const snackbar = { open: vi.fn() };
 const dialog = { open: vi.fn(), closeAll: vi.fn() };
 let isAdmin = false;
+let liveSpot$ = new Subject<Spot>();
+let hasConsent = false;
 
 async function render(
   spot: Spot | LocalSpot,
@@ -131,7 +133,7 @@ async function render(
           getRestrictionMessage: () => "",
         },
       },
-      { provide: ConsentService, useValue: { hasConsent: () => false } },
+      { provide: ConsentService, useValue: { hasConsent: () => hasConsent } },
       {
         provide: MapsApiService,
         useValue: {
@@ -184,7 +186,10 @@ async function render(
         provide: FeatureTelemetryService,
         useValue: { failure: vi.fn(), success: vi.fn() },
       },
-      { provide: SpotsService, useValue: {} },
+      {
+        provide: SpotsService,
+        useValue: { getSpotById$: () => liveSpot$.asObservable() },
+      },
       { provide: SpotEditsService, useValue: {} },
       { provide: SpotReviewsService, useValue: {} },
       { provide: SpotChallengesService, useValue: {} },
@@ -265,6 +270,8 @@ async function settle(harness: Harness): Promise<void> {
 describe("Spot editor behaviour (through app-spot-details)", () => {
   beforeEach(() => {
     isAdmin = false;
+    hasConsent = false;
+    liveSpot$ = new Subject<Spot>();
     vi.clearAllMocks();
   });
 
@@ -417,6 +424,60 @@ describe("Spot editor behaviour (through app-spot-details)", () => {
     );
 
     expect(buttons(harness, "Add bounds")).toEqual([]);
+  });
+
+  describe("live Spot updates", () => {
+    beforeEach(() => {
+      hasConsent = true;
+    });
+
+    it("keeps editing the Spot the map handed over when a snapshot arrives", async () => {
+      // A server write (presence, activity counters, someone else's edit)
+      // must not swap the draft for a fresh copy: the map moved the pin on
+      // the original instance and saves whichever instance this emits.
+      const spot = existingSpot();
+      const harness = await render(spot, { liveUpdates: true });
+      spot.location.set({ lat: 47.37755, lng: 8.54301 });
+      spot.type.set(SpotTypes.Playground);
+
+      liveSpot$.next(existingSpot({ recent_activity_min_30d: 3 } as Partial<SpotSchema>));
+      await harness.fixture.whenStable();
+      await click(harness, "Save changes");
+      await settle(harness);
+
+      expect(harness.saved).toHaveLength(1);
+      expect(harness.saved[0]).toBe(spot);
+      expect(harness.saved[0].location()).toEqual({ lat: 47.37755, lng: 8.54301 });
+      expect(harness.saved[0].type()).toBe(SpotTypes.Playground);
+    });
+
+    it("shows the latest snapshot once editing ends", async () => {
+      const harness = await render(existingSpot(), { liveUpdates: true });
+
+      liveSpot$.next(
+        existingSpot({ name: { en: { text: "Renamed elsewhere", provider: "user" } } }),
+      );
+      await harness.fixture.whenStable();
+      await click(harness, "Discard changes");
+      await settle(harness);
+
+      expect(harness.fixture.componentInstance.spot()?.name()).toBe(
+        "Renamed elsewhere",
+      );
+    });
+
+    it("still applies snapshots while not editing", async () => {
+      const harness = await render(existingSpot(), {
+        liveUpdates: true,
+        isEditing: false,
+      });
+      const incoming = existingSpot();
+
+      liveSpot$.next(incoming);
+      await harness.fixture.whenStable();
+
+      expect(harness.fixture.componentInstance.spot()).toBe(incoming);
+    });
   });
 
   describe("new Spots", () => {
