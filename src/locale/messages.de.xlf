@@ -118,7 +118,7 @@
         <target>Dokumentar</target>
       </segment>
     </unit>
-    <unit id="8126459137636028145">
+    <unit id="2721031169225432515">
       <notes>
         <note category="description">The header for the spot description</note>
         <note category="meaning">description header</note>
@@ -7469,8 +7469,8 @@
     </unit>
     <unit id="agreeAndContinueLabel">
       <segment state="initial">
-        <source> Agree and Continue </source>
-        <target> Zustimmen und Weiter </target>
+        <source>Agree and Continue</source>
+        <target>Zustimmen und Weiter</target>
       </segment>
     </unit>
     <unit id="visited_spots_chip_label">
@@ -7931,7 +7931,7 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
+        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;terms-of-service&quot; (click)=&quot;requestLink($event, &apos;/terms-of-service&apos;)&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;privacy-policy&quot; (click)=&quot;requestLink($event, &apos;/privacy-policy&apos;)&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
         <target> Mit „Zustimmen und Weiter“ akzeptierst du unsere <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> und bestätigst unsere <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. Du bestätigst, dass du mindestens 13 Jahre alt bist und nach deinem lokalen Recht zustimmen darfst, oder dass ein Elternteil oder Erziehungsberechtigter für dich zustimmt. </target>
       </segment>
     </unit>

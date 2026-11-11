@@ -7,6 +7,10 @@ const componentPath = join(
   process.cwd(),
   "src/app/components/spot-details/spot-details.component.ts"
 );
+const editorPath = join(
+  process.cwd(),
+  "src/app/components/spot-editor/spot-editor.component.ts"
+);
 
 describe("SpotDetailsComponent organization relationship saving", () => {
   it("lets map surfaces hide ratings without hiding spot metadata", () => {
@@ -28,9 +32,9 @@ describe("SpotDetailsComponent organization relationship saving", () => {
   });
 
   it("does not emit a normal spot save after organization-only relationship changes", () => {
-    const source = readFileSync(componentPath, "utf8");
+    const source = readFileSync(editorPath, "utf8");
     const saveButtonClick = source.match(
-      /async saveButtonClick\(\)[\s\S]*?\n  private async _ensureOrganizationsLoadedForAdmin/
+      /async saveButtonClick\(\)[\s\S]*?\n  discardButtonClick/
     )?.[0];
 
     expect(source).toContain(
@@ -39,15 +43,18 @@ describe("SpotDetailsComponent organization relationship saving", () => {
     expect(saveButtonClick).toContain(
       'if (relationshipSaveResult === "changed")'
     );
-    expect(saveButtonClick).toContain("this.isEditing.set(false)");
+    expect(saveButtonClick).toContain("this.organizationsSaved.emit()");
     expect(saveButtonClick).toContain("return;");
-    expect(saveButtonClick).toContain("this.saveClick.emit(spot)");
+    expect(saveButtonClick).toContain("this.save.emit(spot)");
+    expect(
+      readFileSync(componentPath.replace(/\.ts$/, ".html"), "utf8")
+    ).toContain('(organizationsSaved)="isEditing.set(false)"');
   });
 
   it("guards the organization save before its first await", () => {
-    const source = readFileSync(componentPath, "utf8");
+    const source = readFileSync(editorPath, "utf8");
     const saveButtonClick = source.match(
-      /async saveButtonClick\(\)[\s\S]*?\n  private async _ensureOrganizationsLoadedForAdmin/
+      /async saveButtonClick\(\)[\s\S]*?\n  discardButtonClick/
     )?.[0];
 
     expect(source).toContain("this.isSaving() || this._isSaveFlowPending()");
@@ -67,14 +74,18 @@ describe("SpotDetailsComponent organization relationship saving", () => {
     const badgeHeader = template.match(
       /@if \(managedOrganization\(\); as managed\)[\s\S]*?<\/span>/
     )?.[0];
-    const adminPanelStart = template.indexOf("spot-org-admin-panel");
-    const badgeStart = template.indexOf("spot-verification-badge");
+    const editorTemplate = readFileSync(
+      editorPath.replace(/\.ts$/, ".html"),
+      "utf8"
+    );
 
     expect(badgeHeader).toContain("stewardedOrganizations()");
     expect(badgeHeader).toContain("Verified by {{ steward.organization.name }}");
     expect(badgeHeader).not.toContain("isAdmin()");
-    expect(badgeStart).toBeGreaterThan(-1);
-    expect(adminPanelStart).toBeGreaterThan(badgeStart);
+    expect(template.indexOf("spot-verification-badge")).toBeGreaterThan(-1);
+    // The admin-only panel lives in the editor, away from the public badge.
+    expect(template).not.toContain("spot-org-admin-panel");
+    expect(editorTemplate).toContain("spot-org-admin-panel");
   });
 
   it("replaces the spot from live snapshots so verified organization computeds refresh", () => {

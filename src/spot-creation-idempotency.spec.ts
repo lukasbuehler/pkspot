@@ -7,11 +7,14 @@ const read = (path: string): string => readFileSync(join(process.cwd(), path), "
 
 describe("Spot creation idempotency UI contracts", () => {
   it("locks both save controls, renders pending feedback, and unlocks in finally", () => {
-    const component = read("src/app/components/spot-details/spot-details.component.ts");
-    const template = read("src/app/components/spot-details/spot-details.component.html");
+    const component = read("src/app/components/spot-editor/spot-editor.component.ts");
+    const template = read("src/app/components/spot-editor/spot-editor.component.html");
     const map = read("src/app/components/spot-map/spot-map.component.ts");
 
     expect(component).toContain("readonly isSaving = input(false)");
+    expect(read("src/app/components/spot-details/spot-details.component.html")).toContain(
+      '[isSaving]="isSaving()"',
+    );
     expect(component).toContain(
       "if (this.isSaving() || this._isSaveFlowPending()) return false;",
     );

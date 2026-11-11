@@ -570,6 +570,14 @@ describe("Spot editor behaviour (through app-spot-details)", () => {
       expect(select(harness, "Managed by").options.length).toBe(3);
     });
 
+    it("loads organizations when the map opens the editor directly", async () => {
+      const harness = await render(existingSpot());
+      await settle(harness);
+
+      expect(organizations.getOrganizations).toHaveBeenCalledTimes(1);
+      expect(select(harness, "Managed by").options.length).toBe(3);
+    });
+
     it("saves an organization-only change without emitting a Spot save", async () => {
       const harness = await openAsAdmin(existingSpot());
       await choose(harness, "Managed by", "org-a");
