@@ -114,6 +114,8 @@ export class SettingsPageComponent implements OnInit {
   readonly mapProfiler = injectFeatureTelemetry(MapPerformanceProfilerService);
   readonly appVersion = version;
   readonly externalMedia = injectFeatureTelemetry(ExternalMediaPreferencesService);
+  /** Device opt-in to analytics that remember this device; off by default. */
+  readonly persistentAnalytics = injectFeatureTelemetry(AnalyticsService).persistentAnalytics;
   private readonly isBrowser = isPlatformBrowser(injectFeatureTelemetry(PLATFORM_ID));
   private readonly changeDetector = injectFeatureTelemetry(ChangeDetectorRef);
   private readonly destroyRef = injectFeatureTelemetry(DestroyRef);
@@ -172,6 +174,10 @@ export class SettingsPageComponent implements OnInit {
     private _dialog: MatDialog,
     public locationAccess: LocationAccessService,
   ) {}
+
+  setPersistentAnalytics(enabled: boolean): void {
+    this._analytics.setPersistentAnalytics(enabled);
+  }
   languageCodes = languageCodes;
 
   menuPoints = [

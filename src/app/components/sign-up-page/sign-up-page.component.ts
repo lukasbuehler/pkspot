@@ -92,6 +92,8 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         password: ["", [Validators.required, Validators.minLength(6)]],
         repeatPassword: ["", [Validators.required]],
         agreeCheck: [false, [Validators.requiredTrue]],
+        // Persistent analytics needs a separate, freely given opt-in.
+        analyticsCheck: [false],
       },
       {
         validators: [
@@ -128,6 +130,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     password: string;
     repeatPassword: string;
     agreeCheck: boolean;
+    analyticsCheck?: boolean;
   }) {
     // Guard against double submissions
     if (this.isSubmitting()) {
@@ -189,10 +192,20 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     }
 
     // only then create a new account
-    this._createAccount(email, password, displayName);
+    this._createAccount(
+      email,
+      password,
+      displayName,
+      !!createAccountFormValue.analyticsCheck,
+    );
   }
 
-  private _createAccount(email: string, password: string, displayName: string) {
+  private _createAccount(
+    email: string,
+    password: string,
+    displayName: string,
+    persistentAnalytics: boolean,
+  ) {
     this.isSubmitting.set(true);
     this.signUpError.set("");
 
@@ -200,6 +213,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       .createAccount(email, password, displayName)
       .then(() => {
         console.log("Created account!");
+        if (persistentAnalytics) this._analytics.setPersistentAnalytics(true);
         this._analytics.trackEvent("auth_sign_up_succeeded");
         this._router.navigateByUrl(this._returnUrl);
       })

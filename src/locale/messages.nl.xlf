@@ -2489,6 +2489,12 @@
         <target>Hier registreren</target>
       </segment>
     </unit>
+    <unit id="signup.analytics_optional">
+      <segment state="translated">
+        <source>Optional: let analytics remember this device and link it to my account, to help improve PK Spot. You can change this in Settings at any time.</source>
+        <target>Optioneel: statistieken mogen dit apparaat onthouden en aan mijn account koppelen, om PK Spot te helpen verbeteren. Je kunt dit altijd wijzigen in Instellingen.</target>
+      </segment>
+    </unit>
     <unit id="signup.email_invalid">
       <segment state="initial">
         <source>Enter a valid email address.</source>
@@ -4878,6 +4884,24 @@
       <segment state="initial">
         <source>Toilets</source>
         <target>Toiletten</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.description">
+      <segment state="translated">
+        <source>PK Spot counts visits anonymously and stores nothing on your device for it, so a visit cannot be linked to earlier ones. Optionally, you can let analytics remember this device and link it to your account. This helps us understand how people come back to PK Spot. It is off unless you turn it on, and you can turn it off at any time.</source>
+        <target>PK Spot telt bezoeken anoniem en slaat daarvoor niets op je apparaat op, zodat een bezoek niet aan eerdere bezoeken gekoppeld kan worden. Als je wilt, kun je statistieken toestaan dit apparaat te onthouden en aan je account te koppelen. Dat helpt ons te begrijpen hoe mensen terugkomen naar PK Spot. Het staat uit tot je het aanzet, en je kunt het altijd weer uitzetten.</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.persistent">
+      <segment state="translated">
+        <source>Remember this device for analytics</source>
+        <target>Dit apparaat onthouden voor statistieken</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.title">
+      <segment state="translated">
+        <source>Analytics</source>
+        <target>Gebruiksstatistieken</target>
       </segment>
     </unit>
     <unit id="app_check_error.body">
@@ -8140,9 +8164,9 @@
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
-      <segment state="initial">
-        <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. This site is protected by reCAPTCHA. </source>
-        <target> Na je akkoord laadt PK Spot essentiële diensten zoals Google Maps, die cookies kunnen gebruiken. Analytics blijven cookievrij. </target>
+      <segment state="translated">
+        <source> When you continue, PK Spot loads Google Maps to show the map, which may use cookies. Analytics are anonymous and store nothing on your device unless you turn that on in Settings. This site is protected by reCAPTCHA. </source>
+        <target> Als je verdergaat, laadt PK Spot Google Maps om de kaart te tonen, wat cookies kan gebruiken. Statistieken zijn anoniem en slaan niets op je apparaat op, tenzij je dat in Instellingen aanzet. Deze site wordt beschermd door reCAPTCHA. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogText">

@@ -14,11 +14,14 @@ import { SignUpPageComponent } from "./sign-up-page.component";
 describe("SignUpPageComponent", () => {
   let component: SignUpPageComponent;
   let createAccount: ReturnType<typeof vi.fn>;
-  let analytics: { trackEvent: ReturnType<typeof vi.fn> };
+  let analytics: {
+    trackEvent: ReturnType<typeof vi.fn>;
+    setPersistentAnalytics: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     createAccount = vi.fn();
-    analytics = { trackEvent: vi.fn() };
+    analytics = { trackEvent: vi.fn(), setPersistentAnalytics: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [
@@ -68,6 +71,7 @@ describe("SignUpPageComponent", () => {
       password: "correct-horse",
       repeatPassword: "wrong-horse",
       agreeCheck: true,
+      analyticsCheck: false,
     };
 
     component.createAccountForm?.setValue(formValue);
@@ -84,6 +88,7 @@ describe("SignUpPageComponent", () => {
       password: "correct-horse",
       repeatPassword: "correct-horse",
       agreeCheck: false,
+      analyticsCheck: false,
     };
 
     component.createAccountForm?.setValue(formValue);
@@ -101,6 +106,7 @@ describe("SignUpPageComponent", () => {
       password: "correct-horse",
       repeatPassword: "correct-horse",
       agreeCheck: true,
+      analyticsCheck: false,
     };
 
     component.createAccountForm?.setValue(formValue);
@@ -117,6 +123,28 @@ describe("SignUpPageComponent", () => {
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       "auth_sign_up_succeeded",
     );
+  });
+
+  it.each([false, true])("turns on persistent analytics only when the optional box is ticked (%s)", async (ticked) => {
+    createAccount.mockResolvedValue(undefined);
+    const formValue = {
+      displayName: "E2E User",
+      email: "e2e@example.test",
+      password: "correct-horse",
+      repeatPassword: "correct-horse",
+      agreeCheck: true,
+      analyticsCheck: ticked,
+    };
+
+    expect(component.createAccountForm?.value.analyticsCheck).toBe(false);
+    component.createAccountForm?.setValue(formValue);
+    component.tryCreateAccount(formValue);
+
+    await vi.waitFor(() =>
+      expect(analytics.trackEvent).toHaveBeenCalledWith("auth_sign_up_succeeded"),
+    );
+    if (ticked) expect(analytics.setPersistentAnalytics).toHaveBeenCalledWith(true);
+    else expect(analytics.setPersistentAnalytics).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -139,6 +167,7 @@ describe("SignUpPageComponent", () => {
       password: "wrong-password",
       repeatPassword: "wrong-password",
       agreeCheck: true,
+      analyticsCheck: false,
     };
 
     component.createAccountForm?.setValue(formValue);

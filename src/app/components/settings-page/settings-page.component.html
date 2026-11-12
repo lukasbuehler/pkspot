@@ -472,6 +472,12 @@
           </section>
 
 
+          <section class="my-4 p-3 settings-box border">
+            <h3 class="mat-h3 m-0" i18n="@@analytics.settings.title">Analytics</h3>
+            <p class="mat-body mt-2" i18n="@@analytics.settings.description">PK Spot counts visits anonymously and stores nothing on your device for it, so a visit cannot be linked to earlier ones. Optionally, you can let analytics remember this device and link it to your account. This helps us understand how people come back to PK Spot. It is off unless you turn it on, and you can turn it off at any time.</p>
+            <mat-slide-toggle [checked]="persistentAnalytics()" (change)="setPersistentAnalytics($event.checked)" i18n="@@analytics.settings.persistent">Remember this device for analytics</mat-slide-toggle>
+          </section>
+
           <div class="my-4 p-3 settings-box border">
             <h3 class="mat-h3 m-0" i18n="@@locationAccess.settings.title">Location</h3>
             <p class="mat-body mt-2 mb-3" i18n="@@locationAccess.settings.description">
