@@ -11,6 +11,7 @@ export const environment = {
     shareCards: true,
     plannedSessions: false,
     training: true,
+    googlePlacePhotoInGallery: false,
     checkIns: true,
     supportShop: false,
     continuousEventCalendar: true,

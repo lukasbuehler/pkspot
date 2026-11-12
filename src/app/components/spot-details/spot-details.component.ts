@@ -99,6 +99,7 @@ import type { OwnReportSummary } from "../../../db/schemas/ReportLifecycleSchema
 import { localizedPublicSpotWarning } from "./spot-public-warning";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import type { GooglePlacePhoto } from "../google-place-preview/google-place-preview.component";
+import { googlePlacePhotoInGalleryEnabled } from "../../features/google-place-photo-feature";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -423,6 +424,7 @@ export class SpotDetailsComponent
   /** Photo loaded by the Google Place preview, shown at the end of the gallery. */
   private readonly _googlePlacePhoto = signal<GooglePlacePhoto | null>(null);
   readonly galleryGooglePhoto = computed(() => {
+    if (!googlePlacePhotoInGalleryEnabled) return null;
     const photo = this._googlePlacePhoto();
     const spot = this.spot();
     // Ignore a photo left over from a previously opened Spot's place.
