@@ -8,7 +8,6 @@
 src/**/*.js
 !src/firebase-messaging-sw.js
 src/**/*.js.map
-scripts/horizn-import/output/
 
 # Logs
 logs
@@ -143,8 +142,8 @@ Thumbs.db
 
 # Import script sensitive data (DO NOT COMMIT!)
 scripts/**/serviceAccountKey.json
-scripts/horizn-import/data/
-scripts/horizn-import/dist/
+# One-off Horizn import tooling and data; kept locally only.
+scripts/horizn-import/
 
 # TODO remove when merging tauri stuff in
 src-tauri*
