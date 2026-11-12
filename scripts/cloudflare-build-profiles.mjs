@@ -30,8 +30,13 @@ export function createWranglerConfig(profile) {
   return {
     $schema: "../../node_modules/wrangler/config-schema.json",
     name: profile.workerName,
-    main: "worker.mjs",
-    minify: true,
+    main: "server/worker.mjs",
+    // Upload Angular's server output as separate modules instead of one
+    // bundle. A cold isolate then loads only the small entry, so cached pages
+    // are served without parsing the Angular server (about 44 MB), and a render
+    // loads only its own language. Angular already minifies these modules.
+    no_bundle: true,
+    rules: [{ type: "ESModule", globs: ["**/*.mjs"] }],
     compatibility_date: "2026-08-20",
     compatibility_flags: ["nodejs_compat"],
     workers_dev: profile.publicUrls,

@@ -49,10 +49,10 @@ describe("Cloudflare Worker build", () => {
     expect(buildScript).not.toMatch(/--localize=/u);
     expect(profileScript).toContain('workerName: "pkspot-web"');
     expect(buildScript).toContain(
-      'import { handleWorkerRequest } from "./server/server.mjs";',
+      'import { handleWorkerRequest } from "./server.mjs";',
     );
-    expect(profileScript).toContain('main: "worker.mjs"');
-    expect(profileScript).toContain("minify: true");
+    expect(profileScript).toContain('main: "server/worker.mjs"');
+    expect(profileScript).toContain("no_bundle: true");
     expect(profileScript).toContain('directory: "browser"');
     expect(buildScript).toContain("rewriteFirebaseMessagingServiceWorkers");
     expect(buildScript).toContain('"firebase-messaging-sw.js"');

@@ -33,8 +33,16 @@ test("building and deploying production cannot attach a domain or expose product
   assert.equal(config.preview_urls, false);
   assert.equal(config.routes, undefined);
   assert.equal(config.vars, undefined);
-  assert.equal(config.minify, true);
   assert.deepEqual(config.assets, { binding: "ASSETS", directory: "browser" });
+});
+
+test("both Workers upload Angular's server modules unbundled so cold starts load only the entry", () => {
+  for (const profile of [staging, production]) {
+    const config = createWranglerConfig(profile);
+    assert.equal(config.main, "server/worker.mjs");
+    assert.equal(config.no_bundle, true);
+    assert.deepEqual(config.rules, [{ type: "ESModule", globs: ["**/*.mjs"] }]);
+  }
 });
 
 test("both Workers expose the deployment id that keys cached SSR HTML", () => {
