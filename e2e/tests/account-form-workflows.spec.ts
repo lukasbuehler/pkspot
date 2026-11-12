@@ -59,7 +59,7 @@ test.describe("account form workflows", () => {
     await page.locator('input[formControlName="email"]').fill("e2e@example.test");
     await page.locator('input[formControlName="password"]').fill("correct-horse");
     await page.locator('input[formControlName="repeatPassword"]').fill("wrong-horse");
-    await page.locator("mat-checkbox").click();
+    await page.locator('mat-checkbox[formControlName="agreeCheck"]').click();
     await page.locator('button[type="submit"]').click();
 
     await expectRoute(page, /\/de\/sign-up$/u);
