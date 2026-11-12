@@ -437,6 +437,26 @@ describe("contentResolver", () => {
       expect(routerUrl(challengeResult)).toBe("/map/spots/imax/c/wall-run");
     });
 
+    it("keeps the edit history path", async () => {
+      slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot-imax");
+      spotsService.getSpotById.mockResolvedValue(buildImaxSpot());
+
+      const parent = createRouteSnapshot("spot-imax");
+      const editsRoute = {
+        routeConfig: { path: "edits" },
+        paramMap: convertToParamMap({}),
+        parent,
+        children: [] as any[],
+      };
+      parent.children = [editsRoute];
+
+      // The parent Spot resolver runs first and owns the redirect.
+      const result = await TestBed.runInInjectionContext(() =>
+        contentResolver(parent as any),
+      );
+      expect(routerUrl(result)).toBe("/map/spots/imax/edits");
+    });
+
     it("renders slug URLs and slugless Spot ID URLs without redirecting", async () => {
       const response: ResponseInit = {};
       TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });

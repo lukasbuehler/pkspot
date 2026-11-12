@@ -25,6 +25,7 @@ import { SpotId } from "../../db/schemas/SpotSchema";
 import {
   buildSpotCanonicalPath,
   buildSpotChallengeCanonicalPath,
+  buildSpotEditHistoryCanonicalPath,
 } from "../../scripts/SpotRouteHelpers";
 
 export type ContentType =
@@ -222,7 +223,9 @@ async function resolveSpotContent(
       const canonicalPath =
         challengeId || routeTreeHasPath(route, "c")
           ? buildSpotChallengeCanonicalPath(spot.slug, challengeId)
-          : buildSpotCanonicalPath(spot.slug);
+          : routeTreeHasPath(route, "edits")
+            ? buildSpotEditHistoryCanonicalPath(spot.slug)
+            : buildSpotCanonicalPath(spot.slug);
       return permanentCanonicalRedirect(
         services.router,
         services.response,
