@@ -41,6 +41,15 @@ const RENDER_IGNORED_HEADERS = [
   "x-pkspot-client-region",
 ];
 
+/**
+ * Click and campaign IDs that ad networks and social apps append to shared
+ * links. Every click gets a unique value, so keeping them would make each
+ * shared link a cache miss. The app never reads them on the server; the
+ * browser keeps the original URL, so client-side analytics still sees them.
+ */
+const TRACKING_PARAM =
+  /^(utm_\w+|fbclid|gclid|gbraid|wbraid|dclid|msclkid|igshid|ttclid|twclid|li_fat_id|mc_cid|mc_eid|yclid|_gl)$/i;
+
 const RENDERED_AT_HEADER = "X-PKSpot-Rendered-At";
 export const SSR_CACHE_STATUS_HEADER = "X-PKSpot-SSR-Cache";
 
@@ -71,14 +80,15 @@ export async function renderWithSsrCache({
   context,
   now = Date.now,
 }: CachedRenderOptions): Promise<{ response: Response; status: SsrCacheStatus }> {
-  const renderRequest = withoutPersonalHeaders(request);
+  const url = withoutTrackingParams(request.url);
+  const renderRequest = withoutPersonalHeaders(request, url);
   if (!deploymentId || !store || !context) {
     return { response: await render(renderRequest), status: "bypass" };
   }
   const audience = CRAWLER_USER_AGENT.test(request.headers.get("user-agent") ?? "")
     ? "crawler" : "visitor";
   const policy = SSR_CACHE_POLICIES[audience];
-  const key = cacheKey(request, deploymentId, audience);
+  const key = cacheKey(request, url, deploymentId, audience);
 
   const cached = await store.match(key).catch(() => undefined);
   if (cached) {
@@ -112,15 +122,22 @@ export async function renderWithSsrCache({
   return { response, status: "miss" };
 }
 
-function withoutPersonalHeaders(request: Request): Request {
+function withoutTrackingParams(requestUrl: string): URL {
+  const url = new URL(requestUrl);
+  for (const name of [...url.searchParams.keys()]) {
+    if (TRACKING_PARAM.test(name)) url.searchParams.delete(name);
+  }
+  return url;
+}
+
+function withoutPersonalHeaders(request: Request, url: URL): Request {
   const headers = new Headers(request.headers);
   for (const name of RENDER_IGNORED_HEADERS) headers.delete(name);
   // HEAD shares the GET entry; the caller drops the body.
-  return new Request(request.url, { method: "GET", headers });
+  return new Request(url, { method: "GET", headers });
 }
 
-function cacheKey(request: Request, deploymentId: string, audience: string): Request {
-  const url = new URL(request.url);
+function cacheKey(request: Request, url: URL, deploymentId: string, audience: string): Request {
   const layout = detectSsrLayoutHints(request.headers);
   const variant = `${layout.mobile ? "m" : "-"}${layout.tablet ? "t" : "-"}`;
   const key = new URL(

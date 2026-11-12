@@ -117,6 +117,19 @@ describe("Cloudflare SSR HTML cache", () => {
     }
   });
 
+  it("shares one entry across tracking parameters but keeps real query parameters apart", async () => {
+    const { request, render, settle } = setup();
+    await request("/en/map?fbclid=first&utm_source=instagram");
+    await settle();
+    expect(new URL(render.mock.calls[0][0].url).search).toBe("");
+    for (const path of ["/en/map", "/en/map?fbclid=second", "/en/map?gclid=x&UTM_Campaign=y"]) {
+      expect((await request(path)).headers.get(SSR_CACHE_STATUS_HEADER), path).toBe("hit");
+    }
+    expect((await request("/en/map?fbclid=third&lang=de")).headers.get(SSR_CACHE_STATUS_HEADER)).toBe("miss");
+    expect(new URL(render.mock.calls[1][0].url).search).toBe("?lang=de");
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
   it("starts a new cache with every deploy", async () => {
     const { request, settle } = setup();
     await request("/en/map");
