@@ -451,6 +451,32 @@ describe("Spot editor behaviour (through app-spot-details)", () => {
       expect(harness.saved[0].type()).toBe(SpotTypes.Playground);
     });
 
+    it("adds a photo published mid-edit to the draft without restoring removed ones", async () => {
+      // Saving a changed media list overwrites it on the server, which
+      // deletes the files of media missing from the list.
+      const photo = (name: string) => ({
+        type: "image",
+        isInStorage: true,
+        src: `https://firebasestorage.googleapis.com/v0/b/demo/o/spot_pictures%2F${name}.jpg?alt=media`,
+      });
+      const spot = existingSpot({ media: [photo("a"), photo("b")] } as Partial<SpotSchema>);
+      const harness = await render(spot, { liveUpdates: true });
+      spot.userMedia.update((media) => media.slice(1));
+
+      liveSpot$.next(
+        existingSpot({ media: [photo("a"), photo("b"), photo("new")] } as Partial<SpotSchema>),
+      );
+      await harness.fixture.whenStable();
+      await click(harness, "Save changes");
+      await settle(harness);
+
+      expect(harness.saved[0]).toBe(spot);
+      const names = harness.saved[0]
+        .userMedia()
+        .map((media) => media.baseSrc.match(/spot_pictures%2F(\w+)/)?.[1]);
+      expect(names).toEqual(["b", "new"]);
+    });
+
     it("shows the latest snapshot once editing ends", async () => {
       const harness = await render(existingSpot(), { liveUpdates: true });
 

@@ -629,6 +629,8 @@ export class SpotDetailsComponent
    * edits) would silently be dropped from the saved diff.
    */
   private _snapshotHeldDuringEdit: Spot | null = null;
+  /** Media sources in the last published version of the Spot. */
+  private _publishedMediaSrcs = new Set<string>();
   private _privateDataSub: Subscription | null = null;
   private _authStateSub: Subscription | null = null;
   private _bookmarkedSpotIds = new Set<string>();
@@ -1505,6 +1507,7 @@ export class SpotDetailsComponent
     if (this._lastSubscribedSpotId === spot.id && this._spotSnapshotSub) return;
     this._unsubscribeFromLiveSpot();
     this._lastSubscribedSpotId = spot.id;
+    this._publishedMediaSrcs = mediaSrcs(spot);
     this._spotSnapshotSub = this._spotsService
       .getSpotById$(spot.id, this.locale)
       .subscribe({
@@ -1512,13 +1515,34 @@ export class SpotDetailsComponent
           const current = this.spot();
           if (!(current instanceof Spot) || current.id !== incoming.id) return;
           if (this.isEditing()) {
+            this._mergeNewlyPublishedMedia(current, incoming);
             this._snapshotHeldDuringEdit = incoming;
             return;
           }
+          this._publishedMediaSrcs = mediaSrcs(incoming);
           this.spot.set(incoming);
         },
         error: (err) => console.warn("Live spot update error", err),
       });
+  }
+
+  /**
+   * Adds media published since the last snapshot (for example an upload
+   * finished from the editor) to the draft. Saving sends the whole media list
+   * when it changed, and the server deletes media missing from it, so a held
+   * snapshot must not keep a finished upload out of the draft. Media the user
+   * removed in the draft was already published, so it stays removed.
+   */
+  private _mergeNewlyPublishedMedia(draft: Spot, incoming: Spot): void {
+    const known = this._publishedMediaSrcs;
+    const inDraft = mediaSrcs(draft);
+    const added = incoming
+      .userMedia()
+      .filter((media) => !known.has(media.baseSrc) && !inDraft.has(media.baseSrc));
+    this._publishedMediaSrcs = mediaSrcs(incoming);
+    if (added.length > 0) {
+      draft.userMedia.update((media) => [...media, ...added]);
+    }
   }
 
   /** Shows the snapshot held back during editing, once editing has ended. */
@@ -1599,4 +1623,8 @@ export class SpotDetailsComponent
     this.bookmarked.set(this._bookmarkedSpotIds.has(spot.id));
     this.visited.set(this._visitedSpotIds.has(spot.id));
   }
+}
+
+function mediaSrcs(spot: Spot): Set<string> {
+  return new Set(spot.userMedia().map((media) => media.baseSrc));
 }
