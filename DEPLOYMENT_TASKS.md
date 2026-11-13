@@ -64,6 +64,15 @@ run data migrations, or complete third-party service tasks.
    completion signal, retry behavior, and rollback or recovery plan before
    deploying dependent code.
 
+7. Give every production release a new version, including web-only releases.
+   Minor versions (`1.x`) are the big, named updates; patch versions
+   (`1.x.y`) are the iterations in between. Bump `version` in `package.json`
+   and `package-lock.json` on the release branch. Native apps take the current
+   number when they next ship (also bump `versionName`/`versionCode` in
+   `android/app/build.gradle` and `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION`
+   in the iOS projects), so they may skip numbers that shipped only on web. A
+   version number always refers to the same code; never reuse one.
+
 ### Deployment
 
 1. Release the web app by updating `main`; App Hosting deploys it automatically.
@@ -83,6 +92,9 @@ run data migrations, or complete third-party service tasks.
    checks.
 4. Verify completion using the success condition recorded for each action.
 5. Monitor affected product metrics and error reports for an appropriate period.
+6. Tag the released `main` merge commit with an annotated `v<version>` tag
+   (for example `git tag -a v1.2.2 -m "PK Spot 1.2.2" <merge-commit>`) and push
+   the tag with the user's approval.
 
 ## Task index
 

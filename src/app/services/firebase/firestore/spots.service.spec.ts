@@ -80,16 +80,6 @@ describe("SpotsService", () => {
     service = TestBed.inject(SpotsService);
   });
 
-  it("should be created", () => {
-    expect(service).toBeTruthy();
-  });
-
-  describe("docRef", () => {
-    it("should be a function", () => {
-      expect(typeof service.docRef).toBe("function");
-    });
-  });
-
   describe("getSpotById", () => {
     it("should return a Spot when document exists", async () => {
       const mockSpotData = {

@@ -13,6 +13,7 @@ import {
   getNavigationLayout,
   isLandscapePhoneViewport,
 } from "../features/navigation-layout";
+import { detectSsrLayoutHints } from "../../ssr-layout-hints";
 
 /**
  * Responsive view mode based on screen size breakpoints
@@ -184,31 +185,13 @@ export class ResponsiveService {
     return !this.isMobileUserAgent() && !this.isTabletUserAgent();
   }
 
-  /**
-   * Check if User-Agent indicates a mobile device
-   */
+  /** Server-only layout guess shared with the Worker's HTML cache key. */
   private isMobileUserAgent(): boolean {
-    if (!this.request) return false;
-
-    // Check modern Client Hints header
-    const secChUaMobile = this.request.headers.get("sec-ch-ua-mobile");
-    if (secChUaMobile === "?1") return true;
-    if (secChUaMobile === "?0") return false;
-
-    const ua = this.request.headers.get("user-agent") ?? "";
-    // Added 'Mobile' to the regex to catch more general mobile user agents
-    return /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(
-      ua
-    );
+    return detectSsrLayoutHints(this.request?.headers).mobile;
   }
 
-  /**
-   * Check if User-Agent indicates a tablet device
-   */
   private isTabletUserAgent(): boolean {
-    if (!this.request) return false;
-    const ua = this.request.headers.get("user-agent") ?? "";
-    return /iPad|Android(?!.*Mobile)/i.test(ua);
+    return detectSsrLayoutHints(this.request?.headers).tablet;
   }
 
   private setupBreakpointListener() {

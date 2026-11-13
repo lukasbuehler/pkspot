@@ -1,47 +1,57 @@
 import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
-import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { NEVER } from "rxjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { environment } from "../../environments/environment.default";
 import { ConsentService } from "./consent.service";
-import { AnalyticsService, stripUtmParametersFromUrl, redactPlanningUrl } from "./analytics.service";
+import {
+  AnalyticsService,
+  PERSISTENT_ANALYTICS_STORAGE_KEY,
+  stripUtmParametersFromUrl,
+  redactPlanningUrl,
+} from "./analytics.service";
 
-const capacitorPostHogMock = vi.hoisted(() => ({
-  unregister: vi.fn(),
-  captureException: vi.fn(),
-  setup: vi.fn().mockResolvedValue(undefined),
-  register: vi.fn().mockResolvedValue(undefined),
-  screen: vi.fn().mockResolvedValue(undefined),
-  capture: vi.fn().mockResolvedValue(undefined),
-  optIn: vi.fn().mockResolvedValue(undefined),
+const posthogMock = vi.hoisted(() => ({
+  init: vi.fn(),
+  capture: vi.fn(),
+  register: vi.fn(),
+  identify: vi.fn(),
+  reset: vi.fn(),
+  set_config: vi.fn(),
+  get_distinct_id: vi.fn(() => "anon-1"),
+  people: { set: vi.fn() },
 }));
 
-vi.mock("@capawesome/capacitor-posthog", () => ({
-  Posthog: capacitorPostHogMock,
-}));
+vi.mock("posthog-js", () => ({ default: posthogMock }));
 
-describe("AnalyticsService privacy and native startup", () => {
+function configure(platform = "browser") {
+  TestBed.configureTestingModule({
+    providers: [
+      AnalyticsService,
+      { provide: ConsentService, useValue: { hasConsent: () => true } },
+      { provide: Router, useValue: { events: NEVER, url: "/map" } },
+      { provide: PLATFORM_ID, useValue: platform },
+    ],
+  });
+  const service = TestBed.inject(AnalyticsService);
+  const internals = service as unknown as { isLocalhost: () => boolean; isNative: () => boolean };
+  vi.spyOn(internals, "isLocalhost").mockReturnValue(false);
+  vi.spyOn(internals, "isNative").mockReturnValue(false);
+  return { service, internals };
+}
+
+describe("AnalyticsService privacy and startup", () => {
   const originalConfig = environment.keys.posthog;
   let service: AnalyticsService;
+  let internals: { isNative: () => boolean };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
     environment.keys.posthog = { apiKey: "phc_test", host: "https://analytics.invalid" };
-    TestBed.configureTestingModule({
-      providers: [
-        AnalyticsService,
-        { provide: ConsentService, useValue: { hasConsent: () => true } },
-        { provide: Router, useValue: { events: NEVER, url: "/map" } },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
-    });
-    service = TestBed.inject(AnalyticsService);
-    const internals = service as unknown as { isLocalhost: () => boolean; isNative: () => boolean };
-    vi.spyOn(internals, "isLocalhost").mockReturnValue(false);
-    vi.spyOn(internals, "isNative").mockReturnValue(true);
-    vi.mocked(CapacitorPostHog.unregister).mockResolvedValue();
+    ({ service, internals } = configure());
   });
 
   afterEach(() => {
@@ -51,25 +61,81 @@ describe("AnalyticsService privacy and native startup", () => {
     vi.clearAllMocks();
   });
 
-  it("captures the initial native screen after initialization is ready", async () => {
+  it("keeps analytics in memory and deletes stored analytics data by default", async () => {
+    localStorage.setItem("ph_distinct_id_v1", "old-id");
+    localStorage.setItem("ph_phc_test_posthog", "{}");
+    localStorage.setItem("ph_initial_referrer_v1", "https://example.test");
+    sessionStorage.setItem("ph_sticker_scan_sent_v1:nice-spot-v1", "1");
+    localStorage.setItem("acceptedVersion", "7");
+
     await service.init();
 
-    expect(CapacitorPostHog.screen).toHaveBeenCalledWith(expect.objectContaining({
-      screenTitle: "https://pkspot.app/map",
+    const config = posthogMock.init.mock.calls[0][1];
+    expect(config.persistence).toBe("memory");
+    expect(config.bootstrap).toBeUndefined();
+    config.loaded(posthogMock);
+    expect(Object.keys(localStorage)).toEqual(["acceptedVersion"]);
+    expect(sessionStorage.length).toBe(0);
+    expect(service.persistentAnalytics()).toBe(false);
+  });
+
+  it("remembers the device after the visitor opts in", async () => {
+    localStorage.setItem(PERSISTENT_ANALYTICS_STORAGE_KEY, "granted");
+    localStorage.setItem("ph_distinct_id_v1", "known-id");
+
+    await service.init();
+
+    const config = posthogMock.init.mock.calls[0][1];
+    expect(config.persistence).toBe("localStorage");
+    expect(config.bootstrap).toEqual({ distinctID: "known-id", isIdentifiedID: false });
+  });
+
+  it("links a signed-in user to analytics only with persistent analytics", async () => {
+    await service.init();
+    service.identifyUser("user-1", { email: "user@example.test" });
+    expect(posthogMock.identify).not.toHaveBeenCalled();
+    expect(posthogMock.register).toHaveBeenCalledWith({ authenticated: true });
+
+    service.setPersistentAnalytics(true);
+    expect(localStorage.getItem(PERSISTENT_ANALYTICS_STORAGE_KEY)).toBe("granted");
+    expect(posthogMock.set_config).toHaveBeenCalledWith({ persistence: "localStorage" });
+    expect(localStorage.getItem("ph_distinct_id_v1")).toBe("anon-1");
+    expect(posthogMock.identify).toHaveBeenCalledWith("user-1", { email: "user@example.test" });
+  });
+
+  it("forgets the identity and stored data when persistent analytics is turned off", async () => {
+    localStorage.setItem(PERSISTENT_ANALYTICS_STORAGE_KEY, "granted");
+    await service.init();
+    localStorage.setItem("ph_distinct_id_v1", "known-id");
+
+    service.setPersistentAnalytics(false);
+
+    expect(posthogMock.reset).toHaveBeenCalled();
+    expect(posthogMock.set_config).toHaveBeenCalledWith({ persistence: "memory" });
+    expect(localStorage.getItem("ph_distinct_id_v1")).toBeNull();
+    expect(localStorage.getItem(PERSISTENT_ANALYTICS_STORAGE_KEY)).toBeNull();
+    expect(service.persistentAnalytics()).toBe(false);
+  });
+
+  it("captures the initial native screen with the web SDK after initialization", async () => {
+    vi.mocked(internals.isNative).mockReturnValue(true);
+    await service.init();
+
+    expect(posthogMock.capture).toHaveBeenCalledWith("$screen", expect.objectContaining({
+      $screen_name: "https://pkspot.app/map",
     }));
-    expect(CapacitorPostHog.capture).toHaveBeenCalledWith(expect.objectContaining({
-      event: "$pageview",
+    expect(posthogMock.capture).toHaveBeenCalledWith("$pageview", expect.objectContaining({
+      path: "/map",
     }));
+    posthogMock.capture.mockClear();
     service.trackScreen("/map");
-    expect(CapacitorPostHog.screen).toHaveBeenCalledTimes(1);
-    expect(CapacitorPostHog.capture).toHaveBeenCalledTimes(1);
+    expect(posthogMock.capture).not.toHaveBeenCalled();
   });
 
   it("does not treat a false GPC signal as an opt-out", async () => {
     vi.stubGlobal("navigator", { globalPrivacyControl: false });
     await service.init();
     expect(service.isAvailable()).toBe(true);
-    expect(CapacitorPostHog.capture).toHaveBeenCalled();
   });
 
   it("does not access browser privacy signals during SSR", () => {
@@ -84,49 +150,41 @@ describe("AnalyticsService privacy and native startup", () => {
     });
     const readGpc = vi.fn(() => { throw new Error("Browser-only API"); });
     vi.stubGlobal("navigator", { get globalPrivacyControl() { return readGpc(); } });
-    const internals = TestBed.inject(AnalyticsService) as unknown as {
+    const ssrInternals = TestBed.inject(AnalyticsService) as unknown as {
       hasGlobalPrivacyControl: () => boolean;
     };
-    expect(internals.hasGlobalPrivacyControl()).toBe(false);
+    expect(ssrInternals.hasGlobalPrivacyControl()).toBe(false);
     expect(readGpc).not.toHaveBeenCalled();
   });
 
   it("drops web SDK events at the send hook when GPC is active", () => {
     vi.stubGlobal("navigator", { globalPrivacyControl: true });
-    const internals = service as unknown as {
+    const hooks = service as unknown as {
       processEventBeforeSend: (event: unknown) => unknown;
     };
-    expect(internals.processEventBeforeSend({ event: "$pageview", properties: {} })).toBeNull();
+    expect(hooks.processEventBeforeSend({ event: "$pageview", properties: {} })).toBeNull();
   });
 
   it.each([true, false])("does not initialize analytics with GPC enabled (native=%s)", async (native) => {
     vi.stubGlobal("navigator", { globalPrivacyControl: true });
-    const internals = service as unknown as { isNative: () => boolean; initWeb: () => Promise<void> };
     vi.mocked(internals.isNative).mockReturnValue(native);
-    const webInit = vi.spyOn(internals, "initWeb").mockResolvedValue();
 
     await service.init();
-    service.optIn();
 
-    expect(CapacitorPostHog.setup).not.toHaveBeenCalled();
-    expect(CapacitorPostHog.optIn).not.toHaveBeenCalled();
-    expect(webInit).not.toHaveBeenCalled();
-    expect(service.hasOptedOut()).toBe(true);
+    expect(posthogMock.init).not.toHaveBeenCalled();
+    expect(service.isAvailable()).toBe(false);
   });
 
-  it("blocks captures and opt-in if GPC becomes active after startup", async () => {
+  it("blocks captures if GPC becomes active after startup", async () => {
+    vi.mocked(internals.isNative).mockReturnValue(true);
     await service.init();
-    vi.mocked(CapacitorPostHog.capture).mockClear();
-    vi.mocked(CapacitorPostHog.screen).mockClear();
+    posthogMock.capture.mockClear();
     vi.stubGlobal("navigator", { globalPrivacyControl: true });
 
     service.trackScreen("/events");
     service.trackEvent("$pageview");
-    service.optIn();
 
-    expect(CapacitorPostHog.capture).not.toHaveBeenCalled();
-    expect(CapacitorPostHog.screen).not.toHaveBeenCalled();
-    expect(CapacitorPostHog.optIn).not.toHaveBeenCalled();
+    expect(posthogMock.capture).not.toHaveBeenCalled();
   });
 });
 
@@ -173,8 +231,10 @@ describe("AnalyticsService queued identity", () => {
     const internals = service as unknown as {
       _initialized: boolean;
       _posthog: typeof posthog;
+      _persistent: { set: (value: boolean) => void };
       flushPendingUserIdentity: () => void;
     };
+    internals._persistent.set(true);
     internals._posthog = posthog;
     internals._initialized = true;
     internals.flushPendingUserIdentity();
@@ -243,70 +303,6 @@ describe("AnalyticsService queued identity", () => {
   });
 });
 
-describe("AnalyticsService native SDK metadata migration", () => {
-  let service: AnalyticsService;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [
-        AnalyticsService,
-        {
-          provide: ConsentService,
-          useValue: {
-            hasConsent: vi.fn(() => true),
-          },
-        },
-        {
-          provide: Router,
-          useValue: {
-            events: NEVER,
-            url: "/",
-          },
-        },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
-    });
-
-    service = TestBed.inject(AnalyticsService);
-  });
-
-  it("removes SDK metadata left behind by older native builds", async () => {
-    const unregister = vi.mocked(CapacitorPostHog.unregister);
-    unregister.mockResolvedValue();
-    const internals = service as unknown as {
-      clearLegacyNativeSdkProperties: () => Promise<void>;
-    };
-
-    await internals.clearLegacyNativeSdkProperties();
-
-    expect(unregister).toHaveBeenCalledTimes(2);
-    expect(unregister).toHaveBeenCalledWith({ key: "$lib" });
-    expect(unregister).toHaveBeenCalledWith({ key: "$lib_version" });
-  });
-
-  it("does not forward caller-provided SDK metadata to the native SDK", () => {
-    Object.defineProperty(window, "matchMedia", {
-      configurable: true,
-      value: vi.fn(() => ({ matches: false })),
-    });
-    const internals = service as unknown as {
-      withRequiredNativeAnalyticsProperties: (
-        properties?: Record<string, unknown>,
-      ) => Record<string, unknown>;
-    };
-
-    const properties = internals.withRequiredNativeAnalyticsProperties({
-      $lib: "capawesome-capacitor-posthog",
-      $lib_version: "8.5.0",
-      action: "open",
-    });
-
-    expect(properties).not.toHaveProperty("$lib");
-    expect(properties).not.toHaveProperty("$lib_version");
-    expect(properties["action"]).toBe("open");
-  });
-});
-
 describe("AnalyticsService error reporting", () => {
   let service: AnalyticsService;
   let consentService: { hasConsent: ReturnType<typeof vi.fn> };
@@ -323,6 +319,10 @@ describe("AnalyticsService error reporting", () => {
   };
 
   beforeEach(() => {
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn(() => ({ matches: false })),
+    });
     consentService = { hasConsent: vi.fn(() => true) };
     TestBed.configureTestingModule({
       providers: [
@@ -374,32 +374,6 @@ describe("AnalyticsService error reporting", () => {
     });
 
     expect(posthog.captureException).not.toHaveBeenCalled();
-  });
-
-  it("uses the native exception API instead of synthesizing an event", () => {
-    vi.mocked(CapacitorPostHog.captureException).mockResolvedValue();
-    const internals = service as unknown as {
-      _initialized: boolean;
-      isNative: () => boolean;
-    };
-    internals._initialized = true;
-    internals.isNative = () => true;
-
-    service.reportError(new Error("Safe native failure"), {
-      context: "email_account_creation",
-      properties: { failure_stage: "auth_profile" },
-    });
-
-    expect(CapacitorPostHog.captureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: "Error",
-        message: "Safe native failure",
-        properties: expect.objectContaining({
-          error_context: "email_account_creation",
-          failure_stage: "auth_profile",
-        }),
-      }),
-    );
   });
 });
 

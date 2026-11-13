@@ -54,9 +54,9 @@ function buildWorker() {
     createAssetHeaders(readFileSync(path.join(repoRoot, "src", "cloudflare-headers"), "utf8"), profile),
   );
   writeFileSync(
-    path.join(outputDir, "worker.mjs"),
+    path.join(outputDir, "server", "worker.mjs"),
     [
-      'import { handleWorkerRequest } from "./server/server.mjs";',
+      'import { handleWorkerRequest } from "./server.mjs";',
       "export default { fetch: handleWorkerRequest };",
       "",
     ].join("\n"),

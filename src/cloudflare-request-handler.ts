@@ -4,6 +4,13 @@ import {
 } from "./app/config/ui-locales";
 import { getLegacySsrRedirectTarget } from "./server-redirects";
 import { isSensitiveProbePath } from "./request-path-policy.mjs";
+import {
+  renderWithSsrCache,
+  toBrowserResponse,
+  type SsrCacheStatus,
+  type SsrCacheStore,
+  type WorkerExecutionContext,
+} from "./cloudflare-ssr-cache";
 
 export interface CloudflareAssets {
   fetch(request: Request): Promise<Response>;
@@ -15,23 +22,41 @@ type RenderRequest = (
 const locales = new Set<string>(SUPPORTED_UI_LOCALES);
 const LEGACY_ASSET_HEADER = "X-PKSpot-Legacy-Asset";
 
+export interface CloudflareWorkerEnvironment {
+  ASSETS: CloudflareAssets;
+  PKSPOT_APP_HOSTING_ASSET_FALLBACK?: string;
+  /** Wrangler `version_metadata` binding; its id changes with every deploy. */
+  CF_VERSION_METADATA?: { id?: string };
+}
+
+/** The Workers runtime's default cache; absent in Node tests and on workers.dev it is a no-op. */
+function defaultSsrCacheStore(): SsrCacheStore | undefined {
+  return (globalThis as { caches?: { default?: SsrCacheStore } }).caches?.default;
+}
+
 export function createCloudflareRequestHandler(
   render: RenderRequest,
   fetchLegacyAsset: (request: Request) => Promise<Response> = (request) => fetch(request),
+  ssrCacheStore: () => SsrCacheStore | undefined = defaultSsrCacheStore,
 ) {
   return async (
     request: Request,
-    environment: {
-      ASSETS: CloudflareAssets;
-      PKSPOT_APP_HOSTING_ASSET_FALLBACK?: string;
-    },
+    environment: CloudflareWorkerEnvironment,
+    context?: WorkerExecutionContext,
   ): Promise<Response> => {
     const url = new URL(request.url);
     const response = await routeRequest(
       request,
       url,
       environment.ASSETS,
-      render,
+      (renderRequest) => renderWithSsrCache({
+        request: renderRequest,
+        render: async (cacheRequest) =>
+          (await render(cacheRequest)) ?? nullRenderResponse(url),
+        deploymentId: environment.CF_VERSION_METADATA?.id,
+        store: ssrCacheStore(),
+        context,
+      }),
       // Only enable this after retaining App Hosting behind a Worker Route.
       // A same-host fetch from a Custom Domain would call the Worker again.
       environment.PKSPOT_APP_HOSTING_ASSET_FALLBACK === "route-origin" &&
@@ -58,7 +83,7 @@ async function routeRequest(
   request: Request,
   url: URL,
   assets: CloudflareAssets,
-  render: RenderRequest,
+  render: (request: Request) => Promise<{ response: Response; status: SsrCacheStatus }>,
   fetchLegacyAsset?: (request: Request) => Promise<Response>,
 ): Promise<Response> {
   // Apply the shared policy before redirects, asset lookups or Angular SSR.
@@ -159,16 +184,20 @@ async function routeRequest(
   // Express renders the map at the locale root without an extra redirect.
   if (url.pathname === `/${first}` || url.pathname === `/${first}/`)
     url.pathname = `/${first}/map`;
-  const rendered = await render(new Request(url, request));
-  if (!rendered) {
-    // Angular can return null after a navigation error, not only a missing route.
-    // Log no URL/query data; the Worker invocation identifies the request.
-    console.error("Cloudflare SSR returned no response", { locale: first });
-  }
-  const response = rendered ?? new Response("Not Found", { status: 404 });
-  const headers = new Headers(response.headers);
-  headers.set("Cache-Control", "no-cache");
-  return new Response(response.body, { status: response.status, headers });
+  const { response, status } = await render(new Request(url, request));
+  // Browsers revalidate every navigation; the Worker answers from its edge cache.
+  const browserResponse = toBrowserResponse(response, status);
+  browserResponse.headers.set("Cache-Control", "no-cache");
+  return browserResponse;
+}
+
+function nullRenderResponse(url: URL): Response {
+  // Angular can return null after a navigation error, not only a missing route.
+  // Log no URL/query data; the Worker invocation identifies the request.
+  console.error("Cloudflare SSR returned no response", {
+    locale: url.pathname.split("/")[1],
+  });
+  return new Response("Not Found", { status: 404 });
 }
 
 function redirect(location: string, status: number): Response {

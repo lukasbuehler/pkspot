@@ -6,7 +6,6 @@ import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotTypePickerComponent } from "./spot-type-picker.component";
 
 describe("SpotTypePickerComponent", () => {
-  let component: SpotTypePickerComponent;
   let fixture: ComponentFixture<SpotTypePickerComponent>;
 
   beforeEach(async () => {
@@ -15,12 +14,7 @@ describe("SpotTypePickerComponent", () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SpotTypePickerComponent);
-    component = fixture.componentInstance;
     await fixture.whenStable();
-  });
-
-  it("should create", () => {
-    expect(component).toBeTruthy();
   });
 
   it("shows the selected type icon, name, and description", async () => {

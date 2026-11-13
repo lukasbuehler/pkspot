@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import type { CommunityPageSchema } from "../db/schemas/CommunityPageSchema";
 import { communityPlaceFingerprint } from "./CommunityPlaceNames";

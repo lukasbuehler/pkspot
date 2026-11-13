@@ -1,3 +1,4 @@
+// @vitest-environment node
 import {
   WEATHER_STATES,
   WEATHER_WARNINGS,

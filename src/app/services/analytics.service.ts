@@ -1,18 +1,25 @@
-import { Injectable, PLATFORM_ID, inject } from "@angular/core";
+import { Injectable, PLATFORM_ID, inject, signal } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Router, NavigationEnd } from "@angular/router";
 import type { CaptureResult, Properties } from "posthog-js";
 import { ConsentService } from "./consent.service";
 import { environment } from "../../environments/environment.default";
 import { Capacitor } from "@capacitor/core";
-import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { filter } from "rxjs/operators";
 import { version } from "../../../package.json";
 
 /**
  * Analytics service wrapping PostHog for event tracking.
- * PostHog is initialized in main.ts before Angular bootstrap.
- * This service provides a typed wrapper for PostHog calls.
+ *
+ * By default analytics store nothing on the device: PostHog keeps its IDs in
+ * memory, so a visitor is anonymous and a new visit cannot be linked to an
+ * earlier one, and events are never tied to an account. This needs no consent
+ * under the ePrivacy rules on device storage. Visitors can opt in to
+ * persistent analytics, which remembers the device and links signed-in events
+ * to the account. GPC turns analytics off completely.
+ *
+ * The web SDK runs on every platform, including the native apps' web view,
+ * because the native PostHog SDKs always persist their IDs.
  */
 
 export type ErrorSeverity = "fatal" | "error" | "warning" | "info";
@@ -62,7 +69,8 @@ function redactPlanningProperties(properties: Properties): Properties {
   return result;
 }
 
-const LEGACY_NATIVE_SDK_PROPERTY_KEYS = ["$lib", "$lib_version"] as const;
+/** Device-level opt-in to persistent analytics; storing the choice itself is necessary. */
+export const PERSISTENT_ANALYTICS_STORAGE_KEY = "pkspot_analytics_persistent_v1";
 
 export function stripUtmParametersFromUrl(url: string): string {
   const parsedUrl = new URL(url, "https://pkspot.app");
@@ -87,8 +95,15 @@ export class AnalyticsService {
   private router = inject(Router);
   private _initialized = false;
   private _posthog: typeof import("posthog-js").default | null = null;
-  private readonly _nativeSuperProperties = new Map<string, unknown>();
   private _lastNativeScreenUrl: string | null = null;
+  private readonly _persistent = signal(false);
+  /** Whether this device opted in to persistent analytics. */
+  readonly persistentAnalytics = this._persistent.asReadonly();
+  /** The signed-in user, linked to analytics only with persistent analytics. */
+  private _signedInUser: PendingUserIdentity | null = null;
+  /** In-memory stand-ins for values persistent analytics keeps in storage. */
+  private _sessionInitialAttribution: Record<string, string> | null = null;
+  private readonly _sessionStickerScans = new Set<string>();
   private readonly appVersion = version;
   private readonly distinctIdStorageKey = "ph_distinct_id_v1";
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
@@ -136,17 +151,24 @@ export class AnalyticsService {
       return;
     }
 
+    this._persistent.set(this.readPersistentPreference());
+    if (!this._persistent()) this.clearAnalyticsStorage();
+
     try {
-      if (this.isNative()) {
-        await this.initNative(apiKey, host);
-      } else {
-        await this.initWeb(apiKey, host);
-      }
+      await this.initWeb(apiKey, host);
       this._initialized = true;
       await this.registerSuperProperties();
       this.flushPendingUserIdentity();
-      // trackScreen requires _initialized, so the first view must follow setup.
-      if (this.isNative()) this.trackScreen(this.router.url);
+      if (this.isNative()) {
+        // The apps have no browser pageviews, so router navigations count as screens.
+        this.router.events
+          .pipe(filter((event) => event instanceof NavigationEnd))
+          .subscribe((event: NavigationEnd) => {
+            this.trackScreen(event.urlAfterRedirects);
+          });
+        // trackScreen requires _initialized, so the first view must follow setup.
+        this.trackScreen(this.router.url);
+      }
     } catch (e) {
       console.error("[Analytics] Initialization failed", e);
     }
@@ -178,22 +200,13 @@ export class AnalyticsService {
         path: pathname,
         source: "native_router",
       };
-      console.log("[AnalyticsDebug] Native route analytics queued", {
-        screenTitle: fullUrl,
-        path: pathname,
-        events: ["$screen", "$pageview"],
-        requiredProps: this.getNativeAnalyticsRequiredPropertySummary(
-          normalizedProperties,
-        ),
-      });
-      this.sendNativeScreen(fullUrl, normalizedProperties);
-      this.sendNativeCapture("$pageview", normalizedProperties);
+      const posthog = this._posthog;
+      if (!posthog) return;
+      posthog.capture("$screen", { ...normalizedProperties, $screen_name: fullUrl });
+      posthog.capture("$pageview", normalizedProperties);
 
-      // Register current URL/Screen as super properties so they are attached to all subsequent events (like trackEvent)
-      this.registerNativeSuperProperty({
-        $current_url: fullUrl,
-        $screen_name: fullUrl,
-      });
+      // Attach the current screen to all later events, such as trackEvent.
+      posthog.register({ $current_url: fullUrl, $screen_name: fullUrl });
     } else {
       // Web usually handles this via $pageview, but we could force a capture if needed.
       // For now, rely on default $pageview from posthog-js which is usually automatic or manual.
@@ -217,43 +230,6 @@ export class AnalyticsService {
   }
 
   /**
-   * Initialize Native PostHog (Capacitor)
-   */
-  private async initNative(apiKey: string, host: string): Promise<void> {
-    console.log("[AnalyticsDebug] Native PostHog setup starting", {
-      apiHost: host,
-      platform: Capacitor.getPlatform(),
-    });
-
-    await CapacitorPostHog.setup({
-      apiKey,
-      apiHost: host,
-      captureApplicationLifecycleEvents: false,
-      enableSessionReplay: false,
-    });
-
-    await this.clearLegacyNativeSdkProperties();
-
-    console.log("[AnalyticsDebug] Native PostHog setup completed", {
-      apiHost: host,
-      platform: Capacitor.getPlatform(),
-    });
-
-    // Register native platform globals immediately after setup so they are present on all $screen events.
-    await this.registerNativeSuperProperty({
-      ...this.getPlatformProperties(),
-      ...this.getAppVersionProperties(),
-    });
-
-    // Auto-track screen views for Native (router-driven)
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
-        this.trackScreen(event.urlAfterRedirects);
-      });
-  }
-
-  /**
    * Initialize Web PostHog (posthog-js)
    */
   private async initWeb(apiKey: string, host: string): Promise<void> {
@@ -264,11 +240,13 @@ export class AnalyticsService {
     const { default: posthog } = await import("posthog-js");
     this._posthog = posthog;
 
-    // 1. Attempt to load persisted distinct_id
+    // 1. Attempt to load the persisted distinct_id (persistent analytics only)
     let bootstrapConfig: {
       bootstrap?: { distinctID: string; isIdentifiedID: boolean };
     } = {};
-    const persistedId = localStorage.getItem(this.distinctIdStorageKey);
+    const persistedId = this._persistent()
+      ? localStorage.getItem(this.distinctIdStorageKey)
+      : null;
     if (persistedId) {
       console.log(
         `[AnalyticsDebug] Bootstrapping with persisted ID: ${persistedId}`,
@@ -300,15 +278,13 @@ export class AnalyticsService {
         captureExtensionExceptions: false,
       },
       capture_exceptions: false,
-      persistence: "localStorage",
+      // Memory keeps IDs for this page load only and writes nothing to the device.
+      persistence: this._persistent() ? "localStorage" : "memory",
       debug: false,
       ...bootstrapConfig,
       loaded: (ph) => {
         // 2. Persist the distinct_id for future sessions
-        const currentId = ph.get_distinct_id();
-        if (currentId) {
-          localStorage.setItem(this.distinctIdStorageKey, currentId);
-        }
+        if (this._persistent()) this.persistDistinctId(ph.get_distinct_id());
         if (Object.keys(initialAttributionProps).length > 0) {
           ph.register(initialAttributionProps);
         }
@@ -342,7 +318,6 @@ export class AnalyticsService {
    */
   isAvailable(): boolean {
     if (!this._initialized || this.hasGlobalPrivacyControl()) return false;
-    if (this.isNative()) return true;
     return isPlatformBrowser(this._platformId) && this._posthog !== null;
   }
 
@@ -391,11 +366,7 @@ export class AnalyticsService {
       properties,
     );
 
-    if (this.isNative()) {
-      this.sendNativeCapture(eventName, normalizedProperties);
-    } else {
-      this._posthog?.capture(eventName, normalizedProperties);
-    }
+    this._posthog?.capture(eventName, normalizedProperties);
   }
 
   trackOutboundLinkClick(
@@ -456,43 +427,14 @@ export class AnalyticsService {
     const properties = this.normalizeErrorReportProperties(error, options);
 
     try {
-      if (this.isNative()) {
-        this.sendNativeException(error, properties);
+      this._posthog?.captureException(error, properties);
 
-        if (options.userFacing) {
-          this.sendNativeCapture("User Encountered Error", properties);
-        }
-      } else {
-        this._posthog?.captureException(error, properties);
-
-        if (options.userFacing) {
-          this._posthog?.capture("User Encountered Error", properties);
-        }
+      if (options.userFacing) {
+        this._posthog?.capture("User Encountered Error", properties);
       }
     } catch (reportingError) {
       console.warn("AnalyticsService: failed to report error", reportingError);
     }
-  }
-
-  private sendNativeException(
-    error: unknown,
-    properties: Record<string, unknown>,
-  ): void {
-    const summary = this.getErrorSummary(error);
-    const nativeProperties = this.withRequiredNativeAnalyticsProperties(
-      properties,
-    );
-
-    void CapacitorPostHog.captureException({
-      name: summary.name,
-      message: summary.message,
-      properties: nativeProperties,
-    }).catch((captureError) => {
-      console.warn(
-        "AnalyticsService: failed to send native exception",
-        captureError,
-      );
-    });
   }
 
   /**
@@ -513,34 +455,17 @@ export class AnalyticsService {
     userId: string,
     properties?: Record<string, unknown>,
   ): void {
-    this._identifiedUserId = userId;
-
-    if (this.isNative()) {
-      void CapacitorPostHog.identify({
-        distinctId: userId,
-        userProperties: properties,
-      }).catch((error) => {
-        console.warn("AnalyticsService: failed to identify native user", error);
-      });
-      // Register authenticated super property
-      this.registerNativeSuperProperty({ authenticated: true });
-    } else {
-      const posthog = this._posthog;
-      if (!posthog) return;
+    this._signedInUser = { userId, properties };
+    const posthog = this._posthog;
+    if (!posthog) return;
+    try {
+      // Without persistent analytics, events say only that someone is signed in.
+      posthog.register({ authenticated: true });
+      if (!this._persistent()) return;
       posthog.identify(userId, properties);
-      // Mark subsequent events/pageviews as authenticated for PostHog
-      try {
-        posthog.register({ authenticated: true });
-        // also set person properties if person profiles are enabled
-        if (posthog.people && typeof posthog.people.set === "function") {
-          posthog.people.set({ authenticated: true });
-        }
-      } catch (e) {
-        console.error(
-          "AnalyticsService: failed to register authenticated flag",
-          e,
-        );
-      }
+      posthog.people?.set({ authenticated: true });
+    } catch (e) {
+      console.error("AnalyticsService: failed to identify user", e);
     }
   }
 
@@ -548,46 +473,23 @@ export class AnalyticsService {
    * Reset the user identity (call when user logs out)
    */
   resetUser(): void {
-    if (!this.isAvailable()) {
-      this._pendingUserIdentity = null;
-      this._pendingUserProperties = null;
-      this._identifiedUserId = null;
-      return;
-    }
-
     this._pendingUserIdentity = null;
     this._pendingUserProperties = null;
-    this._identifiedUserId = null;
+    this._signedInUser = null;
+    if (!this.isAvailable()) return;
 
-    if (this.isNative()) {
-      void CapacitorPostHog.reset().catch((error) => {
-        console.warn("AnalyticsService: failed to reset native user", error);
-      });
-      this.registerNativeSuperProperty({
+    const posthog = this._posthog;
+    if (!posthog) return;
+    try {
+      if (this._persistent()) posthog.reset();
+      // Make sure future events are marked unauthenticated
+      posthog.register({
         authenticated: false,
         ...this.getAppVersionProperties(),
+        ...this.getInitialAttributionProperties(),
       });
-    } else {
-      const posthog = this._posthog;
-      if (!posthog) return;
-      posthog.reset();
-
-      // Make sure future events are marked unauthenticated
-      try {
-        posthog.register({
-          authenticated: false,
-          ...this.getAppVersionProperties(),
-          ...this.getInitialAttributionProperties(),
-        });
-        if (posthog.people && typeof posthog.people.set === "function") {
-          posthog.people.set({ authenticated: false });
-        }
-      } catch (e) {
-        console.error(
-          "AnalyticsService: failed to clear authenticated flag",
-          e,
-        );
-      }
+    } catch (e) {
+      console.error("AnalyticsService: failed to clear authenticated flag", e);
     }
   }
 
@@ -602,36 +504,21 @@ export class AnalyticsService {
   ): void {
     if (!this.isAvailable()) return;
 
-    const props: Record<string, unknown> = {
-      consent_granted: consentGranted,
-      accepted_version: acceptedVersion ?? null,
-    };
-
-    if (this.isNative()) {
-      this.registerNativeSuperProperty({
+    try {
+      const posthog = this._posthog;
+      if (!posthog) return;
+      posthog.register({
         consent_granted: consentGranted,
         accepted_version: acceptedVersion ?? null,
       });
-      // Note: @capawesome/capacitor-posthog doesn't have a direct people.set currently exposed easily
-      // but we can assume identify or alias might be sufficient or we rely on super properties.
-      // Actually `set` is available in latest versions, let's check or stick to capture.
-      // We will skip people.set for native unless strictly required, focusing on super props.
-    } else {
-      try {
-        const posthog = this._posthog;
-        if (!posthog) return;
-        posthog.register(props);
-        if (posthog.people && typeof posthog.people.set === "function") {
-          const personProps: Record<string, unknown> = {
-            consent_granted: consentGranted,
-          };
-          if (acceptedVersion)
-            personProps["accepted_version"] = acceptedVersion;
-          posthog.people.set(personProps);
-        }
-      } catch (e) {
-        console.error("AnalyticsService: failed to set consent properties", e);
-      }
+      if (!this._persistent()) return;
+      const personProps: Record<string, unknown> = {
+        consent_granted: consentGranted,
+      };
+      if (acceptedVersion) personProps["accepted_version"] = acceptedVersion;
+      posthog.people?.set(personProps);
+    } catch (e) {
+      console.error("AnalyticsService: failed to set consent properties", e);
     }
   }
 
@@ -644,79 +531,52 @@ export class AnalyticsService {
       this.queueUserProperties(properties);
       return;
     }
-    if (this.isNative()) {
-      if (!this._identifiedUserId) {
-        this.queueUserProperties(properties);
-        return;
-      }
-
-      void CapacitorPostHog.identify({
-        distinctId: this._identifiedUserId,
-        userProperties: properties,
-      }).catch((error) => {
-        console.warn(
-          "AnalyticsService: failed to set native user properties",
-          error,
-        );
-      });
-    } else {
-      this._posthog?.people.set(properties);
-    }
+    // Person properties need an identified person, which only persistent analytics creates.
+    if (!this._persistent()) return;
+    this._posthog?.people.set(properties);
   }
 
   /**
-   * Opt out of tracking (for users who don't want to be tracked)
+   * Turns persistent analytics on or off for this device. On: PostHog keeps
+   * its IDs in localStorage and links signed-in events to the account. Off:
+   * stored analytics data is deleted and a fresh anonymous ID is kept in memory.
    */
-  optOut(): void {
-    if (!this.isAvailable()) {
+  setPersistentAnalytics(enabled: boolean): void {
+    if (!isPlatformBrowser(this._platformId)) return;
+    try {
+      if (enabled) localStorage.setItem(PERSISTENT_ANALYTICS_STORAGE_KEY, "granted");
+      else localStorage.removeItem(PERSISTENT_ANALYTICS_STORAGE_KEY);
+    } catch {
+      // Without storage the choice lasts for this page load only.
+    }
+    if (this._persistent() === enabled) return;
+    this._persistent.set(enabled);
+
+    const posthog = this._posthog;
+    if (!enabled) {
+      // Forget the identity before memory mode starts, so nothing links the two.
+      posthog?.reset();
+      posthog?.set_config({ persistence: "memory" });
+      this.clearAnalyticsStorage();
+      this._sessionInitialAttribution = null;
+      if (posthog && this._initialized) void this.registerSuperProperties();
+      if (this._signedInUser) posthog?.register({ authenticated: true });
       return;
     }
-    // Only web supports synchronous opt-out easily via posthog-js
-    // For native, we can just stop sending events if we check this flag manually or rely on proper init
-    if (this.isNative()) {
-      void CapacitorPostHog.optOut().catch((error) => {
-        console.warn("AnalyticsService: failed to opt out native analytics", error);
-      });
-    } else {
-      this._posthog?.opt_out_capturing();
-    }
-  }
 
-  /**
-   * Opt back into tracking
-   */
-  optIn(): void {
-    if (!this.isAvailable()) {
-      return;
+    if (!posthog) return;
+    posthog.set_config({ persistence: "localStorage" });
+    this.persistDistinctId(posthog.get_distinct_id());
+    if (this._signedInUser) {
+      this.applyUserIdentity(this._signedInUser.userId, this._signedInUser.properties);
     }
-    if (this.isNative()) {
-      void CapacitorPostHog.optIn().catch((error) => {
-        console.warn("AnalyticsService: failed to opt in native analytics", error);
-      });
-    } else {
-      this._posthog?.opt_in_capturing();
-    }
-  }
-
-  /**
-   * Check if user has opted out
-   */
-  hasOptedOut(): boolean {
-    if (!this.isAvailable()) {
-      return true;
-    }
-    if (this.isNative()) {
-      return false; // Native SDK manages this internally usually, assuming opted in if initialized
-    }
-    return this._posthog?.has_opted_out_capturing() ?? true;
   }
 
   getCurrentAnalyticsContext(): AnalyticsContext {
     if (
       !this.isAvailable() ||
       this.isNative() ||
-      !this._consentService.hasConsent() ||
-      this.hasOptedOut()
+      !this._consentService.hasConsent()
     ) {
       return {};
     }
@@ -846,117 +706,6 @@ export class AnalyticsService {
     }
   }
 
-  private sendNativeScreen(
-    screenTitle: string,
-    properties?: Record<string, unknown>,
-  ): void {
-    const nativeProperties = this.withRequiredNativeAnalyticsProperties(
-      properties,
-    );
-
-    void CapacitorPostHog.screen({
-      screenTitle,
-      properties: nativeProperties,
-    })
-      .then(() => {
-        console.log("[AnalyticsDebug] Native screen accepted by plugin", {
-          screenTitle,
-          requiredProps:
-            this.getNativeAnalyticsRequiredPropertySummary(nativeProperties),
-        });
-      })
-      .catch((error) => {
-        console.warn("AnalyticsService: failed to send native screen", error);
-      });
-  }
-
-  private sendNativeCapture(
-    event: string,
-    properties?: Record<string, unknown>,
-  ): void {
-    const nativeProperties = this.withRequiredNativeAnalyticsProperties(
-      properties,
-    );
-
-    void CapacitorPostHog.capture({
-      event,
-      properties: nativeProperties,
-    })
-      .then(() => {
-        console.log("[AnalyticsDebug] Native event accepted by plugin", {
-          event,
-          path:
-            nativeProperties["path"] ??
-            nativeProperties["$pathname"] ??
-            nativeProperties["current_url"] ??
-            null,
-          requiredProps:
-            this.getNativeAnalyticsRequiredPropertySummary(nativeProperties),
-        });
-      })
-      .catch((error) => {
-        console.warn("AnalyticsService: failed to send native event", {
-          event,
-          error,
-        });
-      });
-  }
-
-  private withRequiredNativeAnalyticsProperties(
-    properties?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    const nativeProperties = redactPlanningProperties(properties ?? {});
-    for (const key of LEGACY_NATIVE_SDK_PROPERTY_KEYS) {
-      delete nativeProperties[key];
-    }
-
-    return {
-      ...nativeProperties,
-      ...this.getPlatformProperties(),
-      ...this.getAppVersionProperties(),
-    };
-  }
-
-  /**
-   * Builds from 1.1.2 briefly persisted the Capacitor bridge name as `$lib`.
-   * Native PostHog super properties survive app updates, so upgraded installs
-   * need an explicit migration before their first event is captured.
-   */
-  private async clearLegacyNativeSdkProperties(): Promise<void> {
-    try {
-      await Promise.all(
-        LEGACY_NATIVE_SDK_PROPERTY_KEYS.map((key) =>
-          CapacitorPostHog.unregister({ key }),
-        ),
-      );
-    } catch (error) {
-      console.warn(
-        "AnalyticsService: failed to clear legacy native SDK properties",
-        error,
-      );
-    }
-  }
-
-  private getNativeAnalyticsRequiredPropertySummary(
-    properties?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    const platform = properties?.["platform"];
-
-    return {
-      app_version: properties?.["app_version"] ?? null,
-      $app_version: properties?.["$app_version"] ?? null,
-      platform: platform ?? null,
-      app_type: properties?.["app_type"] ?? null,
-      is_native: properties?.["is_native"] ?? null,
-      expected_sdk_$lib:
-        platform === "android"
-          ? "posthog-android"
-          : platform === "ios"
-            ? "posthog-ios"
-            : null,
-    };
-  }
-
   private getPlatformProperties(): Record<string, string | boolean> {
     const platform = Capacitor.getPlatform();
     const isNative = this.isNative();
@@ -990,14 +739,10 @@ export class AnalyticsService {
         ...this.getAppVersionProperties(),
       };
 
-      if (this.isNative()) {
-        await this.registerNativeSuperProperty(props);
-      } else {
-        this._posthog?.register({
-          ...props,
-          ...this.getInitialAttributionProperties(),
-        });
-      }
+      this._posthog?.register({
+        ...props,
+        ...this.getInitialAttributionProperties(),
+      });
     } catch (e) {
       // ignore
     }
@@ -1068,6 +813,13 @@ export class AnalyticsService {
       return {};
     }
 
+    if (!this._persistent()) {
+      // Without persistent analytics the first referrer of this page load stands in.
+      return (this._sessionInitialAttribution ??= this.buildInitialAttribution(
+        this.getReferrerAttribution(),
+      ));
+    }
+
     try {
       let initialReferrer = localStorage.getItem(
         this.initialReferrerStorageKey,
@@ -1077,19 +829,8 @@ export class AnalyticsService {
       );
 
       if (!initialReferrer || !initialReferringDomain) {
-        const rawReferrer = document.referrer?.trim() ?? "";
-        initialReferrer = rawReferrer.length > 0 ? rawReferrer : "$direct";
-        initialReferringDomain = "$direct";
-
-        if (rawReferrer.length > 0) {
-          try {
-            const parsedReferrer = new URL(rawReferrer);
-            initialReferringDomain =
-              parsedReferrer.hostname || initialReferringDomain;
-          } catch (e) {
-            // keep "$direct" fallback when referrer parsing fails
-          }
-        }
+        ({ referrer: initialReferrer, domain: initialReferringDomain } =
+          this.getReferrerAttribution());
 
         localStorage.setItem(this.initialReferrerStorageKey, initialReferrer);
         localStorage.setItem(
@@ -1098,14 +839,63 @@ export class AnalyticsService {
         );
       }
 
-      return {
-        $initial_referrer: initialReferrer,
-        $initial_referring_domain: initialReferringDomain,
-        initial_referrer: initialReferrer,
-        initial_referring_domain: initialReferringDomain,
-      };
+      return this.buildInitialAttribution({
+        referrer: initialReferrer,
+        domain: initialReferringDomain,
+      });
     } catch (e) {
       return {};
+    }
+  }
+
+  private getReferrerAttribution(): { referrer: string; domain: string } {
+    const rawReferrer = document.referrer?.trim() ?? "";
+    if (!rawReferrer) return { referrer: "$direct", domain: "$direct" };
+    try {
+      return { referrer: rawReferrer, domain: new URL(rawReferrer).hostname || "$direct" };
+    } catch {
+      // keep "$direct" fallback when referrer parsing fails
+      return { referrer: rawReferrer, domain: "$direct" };
+    }
+  }
+
+  private buildInitialAttribution({ referrer, domain }: { referrer: string; domain: string }): Record<string, string> {
+    return {
+      $initial_referrer: referrer,
+      $initial_referring_domain: domain,
+      initial_referrer: referrer,
+      initial_referring_domain: domain,
+    };
+  }
+
+  private readPersistentPreference(): boolean {
+    try {
+      return localStorage.getItem(PERSISTENT_ANALYTICS_STORAGE_KEY) === "granted";
+    } catch {
+      return false;
+    }
+  }
+
+  private persistDistinctId(distinctId: string | undefined): void {
+    try {
+      if (distinctId) localStorage.setItem(this.distinctIdStorageKey, distinctId);
+    } catch {
+      // Storage may be unavailable; PostHog still keeps its own copy.
+    }
+  }
+
+  /** Deletes analytics data that earlier builds or persistent analytics stored. */
+  private clearAnalyticsStorage(): void {
+    if (!isPlatformBrowser(this._platformId)) return;
+    for (const storage of [() => localStorage, () => sessionStorage]) {
+      try {
+        const store = storage();
+        const keys = Array.from({ length: store.length }, (_, index) => store.key(index))
+          .filter((key): key is string => !!key && /^(?:ph_|__ph_)/u.test(key));
+        for (const key of keys) store.removeItem(key);
+      } catch {
+        // Storage is unavailable, so there is nothing to delete.
+      }
     }
   }
 
@@ -1174,13 +964,18 @@ export class AnalyticsService {
     }
 
     const key = `${this.stickerScanSessionPrefix}${attribution["utm_campaign"]}`;
-    try {
-      if (sessionStorage.getItem(key)) {
-        return;
+    if (!this._persistent()) {
+      if (this._sessionStickerScans.has(key)) return;
+      this._sessionStickerScans.add(key);
+    } else {
+      try {
+        if (sessionStorage.getItem(key)) {
+          return;
+        }
+        sessionStorage.setItem(key, "1");
+      } catch (e) {
+        // If storage is unavailable, still capture with the pageview.
       }
-      sessionStorage.setItem(key, "1");
-    } catch (e) {
-      // If storage is unavailable, still capture with the pageview.
     }
 
     this.trackEvent("sticker_scanned", {
@@ -1207,30 +1002,6 @@ export class AnalyticsService {
       }
     } catch (e) {
       // URL cleanup is best-effort only; attribution has already been captured.
-    }
-  }
-
-  private async registerNativeSuperProperty(
-    props: Record<string, unknown>,
-  ): Promise<void> {
-    try {
-      const changedProps = Object.entries(props).filter(([key, value]) => {
-        if (this._nativeSuperProperties.get(key) === value) {
-          return false;
-        }
-
-        return true;
-      });
-
-      const promises = changedProps.map(([key, value]) =>
-        CapacitorPostHog.register({ key, value }),
-      );
-      await Promise.all(promises);
-      for (const [key, value] of changedProps) {
-        this._nativeSuperProperties.set(key, value);
-      }
-    } catch (error) {
-      console.warn("Failed to register native super properties", error);
     }
   }
 

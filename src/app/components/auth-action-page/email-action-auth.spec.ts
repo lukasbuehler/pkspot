@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { getApps, initializeApp } from "firebase/app";
 import { Auth, getAuth } from "firebase/auth";
 import { Mock, vi } from "vitest";

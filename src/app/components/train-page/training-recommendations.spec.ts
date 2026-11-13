@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { SpotId } from "../../../db/schemas/SpotSchema";
 import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import type { EventDiscoveryItem } from "../../services/search.service";

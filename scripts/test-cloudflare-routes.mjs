@@ -236,6 +236,21 @@ try {
     301,
   );
   await redirect(worker, "/de-CH/map/spots/imax", "/de/map/spots/imax", 301);
+  // Alternate URLs whose canonical points elsewhere are rendered by Angular
+  // as permanent redirects so crawlers index only the canonical page: a Spot
+  // ID URL goes to its slug, a merged community slug to its parent community.
+  await redirect(
+    worker,
+    "/it/map/spots/ylmaaUmcvsmHPoU4blQI?tab=photos",
+    "/it/map/spots/imax?tab=photos",
+    301,
+  );
+  await redirect(
+    worker,
+    "/nl/map/communities/southbank",
+    "/nl/map/communities/melbourne",
+    301,
+  );
   await page(worker, "/en/this-route-should-not-exist", null, 404);
   await asset(worker, "/assets/icons/favicon-16x16.png", /image\/png/);
   await asset(worker, "/en/assets/icons/favicon-16x16.png", /image\/png/);

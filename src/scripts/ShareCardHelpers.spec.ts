@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { shareCardTargetFromPath } from "./ShareCardHelpers";
 describe("share-card page targets", () => {

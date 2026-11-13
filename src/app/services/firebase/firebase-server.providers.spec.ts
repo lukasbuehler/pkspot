@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { deleteApp, getApps } from "firebase/app";
 import type { AppCheck, AppCheckOptions } from "firebase/app-check";
 import { describe, expect, it, vi } from "vitest";

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { isBot } from "../../scripts/BrowserAgents";
 import { recordWelcomeAcceptance, WHATS_NEW_RELEASE, WHATS_NEW_STORAGE_KEY } from "../services/whats-new";

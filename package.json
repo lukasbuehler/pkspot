@@ -1,6 +1,6 @@
 {
   "name": "pkspot",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "engines": {
     "node": "22"
   },
@@ -29,7 +29,7 @@
     "test:store-screenshots": "node --test scripts/store-screenshots/*.test.mjs",
     "test": "npm run test:all",
     "test:all": "npm run test:unit && npm run test:build && npm run test:crawler-render -- --skip-build-express && npm run test:emulator && npm run test:e2e && npm run test:visual",
-    "test:ci": "npm run test:unit && npm run lint && npm run test:build && npm --prefix functions run build && npm run test:emulator:training-logs && npm run test:emulator:check-ins && npm run test:emulator:check-in-rollups && npm run test:emulator:share-cards && npm run test:share-cards && npm run test:emulator:spot-edits && npm run test:emulator:spot-creation && npm run test:emulator:import-provenance && npm run test:emulator:community-edits && npm run emulators:test:community && npm run test:e2e -- --project=chromium && npm run test:visual -- --project=chromium",
+    "test:ci": "npm run test:unit && npm run lint && npm run test:build && npm --prefix functions run build && npm run test:emulator:training-logs && npm run test:emulator:check-ins && npm run test:emulator:check-in-rollups && npm run test:emulator:share-cards && npm run test:share-cards && npm run test:emulator:spot-edits && npm run test:emulator:spot-saves && npm run test:emulator:spot-creation && npm run test:emulator:import-provenance && npm run test:emulator:community-edits && npm run emulators:test:community && npm run test:e2e -- --project=chromium && npm run test:visual -- --project=chromium",
     "test:prepush": "npm run test:unit && npm run build:dev && npm run test:emulator",
     "test:unit": "node scripts/run-vitest.mjs run",
     "test:unit:watch": "node scripts/run-vitest.mjs",
@@ -69,6 +69,7 @@
     "test:emulator:user-flows": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/emulator_run_spot_create_user_flow.js\"",
     "emulators:test:community": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/emulator_run_community_flow.js\"",
     "test:emulator:spot-edits": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/emulator_run_spot_edit_flow.js\"",
+    "test:emulator:spot-saves": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/components/spot-map/spot-saves.emulator.spec.ts\"",
     "test:emulator:spot-creation": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/spot-creation.service.emulator.spec.ts\"",
     "test:emulator:import-provenance": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/import-provenance-maintenance.emulator.spec.ts\"",
     "lint": "node scripts/run-eslint.mjs",
@@ -179,6 +180,7 @@
     "ng-extract-i18n-merge": "^3.4.0",
     "sass": "^1.101.0",
     "schema-dts": "^1.1.5",
+    "sharp": "0.35.5",
     "typescript": "6.0.3",
     "typescript-eslint": "8.61.0",
     "vitest": "4.1.12",

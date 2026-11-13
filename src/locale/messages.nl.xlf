@@ -220,7 +220,7 @@
         <target>Documenteerder</target>
       </segment>
     </unit>
-    <unit id="8126459137636028145">
+    <unit id="2721031169225432515">
       <notes>
         <note category="description">The header for the spot description</note>
         <note category="meaning">description header</note>
@@ -2487,6 +2487,12 @@
       <segment state="initial">
         <source> Create account </source>
         <target>Hier registreren</target>
+      </segment>
+    </unit>
+    <unit id="signup.analytics_optional">
+      <segment state="translated">
+        <source>Optional: let analytics remember this device and link it to my account, to help improve PK Spot. You can change this in Settings at any time.</source>
+        <target>Optioneel: statistieken mogen dit apparaat onthouden en aan mijn account koppelen, om PK Spot te helpen verbeteren. Je kunt dit altijd wijzigen in Instellingen.</target>
       </segment>
     </unit>
     <unit id="signup.email_invalid">
@@ -4878,6 +4884,24 @@
       <segment state="initial">
         <source>Toilets</source>
         <target>Toiletten</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.description">
+      <segment state="translated">
+        <source>PK Spot counts visits anonymously and stores nothing on your device for it, so a visit cannot be linked to earlier ones. Optionally, you can let analytics remember this device and link it to your account. This helps us understand how people come back to PK Spot. It is off unless you turn it on, and you can turn it off at any time.</source>
+        <target>PK Spot telt bezoeken anoniem en slaat daarvoor niets op je apparaat op, zodat een bezoek niet aan eerdere bezoeken gekoppeld kan worden. Als je wilt, kun je statistieken toestaan dit apparaat te onthouden en aan je account te koppelen. Dat helpt ons te begrijpen hoe mensen terugkomen naar PK Spot. Het staat uit tot je het aanzet, en je kunt het altijd weer uitzetten.</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.persistent">
+      <segment state="translated">
+        <source>Remember this device for analytics</source>
+        <target>Dit apparaat onthouden voor statistieken</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.title">
+      <segment state="translated">
+        <source>Analytics</source>
+        <target>Gebruiksstatistieken</target>
       </segment>
     </unit>
     <unit id="app_check_error.body">
@@ -7643,8 +7667,8 @@
     </unit>
     <unit id="agreeAndContinueLabel">
       <segment state="initial">
-        <source> Agree and Continue </source>
-        <target> Akkoord en doorgaan </target>
+        <source>Agree and Continue</source>
+        <target>Akkoord en doorgaan</target>
       </segment>
     </unit>
     <unit id="visited_spots_chip_label">
@@ -8105,7 +8129,7 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
+        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;terms-of-service&quot; (click)=&quot;requestLink($event, &apos;/terms-of-service&apos;)&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;privacy-policy&quot; (click)=&quot;requestLink($event, &apos;/privacy-policy&apos;)&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
         <target> Door &quot;Akkoord en verder&quot; te kiezen, accepteer je onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> en erken je ons <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. Je bevestigt dat je minstens 13 bent en volgens je lokale wet toestemming mag geven, of dat een ouder of voogd voor jou akkoord gaat. </target>
       </segment>
     </unit>
@@ -8140,9 +8164,9 @@
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
-      <segment state="initial">
-        <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. This site is protected by reCAPTCHA. </source>
-        <target> Na je akkoord laadt PK Spot essentiële diensten zoals Google Maps, die cookies kunnen gebruiken. Analytics blijven cookievrij. </target>
+      <segment state="translated">
+        <source> When you continue, PK Spot loads Google Maps to show the map, which may use cookies. Analytics are anonymous and store nothing on your device unless you turn that on in Settings. This site is protected by reCAPTCHA. </source>
+        <target> Als je verdergaat, laadt PK Spot Google Maps om de kaart te tonen, wat cookies kan gebruiken. Statistieken zijn anoniem en slaan niets op je apparaat op, tenzij je dat in Instellingen aanzet. Deze site wordt beschermd door reCAPTCHA. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogText">
@@ -13271,6 +13295,12 @@
         <target> Voeg een bewerkbare begrenzing toe voor deze spot. Na het toevoegen kun je de vorm van het polygoon op de kaart aanpassen. </target>
       </segment>
     </unit>
+    <unit id="212451686427567100">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Dit evenement is te ontdekken in deze community:} other {Dit evenement is te ontdekken in deze communities:}}</target>
+      </segment>
+    </unit>
     <unit id="212841987551167718">
       <segment state="initial">
         <source>Mark safe and release</source>
@@ -15680,6 +15710,12 @@
       <segment state="initial">
         <source>Date</source>
         <target>Datum</target>
+      </segment>
+    </unit>
+    <unit id="3977243832602167967">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {Community} other {Communities}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Community} other {Communities}}</target>
       </segment>
     </unit>
     <unit id="8497528947328199741">
@@ -20450,6 +20486,18 @@
       <segment state="initial">
         <source>Your community event is updated.</source>
         <target>Je community-evenement is bijgewerkt.</target>
+      </segment>
+    </unit>
+    <unit id="community_links.event_heading">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </target>
+      </segment>
+    </unit>
+    <unit id="community_links.spot_heading">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </target>
       </segment>
     </unit>
     <unit id="community_event.created">

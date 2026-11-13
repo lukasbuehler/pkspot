@@ -30,14 +30,22 @@ export function createWranglerConfig(profile) {
   return {
     $schema: "../../node_modules/wrangler/config-schema.json",
     name: profile.workerName,
-    main: "worker.mjs",
-    minify: true,
+    main: "server/worker.mjs",
+    // Upload Angular's server output as separate modules instead of one
+    // bundle. A cold isolate then loads only the small entry, so cached pages
+    // are served without parsing the Angular server (about 44 MB), and a render
+    // loads only its own language. Angular already minifies these modules.
+    no_bundle: true,
+    rules: [{ type: "ESModule", globs: ["**/*.mjs"] }],
     compatibility_date: "2026-08-20",
     compatibility_flags: ["nodejs_compat"],
     workers_dev: profile.publicUrls,
     preview_urls: profile.publicUrls,
     assets: { binding: "ASSETS", directory: "browser" },
     observability: { enabled: true },
+    // Keys the Worker's SSR HTML cache, so a deploy never serves pages that
+    // reference bundles from the previous version.
+    version_metadata: { binding: "CF_VERSION_METADATA" },
     // Routes are intentionally absent. The staging domain remains managed in
     // Cloudflare; building/deploying production must not take over pkspot.app.
   };

@@ -253,7 +253,29 @@
         opacity: 0;
         pointer-events: none;
       }
+      /* Server-rendered first-visit welcome; see WelcomePrerenderComponent. */
+      app-welcome-prerender {
+        display: none;
+      }
+      html.pk-early-welcome body:not(:has(app-not-found-page)) app-welcome-prerender {
+        display: contents;
+      }
     </style>
+    <script>
+      // Reveal the server-rendered welcome before first paint. Mirrors the
+      // browser checks in shouldShowEarlyWelcome; the bot pattern is isBot().
+      try {
+        if (
+          !localStorage.getItem("acceptedVersion") &&
+          window.self === window.top &&
+          !/bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent)
+        ) {
+          document.documentElement.classList.add("pk-early-welcome");
+        }
+      } catch (error) {
+        // Without storage the normal app shows its own welcome dialog.
+      }
+    </script>
   </head>
 
   <body>

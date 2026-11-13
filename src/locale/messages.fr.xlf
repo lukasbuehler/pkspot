@@ -118,7 +118,7 @@
         <target>Documentaliste</target>
       </segment>
     </unit>
-    <unit id="8126459137636028145">
+    <unit id="2721031169225432515">
       <notes>
         <note category="description">The header for the spot description</note>
         <note category="meaning">description header</note>
@@ -2385,6 +2385,12 @@
       <segment state="initial">
         <source> Create account </source>
         <target> Créer un compte </target>
+      </segment>
+    </unit>
+    <unit id="signup.analytics_optional">
+      <segment state="translated">
+        <source>Optional: let analytics remember this device and link it to my account, to help improve PK Spot. You can change this in Settings at any time.</source>
+        <target>Facultatif : permettre aux statistiques de se souvenir de cet appareil et de le relier à mon compte, pour aider à améliorer PK Spot. Tu peux modifier ce choix à tout moment dans les paramètres.</target>
       </segment>
     </unit>
     <unit id="signup.email_invalid">
@@ -4704,6 +4710,24 @@
       <segment state="initial">
         <source>Toilets</source>
         <target>Toilettes</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.description">
+      <segment state="translated">
+        <source>PK Spot counts visits anonymously and stores nothing on your device for it, so a visit cannot be linked to earlier ones. Optionally, you can let analytics remember this device and link it to your account. This helps us understand how people come back to PK Spot. It is off unless you turn it on, and you can turn it off at any time.</source>
+        <target>PK Spot compte les visites de façon anonyme et n’enregistre rien sur ton appareil pour cela, de sorte qu’une visite ne peut pas être reliée aux précédentes. Si tu le souhaites, tu peux permettre aux statistiques de se souvenir de cet appareil et de le relier à ton compte. Cela nous aide à comprendre comment les gens reviennent sur PK Spot. C’est désactivé tant que tu ne l’actives pas, et tu peux le désactiver à tout moment.</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.persistent">
+      <segment state="translated">
+        <source>Remember this device for analytics</source>
+        <target>Se souvenir de cet appareil pour les statistiques</target>
+      </segment>
+    </unit>
+    <unit id="analytics.settings.title">
+      <segment state="translated">
+        <source>Analytics</source>
+        <target>Statistiques d’utilisation</target>
       </segment>
     </unit>
     <unit id="app_check_error.body">
@@ -7469,8 +7493,8 @@
     </unit>
     <unit id="agreeAndContinueLabel">
       <segment state="initial">
-        <source> Agree and Continue </source>
-        <target> Accepter et continuer </target>
+        <source>Agree and Continue</source>
+        <target>Accepter et continuer</target>
       </segment>
     </unit>
     <unit id="visited_spots_chip_label">
@@ -7931,7 +7955,7 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
+        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;terms-of-service&quot; (click)=&quot;requestLink($event, &apos;/terms-of-service&apos;)&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;privacy-policy&quot; (click)=&quot;requestLink($event, &apos;/privacy-policy&apos;)&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
         <target> En choisissant &quot;Accepter et continuer&quot;, tu acceptes nos <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> et reconnais notre <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. Tu confirmes avoir au moins 13 ans et l&apos;âge requis pour consentir selon ta loi locale, ou qu&apos;un parent ou tuteur accepte pour toi. </target>
       </segment>
     </unit>
@@ -7966,9 +7990,9 @@
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
-      <segment state="initial">
-        <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. This site is protected by reCAPTCHA. </source>
-        <target> Après ton accord, PK Spot charge des services essentiels comme Google Maps, qui peuvent utiliser des cookies. Les analytics restent sans cookies. </target>
+      <segment state="translated">
+        <source> When you continue, PK Spot loads Google Maps to show the map, which may use cookies. Analytics are anonymous and store nothing on your device unless you turn that on in Settings. This site is protected by reCAPTCHA. </source>
+        <target> Quand tu continues, PK Spot charge Google Maps pour afficher la carte, ce qui peut utiliser des cookies. Les statistiques sont anonymes et n’enregistrent rien sur ton appareil, sauf si tu l’actives dans les paramètres. Ce site est protégé par reCAPTCHA. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogText">
@@ -13097,6 +13121,12 @@
         <target> Ajoute une limite modifiable pour ce spot. Après l’ajout, tu pourras ajuster la forme du polygone sur la carte. </target>
       </segment>
     </unit>
+    <unit id="212451686427567100">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Cet événement est à découvrir dans cette communauté :} other {Cet événement est à découvrir dans ces communautés :}}</target>
+      </segment>
+    </unit>
     <unit id="212841987551167718">
       <segment state="initial">
         <source>Mark safe and release</source>
@@ -15422,6 +15452,12 @@
       <segment state="initial">
         <source>Date</source>
         <target>Date prévue</target>
+      </segment>
+    </unit>
+    <unit id="3977243832602167967">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {Community} other {Communities}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Communauté} other {Communautés}}</target>
       </segment>
     </unit>
     <unit id="8497528947328199741">
@@ -20450,6 +20486,18 @@
       <segment state="initial">
         <source>Your community event is updated.</source>
         <target>Ton événement communautaire est à jour.</target>
+      </segment>
+    </unit>
+    <unit id="community_links.event_heading">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </target>
+      </segment>
+    </unit>
+    <unit id="community_links.spot_heading">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </target>
       </segment>
     </unit>
     <unit id="community_event.created">

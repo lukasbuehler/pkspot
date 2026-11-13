@@ -77,6 +77,7 @@ import { Mat3NavButtonComponent } from "./components/mat3-nav-button/mat3-nav-bu
 import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
 import { NavRailContainerComponent } from "./components/nav-rail-container/nav-rail-container.component";
 import { WelcomeDialogComponent } from "./components/welcome-dialog/welcome-dialog.component";
+import { WelcomePrerenderComponent } from "./components/welcome-prerender/welcome-prerender.component";
 import { WhatsNewDialogComponent } from "./components/whats-new-dialog/whats-new-dialog.component";
 import { WHATS_NEW_STORAGE_KEY, welcomeScreenFor } from "./services/whats-new";
 import { MatDialog } from "@angular/material/dialog";
@@ -178,6 +179,7 @@ type NavigationPerfDetails = Record<string, unknown>;
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
   imports: [
+    WelcomePrerenderComponent,
     FabMenuComponent,
     MatProgressSpinnerModule,
     NavRailContainerComponent,

@@ -1,0 +1,152 @@
+// Mirrors the CDK overlay plus Angular Material's dialog container (see the
+// component comment). Unencapsulated so the projected welcome content's
+// `mat-dialog-*` sections get the same layout as inside a real MatDialog.
+app-welcome-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: block;
+
+  &[hidden] {
+    display: none;
+  }
+
+  .welcome-frame__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.32);
+  }
+
+  .welcome-frame__wrapper {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  // WELCOME_DIALOG_OPTIONS: width, maxWidth and maxHeight.
+  .welcome-frame__pane {
+    position: relative;
+    display: flex;
+    box-sizing: border-box;
+    width: 680px;
+    max-width: min(680px, calc(100vw - 2rem));
+    min-width: var(--mat-dialog-container-min-width, 280px);
+    max-height: calc(100dvh - 2rem);
+    pointer-events: auto;
+  }
+
+  .mat-mdc-dialog-container {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    max-height: inherit;
+    min-height: inherit;
+    min-width: inherit;
+    max-width: inherit;
+    outline: 0;
+  }
+
+  .mat-mdc-dialog-inner-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    box-sizing: border-box;
+    height: 100%;
+    max-height: inherit;
+    min-height: inherit;
+    min-width: inherit;
+    max-width: inherit;
+    opacity: 1;
+  }
+
+  .mat-mdc-dialog-surface {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    max-height: inherit;
+    min-height: inherit;
+    min-width: inherit;
+    max-width: inherit;
+    overflow-y: auto;
+    outline: 0;
+    transform: none;
+    box-shadow: var(--mat-dialog-container-elevation-shadow, none);
+    border-radius: var(--mat-dialog-container-shape, var(--mat-sys-corner-extra-large, 4px));
+    background-color: var(--mat-dialog-container-color, var(--mat-sys-surface, white));
+  }
+
+  .mat-mdc-dialog-title {
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    margin: 0 0 1px;
+    padding: var(--mat-dialog-headline-padding, 6px 24px 13px);
+    color: var(--mat-dialog-subhead-color, var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87)));
+    font-family: var(--mat-dialog-subhead-font, var(--mat-sys-headline-small-font, inherit));
+    line-height: var(--mat-dialog-subhead-line-height, var(--mat-sys-headline-small-line-height, 1.5rem));
+    font-size: var(--mat-dialog-subhead-size, var(--mat-sys-headline-small-size, 1rem));
+    font-weight: var(--mat-dialog-subhead-weight, var(--mat-sys-headline-small-weight, 400));
+    letter-spacing: var(--mat-dialog-subhead-tracking, var(--mat-sys-headline-small-tracking, 0.03125em));
+
+    &::before {
+      display: inline-block;
+      width: 0;
+      height: 40px;
+      content: "";
+      vertical-align: 0;
+    }
+  }
+
+  .mat-mdc-dialog-content {
+    display: block;
+    flex-grow: 1;
+    box-sizing: border-box;
+    max-height: 65vh;
+    margin: 0;
+    overflow: auto;
+    padding: var(--mat-dialog-with-actions-content-padding, 20px 24px 0);
+    color: var(--mat-dialog-supporting-text-color, var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.6)));
+    font-family: var(--mat-dialog-supporting-text-font, var(--mat-sys-body-medium-font, inherit));
+    line-height: var(--mat-dialog-supporting-text-line-height, var(--mat-sys-body-medium-line-height, 1.5rem));
+    font-size: var(--mat-dialog-supporting-text-size, var(--mat-sys-body-medium-size, 1rem));
+    font-weight: var(--mat-dialog-supporting-text-weight, var(--mat-sys-body-medium-weight, 400));
+    letter-spacing: var(--mat-dialog-supporting-text-tracking, var(--mat-sys-body-medium-tracking, 0.03125em));
+
+    > :first-child {
+      margin-top: 0;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .mat-mdc-dialog-title + .mat-mdc-dialog-content {
+    padding-top: 0;
+  }
+
+  .mat-mdc-dialog-actions {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: var(--mat-dialog-actions-alignment, flex-end);
+    box-sizing: border-box;
+    min-height: 52px;
+    margin: 0;
+    padding: var(--mat-dialog-actions-padding, 16px 24px);
+    border-top: 1px solid transparent;
+  }
+}

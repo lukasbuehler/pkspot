@@ -1,3 +1,4 @@
+// @vitest-environment node
 import {signal} from '@angular/core';
 import {describe, expect, it} from 'vitest';
 import {GoogleMap2dComponent} from './google-map-2d.component';

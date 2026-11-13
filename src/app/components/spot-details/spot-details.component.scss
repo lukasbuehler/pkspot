@@ -43,23 +43,6 @@ mat-tab-group {
   }
 }
 
-form {
-  > mat-form-field {
-    margin-bottom: 5px;
-  }
-}
-
-.spot-org-admin-panel {
-  display: grid;
-  gap: 14px;
-}
-
-.spot-org-admin-panel__verified-list {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
 ::ng-deep .mat-tab-body-content {
   padding-left: 16px;
   padding-right: 16px;

@@ -1,8 +1,10 @@
 /// <reference types="vitest" />
+import { availableParallelism } from "node:os";
 import { defineConfig } from "vite";
 import angular from "@analogjs/vite-plugin-angular";
 import {
   appHtmlEntry,
+  emulatorTestFileGlobs,
   generatedOutputGlobs,
   testFileGlobs,
 } from "./vite-scan-boundaries.mjs";
@@ -17,9 +19,11 @@ import {
 // test-setup.ts.
 process.env["TZ"] = "UTC";
 
+// scripts/run-vitest.mjs normally sets this; the fallback mirrors its default
+// for direct `vitest` invocations.
 const maxTestWorkers = readPositiveInteger(
   process.env["PKSPOT_VITEST_MAX_WORKERS"],
-  2
+  Math.min(4, Math.max(2, Math.floor(availableParallelism() / 2)))
 );
 const maxTestHeapMb = readPositiveInteger(
   process.env["PKSPOT_VITEST_MAX_OLD_SPACE_MB"],
@@ -49,10 +53,20 @@ export default defineConfig(({ mode }) => ({
   plugins: [angular(), disableVitestDependencyScan()],
   test: {
     globals: true,
+    // jsdom is the default because component specs need it, but creating a
+    // jsdom window costs ~150 ms per file. Specs without DOM access declare
+    // `// @vitest-environment node` at the top instead.
     environment: "jsdom",
     setupFiles: ["src/test-setup.ts"],
     include: testFileGlobs,
-    exclude: ["node_modules/**", ...generatedOutputGlobs],
+    exclude: [
+      "node_modules/**",
+      ...generatedOutputGlobs,
+      // Emulator specs skip themselves without FIRESTORE_EMULATOR_HOST, which
+      // `firebase emulators:exec` sets for the test:emulator:* scripts. Leave
+      // them out of plain unit runs so they are not loaded only to be skipped.
+      ...(process.env["FIRESTORE_EMULATOR_HOST"] ? [] : emulatorTestFileGlobs),
+    ],
     // Process isolation avoids Node 26 worker-thread exits after Angular tests.
     pool: "forks",
     // Let jsdom own localStorage/sessionStorage, not Node's server-side globals.

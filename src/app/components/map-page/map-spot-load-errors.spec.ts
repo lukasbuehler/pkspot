@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { signal } from "@angular/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SpotLoadError } from "../../../db/models/SpotLoadError";

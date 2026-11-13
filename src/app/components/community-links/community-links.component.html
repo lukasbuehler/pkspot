@@ -1,0 +1,17 @@
+@if (links().length > 0) {
+  <div class="community-links">
+    @if (kind() === "event") {
+      <p class="community-links-heading mat-body-medium" i18n="@@community_links.event_heading">
+        {links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}
+      </p>
+    } @else {
+      <h4 class="community-links-heading mat-title-small" i18n="@@community_links.spot_heading">
+        {links().length, plural, =1 {Community} other {Communities}}
+      </h4>
+    }
+    <app-map-community-list
+      [communities]="links()"
+      (selectCommunity)="openCommunity($event)"
+    />
+  </div>
+}

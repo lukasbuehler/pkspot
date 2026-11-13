@@ -121,6 +121,26 @@ platform :android do
     )
   end
 
+  desc "Upload Google Play release notes to the draft release for PK Spot"
+  lane :changelogs do
+    # Release notes belong to the draft release, which is reviewed only when
+    # it is rolled out, so this works without managed publishing. Listing text
+    # and images are left alone because those edits go to review immediately.
+    supply(
+      **google_play_credential_options,
+      package_name: PKSPOT_ANDROID_PACKAGE_NAME,
+      version_code: PKSPOT_VERSION_CODE,
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      track: "production",
+      release_status: "draft"
+    )
+  end
+
   desc "Upload Google Play screenshots and images for PK Spot"
   lane :screenshots do
     supply(
@@ -131,7 +151,9 @@ platform :android do
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_metadata: true,
-      skip_upload_changelogs: true
+      skip_upload_changelogs: true,
+      # Skip images Play already has, so only changed sets are replaced.
+      sync_image_upload: true
     )
   end
 end

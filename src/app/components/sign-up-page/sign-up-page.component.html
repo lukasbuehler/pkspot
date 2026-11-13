@@ -141,6 +141,16 @@
           </mat-checkbox>
         </div>
 
+        <div class="mt-3 d-flex flex-column">
+          <mat-checkbox formControlName="analyticsCheck"
+            ><span class="mat-body" style="white-space: normal" i18n="@@signup.analytics_optional"
+              >Optional: let analytics remember this device and link it to my
+              account, to help improve PK Spot. You can change this in Settings at
+              any time.</span
+            >
+          </mat-checkbox>
+        </div>
+
         @if (signUpError()) {
           <div class="mt-3 alert alert-danger">
             {{ signUpError() }}

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import type { PlannedSession } from "../../../db/schemas/PlannedSessionSchema";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";

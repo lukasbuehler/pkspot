@@ -8,6 +8,7 @@ import type { MediaUploadTargetKind } from "../../../db/schemas/MediaModerationS
 import { generateUUID } from "../../../scripts/Helpers";
 import { StorageAdapterService } from "./storage-adapter.service";
 import { FunctionsAdapterService } from "./functions-adapter.service";
+import { removeImageMetadataBeforeUpload } from "../../media-ingestion/upload-image-metadata";
 
 export interface StorageUploadResult {
   url: string;
@@ -130,6 +131,9 @@ export class StorageService {
         };
         contentType = mimeTypes[normalizedFileEnding] || "";
       }
+
+      // Photo locations stay on the device: strip them before any upload.
+      blob = await removeImageMetadataBeforeUpload(blob, contentType);
 
       if (this.requiresModeration(location)) {
         const uploadId = reservedUploadId ?? generateUUID();

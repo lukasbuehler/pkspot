@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {

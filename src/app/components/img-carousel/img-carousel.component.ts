@@ -50,6 +50,14 @@ export type ImgCarouselImageFit = "cover" | "contain";
 /** Photos are mostly landscape; used until an image has loaded its real size. */
 const DEFAULT_IMAGE_ASPECT_RATIO = 4 / 3;
 
+export interface ImgCarouselTrailingPhoto {
+  src: string;
+  attribution: string | null;
+}
+
+/** Matches the 4:3 size the Google Place photo is requested at. */
+const TRAILING_PHOTO_ASPECT_RATIO = 4 / 3;
+
 @Component({
   selector: "app-img-carousel",
   imports: [
@@ -66,8 +74,14 @@ const DEFAULT_IMAGE_ASPECT_RATIO = 4 / 3;
 })
 export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   readonly imageDescription = input("PK Spot");
+  readonly trailingPhotoAspectRatio = TRAILING_PHOTO_ASPECT_RATIO;
   media = input<AnyMedia[] | undefined>();
   processingMedia = input<PendingMediaPreview[]>([]);
+  /**
+   * A third-party photo shown after the Spot's own media, such as the linked
+   * Google Place photo. It is never stored, opened in the viewer or reported.
+   */
+  trailingPhoto = input<ImgCarouselTrailingPhoto | null>(null);
   spotId = input<string | undefined>();
   reportContext = input<"spot" | "event" | "media">("media");
   reportTargetId = input<string | undefined>();
@@ -143,6 +157,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   ) {
     effect(() => {
       this.processingMedia();
+      this.trailingPhoto();
       this.media();
       this.externalMediaPreference();
       this.queuePreviewResize();
@@ -931,6 +946,16 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
           viewportHeight,
           this.imageAspectRatios().get(mediaItems.length + index) ??
             DEFAULT_IMAGE_ASPECT_RATIO,
+        ),
+      );
+    }
+
+    if (this.trailingPhoto()) {
+      widths.push(
+        this.getPreviewFullWidth(
+          viewportWidth,
+          viewportHeight,
+          TRAILING_PHOTO_ASPECT_RATIO,
         ),
       );
     }

@@ -237,8 +237,38 @@
       },
       "frame": {
         "kind": "android-tablet",
-        "border": 16,
-        "radius": 34
+        "border": 40,
+        "radius": 56
+      }
+    },
+    {
+      "id": "androidTablet7",
+      "name": "Android Tablet 7 Inch",
+      "outputRoot": "fastlane/metadata/android",
+      "outputPathPattern": "{androidLocale}/images/sevenInchScreenshots/Android Tablet 7 Inch Screenshot {index}.png",
+      "deviceScreenshotRoot": "fastlane/generated/device-screenshots/android",
+      "output": {
+        "width": 1200,
+        "height": 1920
+      },
+      "viewport": {
+        "width": 600,
+        "height": 960,
+        "deviceScaleFactor": 2,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "nativePlatform": "android",
+      "safeArea": {
+        "top": 24,
+        "right": 0,
+        "bottom": 24,
+        "left": 0
+      },
+      "frame": {
+        "kind": "android-tablet",
+        "border": 30,
+        "radius": 44
       }
     }
   ],
@@ -448,6 +478,25 @@
           "x": 223,
           "y": 530,
           "width": 1154,
+          "rotate": 0
+        }
+      ]
+    },
+    "androidTablet7": {
+      "text": {
+        "x": 84,
+        "y": 75,
+        "width": 1032,
+        "align": "left",
+        "fontSize": 102,
+        "subtitleSize": 35,
+        "maxHeight": 308
+      },
+      "placements": [
+        {
+          "x": 167,
+          "y": 398,
+          "width": 866,
           "rotate": 0
         }
       ]

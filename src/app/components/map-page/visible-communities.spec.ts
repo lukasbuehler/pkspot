@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { relevantMapCommunities } from "./visible-communities";
 import type { CommunitySearchPreview } from "../../services/search.service";

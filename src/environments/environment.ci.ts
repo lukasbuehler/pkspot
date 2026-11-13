@@ -12,6 +12,7 @@ export const environment = {
     // route builds and visual coverage exercise the same route table.
     plannedSessions: false,
     training: true,
+    googlePlacePhotoInGallery: true,
     checkIns: false,
     supportShop: false,
     continuousEventCalendar: true,

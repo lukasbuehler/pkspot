@@ -8,6 +8,8 @@ export const generatedOutputGlobs = [
   "playwright-report/**",
 ] as const;
 
+export const emulatorTestFileGlobs = ["src/**/*.emulator.spec.ts"] as const;
+
 export const testFileGlobs = [
   "src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
 ] as const;

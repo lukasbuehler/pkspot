@@ -1,4 +1,5 @@
-import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
+import { CommunityLinksComponent } from "../community-links/community-links.component";
+import { getSpotCommunityCandidates } from "../../../scripts/CommunityHelpers";
 import { SpotPersonalStatsComponent } from "../spot-personal-stats/spot-personal-stats.component";
 import { ShareCardService } from "../../services/share-card.service";
 import { spotCopy } from "../../localization/entity-copy";
@@ -6,20 +7,16 @@ import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
-  DestroyRef,
   OnInit,
-  ViewChild,
   OnChanges,
   ElementRef,
   LOCALE_ID,
   Pipe,
   PipeTransform,
-  Signal,
   signal,
   input,
   computed,
   effect,
-  WritableSignal,
   model,
   inject,
   OnDestroy,
@@ -27,25 +24,21 @@ import {
   output,
   PLATFORM_ID,
   resource,
+  untracked,
 } from "@angular/core";
 import {
-  MatProgressBar,
   MatProgressBarModule,
 } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import {
   SpotManagementSchema,
   SpotStewardshipSchema,
 } from "../../../db/schemas/SpotSchema";
 import {
-  SpotAccess,
   SpotAccessDescriptions,
   SpotAccessIcons,
   SpotAccessNames,
-  SpotTypes,
   SpotTypesDescriptions,
   SpotTypesIcons,
   SpotTypesNames,
@@ -54,9 +47,10 @@ import { Post } from "../../../db/models/Post";
 import { StorageService } from "../../services/firebase/storage.service";
 import { from, Observable, of, Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { LocaleCode, LocaleMap } from "../../../db/models/Interfaces";
 import {
-  AmenitiesMap,
+  LocaleCode,
+} from "../../../db/models/Interfaces";
+import {
   AmenityIcons,
   AmenityNegativeIcons,
   IndoorAmenities,
@@ -66,30 +60,23 @@ import {
 import {
   AmenityNames,
   AmenityNegativeNames,
-  makeSmartAmenitiesArray,
-  AmenityQuestions,
-  type AmenityQuestion,
-  type QuestionValue,
 } from "../../../db/models/Amenities";
 
 //import { MatTooltipModule } from "@angular/material/tooltip";
 
 import {
   isoCountryCodeToFlagEmoji,
-  isMobileDevice,
 } from "../../../scripts/Helpers";
 import {
   getDisplayCountryName,
   getDisplayLocationName,
 } from "../../../scripts/AddressHelpers";
-import { UntypedFormControl, FormsModule } from "@angular/forms";
 import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
+  UntypedFormControl,
+} from "@angular/forms";
+import {
   map,
   startWith,
-  switchMap,
 } from "rxjs/operators";
 import {
   trigger,
@@ -110,11 +97,9 @@ import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../../db/schemas/SpotReportSchema";
 import type { OwnReportSummary } from "../../../db/schemas/ReportLifecycleSchema";
 import { localizedPublicSpotWarning } from "./spot-public-warning";
-import { MatSelect, MatSelectModule } from "@angular/material/select";
-import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-grid.component";
-import { MatInput } from "@angular/material/input";
-import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
+import type { GooglePlacePhoto } from "../google-place-preview/google-place-preview.component";
+import { googlePlacePhotoInGalleryEnabled } from "../../features/google-place-photo-feature";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -126,26 +111,25 @@ import {
   LocationStrategy,
 } from "@angular/common";
 import {
-  MatChipListbox,
   MatChipsModule,
   MatChip,
   MatChipSet,
-  MatChipOption,
 } from "@angular/material/chips";
-import { MatRipple, MatOption, MatRippleModule } from "@angular/material/core";
+import {
+  MatRipple,
+  MatRippleModule,
+} from "@angular/material/core";
 import {
   MatCard,
   MatCardHeader,
   MatCardTitle,
   MatCardSubtitle,
   MatCardContent,
-  MatCardActions,
 } from "@angular/material/card";
 import { MatDividerModule } from "@angular/material/divider";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import {
-  OrganizationDocument,
   OrganizationsService,
 } from "../../services/firebase/firestore/organizations.service";
 import { SpotReportsService } from "../../services/firebase/firestore/spot-reports.service";
@@ -157,46 +141,29 @@ import { SpotReviewsService } from "../../services/firebase/firestore/spot-revie
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
 import { StructuredDataService } from "../../services/structured-data.service";
-import {
-  MatSlideToggle,
-  MatSlideToggleChange,
-} from "@angular/material/slide-toggle";
-import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { SpotChallengeSchema } from "../../../db/schemas/SpotChallengeSchema";
 import { SpotChallengesService } from "../../services/firebase/firestore/spot-challenges.service";
-import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
-import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import {
   LocalSpotChallenge,
   SpotChallenge,
 } from "../../../db/models/SpotChallenge";
 import {
-  StorageMedia,
   StorageImage,
   ExternalImage,
   Media,
-  StorageVideo,
-  ExternalVideo,
   AnyMedia,
 } from "../../../db/models/Media";
 import { languageCodes } from "../../../scripts/Languages";
-import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
-import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../../db/schemas/Media";
 import { Timestamp } from "firebase/firestore";
 import { Router, RouterLink } from "@angular/router";
-import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
-import type { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
-import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
-import { createUserReference } from "../../../scripts/Helpers";
 import { AnalyticsService } from "../../services/analytics.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { normalizeSpotSlug } from "../../../scripts/SpotLandingHelpers";
 import {
   buildSpotCanonicalPath,
   buildSpotChallengeCanonicalPath,
@@ -216,8 +183,7 @@ import {
   WeatherForecastDialogComponent,
   type WeatherForecastDialogData,
 } from "../weather-forecast-dialog/weather-forecast-dialog.component";
-import { SpotAccessPickerComponent } from "../spot-access-picker/spot-access-picker.component";
-import { SpotTypePickerComponent } from "../spot-type-picker/spot-type-picker.component";
+import { SpotEditorComponent } from "../spot-editor/spot-editor.component";
 import { SpotActivitySummaryComponent } from "../spot-activity-summary/spot-activity-summary.component";
 
 @Pipe({ name: "reverse" })
@@ -236,8 +202,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     return value.toString() as "1" | "2" | "3" | "4" | "5";
   }
 }
-
-type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
 
 @Component({
   selector: "app-spot-details",
@@ -287,6 +251,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     ]),
   ],
   imports: [
+    CommunityLinksComponent,
     SpotPersonalStatsComponent,
     MatCard,
     MatRipple,
@@ -302,11 +267,6 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     MatCardContent,
     ImgCarouselComponent,
     MatButton,
-    FormsModule,
-    MediaPreviewGridComponent,
-    MatSelect,
-    MatOption,
-    MatCardActions,
     SpotRatingComponent,
     MatDividerModule,
     MatProgressBarModule,
@@ -314,14 +274,8 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     KeyValuePipe,
     ReversePipe,
     AsRatingKeyPipe,
-    MatSlideToggle,
-    LocaleMapEditFieldComponent,
     MatRippleModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatInputModule,
     LocaleMapViewComponent,
-    MatButtonToggleModule,
     MatDialogModule,
     // New reusable Google Place preview
     GooglePlacePreviewComponent,
@@ -333,9 +287,8 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     SpotProvenanceComponent,
     EventCardComponent,
     WeatherIconButtonComponent,
-    SpotAccessPickerComponent,
-    SpotTypePickerComponent,
     SpotActivitySummaryComponent,
+    SpotEditorComponent,
   ],
   host: {
     "[style.--open-progress]": "openProgressStyle",
@@ -380,6 +333,16 @@ export class SpotDetailsComponent
   readonly spotWeatherContext = computed(() =>
     getSpotWeatherContext(this.spot()?.amenities()),
   );
+  /** Country and locality community keys derived from the Spot's address. */
+  readonly communityKeys = computed(() => {
+    const spot = this.spot();
+    if (!spot || this.isLocalSpot()) return [];
+    return getSpotCommunityCandidates({
+      address: spot.address(),
+      landing: spot.data().landing,
+    }).map((candidate) => candidate.communityKey);
+  });
+
   readonly weatherResource = resource({
     params: () => {
       const location = this.spot()?.location();
@@ -458,6 +421,22 @@ export class SpotDetailsComponent
       return "";
     }
   });
+  /** Photo loaded by the Google Place preview, shown at the end of the gallery. */
+  private readonly _googlePlacePhoto = signal<GooglePlacePhoto | null>(null);
+  readonly galleryGooglePhoto = computed(() => {
+    if (!googlePlacePhotoInGalleryEnabled) return null;
+    const photo = this._googlePlacePhoto();
+    const spot = this.spot();
+    // Ignore a photo left over from a previously opened Spot's place.
+    return photo && spot instanceof Spot && spot.googlePlaceId() === photo.placeId
+      ? photo
+      : null;
+  });
+
+  onGooglePlacePhotoChange(photo: GooglePlacePhoto | null): void {
+    this._googlePlacePhoto.set(photo);
+  }
+
   processingSpotMedia = computed(() => {
     const spot = this.spot();
     if (!(spot instanceof Spot)) return [];
@@ -498,48 +477,6 @@ export class SpotDetailsComponent
   displayLocation = computed(() => {
     return getDisplayLocationName(this.spot()?.address() ?? null) ?? "";
   });
-
-  // Expose centralized questions for potential dynamic UI
-  AmenityQuestions = AmenityQuestions;
-
-  // Compute the next applicable unanswered question
-  public nextAmenityQuestion = computed(() => {
-    const spot = this.spot();
-    if (!spot) return null;
-    const a = spot.amenities();
-    for (const q of this.AmenityQuestions) {
-      try {
-        if (q.isApplicable(a) && !q.isAnswered(a)) return q;
-      } catch {
-        // If a question throws, skip it rather than breaking the UI
-        continue;
-      }
-    }
-    return null;
-  });
-
-  // Current selection value for the next question
-  currentQuestionValue = computed<QuestionValue | null>(() => {
-    const spot = this.spot();
-    const q = this.nextAmenityQuestion();
-    if (!spot || !q) return null;
-    return q.getValue(spot.amenities());
-  });
-
-  // Apply selection for the currently shown question
-  public answerAmenityQuestion(questionId: string, value: string) {
-    const q = this.nextAmenityQuestion();
-    const spot = this.spot();
-    if (!q || !spot) return;
-    const opt = q.options.find((o) => o.value === value);
-    if (!opt) return;
-    this.spot!.update((s) => {
-      if (!s) return s;
-      const updated = opt.apply({ ...(s.amenities() ?? {}) });
-      s.amenities.set(updated);
-      return s;
-    });
-  }
 
   spotImages = computed(() => {
     const spot = this.spot();
@@ -593,7 +530,6 @@ export class SpotDetailsComponent
   getValueFromEventTarget = getValueFromEventTarget;
 
   readonly isSaving = input(false);
-  private readonly _isSaveFlowPending = signal(false);
 
   AmenityIcons = AmenityIcons;
   AmenityNegativeIcons = AmenityNegativeIcons;
@@ -603,109 +539,11 @@ export class SpotDetailsComponent
   OutdoorAmenities = OutdoorAmenities;
   GeneralAmenities = GeneralAmenities;
 
-  canSaveSpot = computed(() => {
-    if (this.isSaving() || this._isSaveFlowPending()) return false;
-    const spot = this.spot();
-    if (!spot) return false;
-    if (spot instanceof Spot) return true;
-
-    return this._hasEnoughDataForNewSpot(spot);
-  });
-
-  // Environment 4-state selection derived from amenities
-  public environmentSelection = computed<
-    "indoor" | "outdoor" | "both" | "unknown"
-  >(() => {
-    const a = this.spot()?.amenities();
-    if (!a) return "unknown";
-    const indoor = a.indoor ?? null;
-    const outdoor = a.outdoor ?? null;
-    if (indoor === true && outdoor === true) return "both";
-    if (indoor === true) return "indoor";
-    if (outdoor === true) return "outdoor";
-    return "unknown";
-  });
-
   visited = signal<boolean>(false);
   bookmarked = signal<boolean>(false);
   isBookmarkUpdating = signal<boolean>(false);
   isVisitedUpdating = signal<boolean>(false);
   isDeletingSpot = signal<boolean>(false);
-
-  allSpotSlugs: string[] = [];
-  newSlug: string = "";
-  addingSlug = signal<boolean>(false);
-
-  get spotNameLocaleMap(): LocaleMap {
-    const spot = this.spot();
-    if (!spot) return {};
-
-    return spot.names();
-  }
-  set spotNameLocaleMap(value: LocaleMap) {
-    this.spot()?.names.set(value);
-  }
-
-  get spotSlug(): string {
-    const spot = this.spot();
-    if (!spot || this.isLocalSpot()) return "";
-
-    return (spot as Spot).slug ?? "";
-  }
-  set spotSlug(value: string) {
-    const spot = this.spot();
-    if (!spot || this.isLocalSpot()) return;
-    (spot as Spot).slug = value;
-  }
-
-  canAddSlug(): boolean {
-    const list = this.allSpotSlugs;
-    return Array.isArray(list) ? list.length < 1 : true;
-  }
-
-  async addSlug() {
-    const spot = this.spot();
-    if (!(spot instanceof Spot)) return;
-    const slug = normalizeSpotSlug(this.newSlug || "");
-    if (!slug) return;
-    this.addingSlug.set(true);
-    try {
-      await this._slugService.addSpotSlug(spot.id, slug);
-      this.allSpotSlugs = await this._slugService.getAllSlugsForASpot(spot.id);
-      this.spot.update((s) => {
-        if (s instanceof Spot) s.slug = slug;
-        return s;
-      });
-      this.newSlug = "";
-      this._snackbar.open($localize`Custom URL added`, undefined, {
-        duration: 2000,
-      });
-      // Redirect to the canonical slug URL
-      void this._router.navigateByUrl(buildSpotCanonicalPath(slug));
-    } catch (e: any) {
-      this._snackbar.open(
-        e?.message || e || $localize`Failed to add custom URL`,
-        undefined,
-        { duration: 3000 },
-      );
-    } finally {
-      this.addingSlug.set(false);
-    }
-  }
-
-  get spotDescriptionLocaleMap(): LocaleMap {
-    const spot = this.spot();
-    if (!spot) return {};
-    // Return a stable object reference without mutating signals during render
-    const current = spot.descriptions();
-    return current ?? this._EMPTY_LOCALE_MAP;
-  }
-  set spotDescriptionLocaleMap(value: LocaleMap) {
-    this.spot()?.descriptions.set(value);
-  }
-
-  // Stable empty LocaleMap to avoid identity churn in templates when descriptions are unset
-  private readonly _EMPTY_LOCALE_MAP = Object.freeze({}) as LocaleMap;
 
   spotTypeNames = SpotTypesNames;
   spotTypesIcons = SpotTypesIcons;
@@ -753,34 +591,6 @@ export class SpotDetailsComponent
 
   mediaStorageFolder: StorageBucket = StorageBucket.SpotPictures;
 
-  googlePlace = signal<
-    | {
-        name: string;
-        rating?: number;
-        photo_url?: string;
-        url?: string;
-        opening_hours?: any;
-      }
-    | undefined
-  >(undefined);
-
-  // Google Places linking state (edit mode only)
-  placeSearch = new UntypedFormControl("");
-  placePredictions: google.maps.places.AutocompletePrediction[] = [];
-  nearbyPlaceResults: google.maps.places.Place[] = [];
-  private _placeSearchSubscription: Subscription | null = null;
-  private _nearbyPlacesPreloadInFlight: Promise<void> | null = null;
-  private _nearbyPlacesPreloadedSpotId: string | null = null;
-  private _placeSearchSpotId: string | null = null;
-  private readonly _placeSearchMinQueryLength = 2;
-  private readonly _placeSearchDebounceMs = 350;
-  linkingPlace = signal<boolean>(false);
-  unlinkingPlace = signal<boolean>(false);
-
-  readonly organizations = signal<OrganizationDocument[]>([]);
-  readonly selectedStewardOrganizationId = signal("");
-  readonly selectedManagerOrganizationId = signal("");
-  readonly isLoadingOrganizations = signal(false);
   readonly stewardedOrganizations = computed((): SpotStewardshipSchema[] => {
     const spot = this.spot();
     if (!(spot instanceof Spot)) return [];
@@ -800,7 +610,6 @@ export class SpotDetailsComponent
     const spot = this.spot();
     return spot instanceof Spot ? (spot.management ?? null) : null;
   });
-  private _organizationsLoaded = false;
 
   // Animation keys to force transitions on content changes
   nameAnimKey = signal<number>(0);
@@ -812,259 +621,23 @@ export class SpotDetailsComponent
   // Live updates subscription for the current Spot
   private _spotSnapshotSub: Subscription | null = null;
   private _lastSubscribedSpotId: string | null = null;
+  /**
+   * The newest live snapshot that arrived while the Spot was being edited.
+   * Replacing the Spot mid-edit would hand the form and the save button a
+   * fresh server copy while the map keeps writing the dragged pin and outline
+   * into the instance it passed in, so the moved pin (and any earlier field
+   * edits) would silently be dropped from the saved diff.
+   */
+  private _snapshotHeldDuringEdit: Spot | null = null;
+  /** Media sources in the last published version of the Spot. */
+  private _publishedMediaSrcs = new Set<string>();
   private _privateDataSub: Subscription | null = null;
   private _authStateSub: Subscription | null = null;
   private _bookmarkedSpotIds = new Set<string>();
   private _visitedSpotIds = new Set<string>();
 
-  searchPlaces(query: string) {
-    this.placeSearch.setValue(query);
-  }
-
-  private async _runPlaceSearchRequest(query: string): Promise<{
-    predictions: google.maps.places.AutocompletePrediction[];
-    nearbyPlaces: google.maps.places.Place[] | null;
-  }> {
-    const spot = this.spot();
-    if (!(spot instanceof Spot)) {
-      return { predictions: [], nearbyPlaces: [] };
-    }
-
-    // Don't call Places API until query is meaningful.
-    if (query.length < this._placeSearchMinQueryLength) {
-      if (query.length === 0) {
-        await this._preloadNearbyPlaces();
-        return { predictions: [], nearbyPlaces: this.nearbyPlaceResults };
-      }
-      return { predictions: [], nearbyPlaces: null };
-    }
-
-    if (!this._mapsApiService.isApiLoaded()) {
-      this._mapsApiService.loadGoogleMapsApi();
-      return { predictions: [], nearbyPlaces: null };
-    }
-
-    const loc = spot.location();
-    const d = 0.001; // ~100m bias box
-    const biasRect: google.maps.LatLngBoundsLiteral = {
-      south: loc.lat - d,
-      west: loc.lng - d,
-      north: loc.lat + d,
-      east: loc.lng + d,
-    };
-
-    const predictions = await this._mapsApiService.autocompletePlaceSearch(
-      query,
-      undefined,
-      biasRect,
-      loc,
-    );
-
-    return {
-      predictions: predictions.slice(0, 1),
-      nearbyPlaces: null,
-    };
-  }
-
-  private async _preloadNearbyPlaces() {
-    const spot = this.spot();
-    if (!(spot instanceof Spot)) return;
-    const spotId = spot.id;
-
-    if (this._nearbyPlacesPreloadedSpotId === spotId) {
-      return;
-    }
-    if (this._nearbyPlacesPreloadInFlight) {
-      return this._nearbyPlacesPreloadInFlight;
-    }
-
-    // Don't load if Maps API is not available.
-    if (!this._mapsApiService.isApiLoaded()) {
-      this._mapsApiService.loadGoogleMapsApi();
-      return;
-    }
-
-    const request = (async () => {
-      try {
-        const places = await this._mapsApiService.getNearbyPlacesByDistance(
-          spot.location(),
-          undefined, // No type filter - get all nearby POIs
-          5,
-        );
-
-        const currentSpot = this.spot();
-        if (currentSpot instanceof Spot && currentSpot.id === spotId) {
-          this.nearbyPlaceResults = places;
-          this._nearbyPlacesPreloadedSpotId = spotId;
-        }
-      } catch (e) {
-        console.warn("Failed to preload nearby places", e);
-
-        const currentSpot = this.spot();
-        if (currentSpot instanceof Spot && currentSpot.id === spotId) {
-          this.nearbyPlaceResults = [];
-          this._nearbyPlacesPreloadedSpotId = spotId;
-        }
-      }
-    })();
-
-    this._nearbyPlacesPreloadInFlight = request;
-    try {
-      await request;
-    } finally {
-      if (this._nearbyPlacesPreloadInFlight === request) {
-        this._nearbyPlacesPreloadInFlight = null;
-      }
-    }
-  }
-
-  async linkPlace(pred: google.maps.places.AutocompletePrediction) {
-    const spot = this.spot();
-    if (!(spot instanceof Spot)) return;
-    if (!pred.place_id) return;
-    if (!this.authenticationService.user?.uid) return;
-    this.linkingPlace.set(true);
-    try {
-      const userReference = createUserReference(
-        this.authenticationService.user.data!,
-      );
-      await this._spotEditsService.updateSpotExternalReferenceEdit(
-        spot.id,
-        { google_maps_place_id: pred.place_id },
-        userReference,
-      );
-      this.placeSearch.setValue("");
-      this.placePredictions = [];
-      this._snackbar.open($localize`Linked Google Place`, undefined, {
-        duration: 2000,
-      });
-    } catch (e) {
-      console.error("Failed to link Google Place", e);
-      this._analyticsService.reportError(e, {
-        context: "spot_google_place_link_failed",
-        feature: "spots",
-        action: "link_google_place",
-        userFacing: true,
-        properties: {
-          spot_id: spot.id,
-          google_place_id: pred.place_id,
-        },
-      });
-      this._snackbar.open($localize`Failed to link Google Place`, undefined, {
-        duration: 2500,
-      });
-    } finally {
-      this.linkingPlace.set(false);
-    }
-  }
-
-  async linkPlaceResult(res: google.maps.places.Place) {
-    if (!res.id) return;
-    // Wrap the place_id in an object compatible with linkPlace signature
-    await this.linkPlace({ place_id: res.id } as any);
-  }
-
-  async unlinkPlace() {
-    const spot = this.spot();
-    if (!(spot instanceof Spot)) return;
-    if (!this.authenticationService.user?.uid) return;
-    this.unlinkingPlace.set(true);
-    try {
-      const userReference = createUserReference(
-        this.authenticationService.user.data!,
-      );
-      // To unlink, we need to send an edit that will clear the google_maps_place_id
-      // The cloud function will need to handle this appropriately
-      await this._spotEditsService.updateSpotExternalReferenceEdit(
-        spot.id,
-        { google_maps_place_id: null as any }, // null to indicate deletion
-        userReference,
-      );
-      this.googlePlace.set(undefined);
-      this._snackbar.open($localize`Unlinked Google Place`, undefined, {
-        duration: 2000,
-      });
-    } catch (e) {
-      console.error("Failed to unlink Google Place", e);
-      this._analyticsService.reportError(e, {
-        context: "spot_google_place_unlink_failed",
-        feature: "spots",
-        action: "unlink_google_place",
-        userFacing: true,
-        properties: {
-          spot_id: spot.id,
-        },
-      });
-      this._snackbar.open($localize`Failed to unlink Google Place`, undefined, {
-        duration: 2500,
-      });
-    } finally {
-      this.unlinkingPlace.set(false);
-    }
-  }
-
   get isNewSpot() {
     return !(this.spot() instanceof Spot);
-  }
-
-  getPredictionDistanceText(
-    pred: google.maps.places.AutocompletePrediction,
-  ): string | null {
-    const meters = (pred as any)?.distance_meters;
-    if (typeof meters !== "number" || !Number.isFinite(meters)) return null;
-    return this._formatDistanceMeters(meters);
-  }
-
-  getNearbyPlaceDistanceText(place: google.maps.places.Place): string | null {
-    const spot = this.spot();
-    if (!spot || !place.location) return null;
-
-    const placeLocation = place.location as any;
-    const lat =
-      typeof placeLocation.lat === "function"
-        ? placeLocation.lat()
-        : placeLocation.lat;
-    const lng =
-      typeof placeLocation.lng === "function"
-        ? placeLocation.lng()
-        : placeLocation.lng;
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-
-    const meters = this._haversineDistanceMeters(spot.location(), { lat, lng });
-    return this._formatDistanceMeters(meters);
-  }
-
-  private _formatDistanceMeters(meters: number): string {
-    if (meters < 1000) return `${Math.round(meters)} m`;
-
-    const km = meters / 1000;
-    if (km < 10) return `${km.toFixed(1)} km`;
-
-    return `${Math.round(km)} km`;
-  }
-
-  private _haversineDistanceMeters(
-    from: google.maps.LatLngLiteral,
-    to: google.maps.LatLngLiteral,
-  ): number {
-    const toRadians = (value: number) => (value * Math.PI) / 180;
-    const earthRadiusMeters = 6_371_000;
-
-    const dLat = toRadians(to.lat - from.lat);
-    const dLng = toRadians(to.lng - from.lng);
-    const fromLatRad = toRadians(from.lat);
-    const toLatRad = toRadians(to.lat);
-
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(fromLatRad) *
-        Math.cos(toLatRad) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return earthRadiusMeters * c;
   }
 
   startHeight: number = 0;
@@ -1116,7 +689,6 @@ export class SpotDetailsComponent
     private _spotEditsService: SpotEditsService,
     private _spotReportsService: SpotReportsService,
     private _spotReviewsService: SpotReviewsService,
-    private _slugService: SlugsService,
     private _postsService: PostsService,
     private _storageService: StorageService,
     private _mapsApiService: MapsApiService,
@@ -1131,25 +703,6 @@ export class SpotDetailsComponent
 
     effect(() => {
       const spot = this.spot();
-      const spotId = spot instanceof Spot ? spot.id : null;
-
-      if (spotId !== this._placeSearchSpotId) {
-        this._placeSearchSpotId = spotId;
-        this._nearbyPlacesPreloadedSpotId = null;
-        this._nearbyPlacesPreloadInFlight = null;
-        this.placePredictions = [];
-        this.nearbyPlaceResults = [];
-        this.placeSearch.setValue("", { emitEvent: false });
-        this.selectedStewardOrganizationId.set("");
-        this.selectedManagerOrganizationId.set(
-          spot instanceof Spot ? (spot.management?.organization_id ?? "") : "",
-        );
-      }
-
-      // Reset slug-related UI state on spot change to avoid stale state
-      this.allSpotSlugs = [];
-      this.newSlug = "";
-      this.addingSlug.set(false);
 
       if (
         spot instanceof Spot && this.liveUpdates() &&
@@ -1157,15 +710,6 @@ export class SpotDetailsComponent
       ) {
         // Ensure live updates subscription for this spot id
         this._subscribeToLiveSpot(spot);
-
-        const currentId = spot.id;
-        this._slugService.getAllSlugsForASpot(currentId).then((slugs) => {
-          // Apply only if still on the same spot to avoid race conditions
-          const latest = this.spot();
-          if (latest instanceof Spot && latest.id === currentId) {
-            this.allSpotSlugs = slugs;
-          }
-        });
       } else {
         // Local spots and fixture spots do not need Firestore live updates.
         this._unsubscribeFromLiveSpot();
@@ -1216,14 +760,11 @@ export class SpotDetailsComponent
         this.typeAnimKey.update((v) => v + 1);
       }
     });
-    // Load nearby Google Places only when entering edit mode (to save API costs)
+    // Editing can end from either side (discard here, or the map closing the
+    // editor), so react to the mode itself rather than to one button.
     effect(() => {
-      const editing = this.isEditing();
-      const spot = this.spot();
-
-      if (editing && spot instanceof Spot && !spot.googlePlaceId()) {
-        // Only load if editing and no place is already linked
-        void this._preloadNearbyPlaces();
+      if (!this.isEditing()) {
+        untracked(() => this._applySnapshotHeldDuringEdit());
       }
     });
 
@@ -1242,30 +783,6 @@ export class SpotDetailsComponent
   ngOnInit() {
     this._syncSpotSeoData(this.spot());
     this._subscribeToPrivateData();
-
-    this._placeSearchSubscription = this.placeSearch.valueChanges
-      .pipe(
-        map((value) => (typeof value === "string" ? value.trim() : "")),
-        debounceTime(this._placeSearchDebounceMs),
-        distinctUntilChanged(),
-        switchMap((query) =>
-          from(this._runPlaceSearchRequest(query)).pipe(
-            catchError((error) => {
-              console.warn("Place autocomplete failed", error);
-              return of({
-                predictions: [],
-                nearbyPlaces: null,
-              });
-            }),
-          ),
-        ),
-      )
-      .subscribe(({ predictions, nearbyPlaces }) => {
-        this.placePredictions = predictions;
-        if (nearbyPlaces !== null) {
-          this.nearbyPlaceResults = nearbyPlaces;
-        }
-      });
   }
 
   ngOnChanges() {
@@ -1280,7 +797,6 @@ export class SpotDetailsComponent
     this._structuredDataService.removeStructuredData("spot");
     this._unsubscribeFromLiveSpot();
     this._unsubscribeFromPrivateData();
-    this._placeSearchSubscription?.unsubscribe();
   }
 
   private _syncSpotSeoData(spot: Spot | LocalSpot | null) {
@@ -1337,7 +853,6 @@ export class SpotDetailsComponent
         is_new_spot: this.isNewSpot,
       });
       this.isEditing.set(true);
-      void this._ensureOrganizationsLoadedForAdmin();
     }
   }
 
@@ -1354,182 +869,15 @@ export class SpotDetailsComponent
     }
   }
 
-  async saveButtonClick() {
-    const spot = this.spot();
-    if (!spot || !this.canSaveSpot()) {
-      return;
-    }
-
-    this._isSaveFlowPending.set(true);
-    try {
-      this._analyticsService.trackEvent("spot_edit_save_clicked", {
-        spot_id: spot instanceof Spot ? spot.id : null,
-        is_new_spot: this.isNewSpot,
-        organization_admin_changes_available:
-          spot instanceof Spot && this.isAdmin(),
-      });
-      if (spot instanceof Spot) {
-        const relationshipSaveResult =
-          await this._saveOrganizationRelationshipChangesIfNeeded(spot);
-        if (relationshipSaveResult === "failed") {
-          return;
-        }
-
-        if (relationshipSaveResult === "changed") {
-          this.isEditing.set(false);
-          return;
-        }
-      }
-
-      this.saveClick.emit(spot);
-    } finally {
-      this._isSaveFlowPending.set(false);
-    }
+  /** Saves the editor's draft through the map's save path. */
+  onEditorSave(spot: Spot | LocalSpot): void {
+    // The saved draft is newer than anything held back; the edit's own
+    // snapshot follows once it is processed.
+    this._snapshotHeldDuringEdit = null;
+    this.saveClick.emit(spot);
   }
 
-  private async _ensureOrganizationsLoadedForAdmin(): Promise<void> {
-    if (!this.isAdmin() || this._organizationsLoaded) {
-      return;
-    }
-
-    this.isLoadingOrganizations.set(true);
-    try {
-      this.organizations.set(
-        await this._organizationsService.getOrganizations(),
-      );
-      this._organizationsLoaded = true;
-    } catch (error) {
-      console.warn(
-        "Failed to load organizations for spot relationships",
-        error,
-      );
-      this._snackbar.open($localize`Could not load organizations`, undefined, {
-        duration: 2500,
-      });
-    } finally {
-      this.isLoadingOrganizations.set(false);
-    }
-  }
-
-  private async _saveOrganizationRelationshipChangesIfNeeded(
-    spot: Spot,
-  ): Promise<OrganizationRelationshipSaveResult> {
-    if (!this.isAdmin()) {
-      return "unchanged";
-    }
-
-    try {
-      let hasChanges = false;
-      const nextManagerId = this.selectedManagerOrganizationId() || null;
-      const currentManagerId = spot.management?.organization_id ?? null;
-      if (nextManagerId !== currentManagerId) {
-        await this._organizationsService.setSpotManagement(
-          spot.id,
-          nextManagerId,
-        );
-        this._snackbar.open(
-          nextManagerId
-            ? $localize`Managed organization updated`
-            : $localize`Managed organization removed`,
-          undefined,
-          { duration: 2200 },
-        );
-        hasChanges = true;
-      }
-
-      const nextStewardId = this.selectedStewardOrganizationId();
-      const currentStewardIds = new Set(
-        spot.stewardship?.organization_ids ?? [],
-      );
-      if (nextStewardId && !currentStewardIds.has(nextStewardId)) {
-        await this._organizationsService.setSpotStewardship(
-          spot.id,
-          nextStewardId,
-          true,
-        );
-        this.selectedStewardOrganizationId.set("");
-        this._snackbar.open($localize`Verified organization added`, undefined, {
-          duration: 2200,
-        });
-        hasChanges = true;
-      }
-
-      return hasChanges ? "changed" : "unchanged";
-    } catch (error) {
-      this.featureTelemetry.failure("spot-details", "_saveOrganizationRelationshipChangesIfNeeded", error);
-      console.error("Failed to update spot organization relationship", error);
-      this._snackbar.open(
-        $localize`Failed to update spot organization settings`,
-        undefined,
-        { duration: 3000 },
-      );
-      return "failed";
-    }
-  }
-
-  async removeStewardedOrganization(organizationId: string): Promise<void> {
-    const spot = this.spot();
-    if (!(spot instanceof Spot) || !this.isAdmin()) {
-      return;
-    }
-
-    try {
-      await this._organizationsService.setSpotStewardship(
-        spot.id,
-        organizationId,
-        false,
-      );
-      this._snackbar.open($localize`Verified organization removed`, undefined, {
-        duration: 2200,
-      });
-    } catch (error) {
-      this.featureTelemetry.failure("spot-details", "removeStewardedOrganization", error);
-      console.error("Failed to remove stewarded organization", error);
-      this._snackbar.open(
-        $localize`Failed to remove verified organization`,
-        undefined,
-        {
-          duration: 3000,
-        },
-      );
-    }
-  }
-
-  private _hasEnoughDataForNewSpot(spot: LocalSpot): boolean {
-    return (
-      this._hasCustomName(spot) ||
-      this._hasDescription(spot) ||
-      spot.userMedia().length > 0 ||
-      spot.hasBounds() ||
-      spot.type() !== SpotTypes.Other ||
-      spot.access() !== SpotAccess.Other ||
-      Boolean(spot.googlePlaceId()) ||
-      Object.values(spot.amenities() ?? {}).some(
-        (value) => value !== null && value !== undefined,
-      )
-    );
-  }
-
-  private _hasCustomName(spot: LocalSpot): boolean {
-    const defaultName = $localize`Unnamed Spot`.trim().toLocaleLowerCase();
-    return Object.values(spot.names()).some((entry) => {
-      const name = entry?.text.trim();
-      return Boolean(name && name.toLocaleLowerCase() !== defaultName);
-    });
-  }
-
-  private _hasDescription(spot: LocalSpot): boolean {
-    return Object.values(spot.descriptions() ?? {}).some((entry) =>
-      Boolean(entry?.text.trim()),
-    );
-  }
-
-  discardButtonClick() {
-    const spot = this.spot();
-    this._analyticsService.trackEvent("spot_edit_discarded", {
-      spot_id: spot instanceof Spot ? spot.id : null,
-      is_new_spot: this.isNewSpot,
-    });
+  onEditorDiscard(): void {
     this.discardClick.emit();
     this.isEditing.set(false);
 
@@ -1537,31 +885,6 @@ export class SpotDetailsComponent
       // close the compact view as well
       this.dismissed();
     }
-  }
-
-  descriptionTextChanged(
-    spot: LocalSpot | Spot,
-    eventTarget: EventTarget | null,
-  ) {
-    const value = getValueFromEventTarget(eventTarget);
-
-    if (!value) return;
-
-    spot.setDescription(value, this.locale);
-  }
-
-  addBoundsClicked() {
-    const spot = this.spot();
-    this._analyticsService.trackEvent("spot_add_bounds_clicked", {
-      spot_id: spot instanceof Spot ? spot.id : null,
-    });
-    if (!(this.spot() instanceof Spot)) {
-      console.error("the spot needs to be saved first before adding bounds");
-    }
-    if (!this.isEditing()) {
-      this.isEditing.set(true);
-    }
-    this.addBoundsClick.emit();
   }
 
   focusButtonClick() {
@@ -1710,10 +1033,6 @@ export class SpotDetailsComponent
     }
   }
 
-  mediaChanged(newSpotMedia: AnyMedia[]) {
-    this.spot()?.userMedia.set(newSpotMedia);
-  }
-
   async shareSpot(): Promise<void> {
     const spot = this.spot();
     if (!spot || !(spot instanceof Spot)) return;
@@ -1858,10 +1177,6 @@ export class SpotDetailsComponent
   //       });
   //     });
   // }
-
-  hasBounds() {
-    return this.spot()?.hasBounds();
-  }
 
   capitalize(s: string) {
     return s && s[0].toUpperCase() + s.slice(1);
@@ -2168,63 +1483,9 @@ export class SpotDetailsComponent
     );
   }
 
-  setSpotIconicFromToggle(event: MatSlideToggleChange) {
-    this.spot!.update((spot) => {
-      if (!spot) return spot;
-      spot.isIconic = event.checked;
-      return spot;
-    });
-  }
-
   getSpotId(): string | undefined {
     const s = this.spot();
     return s instanceof Spot ? s.id : undefined;
-  }
-
-  setHideStreetviewFromToggle(event: MatSlideToggleChange) {
-    this.spot!.update((spot) => {
-      if (!spot) return spot;
-      spot.hideStreetview = event.checked;
-      return spot;
-    });
-
-    const spot = this.spot();
-    if (!(spot instanceof LocalSpot)) {
-      return;
-    }
-
-    if (event.checked) {
-      // Apply the visibility setting immediately in the current UI state.
-      spot.removeStreetView();
-      return;
-    }
-
-    if (spot instanceof Spot && this._mapsApiService.isApiLoaded()) {
-      void spot.loadStreetview(this._mapsApiService);
-    }
-  }
-
-  updateAmenityFromToggle(
-    amenityKey: keyof AmenitiesMap,
-    selected: boolean | null | undefined,
-  ) {
-    this.spot!.update((spot) => {
-      if (!spot) return spot;
-
-      const amenities = spot.amenities();
-
-      // Handle indoor/outdoor mutual exclusivity
-      if (amenityKey === "indoor" && selected) {
-        amenities.outdoor = null; // Reset outdoor when indoor is selected
-      } else if (amenityKey === "outdoor" && selected) {
-        amenities.indoor = null; // Reset indoor when outdoor is selected
-      }
-
-      // Set the amenity value using nullable boolean logic
-      (amenities as any)[amenityKey] = selected ?? null;
-
-      return spot;
-    });
   }
 
   mediaRemoved(media: AnyMedia) {
@@ -2241,98 +1502,61 @@ export class SpotDetailsComponent
     }
   }
 
-  setEnvironment(selection: "indoor" | "outdoor" | "both" | "unknown") {
-    this.spot!.update((spot) => {
-      if (!spot) return spot;
-      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
-      if (selection === "indoor") {
-        a.indoor = true;
-        a.outdoor = false;
-      } else if (selection === "outdoor") {
-        a.indoor = false;
-        a.outdoor = true;
-      } else if (selection === "both") {
-        a.indoor = true;
-        a.outdoor = true;
-      } else {
-        a.indoor = null;
-        a.outdoor = null;
-      }
-      spot.amenities.set(a);
-      return spot;
-    });
-  }
-
-  // Covered selection: "covered" | "not_covered" | "unknown"
-  public coveredSelection = computed<"covered" | "not_covered" | "unknown">(
-    () => {
-      const a = this.spot()?.amenities() as AmenitiesMap | undefined;
-      const covered = a?.covered ?? null;
-      if (covered === true) return "covered";
-      if (covered === false) return "not_covered";
-      return "unknown";
-    },
-  );
-
-  public setCovered(selection: "covered" | "not_covered" | "unknown") {
-    this.spot!.update((spot) => {
-      if (!spot) return spot;
-      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
-      if (selection === "covered") a.covered = true;
-      else if (selection === "not_covered") a.covered = false;
-      else a.covered = null;
-      spot.amenities.set(a);
-      return spot;
-    });
-  }
-
-  readonly openSpotAmenitiesDialog = createLazyDialogOpener(
-    async () =>
-      (await import("../spot-amenities-dialog/spot-amenities-dialog.component")).SpotAmenitiesDialogComponent,
-    (component) => this._showSpotAmenitiesDialog(component),
-    inject(DestroyRef),
-  );
-
-  private _showSpotAmenitiesDialog(
-    dialogComponent: typeof SpotAmenitiesDialogComponent,
-  ) {
-    const spot = this.spot();
-    if (!spot) return;
-
-    const ref = this.dialog.open(dialogComponent, {
-      data: { amenities: spot.amenities() },
-      width: "640px",
-    });
-
-    ref.afterClosed().subscribe((updated: AmenitiesMap | undefined) => {
-      if (!updated) return;
-      this.spot!.update((s) => {
-        if (!s) return s;
-        s.amenities.set(updated);
-        return s;
-      });
-    });
-  }
-
   // -- Private helpers -----------------------------------------------------
   private _subscribeToLiveSpot(spot: Spot) {
     if (this._lastSubscribedSpotId === spot.id && this._spotSnapshotSub) return;
     this._unsubscribeFromLiveSpot();
     this._lastSubscribedSpotId = spot.id;
+    this._publishedMediaSrcs = mediaSrcs(spot);
     this._spotSnapshotSub = this._spotsService
       .getSpotById$(spot.id, this.locale)
       .subscribe({
         next: (incoming: Spot) => {
           const current = this.spot();
-          if (current instanceof Spot && current.id === incoming.id) {
-            this.spot.set(incoming);
+          if (!(current instanceof Spot) || current.id !== incoming.id) return;
+          if (this.isEditing()) {
+            this._mergeNewlyPublishedMedia(current, incoming);
+            this._snapshotHeldDuringEdit = incoming;
+            return;
           }
+          this._publishedMediaSrcs = mediaSrcs(incoming);
+          this.spot.set(incoming);
         },
         error: (err) => console.warn("Live spot update error", err),
       });
   }
 
+  /**
+   * Adds media published since the last snapshot (for example an upload
+   * finished from the editor) to the draft. Saving sends the whole media list
+   * when it changed, and the server deletes media missing from it, so a held
+   * snapshot must not keep a finished upload out of the draft. Media the user
+   * removed in the draft was already published, so it stays removed.
+   */
+  private _mergeNewlyPublishedMedia(draft: Spot, incoming: Spot): void {
+    const known = this._publishedMediaSrcs;
+    const inDraft = mediaSrcs(draft);
+    const added = incoming
+      .userMedia()
+      .filter((media) => !known.has(media.baseSrc) && !inDraft.has(media.baseSrc));
+    this._publishedMediaSrcs = mediaSrcs(incoming);
+    if (added.length > 0) {
+      draft.userMedia.update((media) => [...media, ...added]);
+    }
+  }
+
+  /** Shows the snapshot held back during editing, once editing has ended. */
+  private _applySnapshotHeldDuringEdit(): void {
+    const held = this._snapshotHeldDuringEdit;
+    this._snapshotHeldDuringEdit = null;
+    const current = this.spot();
+    if (held && current instanceof Spot && current.id === held.id) {
+      this.spot.set(held);
+    }
+  }
+
   private _unsubscribeFromLiveSpot() {
+    this._snapshotHeldDuringEdit = null;
     if (this._spotSnapshotSub) {
       this._spotSnapshotSub.unsubscribe();
       this._spotSnapshotSub = null;
@@ -2399,4 +1623,8 @@ export class SpotDetailsComponent
     this.bookmarked.set(this._bookmarkedSpotIds.has(spot.id));
     this.visited.set(this._visitedSpotIds.has(spot.id));
   }
+}
+
+function mediaSrcs(spot: Spot): Set<string> {
+  return new Set(spot.userMedia().map((media) => media.baseSrc));
 }

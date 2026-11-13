@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+form {
+  > mat-form-field {
+    margin-bottom: 5px;
+  }
+}
+
+.flex-basis-0 {
+  flex-basis: 0;
+}
+
+.spot-org-admin-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.spot-org-admin-panel__verified-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.media-processing-note {
+  padding: 8px 10px;
+  color: var(--mat-sys-on-surface-variant);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container);
+}
+
+// Amenities the Spot lacks (for example "no lighting") read as warnings.
+.negative-amenity {
+  &.mat-mdc-chip {
+    border-color: color-mix(in srgb, var(--mat-sys-error) 60%, transparent);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+    color: color-mix(in srgb, var(--mat-sys-error) 60%, transparent);
+  }
+
+  mat-icon {
+    color: color-mix(in srgb, var(--mat-sys-error) 80%, transparent);
+  }
+}

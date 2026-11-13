@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { selectLocalizedContent, contentLanguageLabel } from "./LocalizedContent";
 import { getBestLocale } from "./LanguageHelpers";

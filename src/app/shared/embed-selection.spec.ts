@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { embedSelectionQuery, parseEmbedReferences } from './embed-selection';
 describe('public embed selections', () => {

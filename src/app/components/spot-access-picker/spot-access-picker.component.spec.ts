@@ -6,7 +6,6 @@ import { SpotAccess } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotAccessPickerComponent } from "./spot-access-picker.component";
 
 describe("SpotAccessPickerComponent", () => {
-  let component: SpotAccessPickerComponent;
   let fixture: ComponentFixture<SpotAccessPickerComponent>;
 
   beforeEach(async () => {
@@ -15,12 +14,7 @@ describe("SpotAccessPickerComponent", () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SpotAccessPickerComponent);
-    component = fixture.componentInstance;
     await fixture.whenStable();
-  });
-
-  it("should create", () => {
-    expect(component).toBeTruthy();
   });
 
   it("shows the selected access icon, name, and description", async () => {
