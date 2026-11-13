@@ -21,6 +21,15 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ## Release Notes
 
+### Version 1.2.2 (web)
+
+- Faster page loads: pages are served from a cache close to you
+- Analytics only store anything on your device if you opt in
+- Activity dots on Spots are back on the map
+- Community links on Spot and event pages
+- Photo locations are removed before upload
+- Bug fixes for Spot editing and links
+
 ### Version 1.2.1 - "Training Polishes & Bug fixes"
 
 - Search results now put the closest name matches first
