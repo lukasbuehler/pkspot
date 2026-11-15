@@ -90,10 +90,10 @@
         </div>
         <app-spot-list
           class="d-block"
-          [spots]="visibleSpots()"
+          [spots]="allModeSpots()"
           [showEmptyText]="spotListReady()"
           [hideHeader]="true"
-          [highlightedSpots]="highlightedSpots()"
+          [highlightedSpots]="allModeHighlightedSpots()"
           [mapZoom]="mapZoom()"
           [limit]="spotListLimit()"
           [enableAnimation]="enableSpotListAnimation()"

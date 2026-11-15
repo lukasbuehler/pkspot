@@ -768,9 +768,10 @@ export class MapPageComponent
   mapObjectMode = signal<MapObjectMode>("all");
   mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
     const counts = this._displayMapObjectCounts();
-    // Counts describe the map's viewport; before it exists they would read 0.
+    // Counts describe the map's viewport and arrive with its first search;
+    // before that they would read 0 and then jump.
     const withCount = (count: number, label: string) =>
-      this.mapViewportKnown() ? `${count} ${label}` : label;
+      this.mapObjectsLoaded() ? `${count} ${label}` : label;
     return [
       { value: "all", label: $localize`:@@map_objects_all_chip_label:All` },
       {
@@ -2231,6 +2232,7 @@ export class MapPageComponent
     // Viewport-driven object fetch: one Typesense multi-search gives us the
     // spot/event/community chip counts plus the event/community marker hits.
     // Debounced 400ms so rapid pans don't fan out into a request per frame.
+    // The first viewport searches at once, because the list waits for it.
     effect((onCleanup) => {
       const viewport = this._viewport();
       if (!viewport) return;
@@ -2239,6 +2241,7 @@ export class MapPageComponent
 
       const bbox = viewport.bbox;
       const requestVersion = ++this._mapObjectSearchVersion;
+      const debounceMs = untracked(() => this._mapObjectsSearched()) ? 400 : 0;
       const handle = setTimeout(() => {
         const bounds = new google.maps.LatLngBounds(
           { lat: bbox.south, lng: bbox.west },
@@ -2289,7 +2292,7 @@ export class MapPageComponent
             // The Spot list stays pending until the separate preview search settles.
             this._mapObjectsSearched.set(true);
           });
-      }, 400);
+      }, debounceMs);
 
       onCleanup(() => {
         clearTimeout(handle);
