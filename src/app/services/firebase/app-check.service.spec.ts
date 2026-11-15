@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { FIREBASE_EMULATOR_STORAGE_KEY } from "./firebase-emulator.config";
 import { PLATFORM_ID } from "@angular/core";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { getApps, initializeApp as initializeFirebaseApp } from "firebase/app";
@@ -457,6 +458,31 @@ describe("FirebaseAppCheckService", () => {
         state: "skipped",
         platform: "store-screenshot",
       })
+    );
+  });
+
+  it("skips initialization while the app uses the Firebase emulators", async () => {
+    globalThis.localStorage.setItem(FIREBASE_EMULATOR_STORAGE_KEY, "1");
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FIREBASE_APP, useValue: {} },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    await service.initialize({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "site-key",
+    });
+
+    expect(initializeAppCheck).not.toHaveBeenCalled();
+    expect(getToken).not.toHaveBeenCalled();
+    expect(service.status()).toEqual(
+      expect.objectContaining({ state: "skipped", platform: "emulator" })
     );
   });
 
