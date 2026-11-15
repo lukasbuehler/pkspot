@@ -1,6 +1,6 @@
 const profiles = {
   staging: {
-    workerName: "pkspot-web",
+    workerName: "pkspot-web-staging",
     rendererName: "pkspot-ssr-staging",
     configuration: "cloudflare",
     outputDirectory: "dist/pkspot-cloudflare-worker",

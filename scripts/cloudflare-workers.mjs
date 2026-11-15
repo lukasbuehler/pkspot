@@ -35,10 +35,11 @@ if (action === "build") {
 } else if (action === "deploy") {
   // The renderer goes first: the front Worker's new version keys a fresh HTML
   // cache, and it stores only pages from a renderer of its own build.
-  runWrangler(["deploy", ...wranglerArgs], getRendererConfigPath());
+  // Extra arguments such as --name are meant for the front Worker only.
+  runWrangler(["deploy"], getRendererConfigPath(), [], { renderer: true });
   runWrangler(["deploy", ...wranglerArgs], getWranglerConfigPath());
 } else if (action === "dry-run") {
-  runWrangler(["deploy", "--dry-run"], getRendererConfigPath());
+  runWrangler(["deploy", "--dry-run"], getRendererConfigPath(), [], { renderer: true });
   runWrangler(["deploy", "--dry-run"], getWranglerConfigPath());
 } else if (action === "preview") {
   // One local session runs both Workers, so the service binding resolves.
@@ -164,7 +165,7 @@ function findFiles(directory, fileName) {
   });
 }
 
-function runWrangler(args, configPath, extraConfigPaths = []) {
+function runWrangler(args, configPath, extraConfigPaths = [], { renderer = false } = {}) {
   for (const required of [configPath, ...extraConfigPaths]) {
     if (!existsSync(required)) {
       throw new Error("Build the Cloudflare Workers before running Wrangler.");
@@ -175,13 +176,27 @@ function runWrangler(args, configPath, extraConfigPaths = []) {
     [...args, ...[configPath, ...extraConfigPaths].flatMap((config) => ["--config", config])],
     {
       cwd: repoRoot,
-      env: {
+      env: renderer ? withoutWorkersBuildsTarget(process.env) : {
         ...process.env,
         WRANGLER_LOG_PATH: path.join("/tmp", "pkspot-wrangler.log"),
       },
       stdio: "inherit",
     }
   );
+}
+
+/**
+ * Workers Builds points Wrangler at the connected (front) Worker through these
+ * variables: it renames any deployed Worker to that name and checks its tag.
+ * The renderer is a different Worker, so it must deploy under its own name.
+ */
+function withoutWorkersBuildsTarget(environment) {
+  const {
+    WRANGLER_CI_OVERRIDE_NAME: _overrideName,
+    WRANGLER_CI_MATCH_TAG: _matchTag,
+    ...rest
+  } = environment;
+  return { ...rest, WRANGLER_LOG_PATH: path.join("/tmp", "pkspot-wrangler.log") };
 }
 
 function writeWranglerConfigs() {

@@ -47,7 +47,7 @@ describe("Cloudflare Worker build", () => {
   it("packages Angular's localized SSR output as the renderer Worker", () => {
     expect(buildScript).toContain('"--localize"');
     expect(buildScript).not.toMatch(/--localize=/u);
-    expect(profileScript).toContain('workerName: "pkspot-web"');
+    expect(profileScript).toContain('workerName: "pkspot-web-staging"');
     expect(buildScript).toContain(
       'import { handleRenderRequest } from "./server.mjs";',
     );

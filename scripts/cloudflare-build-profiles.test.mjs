@@ -7,7 +7,7 @@ const staging = getCloudflareBuildProfile();
 const production = getCloudflareBuildProfile("production");
 
 test("existing commands continue building the staging Worker", () => {
-  assert.equal(staging.workerName, "pkspot-web");
+  assert.equal(staging.workerName, "pkspot-web-staging");
   assert.equal(staging.outputDirectory, "dist/pkspot-cloudflare-worker");
   assert.equal(staging.configuration, "cloudflare");
   const config = createWranglerConfig(staging);
