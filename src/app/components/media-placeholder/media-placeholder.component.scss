@@ -69,8 +69,34 @@
     );
 }
 
+// Official events: a clear blue cover in the app's selection blue.
+:host(.media-placeholder--event.media-placeholder--dated:not(.media-placeholder--tertiary):not(.media-placeholder--neutral)) {
+  background:
+    radial-gradient(
+      140% 110% at 100% 0%,
+      color-mix(in srgb, var(--mat-sys-primary-container) 85%, transparent),
+      transparent 75%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 45%, var(--mat-sys-surface-container-high)),
+      var(--mat-sys-surface-container-low)
+    );
+}
+
 :host(.media-placeholder--event.media-placeholder--tertiary) {
   --event-cover-tint: var(--mat-sys-tertiary);
+}
+
+// Community events: the same cover without a colour tint.
+:host(.media-placeholder--event.media-placeholder--neutral) {
+  --event-cover-tint: var(--mat-sys-outline);
+
+  background: linear-gradient(
+    160deg,
+    var(--mat-sys-surface-container-high),
+    var(--mat-sys-surface-container-low)
+  );
 }
 
 .event-cover {

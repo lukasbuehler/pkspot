@@ -12,6 +12,7 @@ export type MediaPlaceholderVariant = "spot" | "event";
     "[class.media-placeholder--event]": "variant() === 'event'",
     "[class.media-placeholder--dated]": "!!dateDay()",
     "[class.media-placeholder--tertiary]": "tone() === 'tertiary'",
+    "[class.media-placeholder--neutral]": "tone() === 'neutral'",
     "[class.media-placeholder--compact]": "compact()",
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +48,9 @@ export class MediaPlaceholderComponent {
    * slot: the prompt sits on one line and the event watermark shrinks.
    */
   compact = input(false);
-  /** Colour family of the event cover gradient. */
-  tone = input<"primary" | "tertiary">("primary");
+  /**
+   * Colour family of the event cover gradient. Official events use the blue
+   * primary tint; community events stay neutral, without a colour tint.
+   */
+  tone = input<"primary" | "tertiary" | "neutral">("primary");
 }
