@@ -129,4 +129,16 @@ describe("FollowListComponent", () => {
       20
     );
   });
+
+  it("shows a retry instead of an empty list when loading fails", () => {
+    createComponent();
+
+    followers$.error(new Error("offline"));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("This list couldn't be loaded.");
+    expect(text).not.toContain("You have no followers yet.");
+    expect(text).not.toContain("Load more");
+  });
 });

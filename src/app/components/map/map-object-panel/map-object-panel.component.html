@@ -29,11 +29,11 @@
 
 <app-filter-chips-bar
   class="d-block pb-2 px-3"
-  [selectedFilter]="mode()"
+  [selectedFilter]="selectedTypeChip()"
   [presetFilters]="objectTypeFilterChips()"
   [showFiltersChip]="false"
   [showClearChip]="false"
-  [allowDeselect]="false"
+  [showDeselectIcon]="true"
   [ariaLabel]="objectTypeLabel"
   appearance="solid"
   (filterChange)="onModeFilterChange($event)"

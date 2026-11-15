@@ -368,3 +368,35 @@ a {
 .check-in-spinner {
   --mat-progress-spinner-active-indicator-color: currentColor;
 }
+
+// Navigation links show focus on their icon pill (see app-mat3-nav-button),
+// not as a box around the whole item.
+a:has(> app-mat3-nav-button):focus-visible {
+  outline: none;
+}
+
+// Hidden until it receives keyboard focus, then shown above everything.
+.skip-link {
+  position: fixed;
+  top: max(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+  left: 8px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-large);
+  text-decoration: none;
+  transform: translateY(calc(-100% - 24px));
+  transition: transform 120ms ease;
+
+  &:focus-visible {
+    transform: none;
+    outline: 2px solid var(--mat-sys-on-primary);
+    outline-offset: -4px;
+  }
+}
+
+.main-content:focus {
+  outline: none;
+}

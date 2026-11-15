@@ -103,7 +103,6 @@
         <div class="spot-filter-row">
           <app-filter-chips-bar
             appearance="solid"
-            selectionRole="primary"
             [selectedFilter]="selectedSpotFilter()"
             [showFiltersChip]="false"
             [showClearChip]="false"
@@ -132,6 +131,7 @@
                   [spotData]="item.spot"
                   [distanceKm]="item.distanceKm"
                   [forcePlaceholderContainer]="true"
+                  [compactMissingMedia]="true"
                   [infoOnly]="true"
                   [clickable]="true"
                   [loadingPriority]="$index < 2"
@@ -338,6 +338,7 @@
               class="looking-back__graph"
               [days]="trainingActivityDays()"
               [recoveryPauses]="recoveryPauses()"
+              [weeks]="lookingBackWeeks"
               [interactive]="false"
             />
 
@@ -390,7 +391,7 @@
         } @else {
           <div class="empty empty--context">
             <mat-icon>history_edu</mat-icon>
-            <p i18n="@@train.reflection.empty">Your training history appears here after your first check-in or log entry.</p>
+            <p i18n="@@train.reflection.empty_private">Your training history appears here after your first check-in or log entry. Only you can see it.</p>
             <a matButton="tonal" routerLink="/train/log/new" i18n="@@trainingLog.new">New training entry</a>
           </div>
         }

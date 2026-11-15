@@ -1,8 +1,4 @@
 :host {
-  // Selections use the blue highlight; green is reserved for live state.
-  --mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
-  --mat-button-toggle-selected-state-text-color: var(--mat-sys-on-primary-container);
-
   display: block;
 }
 

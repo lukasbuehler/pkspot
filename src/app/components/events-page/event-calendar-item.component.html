@@ -1,3 +1,15 @@
+@if (compact()) {
+  <span
+    class="calendar-bar"
+    [class.is-live]="isLive()"
+    [class.is-past]="isPast()"
+    [class.is-community]="isCommunity()"
+    [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
+    [class.continues-before]="continuesBefore()"
+    [class.continues-after]="continuesAfter()"
+    ><span class="calendar-bar__name">{{ event().name }}</span></span
+  >
+} @else {
 <a
   [routerLink]="route()"
   class="calendar-event"
@@ -29,3 +41,4 @@
     }
   </span>
 </a>
+}

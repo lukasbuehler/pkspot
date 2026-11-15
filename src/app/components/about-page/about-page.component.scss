@@ -20,7 +20,7 @@
 .about-page {
   --about-divider: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
 
-  max-width: 900px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 5rem 2rem 2rem;
 }
@@ -70,11 +70,17 @@ section {
   margin-bottom: 1.5rem;
 }
 
+// Body copy stays readable on large screens: full body size, softer than
+// headings through colour rather than heavy transparency.
 .hero-subtitle,
 .section-body,
 .feature-item p {
-  opacity: 0.75;
+  color: var(--mat-sys-on-surface-variant);
   line-height: 1.6;
+}
+
+.feature-item p {
+  font-size: 1rem;
 }
 
 .hero-subtitle {
@@ -201,6 +207,12 @@ section {
   );
 }
 
+// Reduced motion: the partners stay put in a row people can scroll by hand.
+.carousel-container--static {
+  overflow-x: auto;
+  mask-image: none;
+}
+
 .carousel-track {
   display: flex;
   width: max-content;
@@ -280,12 +292,13 @@ section {
     var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
 
   .team-role {
-    opacity: 0.65;
+    color: var(--mat-sys-on-surface-variant);
     margin-top: 0.25rem;
   }
 
   .team-background {
-    opacity: 0.4;
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.8;
     margin-top: 0.15rem;
     font-style: italic;
   }

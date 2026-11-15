@@ -12,6 +12,8 @@ import {
 import {
   MAT_DIALOG_DATA,
   MatDialogTitle,
+  MatDialogActions,
+  MatDialogClose,
   MatDialogRef,
 } from "@angular/material/dialog";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
@@ -19,7 +21,6 @@ import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 import { Observable, take } from "rxjs";
 import { Timestamp } from "firebase/firestore";
 import {
-  humanTimeSince,
   parseFirestoreTimestamp,
 } from "../../../scripts/Helpers";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
@@ -66,14 +67,18 @@ export interface FollowListDialogData {
 export class FollowDurationPipe implements PipeTransform {
   private readonly _dateTime = inject(DateTimeFormatService);
 
-  transform(timestamp: Timestamp | any, args?: any): string {
-    const data = parseFirestoreTimestamp(timestamp);
-    if (!data) {
-      return "Unknown";
-    }
-    return `${humanTimeSince(data)} (since ${this._dateTime.format(data, {
-      dateStyle: "short",
-    })})`;
+  /**
+   * The follow date, e.g. "12.01.26", under a "Since" column. Reads the Firestore
+   * timestamp, or the raw milliseconds newer documents also carry.
+   */
+  transform(user: FollowingSchema | null | undefined): string {
+    const date =
+      parseFirestoreTimestamp(user?.start_following) ??
+      (typeof user?.start_following_raw_ms === "number"
+        ? new Date(user.start_following_raw_ms)
+        : null);
+    if (!date) return "–";
+    return this._dateTime.format(date, { dateStyle: "short" });
   }
 }
 
@@ -84,6 +89,8 @@ export class FollowDurationPipe implements PipeTransform {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatDialogTitle,
+    MatDialogActions,
+    MatDialogClose,
     MatTable,
     MatColumnDef,
     MatHeaderCellDef,
@@ -108,11 +115,25 @@ export class FollowListComponent implements OnInit {
   readonly isLoading = signal(false);
   readonly hasLoadedAll = signal(false);
   readonly hasLoadedFirstPage = signal(false);
+  /** A failed load is shown as an error with a retry, never as "no followers". */
+  readonly loadFailed = signal(false);
+  readonly showLoadMore = computed(
+    () =>
+      !this.isLoading() &&
+      !this.loadFailed() &&
+      !this.hasLoadedAll() &&
+      this.hasFollowUsers()
+  );
   readonly hasFollowUsers = computed(() => this.followUsers().length > 0);
   readonly showEmptyState = computed(
     () =>
-      this.hasLoadedFirstPage() && !this.isLoading() && !this.hasFollowUsers()
+      this.hasLoadedFirstPage() &&
+      !this.isLoading() &&
+      !this.loadFailed() &&
+      !this.hasFollowUsers()
   );
+
+  readonly otherUserFallback = $localize`:@@follow_list.other_user_fallback:This user`;
 
   lastLoadedFollowing: Timestamp | null = null;
   private _isFirstLoad = true;
@@ -146,6 +167,7 @@ export class FollowListComponent implements OnInit {
 
   private _loadFollowing() {
     this.isLoading.set(true);
+    this.loadFailed.set(false);
 
     let obs: Observable<FollowingSchema[]>;
     if (this.data.type === "followers") {
@@ -194,6 +216,7 @@ export class FollowListComponent implements OnInit {
         console.error("Error loading follow list:", err);
         this.isLoading.set(false);
         this.hasLoadedFirstPage.set(true);
+        this.loadFailed.set(true);
       },
     });
   }

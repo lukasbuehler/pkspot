@@ -201,6 +201,22 @@ export class NotificationSettingsComponent implements OnInit {
     return this.saveNotificationPreferences([key], enabled);
   }
 
+  /** A click on a row's title or description flips its checkbox. */
+  onPreferenceRowClick(key: NotificationPreferenceKey, event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    // The checkbox handles its own clicks; selecting text is not a toggle.
+    if (target?.closest("mat-checkbox")) return;
+    if (window.getSelection()?.toString()) return;
+    if (
+      this.notificationPreferences.loading() ||
+      this.pushNotifications.busy() ||
+      this.savingPreferences()
+    ) {
+      return;
+    }
+    void this.setNotificationPreference(key, !this.preferenceEnabled(key));
+  }
+
   async setAllNotificationPreferences(enabled: boolean): Promise<void> {
     await this.saveNotificationPreferences(
       NOTIFICATION_PREFERENCE_KEYS,

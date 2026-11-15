@@ -200,8 +200,11 @@ h2 {
   gap: 12px;
 }
 
+// Spot cards keep a readable minimum width: four across on wide screens, two on
+// tablets, so names and localities are not cut down to a few letters.
+.spot-preview-grid,
 .coming-up-cards {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
 }
 
 .spot-preview-link {

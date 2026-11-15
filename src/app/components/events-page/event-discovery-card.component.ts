@@ -12,7 +12,10 @@ import type { EventSearchPreview } from "../../services/search.service";
 import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { AnalyticsService } from "../../services/analytics.service";
-import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import {
+  eventCategoryIcon,
+  eventImageDisplaySrc,
+} from "../event-display/event-display.helpers";
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
@@ -144,6 +147,23 @@ export class EventDiscoveryCardComponent {
     if (this.event().timing?.mode === "date_only") return "upcoming";
     return "live";
   });
+  /** Day and short month for the cover fallback, in the event's time zone. */
+  readonly coverDate = computed(() => {
+    const event = this.event();
+    const dateOnly = event.timing?.mode === "date_only";
+    const start = dateOnly
+      ? new Date(`${event.timing!.start_date}T12:00:00.000Z`)
+      : this.start();
+    const timeZone = dateOnly ? "UTC" : event.timeZone;
+    if (!start || !timeZone) return null;
+    return {
+      day: this._dateTime.format(start, { day: "numeric", timeZone }),
+      month: this._dateTime.format(start, { month: "short", timeZone }),
+    };
+  });
+  readonly coverIcon = computed(() =>
+    eventCategoryIcon(this.event().eventCategories[0] ?? "other"),
+  );
   readonly imageSrc = computed(() =>
     eventImageDisplaySrc(this.event().bannerSrc),
   );
@@ -151,6 +171,9 @@ export class EventDiscoveryCardComponent {
     this.event().seriesIds.map((id) => ({
       id,
       label: this.seriesById()[id]?.name ?? seriesFallbackLabel(id),
+      initials: seriesInitials(
+        this.seriesById()[id]?.name ?? seriesFallbackLabel(id),
+      ),
       logoSrc: eventImageDisplaySrc(this.seriesById()[id]?.logo_src),
       background:
         this.seriesById()[id]?.logo_background_color ??
@@ -191,4 +214,14 @@ function seriesFallbackLabel(seriesId: string): string {
     .filter(Boolean)
     .map((word) => `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`)
     .join(" ");
+}
+
+/** Up to two initials, so a series without a logo still fits its badge. */
+function seriesInitials(label: string): string {
+  const words = label.split(/[\s-]+/u).filter(Boolean);
+  const letters =
+    words.length > 1
+      ? words.slice(0, 2).map((word) => word[0])
+      : [...(words[0] ?? "")].slice(0, 2);
+  return letters.join("").toUpperCase();
 }

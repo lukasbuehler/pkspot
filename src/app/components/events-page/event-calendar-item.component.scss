@@ -110,3 +110,65 @@
     display: none;
   }
 }
+
+// Compact calendar: a thin bar per event, Google Calendar style. Multi-day
+// events are one bar across their days; square ends mean it continues into
+// the previous or next week.
+:host(.is-compact) {
+  padding: 1px 2px;
+  pointer-events: none;
+}
+
+.calendar-bar {
+  display: flex;
+  height: 16px;
+  align-items: center;
+  min-width: 0;
+  padding: 0 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.calendar-bar__name {
+  overflow: hidden;
+  font: var(--mat-sys-label-small);
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-bar.is-community {
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+// Green only while an event is happening.
+.calendar-bar.is-live {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.calendar-bar.is-past {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.calendar-bar.is-cancelled {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.calendar-bar.continues-before {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.calendar-bar.continues-after {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}

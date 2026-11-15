@@ -18,7 +18,7 @@
         i18n
       >
         The <span class="font-primary">spot</span> for everything parkour<span
-          class="font-secondary"
+          class="font-primary tagline-period"
           >.</span
         >
       </h1>
@@ -34,7 +34,7 @@
     <section class="content-section">
       <h2 class="mat-headline-large section-heading" i18n>
         Don't just look.
-        <span class="pkspot-font font-secondary marker-accent">Find.</span>
+        <span class="pkspot-font font-primary marker-accent">Find.</span>
       </h2>
       <div class="feature-grid">
         <div class="feature-item">
@@ -58,10 +58,10 @@
           <h4 class="mat-title-medium feature-title" i18n>
             Live &amp; Verified
           </h4>
-          <p class="mat-body-medium" i18n>
-            Check-ins and organization updates show where parkour is actually
-            happening. The map stays current because the community keeps it
-            current.
+          <p class="mat-body-medium" i18n="@@about.feature.live_private">
+            Spots show a rough range of how many people trained there recently,
+            and organizations post updates. Your own check-ins stay private:
+            only you see where and when you trained.
           </p>
         </div>
       </div>
@@ -161,7 +161,7 @@
     <section class="content-section">
       <h2 class="mat-headline-large section-heading" i18n>
         Built on
-        <span class="pkspot-font font-secondary marker-accent">open</span>
+        <span class="pkspot-font marker-accent">open</span>
         ground.
       </h2>
       <p class="mat-title-medium section-body" i18n>
@@ -248,13 +248,27 @@
         Parkour ecosystem — national associations, ethical brands, and Parkour
         gyms.
       </p>
-      <div class="carousel-container">
+      <!-- Only the first copy of each partner is announced and focusable; the
+           repeats exist for the endless ticker. -->
+      <div
+        class="carousel-container"
+        [class.carousel-container--static]="reducedMotion()"
+        (pointerenter)="pauseCarousel(true)"
+        (pointerleave)="pauseCarousel(false)"
+        (focusin)="pauseCarousel(true)"
+        (focusout)="pauseCarousel(false)"
+      >
         <div class="carousel-track" #carouselTrack>
-          @for (partner of partners; track $index) {
+          @for (
+            partner of reducedMotion() ? basePartners : partners;
+            track $index
+          ) {
             <a
               [href]="partner.url"
               class="partner-link"
               target="_blank"
+              [attr.aria-hidden]="$index >= basePartners.length ? 'true' : null"
+              [attr.tabindex]="$index >= basePartners.length ? -1 : null"
               (click)="
                 trackOutboundLinkClick('partner', partner.url, partner.name, {
                   partner_name: partner.name,
@@ -358,8 +372,7 @@
       </p>
       <div class="d-flex gap-3">
         <a
-          matButton="filled"
-          color="accent"
+          matButton="outlined"
           routerLink="/"
           (click)="trackInternalCtaClick('about_start_exploring', '/')"
           i18n

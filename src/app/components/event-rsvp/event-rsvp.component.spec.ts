@@ -247,7 +247,10 @@ describe("EventRsvpComponent", () => {
 
     expect(relationship()).toBe("going");
     expect(component.myEventsRsvp()).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.rsvp-action[aria-pressed="true"]'),
+    ).toBeNull();
   });
 
   it("does not add my loaded response to the visible aggregate", async () => {
@@ -322,7 +325,7 @@ describe("EventRsvpComponent", () => {
     ).toHaveLength(2);
   });
 
-  it("shows the selected RSVP in a menu button when a response is loaded", async () => {
+  it("marks the loaded answer as the pressed button", async () => {
     eventsService.getMyRsvp.mockResolvedValue({
       user_id: "user-1",
       event_id: "event-1",
@@ -335,25 +338,15 @@ describe("EventRsvpComponent", () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(
-      fixture.nativeElement.querySelector("mat-button-toggle-group"),
-    ).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector(".rsvp-menu-button"),
-    ).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain("Going");
-    expect(fixture.nativeElement.querySelector(".rsvp-remove-button")).toBeNull();
-
-    fixture.nativeElement.querySelector(".rsvp-menu-button").click();
-    await fixture.whenStable();
-
-    const removeMenuItem = document.body.querySelector(
-      ".rsvp-remove-menu-item",
+    const going = fixture.nativeElement.querySelector(
+      '.rsvp-action[data-rsvp="going"]',
     );
-    expect(removeMenuItem).toBeTruthy();
-    expect(
-      removeMenuItem?.querySelector("mat-icon")?.textContent,
-    ).toContain("event_busy");
+    const interested = fixture.nativeElement.querySelector(
+      '.rsvp-action[data-rsvp="interested"]',
+    );
+    expect(going.getAttribute("aria-pressed")).toBe("true");
+    expect(interested.getAttribute("aria-pressed")).toBe("false");
+    expect(fixture.nativeElement.querySelector("mat-menu")).toBeNull();
   });
 
   it("uses an injected store screenshot RSVP without loading remote user data", async () => {
@@ -371,7 +364,7 @@ describe("EventRsvpComponent", () => {
     expect(fixture.nativeElement.textContent).toContain("Interested");
   });
 
-  it("prompts for an RSVP in the menu button when no response is loaded", async () => {
+  it("offers Interested first and Going when no response is loaded", async () => {
     fixture.componentRef.setInput("eventId", "event-1");
     fixture.componentRef.setInput("counts", {
       going: 1,
@@ -383,8 +376,16 @@ describe("EventRsvpComponent", () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
-    expect(fixture.nativeElement.querySelector(".rsvp-menu-button")).toBeTruthy();
+    const actions = Array.from(
+      fixture.nativeElement.querySelectorAll(".rsvp-action"),
+    ) as HTMLElement[];
+    expect(actions.map((action) => action.dataset["rsvp"])).toEqual([
+      "interested",
+      "going",
+    ]);
+    expect(
+      actions.every((action) => action.getAttribute("aria-pressed") === "false"),
+    ).toBe(true);
     expect(
       fixture.nativeElement
         .querySelector(".rsvp-disclaimer-help")
@@ -410,10 +411,14 @@ describe("EventRsvpComponent", () => {
     await fixture.whenStable();
 
     expect(component.myEventsRsvp()).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
+    expect(
+      fixture.nativeElement
+        .querySelector('.rsvp-action[data-rsvp="interested"]')
+        ?.getAttribute("aria-pressed"),
+    ).toBe("false");
   });
 
-  it("updates the menu button after saving an edited RSVP", async () => {
+  it("updates the pressed button after saving an edited RSVP", async () => {
     eventsService.getMyRsvp.mockResolvedValue({
       user_id: "user-1",
       event_id: "event-1",
@@ -460,7 +465,27 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
 
     expect(component.selectedRsvp()).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.rsvp-action[aria-pressed="true"]'),
+    ).toBeNull();
+  });
+
+  it("removes the answer when its pressed button is selected again", async () => {
+    eventsService.getMyRsvp.mockResolvedValue({
+      user_id: "user-1",
+      event_id: "event-1",
+      rsvp: "going",
+      time_created: new Date(),
+      time_updated: new Date(),
+    });
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.toggleGoing();
+
+    expect(component.selectedRsvp()).toBeNull();
   });
 
   it("can hide the RSVP disclaimer", async () => {
@@ -488,7 +513,7 @@ describe("EventRsvpComponent", () => {
 
     expect(eventsService.getMyRsvp).not.toHaveBeenCalled();
     expect(fixture.nativeElement.querySelectorAll("app-fancy-counter")).toHaveLength(2);
-    expect(fixture.nativeElement.querySelector(".rsvp-menu-button")).toBeNull();
+    expect(fixture.nativeElement.querySelector(".rsvp-actions")).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain("Sign in");
     expect(fixture.nativeElement.textContent).not.toContain(
       "These numbers show",

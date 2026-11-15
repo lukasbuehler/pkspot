@@ -44,4 +44,15 @@ describe("relevantMapCommunities", () => {
   it("never suggests Russia over the UK without any evidence", () => {
     expect(relevantMapCommunities([ru, fr, gb], europe)).toEqual([gb]);
   });
+  it("lists every country in view when browsing communities", () => {
+    const spots = [
+      { countryCode: "GB", lat: 51.5, lng: -0.1 },
+      { countryCode: "FR", lat: 48.9, lng: 2.3 },
+    ];
+    expect(
+      relevantMapCommunities([fr, ru, ch, gb, zurich], europe, spots, {
+        everyCountryInView: true,
+      }),
+    ).toEqual([zurich, fr, ch, gb]);
+  });
 });

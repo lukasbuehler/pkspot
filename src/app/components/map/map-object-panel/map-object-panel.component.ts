@@ -13,7 +13,6 @@ import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
 import { Event as PkEvent } from "../../../../db/models/Event";
 import { CommunitySearchPreview } from "../../../services/search.service";
 import { SeriesDocument } from "../../../services/firebase/firestore/series.service";
-import { ChipSelectorOption } from "../../chip-selector/chip-selector.component";
 import {
   FilterChipsBarComponent,
   PresetFilterChip,
@@ -21,7 +20,7 @@ import {
 import { SpotListComponent } from "../../spot-list/spot-list.component";
 import { MapCommunityListComponent } from "../map-community-list/map-community-list.component";
 import { MapEventListComponent } from "../map-event-list/map-event-list.component";
-import { MapObjectMode } from "../map-object-mode.model";
+import { MapObjectMode, MapObjectTypeChip } from "../map-object-mode.model";
 import { MatDividerModule } from "@angular/material/divider";
 import type { WeatherResponse } from "../../../weather/weather.models";
 import { MapWeatherChipComponent } from "../map-weather-chip/map-weather-chip.component";
@@ -47,12 +46,12 @@ import { MapWeatherChipComponent } from "../map-weather-chip/map-weather-chip.co
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapObjectPanelComponent {
-  readonly objectTypeLabel = "Map object type";
+  readonly objectTypeLabel = $localize`:@@map.object_type_label:Show on the map`;
   private readonly _allModeEventLimit = 2;
   private readonly _allModeCommunityLimit = 8;
 
   mode = input.required<MapObjectMode>();
-  objectTypes = input.required<readonly ChipSelectorOption<MapObjectMode>[]>();
+  objectTypes = input.required<readonly MapObjectTypeChip[]>();
   visibleSpots = input<(Spot | LocalSpot)[]>([]);
   highlightedSpots = input<SpotPreviewData[]>([]);
   visibleEvents = input<PkEvent[]>([]);
@@ -74,6 +73,8 @@ export class MapObjectPanelComponent {
   communitySelect = output<CommunitySearchPreview>();
   weatherOpen = output<void>();
 
+  /** No chip is selected while everything is shown. */
+  selectedTypeChip = computed(() => (this.mode() === "all" ? "" : this.mode()));
   allModeEvents = computed(() =>
     this.visibleEvents().slice(0, this._allModeEventLimit),
   );
@@ -82,7 +83,7 @@ export class MapObjectPanelComponent {
       mode: option.value,
       urlParam: option.value,
       label: option.label,
-      icon: option.icon,
+      count: option.count,
     })),
   );
   allModeCommunities = computed(() =>

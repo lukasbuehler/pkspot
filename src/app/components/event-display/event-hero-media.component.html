@@ -2,6 +2,7 @@
   @if (heroMedia().length) {
     <app-img-carousel
       [media]="heroMedia()"
+      [imageDescription]="event().name"
       reportContext="event"
       [reportTargetId]="event().id"
       [imageFits]="imageFits()"

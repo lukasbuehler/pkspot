@@ -52,17 +52,17 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: clamp(24px, 6vw, 48px);
+  padding: clamp(20px, 5vw, 48px);
 }
 
 .profile-overview__content {
   display: grid;
   justify-items: center;
-  gap: clamp(20px, 4vw, 28px);
+  gap: clamp(14px, 3vw, 28px);
 }
 
 .profile-overview__avatar {
-  width: clamp(112px, 24vw, 168px);
+  width: clamp(88px, 22vw, 168px);
   padding: 0;
   border: 0;
   aspect-ratio: 1;
@@ -96,7 +96,7 @@
 .profile-overview__details {
   display: grid;
   justify-items: center;
-  gap: 20px;
+  gap: clamp(14px, 3vw, 20px);
   width: 100%;
   min-width: 0;
 }
@@ -202,10 +202,11 @@
   width: min(320px, 100%);
 }
 
+// Three summary figures; contributions have their own card further down.
 .profile-stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
   width: min(720px, 100%);
 }
 
@@ -221,7 +222,6 @@
 
 @media (min-width: 560px) {
   .profile-stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: clamp(12px, 3vw, 28px);
   }
 }
@@ -260,12 +260,34 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+// Quiet status notice: neutral card, error colour only in the icon tile.
 .profile-section__load-error {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 12px 14px;
+  margin-block-end: 12px;
+  padding: 14px;
+  border: 1px solid var(--app-notice-outline);
+  border-radius: 18px;
+  color: var(--app-notice-text);
+  background: var(--app-notice-background);
+}
+
+.profile-section__load-error-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
+.profile-section__load-error-text {
+  flex: 1 1 14rem;
+  margin: 0;
 }
 
 .profile-section__header.mat-mdc-card-header {
@@ -351,6 +373,7 @@
 }
 
 .private-spot-count {
+  margin-inline-start: 0.3em;
   font-weight: 600;
 }
 
@@ -409,7 +432,35 @@
 
 .contribution-stat span:last-child {
   color: var(--mat-sys-on-surface-variant);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+// Phones list the contribution counts as rows, so labels never break mid-word.
+@media (max-width: 559px) {
+  .contribution-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .contribution-stat {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    text-align: start;
+
+    // Compact rows: the count stays readable without a headline-sized gap.
+    .mat-headline-small {
+      margin: 0;
+      font: var(--mat-sys-title-medium);
+    }
+
+    span:last-child {
+      font: var(--mat-sys-body-medium);
+    }
+  }
 }
 
 @media (max-width: 559px) {

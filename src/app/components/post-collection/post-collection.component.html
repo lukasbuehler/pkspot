@@ -1,6 +1,6 @@
 <div [@postCollectionAnimation] class="collection-container pt-3">
   @if(title(); as collectionTitle) {
-  <h2 class="mat-h2 mb-0 mt-3 text-center">
+  <h2 class="mat-headline-small mb-0 mt-3 text-center">
     {{ collectionTitle }}
   </h2>
   } @for(post of posts(); track post.id) {
@@ -12,7 +12,7 @@
   }
   <div class="spinner">
     @if(loading()) {
-    <mat-spinner color="accent" [diameter]="50"></mat-spinner>
+    <mat-spinner color="primary" [diameter]="50"></mat-spinner>
     }
   </div>
 </div>

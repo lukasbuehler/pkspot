@@ -59,6 +59,7 @@ import {
   type ImageCropDialogData,
 } from "../crop-image/image-crop-dialog.component";
 import { PROFILE_IMAGE_CROP_POLICY } from "../crop-image/image-crop-policy";
+import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 
 @Component({
   selector: "app-edit-profile",
@@ -85,6 +86,7 @@ import { PROFILE_IMAGE_CROP_POLICY } from "../crop-image/image-crop-policy";
     MatProgressSpinner,
     MatExpansionModule,
     AutocompleteOverlayRepositionDirective,
+    AutoScrollOnFocusDirective,
   ],
 })
 export class EditProfileComponent implements OnInit {
@@ -267,7 +269,7 @@ export class EditProfileComponent implements OnInit {
     if (!this._ageAssuranceService.canParticipatePublicly()) {
       this._snackbar.open(
         this._ageAssuranceService.getRestrictionMessage(),
-        "Dismiss",
+        $localize`:@@common.dismiss:Dismiss`,
         {
           duration: 6000,
           horizontalPosition: "center",
@@ -419,7 +421,7 @@ export class EditProfileComponent implements OnInit {
     if (!this._ageAssuranceService.canParticipatePublicly()) {
       this._snackbar.open(
         this._ageAssuranceService.getRestrictionMessage(),
-        "Dismiss",
+        $localize`:@@common.dismiss:Dismiss`,
         {
           duration: 6000,
           horizontalPosition: "center",

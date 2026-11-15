@@ -183,3 +183,14 @@
 .min-w-0 {
   min-width: 0;
 }
+
+// Shown until the map draws, so a slow map is never an empty black area.
+.event-map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-surface-container);
+  pointer-events: none;
+}

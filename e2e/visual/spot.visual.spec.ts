@@ -205,7 +205,7 @@ test.describe("Spot Details Visual Regression @visual", () => {
       /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
     );
     await expect(details).toContainText(
-      /Rating and user reviews|Bewertung und user Rezensionen/u,
+      /Rating and user reviews|Bewertungen und Rezensionen/u,
     );
     await expect(details).toContainText(/edits are waiting|Bearbeitungen warten/u);
     await expect(details).toContainText(/License|Lizenz/u);
@@ -352,8 +352,9 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
       return {y: rect.y, height: rect.height};
     });
     const badgeBox = (await badge.boundingBox())!;
-    expect(Math.abs(titleBox.y + titleBox.height / 2 - badgeBox.y - badgeBox.height / 2)).toBeLessThanOrEqual(3);
-    const headerBox = (await page.locator('mat-card-subtitle').first().boundingBox())!;
+    // "Spot" and the rating form their own row directly below the title.
+    expect(badgeBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height - 2);
+    const headerBox = (await page.locator('app-spot-details mat-card-subtitle').last().boundingBox())!;
     expect((await activity.boundingBox())!.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1);
     await expect(page.locator('app-spot-details')).toHaveScreenshot(`spot-header-${name === 'Lindenhof' ? 'short' : 'long'}.png`, {animations:'disabled'});
     await page.locator('app-bottom-sheet .handle-region').click();
@@ -384,7 +385,7 @@ test.describe("Spot details server rendering @visual", () => {
         const details = current.locator("app-spot-details");
         await expect(details.locator(".spot-title-text").first()).toHaveText(longTitle);
         await expect(details.locator("app-spot-rating").first()).toBeAttached();
-        await expect(details.getByRole("button", { name: /Share|Teilen/u }).first()).toBeAttached();
+        await expect(details.getByRole("button", { name: /Share|teilen/iu }).first()).toBeAttached();
       }
 
       const measure = async (selector: string) => {
@@ -431,4 +432,17 @@ test.describe("Spot details server rendering @visual", () => {
       await context.close();
     });
   }
+});
+
+
+/** UI review capture of the full rich Spot details sheet; runs only when UI_REVIEW_DIR is set. */
+test("UI review capture spot-details-long mobile", async ({ page }) => {
+  const dir = process.env["UI_REVIEW_DIR"];
+  test.skip(!dir, "Set UI_REVIEW_DIR to capture review screenshots.");
+  await openSpotFixture(page, { width: 390, height: 1800 });
+  await expandSheetForFullContentSnapshot(page);
+  await page.locator("app-bottom-sheet .sheet").screenshot({
+    path: `${dir}/spot-details-long--mobile.png`,
+    animations: "disabled",
+  });
 });

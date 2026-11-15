@@ -1,0 +1,65 @@
+<h2 mat-dialog-title i18n="@@events.filters_dialog.title">Filter events</h2>
+<mat-dialog-content class="filter-sections">
+  @if (data.regions.length > 0) {
+    <section class="filter-section" aria-labelledby="event-filter-region">
+      <h3 id="event-filter-region" class="mat-title-small" i18n="@@events.filters_dialog.region">Region</h3>
+      <mat-chip-listbox
+        multiple
+        aria-labelledby="event-filter-region"
+        [value]="regions()"
+        (change)="setRegions($event.value)"
+      >
+        @for (option of data.regions; track option.id) {
+          <mat-chip-option [value]="option.id">{{ option.label }} {{ option.count }}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </section>
+  }
+
+  @if (data.listingTiers.length > 0) {
+    <section class="filter-section" aria-labelledby="event-filter-organiser">
+      <h3 id="event-filter-organiser" class="mat-title-small" i18n="@@events.filters_dialog.organiser">Organised by</h3>
+      <mat-chip-listbox
+        multiple
+        aria-labelledby="event-filter-organiser"
+        [value]="listingTiers()"
+        (change)="setListingTiers($event.value)"
+      >
+        @for (option of data.listingTiers; track option.id) {
+          <mat-chip-option [value]="option.id">{{ tierLabels[option.id] }} {{ option.count }}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </section>
+  }
+
+  @if (data.series.length > 0) {
+    <section class="filter-section" aria-labelledby="event-filter-series">
+      <h3 id="event-filter-series" class="mat-title-small" i18n="@@events.filters_dialog.series">Event series</h3>
+      <mat-chip-listbox
+        multiple
+        aria-labelledby="event-filter-series"
+        [value]="seriesIds()"
+        (change)="setSeries($event.value)"
+      >
+        @for (option of data.series; track option.id) {
+          <mat-chip-option [value]="option.id">
+            @if (option.logoSrc) {
+              <img
+                matChipAvatar
+                class="series-logo"
+                [src]="option.logoSrc"
+                [style.background]="option.logoBackground"
+                alt=""
+              />
+            }
+            {{ option.label }} {{ option.count }}
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </section>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="reset()" i18n="@@events.filters_dialog.reset">Reset</button>
+  <button mat-flat-button type="button" (click)="apply()" i18n="@@events.filters_dialog.apply">Apply</button>
+</mat-dialog-actions>

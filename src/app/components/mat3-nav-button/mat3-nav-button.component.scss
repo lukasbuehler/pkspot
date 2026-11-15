@@ -2,6 +2,9 @@
   // remove link shit
   text-decoration: none;
   color: inherit;
+  // A <button> centres its label by default; the span used inside navigation
+  // links does not, so centre it explicitly for both.
+  text-align: center;
 
   display: flex;
   flex-direction: column;
@@ -63,4 +66,20 @@
   // One compact indicator everywhere: the wider 64px variant crowded the
   // edges of narrow bottom bars.
   width: 56px;
+}
+
+// Keyboard focus: the icon pill shows the hover tint plus a primary outline,
+// whether focus is on the surrounding navigation link or on this button.
+:host-context(a:focus-visible) .button-container > mat-icon,
+:host-context(a:focus-visible) .button-container > .image,
+.button-container:focus-visible > mat-icon,
+.button-container:focus-visible > .image {
+  width: 56px;
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  background-color: var(--mat-sys-surface-container-highest);
+}
+
+.button-container:focus-visible {
+  outline: none;
 }

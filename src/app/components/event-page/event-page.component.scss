@@ -106,6 +106,14 @@
   --mdc-chip-with-avatar-avatar-size: 1.25rem;
 }
 
+// Series chips use the tertiary identity colour; Material's "highlighted"
+// chip would otherwise fill them with the green live accent.
+.event-tags mat-chip[highlighted] {
+  --mat-chip-elevated-selected-container-color: var(--mat-sys-tertiary-container);
+  --mat-chip-selected-label-text-color: var(--mat-sys-on-tertiary-container);
+  --mat-chip-with-icon-selected-icon-color: var(--mat-sys-on-tertiary-container);
+}
+
 .event-tags mat-icon[matChipAvatar] {
   color: var(--mat-sys-primary);
 }
@@ -370,11 +378,19 @@ a.featured-participant-name {
   background: var(--mat-sys-surface-container-low);
 }
 
+// Outlined fields float their label above the border, so the intro needs
+// room before the first field.
 .event-report-panel__heading {
   display: flex;
   gap: 1rem;
   align-items: flex-start;
   justify-content: space-between;
+  margin-block-end: 1.5rem;
+
+  p {
+    margin-block-start: 0.25rem !important;
+    color: var(--mat-sys-on-surface-variant);
+  }
 }
 
 .event-report-panel__heading h2,
@@ -410,10 +426,6 @@ a.featured-participant-name {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .event-nav-action--duplicated {
-    display: none;
-  }
-
   .qualification-event-grid {
     grid-template-columns: 1fr;
   }
@@ -431,4 +443,8 @@ a.featured-participant-name {
   a {
     color: inherit;
   }
+}
+
+@media (max-width: 599.98px) {
+  .map-preview-header { align-items: flex-start; flex-direction: column; }
 }

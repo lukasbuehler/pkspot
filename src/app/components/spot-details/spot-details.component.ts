@@ -10,6 +10,7 @@ import {
   OnInit,
   OnChanges,
   ElementRef,
+  viewChild,
   LOCALE_ID,
   Pipe,
   PipeTransform,
@@ -1268,6 +1269,31 @@ export class SpotDetailsComponent
           if (result.created) void this._notificationOptIn.maybePrompt("report_updates");
         },
       );
+  }
+
+  private readonly _ratingsSection =
+    viewChild<ElementRef<HTMLElement>>("ratingsSection");
+
+  /** Names the header rating button with the value, e.g. "4.0 stars, see reviews". */
+  readonly ratingJumpLabel = computed(() => {
+    const rating = this.spot()?.rating;
+    const value = rating ? rating.toFixed(1) : "";
+    return $localize`:@@spot.rating_jump_label:Rated ${value}:rating: of 5, show reviews`;
+  });
+
+  /** Names a rating-distribution bar, e.g. "5 stars: 2 reviews". */
+  ratingHistogramLabel(stars: string | number, count: number | undefined): string {
+    const reviews = count ?? 0;
+    return reviews === 1
+      ? $localize`:@@spot.rating_histogram_one:${stars}:stars: stars: 1 review`
+      : $localize`:@@spot.rating_histogram_many:${stars}:stars: stars: ${reviews}:count: reviews`;
+  }
+
+  scrollToRatings(): void {
+    this._ratingsSection()?.nativeElement.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }
 
   openSpotReviewDialog() {

@@ -9,6 +9,7 @@ import {
 } from "../../../db/models/Media";
 import { MediaType } from "../../../db/models/Interfaces";
 import { MediaSchema } from "../../../db/schemas/Media";
+import type { EventCategory } from "../../../db/schemas/EventSchema";
 import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 
@@ -214,4 +215,28 @@ export function eventStatusLabel(
   }
 
   return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
+}
+
+/** Material Symbol for an event category, shared by event lists and pages. */
+export function eventCategoryIcon(category: EventCategory | string): string {
+  switch (category) {
+    case "camp":
+      return "camping";
+    case "competition":
+      return "trophy";
+    case "jam":
+      return "groups";
+    case "workshop":
+      return "school";
+    case "show":
+      return "theater_comedy";
+    case "awards":
+      return "workspace_premium";
+    case "social":
+      return "celebration";
+    case "travel":
+      return "directions_bus";
+    default:
+      return "sell";
+  }
 }

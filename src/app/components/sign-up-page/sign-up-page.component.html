@@ -1,173 +1,213 @@
-<div class="container keyboard-padding" style="padding-top: 80px">
-  <!-- <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="alert alert-danger" color="">
-        Sign-up is currently set to invite-only at this stage of development.
-        You will only be able to sign up if you have been invited and have a
-        valid invite code.
-      </div>
-    </div>
-  </div> -->
-  <div class="row justify-content-center">
-    <div class="col-md-12 text-center">
-      <h3 class="mat-h2 text-center" i18n>Sign in instead?</h3>
+<!-- Shares the sign-in card: create the account first, sign in as the alternative. -->
+<div class="auth-page-narrow keyboard-padding">
+  <section class="auth-card">
+    <h2 class="mat-headline-small" i18n>Create a new account</h2>
 
-      <div class="oauth-buttons d-flex flex-row justify-content-center">
-        <button
-          mat-flat-button
-          routerLink="/account"
-          queryParamsHandling="merge"
-        >
-          <mat-icon>login</mat-icon><span i18n>Sign in</span>
-        </button>
-        <button
-          mat-stroked-button
-          routerLink="/account"
-          [queryParams]="{ startWith: 'apple' }"
-          queryParamsHandling="merge"
-        >
-          <span class="d-flex gap-2 align-items-center">
-            <img
-              ngSrc="assets/logos/apple_icon_dark.png"
-              height="16"
-              width="16"
-              alt=""
-            />
-            Apple</span
-          >
-        </button>
-        <button
-          mat-stroked-button
-          routerLink="/account"
-          [queryParams]="{ startWith: 'google' }"
-          queryParamsHandling="merge"
-        >
-          <span class="d-flex gap-2 align-items-center">
-            <img
-              ngSrc="assets/logos/google_icon.png"
-              height="16"
-              width="16"
-              alt="G"
-            />
-            Google</span
-          >
-        </button>
-      </div>
-    </div>
-  </div>
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <h2 class="mat-title-large mt-5" i18n>Create a new account</h2>
-      <form
-        [formGroup]="createAccountForm!"
-        class="d-flex flex-column"
-        (ngSubmit)="tryCreateAccount(createAccountForm!.value)"
+    <div class="social-pair">
+      <button
+        mat-stroked-button
+        routerLink="/account"
+        [queryParams]="{ startWith: 'apple' }"
+        queryParamsHandling="merge"
       >
-        <mat-form-field appearance="outline">
-          <mat-label i18n>E-Mail address</mat-label>
-          <input
-            matInput
-            type="email"
-            formControlName="email"
-            required
-            appAutoScrollOnFocus
+        <span class="d-flex gap-2 align-items-center">
+          <img
+            ngSrc="assets/logos/apple_icon_dark.png"
+            height="16"
+            width="16"
+            alt=""
           />
-          <mat-error i18n="@@signup.email_invalid">Enter a valid email address.</mat-error>
-          <mat-hint i18n
-            >The e-mail address needs to be verified later.</mat-hint
-          >
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label i18n>Password</mat-label>
-          <input
-            matInput
-            type="password"
-            formControlName="password"
-            required
-            appAutoScrollOnFocus
+          Apple</span
+        >
+      </button>
+      <button
+        mat-stroked-button
+        routerLink="/account"
+        [queryParams]="{ startWith: 'google' }"
+        queryParamsHandling="merge"
+      >
+        <span class="d-flex gap-2 align-items-center">
+          <img
+            ngSrc="assets/logos/google_icon.png"
+            height="16"
+            width="16"
+            alt="G"
           />
-          <mat-error i18n="@@signup.password_short">Use at least 6 characters.</mat-error>
-          <mat-hint i18n>Choose a strong password.</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label i18n>Repeat Password</mat-label>
-          <input
-            matInput
-            type="password"
-            formControlName="repeatPassword"
-            [errorStateMatcher]="repeatPasswordMatcher"
-            required
-            appAutoScrollOnFocus
-          />
-          <mat-error i18n="@@signup.password_mismatch">The passwords must match.</mat-error>
-          <mat-hint i18n
-            >The repeated password needs to match the password
-            entered.</mat-hint
-          >
-        </mat-form-field>
-
-        <div class="d-flex flex-column pt-4">
-          <h4 class="mat-title-medium" i18n>About you</h4>
-          <p class="mat-body" i18n>
-            What should we call you? Don't worry, the display name can be
-            changed later.
-          </p>
-          <mat-form-field appearance="outline">
-            <mat-label i18n>Display Name</mat-label>
-            <input
-              matInput
-              type="text"
-              formControlName="displayName"
-              required
-              appAutoScrollOnFocus
-            />
-          </mat-form-field>
-        </div>
-
-        <div class="mt-4 d-flex flex-row align-items-center">
-          <mat-checkbox class="mr-3" formControlName="agreeCheck" required
-            ><span
-              class="mat-body"
-              style="white-space: normal"
-              i18n="
-                terms of service sign up text|Text of the Terms of Service sign
-                up text@@tos-signup"
-              >By creating an account, you agree to our
-              <a routerLink="/terms-of-service">Terms of Service</a> and confirm
-              you meet the age requirements or have parent/guardian consent, and
-              that you will contribute content under the license terms described
-              within.</span
-            >
-          </mat-checkbox>
-        </div>
-
-        <div class="mt-3 d-flex flex-column">
-          <mat-checkbox formControlName="analyticsCheck"
-            ><span class="mat-body" style="white-space: normal" i18n="@@signup.analytics_optional"
-              >Optional: let analytics remember this device and link it to my
-              account, to help improve PK Spot. You can change this in Settings at
-              any time.</span
-            >
-          </mat-checkbox>
-        </div>
-
-        @if (signUpError()) {
-          <div class="mt-3 alert alert-danger">
-            {{ signUpError() }}
-          </div>
-        }
-
-        <div class="mt-5 mb-5 d-flex flex-row justify-content-center">
-          <button
-            mat-flat-button
-            type="submit"
-            [disabled]="isSubmitting()"
-          >
-            <mat-icon>person_add</mat-icon>
-            <span i18n>Create Account</span>
-          </button>
-        </div>
-      </form>
+          Google</span
+        >
+      </button>
     </div>
-  </div>
+
+    <div class="auth-divider">
+      <mat-divider class="flex-grow-1"></mat-divider>
+      <span class="mat-label-medium" i18n="@@signin.divider_or">or</span>
+      <mat-divider class="flex-grow-1"></mat-divider>
+    </div>
+
+    <form
+      [formGroup]="createAccountForm!"
+      class="d-flex flex-column"
+      (ngSubmit)="tryCreateAccount(createAccountForm!.value)"
+    >
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mb-2">
+        <mat-label i18n="@@auth.email.label">Email address</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          required
+          appAutoScrollOnFocus
+        />
+        @if (createAccountForm!.controls["email"].hasError("required")) {
+          <mat-error i18n="@@signin.email.required">Enter your e-mail address.</mat-error>
+        } @else {
+          <mat-error i18n="@@signup.email_invalid"
+          >Enter a valid email address.</mat-error
+        >
+        }
+        <mat-hint i18n
+          >The e-mail address needs to be verified later.</mat-hint
+        >
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mb-2">
+        <mat-label i18n>Password</mat-label>
+        <input
+          matInput
+          [type]="showPasswords() ? 'text' : 'password'"
+          formControlName="password"
+          required
+          appAutoScrollOnFocus
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="showPasswords.set(!showPasswords())"
+          [attr.aria-label]="showPasswords() ? hidePasswordLabel : showPasswordLabel"
+          [attr.aria-pressed]="showPasswords()"
+        >
+          <mat-icon>{{ showPasswords() ? "visibility_off" : "visibility" }}</mat-icon>
+        </button>
+        @if (createAccountForm!.controls["password"].hasError("required")) {
+          <mat-error i18n="@@signup.password_required">Choose a password.</mat-error>
+        } @else {
+          <mat-error i18n="@@signup.password_short"
+          >Use at least 6 characters.</mat-error
+        >
+        }
+        <!-- State the rule up front instead of only after an error. -->
+        <mat-hint i18n="@@signup.password_hint_min">At least 6 characters.</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mb-2">
+        <mat-label i18n>Repeat Password</mat-label>
+        <input
+          matInput
+          [type]="showPasswords() ? 'text' : 'password'"
+          formControlName="repeatPassword"
+          [errorStateMatcher]="repeatPasswordMatcher"
+          required
+          appAutoScrollOnFocus
+        />
+        @if (createAccountForm!.controls["repeatPassword"].hasError("required")) {
+          <mat-error i18n="@@signup.repeat_password_required">Repeat your password.</mat-error>
+        } @else {
+          <mat-error i18n="@@signup.password_mismatch"
+          >The passwords must match.</mat-error
+        >
+        }
+        <mat-hint i18n
+          >The repeated password needs to match the password
+          entered.</mat-hint
+        >
+      </mat-form-field>
+
+      <div class="d-flex flex-column pt-4">
+        <h4 class="mat-title-medium" i18n>About you</h4>
+        <p class="mat-body" i18n>
+          What should we call you? Don't worry, the display name can be
+          changed later.
+        </p>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mb-2">
+          <mat-label i18n>Display Name</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="displayName"
+            required
+            appAutoScrollOnFocus
+          />
+          <mat-error i18n="@@signup.display_name_required">Choose a display name.</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="mt-4 d-flex flex-column">
+        <mat-checkbox
+          class="consent-check"
+          formControlName="agreeCheck"
+          required
+          aria-describedby="sign-up-terms-error"
+          [class.consent-check--invalid]="
+            createAccountForm!.controls['agreeCheck'].invalid &&
+            createAccountForm!.controls['agreeCheck'].touched
+          "
+          ><span
+            class="mat-body"
+            style="white-space: normal"
+            i18n="
+              terms of service sign up text|Text of the Terms of Service sign
+              up text@@tos-signup"
+            >I agree to the
+            <a routerLink="/terms-of-service">Terms of Service</a>, including
+            how my contributions are licensed, and confirm I meet the age
+            requirements or have parent or guardian consent.</span
+          >
+        </mat-checkbox>
+        <!-- The agreement's error sits directly below it, like a field error. -->
+        @if (
+          createAccountForm!.controls["agreeCheck"].invalid &&
+          createAccountForm!.controls["agreeCheck"].touched
+        ) {
+          <p
+            id="sign-up-terms-error"
+            class="consent-error mat-body-small"
+            role="alert"
+            i18n="@@signup.terms_required"
+          >
+            Agree to the Terms of Service to create an account.
+          </p>
+        }
+      </div>
+
+      <div class="mt-3 d-flex flex-column">
+        <mat-checkbox class="consent-check" formControlName="analyticsCheck"
+          ><span
+            class="mat-body"
+            style="white-space: normal"
+            i18n="@@signup.analytics_optional"
+            >Optional: let analytics remember this device and link it to my
+            account, to help improve PK Spot. You can change this in Settings
+            at any time.</span
+          >
+        </mat-checkbox>
+      </div>
+
+      @if (signUpError()) {
+        <div class="mt-3 alert alert-danger">
+          {{ signUpError() }}
+        </div>
+      }
+
+      <div class="mt-4 d-flex flex-column">
+        <button mat-flat-button type="submit" [disabled]="isSubmitting()">
+          <mat-icon>person_add</mat-icon>
+          <span i18n>Create Account</span>
+        </button>
+      </div>
+    </form>
+
+    <p class="auth-switch mat-body-medium">
+      <span i18n>Sign in instead?</span>
+      <a routerLink="/account" queryParamsHandling="merge" i18n>Sign in</a>
+    </p>
+  </section>
 </div>

@@ -25,6 +25,11 @@ export class Mat3NavButtonComponent {
   readonly active = input(false);
   readonly liveIndicator = input(false);
   readonly menu = input<MatMenu | null>(null);
+  /**
+   * Inside a navigation link the link is the one focusable element, so this
+   * renders a plain span instead of a nested button.
+   */
+  readonly presentational = input(false);
 
   readonly isOutlineIcon = computed(() => this.icon().endsWith("_border"));
   readonly accessibleLabel = computed(() =>

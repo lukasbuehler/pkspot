@@ -67,7 +67,6 @@ describe("communityLinksFromPreviews", () => {
 
 describe("CommunityLinksComponent", () => {
   async function render(
-    kind: "spot" | "event",
     keys: string[],
     pathOpener?: { openCommunityPath: (path: string) => void },
   ) {
@@ -84,7 +83,6 @@ describe("CommunityLinksComponent", () => {
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(CommunityLinksComponent);
-    fixture.componentRef.setInput("kind", kind);
     fixture.componentRef.setInput("communityKeys", keys);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -92,17 +90,17 @@ describe("CommunityLinksComponent", () => {
   }
 
   it("renders crawlable anchors with hrefs", async () => {
-    const el = await render("event", ["country:ch", "locality:ch:zh:zurich", "country:gone"]);
+    const el = await render(["country:ch", "locality:ch:zh:zurich", "country:gone"]);
     const anchors = Array.from(el.querySelectorAll("a"));
     expect(anchors.map((a) => a.getAttribute("href"))).toEqual([
       "/map/communities/switzerland",
       "/map/communities/zurich",
     ]);
-    expect(el.textContent).toContain("these communities");
+    expect(el.textContent).toContain("Communities");
   });
 
   it("shows each community like the map list and opens it in the app", async () => {
-    const el = await render("spot", ["locality:ch:zh:zurich"]);
+    const el = await render(["locality:ch:zh:zurich"]);
     const navigate = vi
       .spyOn(TestBed.inject(Router), "navigateByUrl")
       .mockResolvedValue(true);
@@ -117,7 +115,7 @@ describe("CommunityLinksComponent", () => {
 
   it("opens the community through the map when inside it, without routing", async () => {
     const openCommunityPath = vi.fn();
-    const el = await render("spot", ["locality:ch:zh:zurich"], { openCommunityPath });
+    const el = await render(["locality:ch:zh:zurich"], { openCommunityPath });
     const navigate = vi.spyOn(TestBed.inject(Router), "navigateByUrl");
 
     el.querySelector<HTMLAnchorElement>("a.community-row")!.dispatchEvent(
@@ -129,12 +127,13 @@ describe("CommunityLinksComponent", () => {
   });
 
   it("uses the singular heading for one community", async () => {
-    const el = await render("event", ["country:ch"]);
-    expect(el.textContent).toContain("this community");
+    const el = await render(["country:ch"]);
+    expect(el.textContent).toContain("Community");
+    expect(el.textContent).not.toContain("Communities");
   });
 
   it("renders nothing without keys", async () => {
-    const el = await render("spot", []);
+    const el = await render([]);
     expect(el.querySelector("a")).toBeNull();
   });
 });

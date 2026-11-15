@@ -18,13 +18,7 @@
   gap: 0.5rem;
 }
 
-.detail-filters,
-.region-filters {
+.detail-filters {
   flex: 0 1 100%;
   min-width: 0;
-}
-
-mat-button-toggle-group {
-  --mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
-  --mat-button-toggle-selected-state-text-color: var(--mat-sys-on-primary-container);
 }

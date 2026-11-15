@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   FilterChipsBarComponent,
@@ -19,6 +20,8 @@ describe("FilterChipsBarComponent", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [FilterChipsBarComponent],
+      // The count uses the animated counter.
+      providers: [provideNoopAnimations()],
     });
 
     fixture = TestBed.createComponent(FilterChipsBarComponent);
@@ -83,14 +86,20 @@ describe("FilterChipsBarComponent", () => {
     expect(selectedChip.nativeElement.textContent).toContain("All");
   });
 
-  it("applies the requested selection color role", () => {
-    fixture.componentRef.setInput("selectionRole", "primary");
+  it("keeps the Filters chip unselected after a click until a filter is applied", () => {
+    fixture.componentRef.setInput("showFiltersChip", true);
+    const filtersClick = vi.fn();
+    fixture.componentInstance.filtersClick.subscribe(filtersClick);
     fixture.detectChanges();
 
-    expect(
-      fixture.debugElement.query(By.css(".filter-chips-container"))
-        .nativeElement.classList,
-    ).toContain("primary-selection");
+    const filtersChip = fixture.debugElement.query(By.css(".filters-chip"));
+    filtersChip.query(By.css(".mdc-evolution-chip__action")).nativeElement.click();
+    fixture.detectChanges();
+
+    expect(filtersClick).toHaveBeenCalledTimes(1);
+    expect(filtersChip.nativeElement.classList).not.toContain(
+      "mat-mdc-chip-selected",
+    );
   });
 
   it("captures the pointer only after a horizontal drag starts", () => {
@@ -135,5 +144,58 @@ describe("FilterChipsBarComponent", () => {
     } as unknown as PointerEvent);
 
     expect(setPointerCapture).toHaveBeenCalledWith(2);
+  });
+
+  it("returns to no selection when the active type chip is clicked again", () => {
+    const emitted: string[] = [];
+    fixture.componentInstance.filterChange.subscribe((value) =>
+      emitted.push(value),
+    );
+    fixture.componentRef.setInput("selectedFilter", "events");
+    fixture.componentRef.setInput("showDeselectIcon", true);
+    fixture.detectChanges();
+
+    const selected = fixture.debugElement.query(
+      By.css("mat-chip-option.mat-mdc-chip-selected"),
+    );
+    expect(selected.nativeElement.textContent).toContain("close");
+    expect(selected.nativeElement.textContent).toContain("Events");
+
+    fixture.componentInstance.onPresetChipClick("events");
+    fixture.detectChanges();
+
+    expect(emitted).toEqual([""]);
+    expect(
+      fixture.debugElement.query(By.css("mat-chip-option.mat-mdc-chip-selected")),
+    ).toBeNull();
+  });
+
+  it("shows chip counts with the shared counter", () => {
+    fixture.componentRef.setInput("presetFilters", [
+      { urlParam: "spots", label: "Spots", count: 48 },
+      { urlParam: "events", label: "Events" },
+    ]);
+    fixture.detectChanges();
+
+    const chips = fixture.debugElement.queryAll(By.css("mat-chip-option"));
+    expect(chips[0].query(By.css("app-fancy-counter"))).not.toBeNull();
+    expect(chips[0].nativeElement.textContent).toContain("48");
+    expect(chips[1].query(By.css("app-fancy-counter"))).toBeNull();
+  });
+
+  it("exposes the Filters action as a button that works from the keyboard", () => {
+    fixture.componentRef.setInput("showFiltersChip", true);
+    const filtersClick = vi.fn();
+    fixture.componentInstance.filtersClick.subscribe(filtersClick);
+    fixture.detectChanges();
+
+    const filtersChip: HTMLElement = fixture.debugElement.query(
+      By.css(".filters-chip"),
+    ).nativeElement;
+    expect(filtersChip.getAttribute("role")).toBe("button");
+    expect(filtersChip.closest("[role=listbox]")).toBeNull();
+
+    filtersChip.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    expect(filtersClick).toHaveBeenCalledTimes(1);
   });
 });

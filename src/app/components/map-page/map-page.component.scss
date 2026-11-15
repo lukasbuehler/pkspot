@@ -183,6 +183,14 @@ mat-drawer-container.map-panel-container--sheet {
   flex-direction: row;
 }
 
+// Once the side panel scrolls, its content passes under the floating search
+// field; the panel's own surface behind the field keeps both readable.
+.search-field-container--over-content {
+  background: var(--mat-sys-surface-container-low);
+  box-shadow: 0 1px 0 var(--mat-sys-outline-variant);
+  transition: background-color 120ms ease;
+}
+
 mat-drawer,
 .search-field-container {
   border-radius: 0px;
@@ -432,3 +440,10 @@ mat-drawer-container.sidenav-open .map-context-host {
 :host.map-with-overlay-panel {
   --map-side-obstruction: var(--map-overlay-panel-width);
 }
+
+.map-panel-toolbar-spacer {
+  height: var(--measured-toolbar-height, 132px);
+}
+
+// Filter chips stay under the search field in the side panel at every drawer
+// width, so the map itself carries no controls besides its own buttons.

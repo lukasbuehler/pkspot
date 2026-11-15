@@ -79,6 +79,12 @@ export class LocaleMapEditFieldComponent {
 
   languages = languageCodes;
 
+  /** Spoken name of a translation's delete button, e.g. "Deutsch-Übersetzung entfernen". */
+  removeTranslationLabel(locale: LocaleCode): string {
+    const language = this.localeLabel(locale);
+    return $localize`:@@locale_edit.remove_translation:Remove ${language}:language: translation`;
+  }
+
   localeLabel(locale: LocaleCode): string {
     const language = this.languages[locale];
     return language?.name_native ?? language?.name_english ?? locale;

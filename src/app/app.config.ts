@@ -33,6 +33,8 @@ import { MapPerformanceProfilerService } from "./services/map-performance-profil
 import { DateTimeFormatService } from "./services/date-time-format.service";
 import { provideFirebaseClient } from "./services/firebase/firebase-client.providers";
 
+import { MatDatepickerIntl } from "@angular/material/datepicker";
+import { LocalizedDatepickerIntl } from "./localization/material-datepicker-intl";
 export const appConfig: ApplicationConfig = {
   providers: [
     provideFirebaseClient(),
@@ -48,6 +50,7 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     BrowserModule,
+    { provide: MatDatepickerIntl, useClass: LocalizedDatepickerIntl },
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: {

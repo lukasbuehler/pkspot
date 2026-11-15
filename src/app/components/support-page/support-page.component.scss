@@ -59,7 +59,8 @@ section {
   gap: 1.5rem;
   grid-template-columns: 1fr;
 
-  @media (min-width: 768px) {
+  // Three columns only once each card has room; tablets stack them.
+  @media (min-width: 1100px) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
@@ -74,7 +75,7 @@ section {
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 0px 20px rgba(23, 233, 89, 0.15);
+    box-shadow: var(--mat-sys-level2);
   }
 
   h3 {
@@ -111,8 +112,11 @@ section {
     background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
   }
 
+  // Our own channel uses the tonal highlight; Discord and Instagram keep
+  // their brand colours.
   &.email {
-    background: linear-gradient(135deg, #17e959 0%, #00c853 100%);
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
   }
 
   &.instagram {
@@ -198,7 +202,7 @@ footer {
   border-top: 1px solid var(--mat-divider-color, rgba(255, 255, 255, 0.12));
 
   a {
-    color: var(--mat-primary-color, #17e959);
+    color: var(--mat-sys-primary);
     text-decoration: none;
 
     &:hover {

@@ -12,6 +12,7 @@ import { CheckInSchema } from "../../../../db/schemas/CheckInSchema";
 import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { isLocalScreenshotRun } from "../../../shared/local-screenshot-run";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 
 interface ScreenshotGlobal {
@@ -429,6 +430,14 @@ export class UsersService extends ConsentAwareService {
    * Only accessible by the authenticated user themselves.
    */
   getPrivateData(userId: string): Observable<PrivateUserDataSchema | null> {
+    // Local screenshot runs: saved and visited lists that match the fixture's counts.
+    const fixture = isLocalScreenshotRun()
+      ? (globalThis as typeof globalThis & {
+          __PKSPOT_SCREENSHOT_PRIVATE_DATA__?: PrivateUserDataSchema;
+        }).__PKSPOT_SCREENSHOT_PRIVATE_DATA__
+      : undefined;
+    if (fixture) return of(fixture);
+
     return from(
       this.executeWhenConsent(() => {
         return this._firestoreAdapter.documentSnapshots<PrivateUserDataSchema>(

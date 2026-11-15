@@ -1,4 +1,5 @@
 import { Params, Routes } from "@angular/router";
+import { unsavedChangesGuard } from "./guards/unsaved-changes.guard";
 import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
@@ -596,6 +597,7 @@ export const routes: Routes = [
         (m) => m.SettingsPageComponent,
       ),
     data: { routeName: "Settings" },
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: "settings/:tab",
@@ -604,6 +606,7 @@ export const routes: Routes = [
         (m) => m.SettingsPageComponent,
       ),
     data: { routeName: "Settings" },
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: "notifications",

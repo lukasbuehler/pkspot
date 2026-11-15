@@ -1,3 +1,22 @@
+@if (presentational()) {
+<span class="button-container" [class.active]="active()">
+  @if(image()) {
+  <div class="image">
+    <img [ngSrc]="image()!" width="24" height="24" class="rounded-circle" />
+  </div>
+  } @else {
+  <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon()">{{
+    icon()
+  }}</mat-icon>
+  }
+  @if (liveIndicator()) {
+    <span class="live-indicator" aria-hidden="true"></span>
+  }
+  <span class="text-truncate w-100">
+    {{ label() }}
+  </span>
+</span>
+} @else {
 <button
   class="button-container"
   [class.active]="active()"
@@ -20,3 +39,4 @@
     {{ label() }}
   </span>
 </button>
+}

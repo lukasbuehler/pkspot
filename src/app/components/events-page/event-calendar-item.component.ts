@@ -22,6 +22,8 @@ import { EventCalendarThumbnailComponent } from "./event-calendar-thumbnail.comp
   host: {
     "[style.grid-column]": "gridColumn()",
     "[style.grid-row]": "gridRow()",
+    "[class.is-compact]": "compact()",
+    "[attr.aria-hidden]": "compact() ? 'true' : null",
   },
 })
 export class EventCalendarItemComponent {
@@ -35,11 +37,20 @@ export class EventCalendarItemComponent {
   readonly nowSeconds = input.required<number>();
   readonly continuesBefore = input(false);
   readonly continuesAfter = input(false);
+  /**
+   * A thin bar for narrow calendars: name only, no thumbnail or counts. It is
+   * decorative there; tapping passes through to the day, whose agenda lists
+   * the events with full names, and the day cell carries the spoken summary.
+   */
+  readonly compact = input(false);
 
   readonly gridColumn = computed(
     () => `${this.startColumn()} / span ${this.span()}`,
   );
   readonly gridRow = computed(() => String(this.lane() + 2));
+  readonly isCommunity = computed(
+    () => this.event().listingTier === "community",
+  );
   readonly route = computed(() => [
     "/events",
     this.event().slug ?? this.event().id,

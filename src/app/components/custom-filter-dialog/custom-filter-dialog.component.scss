@@ -78,15 +78,15 @@ mat-dialog-content {
     // Target the standard Material selected class
     &.mat-mdc-chip-selected {
       ::ng-deep .mdc-evolution-chip__action--primary {
-        background-color: var(--mat-sys-secondary-container) !important;
+        background-color: var(--mat-sys-primary-container) !important;
       }
 
       ::ng-deep .mdc-evolution-chip__text-label {
-        color: var(--mat-sys-on-secondary-container) !important;
+        color: var(--mat-sys-on-primary-container) !important;
       }
 
       ::ng-deep .mat-icon {
-        color: var(--mat-sys-on-secondary-container) !important;
+        color: var(--mat-sys-on-primary-container) !important;
       }
     }
   }

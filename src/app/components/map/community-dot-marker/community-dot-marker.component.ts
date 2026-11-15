@@ -50,8 +50,11 @@ export class CommunityDotMarkerComponent {
   readonly markerOptions =
     computed<google.maps.marker.AdvancedMarkerElementOptions>(() => ({
       gmpClickable: true,
-      collisionBehavior:
-        google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+      // Required: the dot sits exactly under its community pin and among Spot
+      // pills. As an optional marker it joined Google's collision chain, which
+      // re-resolves on every redraw and made the dots flicker. Dots are thinned
+      // per tile already and draw below pins through their low z-index.
+      collisionBehavior: google.maps.CollisionBehavior.REQUIRED,
       zIndex: this.zIndex(),
     }));
 

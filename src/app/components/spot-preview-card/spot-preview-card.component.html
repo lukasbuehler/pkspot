@@ -7,6 +7,7 @@
   [class.compact]="isCompact()"
   [class.clickable]="clickable()"
   [class.app-card]="hasBorder()"
+  [class.fill-height]="compactMissingMedia()"
 >
   <mat-card-header class="pb-2">
     <mat-card-title class="pt-2 d-flex w-100 gap-2 align-items-center">
@@ -137,13 +138,14 @@
     [attr.mat-card-sm-image]="isCompact() ? '' : null"
     class="img-container"
     [class.isCompact]="isCompact()"
+    [class.missing-media-compact]="compactMissingMedia() && !primaryMediaSrc()"
   >
     @if(shouldLoadMedia() && primaryMediaSrc()) {
     <app-media-placeholder
       class="media-placeholder-layer"
       [class.is-hidden]="isPrimaryMediaLoaded()"
-      [src]="fallbackImgSrc"
       [showLabel]="false"
+      [loading]="true"
     ></app-media-placeholder>
     @if(!isPrimaryMediaLoaded()) {
       <mat-progress-spinner
@@ -178,9 +180,12 @@
       />
     }
     } @else {
+    <!-- A spot with photos that have not started loading yet shows the
+         neutral texture, not the missing-photo prompt. -->
     <app-media-placeholder
-      [src]="fallbackImgSrc"
       [showLabel]="forcePlaceholderContainer() || showNoMediaLabel()"
+      [loading]="!!primaryMediaSrc()"
+      [compact]="compactMissingMedia()"
     ></app-media-placeholder>
     }
   </div>

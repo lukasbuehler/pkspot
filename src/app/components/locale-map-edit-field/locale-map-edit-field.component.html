@@ -33,7 +33,7 @@
         type="button"
         (click)="removeTranslation(locale)"
         class="mt-2"
-        [attr.aria-label]="'Remove ' + localeLabel(locale) + ' translation'"
+        [attr.aria-label]="removeTranslationLabel(locale)"
       >
         <mat-icon>delete</mat-icon>
       </button>

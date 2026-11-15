@@ -19,9 +19,9 @@ import {
 import { Router, RouterLink, ActivatedRoute } from "@angular/router";
 import { Subscription, filter } from "rxjs";
 import { MatDivider } from "@angular/material/divider";
-import { MatButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatInput } from "@angular/material/input";
-import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
+import { MatFormField, MatLabel, MatError, MatSuffix } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
@@ -49,6 +49,8 @@ import {
     MatInput,
     MatError,
     MatButton,
+    MatIconButton,
+    MatSuffix,
     RouterLink,
     MatDivider,
     MatIconModule,
@@ -59,6 +61,9 @@ import {
   ],
 })
 export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
+  readonly showPassword = signal(false);
+  readonly showPasswordLabel = $localize`:@@auth.password.show:Show password`;
+  readonly hidePasswordLabel = $localize`:@@auth.password.hide:Hide password`;
   readonly uiLanguage = inject(UiLanguageService);
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _analytics = inject(AnalyticsService);

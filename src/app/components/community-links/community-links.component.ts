@@ -63,8 +63,6 @@ export class CommunityLinksComponent {
   private readonly router = inject(Router);
   private readonly pathOpener = inject(COMMUNITY_PATH_OPENER, { optional: true });
 
-  /** Which context the list is shown in; selects the heading copy. */
-  readonly kind = input.required<"spot" | "event">();
   readonly communityKeys = input<readonly string[]>([]);
 
   private readonly previews = resource({

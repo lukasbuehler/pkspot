@@ -146,6 +146,21 @@
         <source>Account</source>
       </segment>
     </unit>
+    <unit id="profile.load_error.follow_requests">
+      <segment>
+        <source> Follow requests could not be loaded. </source>
+      </segment>
+    </unit>
+    <unit id="profile.load_error.private_lists">
+      <segment>
+        <source> Your saved and visited Spots could not be loaded. </source>
+      </segment>
+    </unit>
+    <unit id="profile.load_error.retry_failed">
+      <segment>
+        <source> Still unable to load this. Check your connection and try again. </source>
+      </segment>
+    </unit>
     <unit id="profile.menu.ariaLabel">
       <segment>
         <source>Profile settings</source>
@@ -179,6 +194,61 @@
     <unit id="4262052603921665097">
       <segment>
         <source>Failed to load moderation dashboard</source>
+      </segment>
+    </unit>
+    <unit id="map_community_filter.country">
+      <segment>
+        <source>Countries</source>
+      </segment>
+    </unit>
+    <unit id="map_community_filter.locality">
+      <segment>
+        <source>Cities</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.apply">
+      <segment>
+        <source>Apply</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.organiser">
+      <segment>
+        <source>Organised by</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.region">
+      <segment>
+        <source>Region</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.reset">
+      <segment>
+        <source>Reset</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.series">
+      <segment>
+        <source>Event series</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.tier_community">
+      <segment>
+        <source>Community</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.tier_formal">
+      <segment>
+        <source>Organisers</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.title">
+      <segment>
+        <source>Filter events</source>
+      </segment>
+    </unit>
+    <unit id="map_community_filters_aria_label">
+      <segment>
+        <source>Community filters</source>
       </segment>
     </unit>
     <unit id="map_event_filter.live">
@@ -270,11 +340,6 @@
         <source>Map</source>
       </segment>
     </unit>
-    <unit id="map_objects_all_chip_label">
-      <segment>
-        <source>All</source>
-      </segment>
-    </unit>
     <unit id="map_objects_community_plural">
       <segment>
         <source>Communities</source>
@@ -336,7 +401,7 @@
         <note category="meaning">Mark this spot as visited aria label</note>
       </notes>
       <segment>
-        <source>Icon button with a banner and checkmark icon</source>
+        <source>Mark Spot as visited</source>
       </segment>
     </unit>
     <unit id="mark_this_spot_as_visited_tooltip">
@@ -348,9 +413,19 @@
         <source>Mark this spot as visited</source>
       </segment>
     </unit>
+    <unit id="a11y.skip_to_content">
+      <segment>
+        <source>Skip to content</source>
+      </segment>
+    </unit>
     <unit id="about.crew.contact_button">
       <segment>
         <source>Join us</source>
+      </segment>
+    </unit>
+    <unit id="about.feature.live_private">
+      <segment>
+        <source> Spots show a rough range of how many people trained there recently, and organizations post updates. Your own check-ins stay private: only you see where and when you trained. </source>
       </segment>
     </unit>
     <unit id="about_page_label">
@@ -379,7 +454,7 @@
     </unit>
     <unit id="2551128161531504907">
       <segment>
-        <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
+        <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary tagline-period&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
       </segment>
     </unit>
     <unit id="2565034996218294740">
@@ -677,7 +752,7 @@
     </unit>
     <unit id="6944287574672504844">
       <segment>
-        <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
+        <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
       </segment>
     </unit>
     <unit id="69101851248491105">
@@ -922,6 +997,21 @@
         <source>Request new link</source>
       </segment>
     </unit>
+    <unit id="auth.email.label">
+      <segment>
+        <source>Email address</source>
+      </segment>
+    </unit>
+    <unit id="auth.password.hide">
+      <segment>
+        <source>Hide password</source>
+      </segment>
+    </unit>
+    <unit id="auth.password.show">
+      <segment>
+        <source>Show password</source>
+      </segment>
+    </unit>
     <unit id="auth_action.back_to_signin">
       <notes>
         <note category="description">Button to go back to account</note>
@@ -1028,6 +1118,11 @@
     <unit id="3128073754874690216">
       <segment>
         <source>Google Play is not sharing an age range with PK Spot. Enable “Share age range” for PK Spot in Google Play, then check again.</source>
+      </segment>
+    </unit>
+    <unit id="3139566041727246424">
+      <segment>
+        <source> Use smoother zoom and map effects. Leave this off if the map becomes unstable. </source>
       </segment>
     </unit>
     <unit id="3143510854025741393">
@@ -1198,6 +1293,11 @@
     <unit id="profile.trainingLog">
       <segment>
         <source>Training log</source>
+      </segment>
+    </unit>
+    <unit id="profile.unfollow_failed">
+      <segment>
+        <source>Unfollowing did not work. Please try again.</source>
       </segment>
     </unit>
     <unit id="train.now.addNotes">
@@ -2077,7 +2177,7 @@
         <note category="meaning">Bookmark spot aria label</note>
       </notes>
       <segment>
-        <source>Icon button with a bookmark icon</source>
+        <source>Save Spot</source>
       </segment>
     </unit>
     <unit id="bookmark_spot_tooltip">
@@ -2284,6 +2384,31 @@
         <source>Open locations in</source>
       </segment>
     </unit>
+    <unit id="settings.menu.about_summary">
+      <segment>
+        <source>Version, licences and contributors</source>
+      </segment>
+    </unit>
+    <unit id="settings.menu.account_summary">
+      <segment>
+        <source>Email, password, privacy and age check</source>
+      </segment>
+    </unit>
+    <unit id="settings.menu.general_summary">
+      <segment>
+        <source>Language, units, location and media</source>
+      </segment>
+    </unit>
+    <unit id="settings.menu.notifications_summary">
+      <segment>
+        <source>What PK Spot may notify you about</source>
+      </segment>
+    </unit>
+    <unit id="settings.menu.profile_summary">
+      <segment>
+        <source>Display name, bio, photo and links</source>
+      </segment>
+    </unit>
     <unit id="1612722476211621614">
       <segment>
         <source>Submitted</source>
@@ -2387,6 +2512,11 @@
     <unit id="common.or">
       <segment>
         <source>or</source>
+      </segment>
+    </unit>
+    <unit id="common.retry">
+      <segment>
+        <source> Try again </source>
       </segment>
     </unit>
     <unit id="common.dismiss">
@@ -2624,11 +2754,6 @@
         <source>Support</source>
       </segment>
     </unit>
-    <unit id="contact.contact_info.error">
-      <segment>
-        <source> Please add contact information, up to 240 characters. </source>
-      </segment>
-    </unit>
     <unit id="contact.contact_info.hint">
       <segment>
         <source> Email, Instagram, Discord, or whatever works best for you. </source>
@@ -2636,7 +2761,17 @@
     </unit>
     <unit id="contact.contact_info.label">
       <segment>
-        <source> How can we reach you? </source>
+        <source>How can we reach you?</source>
+      </segment>
+    </unit>
+    <unit id="contact.contact_info.required">
+      <segment>
+        <source> Add how we can reach you. </source>
+      </segment>
+    </unit>
+    <unit id="contact.contact_info.too_long">
+      <segment>
+        <source> Keep this under 240 characters. </source>
       </segment>
     </unit>
     <unit id="contact.discord.body">
@@ -2674,11 +2809,6 @@
         <source> Get in touch </source>
       </segment>
     </unit>
-    <unit id="contact.message.error">
-      <segment>
-        <source> Please add a message, up to 4000 characters. </source>
-      </segment>
-    </unit>
     <unit id="contact.message.hint">
       <segment>
         <source> We only use this information to reply to your message. </source>
@@ -2687,6 +2817,16 @@
     <unit id="contact.message.label">
       <segment>
         <source>Message</source>
+      </segment>
+    </unit>
+    <unit id="contact.message.required">
+      <segment>
+        <source> Write your message. </source>
+      </segment>
+    </unit>
+    <unit id="contact.message.too_long">
+      <segment>
+        <source> Keep your message under 4000 characters. </source>
       </segment>
     </unit>
     <unit id="contact.meta.description">
@@ -2967,6 +3107,11 @@
         <source>Cancel</source>
       </segment>
     </unit>
+    <unit id="filter_chip_deselect_hint">
+      <segment>
+        <source>Select again to show everything</source>
+      </segment>
+    </unit>
     <unit id="filter_clear">
       <segment>
         <source>Clear</source>
@@ -3231,11 +3376,6 @@
     <unit id="8251613687867890615">
       <segment>
         <source>This event is cancelled</source>
-      </segment>
-    </unit>
-    <unit id="8275049945387417668">
-      <segment>
-        <source> Unable to process this request. Please try again later. </source>
       </segment>
     </unit>
     <unit id="8281296766028455844">
@@ -3529,6 +3669,11 @@
         <source> Organization members only </source>
       </segment>
     </unit>
+    <unit id="event.categories.aria_label">
+      <segment>
+        <source>Event categories</source>
+      </segment>
+    </unit>
     <unit id="event.copy.cancelled">
       <segment>
         <source>This event has been cancelled.</source>
@@ -3607,6 +3752,16 @@
     <unit id="event.copy.upcoming">
       <segment>
         <source>Find event details and planning information on PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="event.series.aria_label">
+      <segment>
+        <source>Event series</source>
+      </segment>
+    </unit>
+    <unit id="event.tags.aria_label">
+      <segment>
+        <source>Event tags</source>
       </segment>
     </unit>
     <unit id="event.timing.date_only_label">
@@ -5624,19 +5779,9 @@
         <source>Open event map</source>
       </segment>
     </unit>
-    <unit id="event_info.open_website">
-      <segment>
-        <source>Open event website</source>
-      </segment>
-    </unit>
     <unit id="event_info.share">
       <segment>
         <source>Share event</source>
-      </segment>
-    </unit>
-    <unit id="event_info.share_button">
-      <segment>
-        <source>Share</source>
       </segment>
     </unit>
     <unit id="event_edit.private_audience">
@@ -5837,6 +5982,16 @@
     <unit id="event_info.website_button">
       <segment>
         <source>Website</source>
+      </segment>
+    </unit>
+    <unit id="event_map.loading">
+      <segment>
+        <source>Loading map</source>
+      </segment>
+    </unit>
+    <unit id="event_map.marker_fallback_name">
+      <segment>
+        <source>Event marker</source>
       </segment>
     </unit>
     <unit id="event_map_page.back_to_event">
@@ -6309,16 +6464,6 @@
         <source>Your report has been sent securely.</source>
       </segment>
     </unit>
-    <unit id="event_rsvp.add_to_my_events">
-      <segment>
-        <source>Add to My Events</source>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.change_my_event_status">
-      <segment>
-        <source>Change My Events status</source>
-      </segment>
-    </unit>
     <unit id="event_rsvp.clear_failed">
       <segment>
         <source>Couldn&apos;t clear your response. Try again in a moment.</source>
@@ -6339,19 +6484,14 @@
         <source>These numbers show PK Spot user intent, not tickets bought.</source>
       </segment>
     </unit>
-    <unit id="event_rsvp.current_going">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Going</pc></source>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.current_interested">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Interested</pc></source>
-      </segment>
-    </unit>
     <unit id="event_rsvp.going">
       <segment>
         <source>Going</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.group_label">
+      <segment>
+        <source>Save to My Events</source>
       </segment>
     </unit>
     <unit id="event_rsvp.interested">
@@ -6362,11 +6502,6 @@
     <unit id="event_rsvp.load_failed">
       <segment>
         <source>Couldn&apos;t load your response.</source>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.remove_from_my_events">
-      <segment>
-        <source>Remove from My Events</source>
       </segment>
     </unit>
     <unit id="event_rsvp.save_failed">
@@ -6769,6 +6904,11 @@
         <source>Jump to</source>
       </segment>
     </unit>
+    <unit id="events.calendar_jump_to_date">
+      <segment>
+        <source>Jump to date</source>
+      </segment>
+    </unit>
     <unit id="events.calendar_load_more_error">
       <segment>
         <source> More events could not be loaded. </source>
@@ -6913,6 +7053,81 @@
         <source>Always allow YouTube</source>
       </segment>
     </unit>
+    <unit id="follow_list.close">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.column_actions">
+      <segment>
+        <source>Actions</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.column_since">
+      <segment>
+        <source>Since</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.column_user">
+      <segment>
+        <source>User</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.empty_followers_other">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ data.displayName || otherUserFallback }}"/> has no followers yet.</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.empty_followers_own">
+      <segment>
+        <source>You have no followers yet.</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.empty_following_other">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ data.displayName || otherUserFallback }}"/> isn&apos;t following anyone yet.</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.empty_following_own">
+      <segment>
+        <source>You aren&apos;t following anyone yet.</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.load_failed">
+      <segment>
+        <source> This list couldn&apos;t be loaded. </source>
+      </segment>
+    </unit>
+    <unit id="follow_list.load_more">
+      <segment>
+        <source>Load more</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.open_profile">
+      <segment>
+        <source>Open profile</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.other_user_fallback">
+      <segment>
+        <source>This user</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.retry">
+      <segment>
+        <source>Try again</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.title_followers">
+      <segment>
+        <source>Followers</source>
+      </segment>
+    </unit>
+    <unit id="follow_list.title_following">
+      <segment>
+        <source>Following</source>
+      </segment>
+    </unit>
     <unit id="for_parkour_spots_chip_label">
       <segment>
         <source>For Parkour</source>
@@ -6956,6 +7171,51 @@
     <unit id="indoor_spots_chip_label">
       <segment>
         <source>Indoor</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.anonymous">
+      <segment>
+        <source>Anonymous</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.blocked_user">
+      <segment>
+        <source>Blocked user</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.empty">
+      <segment>
+        <source>No contributors yet. Be the first!</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.sort_by">
+      <segment>
+        <source>Sort by</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.sort_edits">
+      <segment>
+        <source>Edits</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.sort_media">
+      <segment>
+        <source>Media</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.sort_spots">
+      <segment>
+        <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.title">
+      <segment>
+        <source>Contributions Leaderboard</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.user">
+      <segment>
+        <source>User</source>
       </segment>
     </unit>
     <unit id="lighting_spots_chip_label">
@@ -7008,6 +7268,11 @@
         <source>Could not remove the draft. Please try again.</source>
       </segment>
     </unit>
+    <unit id="forgotPassword.send_link">
+      <segment>
+        <source>Send reset link</source>
+      </segment>
+    </unit>
     <unit id="forgotPassword.title">
       <notes>
         <note category="description">forgot password title</note>
@@ -7044,11 +7309,6 @@
         <source>Spot Import from KML / KMZ</source>
       </segment>
     </unit>
-    <unit id="8115083664628466958">
-      <segment>
-        <source>E-Mail</source>
-      </segment>
-    </unit>
     <unit id="8116175184239166510">
       <segment>
         <source>Decline</source>
@@ -7067,11 +7327,6 @@
     <unit id="943622778225300320">
       <segment>
         <source>(recommended)</source>
-      </segment>
-    </unit>
-    <unit id="947995176992343811">
-      <segment>
-        <source>This E-Mail address is not valid!</source>
       </segment>
     </unit>
     <unit id="95213720452925222">
@@ -7112,11 +7367,6 @@
     <unit id="112320089253340391">
       <segment>
         <source>Temporary event Spots</source>
-      </segment>
-    </unit>
-    <unit id="1636934520301910285">
-      <segment>
-        <source>Reset password</source>
       </segment>
     </unit>
     <unit id="1644771681227658602">
@@ -7182,6 +7432,11 @@
     <unit id="settings.review.heading">
       <segment>
         <source>Review PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="settings.save_profile">
+      <segment>
+        <source>Save profile</source>
       </segment>
     </unit>
     <unit id="1697308124827757255">
@@ -7264,11 +7519,6 @@
         <source>Image adjustments</source>
       </segment>
     </unit>
-    <unit id="8535056559014052836">
-      <segment>
-        <source>Please enter your email address</source>
-      </segment>
-    </unit>
     <unit id="8552470530989442343">
       <segment>
         <source> Browser-only accounts can use the core service. For now, public-profile eligibility must be established through a supported mobile platform. Additional privacy-preserving verification choices may be added later. </source>
@@ -7304,14 +7554,19 @@
         <source>Why PK Spot checks adult eligibility</source>
       </segment>
     </unit>
-    <unit id="9191968011325658792">
-      <segment>
-        <source>Invalid email address</source>
-      </segment>
-    </unit>
     <unit id="9193658864541040447">
       <segment>
         <source>Failed to load quarantined media</source>
+      </segment>
+    </unit>
+    <unit id="settings.profile_save_failed">
+      <segment>
+        <source>Your profile could not be saved. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="settings.profile_saved">
+      <segment>
+        <source>Profile saved.</source>
       </segment>
     </unit>
     <unit id="settings.profileAccess.description">
@@ -7752,6 +8007,11 @@
         <source>Find parkour spots near you, check in, discover events and jams, and connect with your local community.</source>
       </segment>
     </unit>
+    <unit id="map.object_type_label">
+      <segment>
+        <source>Show on the map</source>
+      </segment>
+    </unit>
     <unit id="map.panel_back_event_fallback">
       <segment>
         <source>Event</source>
@@ -7810,6 +8070,16 @@
     <unit id="map.spot_loading_label">
       <segment>
         <source> Loading spot details </source>
+      </segment>
+    </unit>
+    <unit id="map.style.show_roadmap">
+      <segment>
+        <source>Show roadmap</source>
+      </segment>
+    </unit>
+    <unit id="map.style.show_satellite">
+      <segment>
+        <source>Show satellite map</source>
       </segment>
     </unit>
     <unit id="map.weather.dry_now">
@@ -7992,9 +8262,34 @@
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ member.background }}"/> </source>
       </segment>
     </unit>
+    <unit id="media.google_photo_alt">
+      <segment>
+        <source><ph id="0" equiv="name" disp="this.imageDescription()"/> on Google Maps</source>
+      </segment>
+    </unit>
+    <unit id="media.image_alt_numbered">
+      <segment>
+        <source><ph id="0" equiv="name" disp="name"/>, photo <ph id="1" equiv="index" disp="i + 1"/> of <ph id="2" equiv="total" disp="total"/></source>
+      </segment>
+    </unit>
     <unit id="media.processing.status">
       <segment>
         <source>Processing</source>
+      </segment>
+    </unit>
+    <unit id="media.report_aria">
+      <segment>
+        <source>Report media</source>
+      </segment>
+    </unit>
+    <unit id="media.scroll_left">
+      <segment>
+        <source>Previous photos</source>
+      </segment>
+    </unit>
+    <unit id="media.scroll_right">
+      <segment>
+        <source>Next photos</source>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -8004,6 +8299,16 @@
       </notes>
       <segment>
         <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [attr.href]=&quot;&apos;/terms-of-service&apos; | appHref&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
+      </segment>
+    </unit>
+    <unit id="media.video_mute">
+      <segment>
+        <source>Mute video</source>
+      </segment>
+    </unit>
+    <unit id="media.video_unmute">
+      <segment>
+        <source>Unmute video</source>
       </segment>
     </unit>
     <unit id="moderation.dashboard.archive_contact_tooltip">
@@ -8319,6 +8624,11 @@
         <source>Freerunner since</source>
       </segment>
     </unit>
+    <unit id="profile.secondary_region">
+      <segment>
+        <source>Additional profile details</source>
+      </segment>
+    </unit>
     <unit id="profile.stats.ariaLabel">
       <segment>
         <source>Profile summary</source>
@@ -8326,7 +8636,7 @@
     </unit>
     <unit id="profile.stats.contributions">
       <segment>
-        <source>Contributions</source>
+        <source> Contributions </source>
       </segment>
     </unit>
     <unit id="profile.stats.followers">
@@ -8643,6 +8953,16 @@
         <source> Settings </source>
       </segment>
     </unit>
+    <unit id="settings.unsaved">
+      <segment>
+        <source>Unsaved</source>
+      </segment>
+    </unit>
+    <unit id="settings.verification_resent">
+      <segment>
+        <source>Verification email sent again.</source>
+      </segment>
+    </unit>
     <unit id="settings.profile.header">
       <notes>
         <note category="description">Header for public profile section</note>
@@ -8732,6 +9052,76 @@
     <unit id="settings.app_check.status.skipped">
       <segment>
         <source>Skipped</source>
+      </segment>
+    </unit>
+    <unit id="settings.back">
+      <segment>
+        <source>All settings</source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.capture.clear">
+      <segment>
+        <source>Clear capture</source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.capture.copy">
+      <segment>
+        <source>Copy capture</source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.capture.description">
+      <segment>
+        <source>Record camera, gestures, rendering and performance locally. Captures can include map coordinates. Nothing is uploaded automatically. The previous session is retained after restarting the app.</source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.capture.heading">
+      <segment>
+        <source>Map performance capture</source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.capture.toggle">
+      <segment>
+        <source>Record map diagnostics</source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.description">
+      <segment>
+        <source> Map diagnostics </source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.map_debug.description">
+      <segment>
+        <source> Enable the map debug overlay with technical map information. </source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.map_debug.heading">
+      <segment>
+        <source>Map debug mode</source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.map_debug.toggle">
+      <segment>
+        <source> Enable map debug mode </source>
+      </segment>
+    </unit>
+    <unit id="settings.developer.title">
+      <segment>
+        <source>Developer options</source>
+      </segment>
+    </unit>
+    <unit id="settings.group.display">
+      <segment>
+        <source>Advanced map display</source>
+      </segment>
+    </unit>
+    <unit id="settings.group.privacy">
+      <segment>
+        <source>Privacy and permissions</source>
+      </segment>
+    </unit>
+    <unit id="settings.group.regional">
+      <segment>
+        <source>Language and regional preferences</source>
       </segment>
     </unit>
     <unit id="saved_spots_chip_label">
@@ -9241,9 +9631,19 @@
         <source>Organization created.</source>
       </segment>
     </unit>
+    <unit id="settings.nav_label">
+      <segment>
+        <source>Settings sections</source>
+      </segment>
+    </unit>
     <unit id="settings.notifications.all">
       <segment>
         <source>All</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.browser_unblock_hint">
+      <segment>
+        <source> To allow them again, open the site settings next to the address bar and set notifications to “Allow”. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.community_column">
@@ -9641,11 +10041,6 @@
         <source>Incorrect password. Please try again.</source>
       </segment>
     </unit>
-    <unit id="212451686427567100">
-      <segment>
-        <source>{VAR_PLURAL, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}</source>
-      </segment>
-    </unit>
     <unit id="212841987551167718">
       <segment>
         <source>Mark safe and release</source>
@@ -9851,11 +10246,6 @@
         <source>Nice Spot Sticker Support Pack</source>
       </segment>
     </unit>
-    <unit id="1472354653162750894">
-      <segment>
-        <source>Open event website</source>
-      </segment>
-    </unit>
     <unit id="1485459466100400260">
       <segment>
         <source>Escalate this concern to the incident workflow for restricted assessment.</source>
@@ -9971,7 +10361,7 @@
         <note category="meaning">account auth title</note>
       </notes>
       <segment>
-        <source> Sign in or create an account </source>
+        <source> Sign in to PK Spot </source>
       </segment>
     </unit>
     <unit id="account.benefits.description">
@@ -10021,13 +10411,14 @@
         <source>or</source>
       </segment>
     </unit>
-    <unit id="signin.email.validation_error">
-      <notes>
-        <note category="description">Error message for invalid email</note>
-        <note category="meaning">email validation error</note>
-      </notes>
+    <unit id="signin.email.required">
       <segment>
-        <source> This E-Mail address is not valid! </source>
+        <source> Enter your e-mail address. </source>
+      </segment>
+    </unit>
+    <unit id="signin.email.validation_error">
+      <segment>
+        <source> Enter a valid e-mail address. </source>
       </segment>
     </unit>
     <unit id="signin.meta.description">
@@ -10040,13 +10431,18 @@
         <source>Sign in</source>
       </segment>
     </unit>
+    <unit id="signin.new_here">
+      <segment>
+        <source>New to PK Spot?</source>
+      </segment>
+    </unit>
     <unit id="signin.password.validation_error">
       <notes>
         <note category="description">Error message for empty password</note>
         <note category="meaning">password validation error</note>
       </notes>
       <segment>
-        <source> The password field is empty! </source>
+        <source> Enter your password. </source>
       </segment>
     </unit>
     <unit id="signin.about.kicker">
@@ -10097,6 +10493,11 @@
         <source>Optional: let analytics remember this device and link it to my account, to help improve PK Spot. You can change this in Settings at any time.</source>
       </segment>
     </unit>
+    <unit id="signup.display_name_required">
+      <segment>
+        <source>Choose a display name.</source>
+      </segment>
+    </unit>
     <unit id="signup.email_invalid">
       <segment>
         <source>Enter a valid email address.</source>
@@ -10112,14 +10513,34 @@
         <source>Create account</source>
       </segment>
     </unit>
+    <unit id="signup.password_hint_min">
+      <segment>
+        <source>At least 6 characters.</source>
+      </segment>
+    </unit>
     <unit id="signup.password_mismatch">
       <segment>
         <source>The passwords must match.</source>
       </segment>
     </unit>
+    <unit id="signup.password_required">
+      <segment>
+        <source>Choose a password.</source>
+      </segment>
+    </unit>
     <unit id="signup.password_short">
       <segment>
         <source>Use at least 6 characters.</source>
+      </segment>
+    </unit>
+    <unit id="signup.repeat_password_required">
+      <segment>
+        <source>Repeat your password.</source>
+      </segment>
+    </unit>
+    <unit id="signup.terms_required">
+      <segment>
+        <source> Agree to the Terms of Service to create an account. </source>
       </segment>
     </unit>
     <unit id="5701618810648052610">
@@ -10272,11 +10693,6 @@
         <source>Unlikely</source>
       </segment>
     </unit>
-    <unit id="7486528540316266957">
-      <segment>
-        <source>Choose a strong password.</source>
-      </segment>
-    </unit>
     <unit id="profile.actions.requestFollow">
       <segment>
         <source>Request follow</source>
@@ -10364,7 +10780,7 @@
     </unit>
     <unit id="4110757717406350230">
       <segment>
-        <source> Don&apos;t just look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Find.</pc></source>
+        <source> Don&apos;t just look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-primary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Find.</pc></source>
       </segment>
     </unit>
     <unit id="3002792374831127014">
@@ -10383,7 +10799,7 @@
         <note category="meaning">terms of service sign up text</note>
       </notes>
       <segment>
-        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you meet the age requirements or have parent/guardian consent, and that you will contribute content under the license terms described within.</source>
+        <source>I agree to the <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>, including how my contributions are licensed, and confirm I meet the age requirements or have parent or guardian consent.</source>
       </segment>
     </unit>
     <unit id="train.allEvents">
@@ -10440,9 +10856,9 @@
         <source>Your Spot ranks in <ph id="0" equiv="month" disp="name"/></source>
       </segment>
     </unit>
-    <unit id="train.reflection.empty">
+    <unit id="train.reflection.empty_private">
       <segment>
-        <source>Your training history appears here after your first check-in or log entry.</source>
+        <source>Your training history appears here after your first check-in or log entry. Only you can see it.</source>
       </segment>
     </unit>
     <unit id="train.reflection.longestStreak">
@@ -11339,6 +11755,11 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;spot-activity-summary__count&quot;&gt;" dispEnd="&lt;/span&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/></pc> trained here recently</source>
       </segment>
     </unit>
+    <unit id="spot.close.aria_label">
+      <segment>
+        <source>Close Spot</source>
+      </segment>
+    </unit>
     <unit id="spot.close.tooltip">
       <notes>
         <note category="description">Tooltip for close spot button</note>
@@ -11442,7 +11863,7 @@
         <note category="meaning">Share spot aria label</note>
       </notes>
       <segment>
-        <source>Icon button with a share icon</source>
+        <source>Share Spot</source>
       </segment>
     </unit>
     <unit id="directions_spot_tooltip">
@@ -11454,13 +11875,98 @@
         <source>Directions to spot</source>
       </segment>
     </unit>
+    <unit id="discard_changes.body">
+      <segment>
+        <source> Your edits have not been saved. If you leave now, they are lost. </source>
+      </segment>
+    </unit>
+    <unit id="discard_changes.discard">
+      <segment>
+        <source> Discard </source>
+      </segment>
+    </unit>
+    <unit id="discard_changes.keep">
+      <segment>
+        <source> Keep editing </source>
+      </segment>
+    </unit>
+    <unit id="discard_changes.title">
+      <segment>
+        <source>Discard changes?</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.calendar">
+      <segment>
+        <source>Calendar</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.choose_date">
+      <segment>
+        <source>Choose date</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.choose_month_year">
+      <segment>
+        <source>Choose month and year</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.close">
+      <segment>
+        <source>Close calendar</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.end_date">
+      <segment>
+        <source>End date</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.next_month">
+      <segment>
+        <source>Next month</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.next_multi_year">
+      <segment>
+        <source>Next 24 years</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.next_year">
+      <segment>
+        <source>Next year</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.open">
+      <segment>
+        <source>Open calendar</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.prev_month">
+      <segment>
+        <source>Previous month</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.prev_multi_year">
+      <segment>
+        <source>Previous 24 years</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.prev_year">
+      <segment>
+        <source>Previous year</source>
+      </segment>
+    </unit>
+    <unit id="datepicker.start_date">
+      <segment>
+        <source>Start date</source>
+      </segment>
+    </unit>
     <unit id="directions_spot_aria_label">
       <notes>
         <note category="description">The aria label of the directions spot icon button</note>
         <note category="meaning">Spot directions aria label</note>
       </notes>
       <segment>
-        <source>Icon button with a directions icon</source>
+        <source>Directions to Spot</source>
       </segment>
     </unit>
     <unit id="5557620594634616784">
@@ -11486,15 +11992,6 @@
     <unit id="5578898050255545720">
       <segment>
         <source>Your report is pending. You can edit or withdraw it at any time.</source>
-      </segment>
-    </unit>
-    <unit id="spot.delete.aria_label">
-      <notes>
-        <note category="description">Aria label for delete spot button</note>
-        <note category="meaning">Delete spot aria label</note>
-      </notes>
-      <segment>
-        <source>Delete button with a trash icon</source>
       </segment>
     </unit>
     <unit id="spot.delete.tooltip">
@@ -11665,6 +12162,21 @@
         <source>This Spot may currently be closed.</source>
       </segment>
     </unit>
+    <unit id="spot.rating_histogram_many">
+      <segment>
+        <source><ph id="0" equiv="stars" disp="stars"/> stars: <ph id="1" equiv="count" disp="reviews"/> reviews</source>
+      </segment>
+    </unit>
+    <unit id="spot.rating_histogram_one">
+      <segment>
+        <source><ph id="0" equiv="stars" disp="stars"/> stars: 1 review</source>
+      </segment>
+    </unit>
+    <unit id="spot.rating_jump_label">
+      <segment>
+        <source>Rated <ph id="0" equiv="rating" disp="value"/> of 5, show reviews</source>
+      </segment>
+    </unit>
     <unit id="spot.ratings.header">
       <notes>
         <note category="description">Header for the ratings and reviews section</note>
@@ -11793,15 +12305,6 @@
         <source> Access and Type </source>
       </segment>
     </unit>
-    <unit id="spot.edit.aria_label">
-      <notes>
-        <note category="description">Aria label for edit spot button</note>
-        <note category="meaning">edit spot aria label</note>
-      </notes>
-      <segment>
-        <source>Edit button with a pencil icon</source>
-      </segment>
-    </unit>
     <unit id="8902169607450414056">
       <notes>
         <note category="description">Label of the button to edit the spot</note>
@@ -11845,15 +12348,6 @@
         <source>View edit history of this spot</source>
       </segment>
     </unit>
-    <unit id="spot.edit_history.aria_label">
-      <notes>
-        <note category="description">Aria label for edit history button</note>
-        <note category="meaning">edit history aria label</note>
-      </notes>
-      <segment>
-        <source>Edit history button with a history icon</source>
-      </segment>
-    </unit>
     <unit id="1433932376397571385">
       <notes>
         <note category="description">Label of the button to view the edit history of the spot</note>
@@ -11870,15 +12364,6 @@
       </notes>
       <segment>
         <source>Report this spot</source>
-      </segment>
-    </unit>
-    <unit id="spot.report.aria_label">
-      <notes>
-        <note category="description">Aria label for report spot button</note>
-        <note category="meaning">report spot aria label</note>
-      </notes>
-      <segment>
-        <source>Report button with a warning icon</source>
       </segment>
     </unit>
     <unit id="5353526426392827566">
@@ -12145,6 +12630,16 @@
         <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </source>
       </segment>
     </unit>
+    <unit id="spot_review.star_many">
+      <segment>
+        <source><ph id="0" equiv="count" disp="count"/> stars</source>
+      </segment>
+    </unit>
+    <unit id="spot_review.star_one">
+      <segment>
+        <source>1 star</source>
+      </segment>
+    </unit>
     <unit id="spot_type_label">
       <segment>
         <source>Spot Type</source>
@@ -12263,6 +12758,11 @@
     <unit id="spotPersonalStats.visits">
       <segment>
         <source>visits</source>
+      </segment>
+    </unit>
+    <unit id="support.heading">
+      <segment>
+        <source>Support &amp; Resources</source>
       </segment>
     </unit>
     <unit id="support.meta.description">
@@ -12586,11 +13086,6 @@
     <unit id="4648618547655278196">
       <segment>
         <source>Unknown editor</source>
-      </segment>
-    </unit>
-    <unit id="6223606167641949496">
-      <segment>
-        <source> Check-ins and organization updates show where parkour is actually happening. The map stays current because the community keeps it current. </source>
       </segment>
     </unit>
     <unit id="6234372277464900526">
@@ -13401,7 +13896,7 @@
         <source>Google Play shared an age result, but it does not establish independently checked 18+ eligibility.</source>
       </segment>
     </unit>
-    <unit id="4439801928039075192">
+    <unit id="map.reset_north.tooltip">
       <segment>
         <source>Reset map orientation to north</source>
       </segment>
@@ -14513,11 +15008,6 @@
         <source>The initial CREATE payloads are different.</source>
       </segment>
     </unit>
-    <unit id="2058170987045762192">
-      <segment>
-        <source>Filter by region</source>
-      </segment>
-    </unit>
     <unit id="1381308436651796702">
       <segment>
         <source>No logo</source>
@@ -15127,11 +15617,6 @@
         <source> <ph id="0" equiv="ICU" disp="{data.events.length, plural, =1 {The one problematic published event is shown below.} other {All {{ data.events.length }} problematic published events are shown below.}}" subFlows="2516091138808940382"/> They are excluded from public discovery until their coordinates, local time zone, and event dates are valid. </source>
       </segment>
     </unit>
-    <unit id="5646680746394158532">
-      <segment>
-        <source> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </source>
-      </segment>
-    </unit>
     <unit id="4734349318830134239">
       <segment>
         <source>Ends</source>
@@ -15499,11 +15984,6 @@
     <unit id="2501989539336327542">
       <segment>
         <source>Upload image</source>
-      </segment>
-    </unit>
-    <unit id="2502246313488671541">
-      <segment>
-        <source> Private accounts can approve who follows them. </source>
       </segment>
     </unit>
     <unit id="250704833554562493">
@@ -16867,6 +17347,21 @@
         <source>Training day</source>
       </segment>
     </unit>
+    <unit id="trainingContributionGraph.day_no_training">
+      <segment>
+        <source><ph id="0" equiv="date" disp="date"/>: no training</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.day_one_session">
+      <segment>
+        <source><ph id="0" equiv="date" disp="date"/>: 1 session</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.day_sessions">
+      <segment>
+        <source><ph id="0" equiv="date" disp="date"/>: <ph id="1" equiv="count" disp="count"/> sessions</source>
+      </segment>
+    </unit>
     <unit id="trainingContributionGraph.legend">
       <segment>
         <source>Activity legend</source>
@@ -16890,6 +17385,21 @@
     <unit id="trainingContributionGraph.week">
       <segment>
         <source>Active week</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.week_days">
+      <segment>
+        <source>Week of <ph id="0" equiv="start" disp="start"/>: <ph id="1" equiv="count" disp="trainingDays"/> training days</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.week_one_day">
+      <segment>
+        <source>Week of <ph id="0" equiv="start" disp="start"/>: 1 training day</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.week_pause_days">
+      <segment>
+        <source><ph id="0" equiv="count" disp="pauseDays"/> recovery days</source>
       </segment>
     </unit>
     <unit id="trainingLog.checkIns.clear">
@@ -16920,6 +17430,11 @@
     <unit id="locationAccess.title">
       <segment>
         <source>Use device location?</source>
+      </segment>
+    </unit>
+    <unit id="locale_edit.remove_translation">
+      <segment>
+        <source>Remove <ph id="0" equiv="language" disp="language"/> translation</source>
       </segment>
     </unit>
     <unit id="localLegend.ageRequirement">
@@ -17122,9 +17637,29 @@
         <source>Up to <ph id="0" equiv="amount" disp="amount"/> per hour, heaviest around <ph id="1" equiv="time" disp="time"/></source>
       </segment>
     </unit>
+    <unit id="private_spots.tab_saved">
+      <segment>
+        <source>Saved</source>
+      </segment>
+    </unit>
+    <unit id="private_spots.tab_visited">
+      <segment>
+        <source>Visited</source>
+      </segment>
+    </unit>
     <unit id="profile.actions.acceptFollowRequest">
       <segment>
         <source>Accept follow request</source>
+      </segment>
+    </unit>
+    <unit id="profile.follow_failed">
+      <segment>
+        <source>Following did not work. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="profile.follow_requests.subtitle">
+      <segment>
+        <source> You decide who follows you. </source>
       </segment>
     </unit>
     <unit id="profile.followRequests.viewProfile">
@@ -17150,11 +17685,6 @@
     <unit id="community_event.updated">
       <segment>
         <source>Your community event is updated.</source>
-      </segment>
-    </unit>
-    <unit id="community_links.event_heading">
-      <segment>
-        <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {This event can be discovered in this community:} other {This event can be discovered in these communities:}}" subFlows="212451686427567100"/> </source>
       </segment>
     </unit>
     <unit id="community_links.spot_heading">

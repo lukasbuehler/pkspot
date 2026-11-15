@@ -160,10 +160,13 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   loadingIncomingFollowRequest: boolean = false;
   privateDataLoading: boolean = false;
   privateDataLoadFailed: boolean = false;
+  /** A retry also failed, so the notice says the retry happened. */
+  privateDataRetryFailed: boolean = false;
   savedSpotIds: string[] = [];
   visitedSpotIds: string[] = [];
   followRequestsLoading: boolean = false;
   followRequestsLoadFailed: boolean = false;
+  followRequestsRetryFailed: boolean = false;
   followRequests: FollowRequestSchema[] = [];
   updatingFollowRequestIds = new Set<string>();
 
@@ -362,7 +365,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.profileCountryName = this._localizedCountryName(
           user.nationalityCode
         );
-        this.profileStartDuration = this._localizedDurationSince(user.startDate);
+        this.profileStartDuration = this._localizedStartYear(user.startDate);
         this.profileSocialLinks = this._buildProfileSocialLinks(user);
         this.isLoading = false;
 
@@ -550,7 +553,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             console.error(err);
             this._completeFollowAction();
             this._snackbar.open(
-              "There was an error unfollowing the user!",
+              $localize`:@@profile.unfollow_failed:Unfollowing did not work. Please try again.`,
               "OK",
               {
                 verticalPosition: "bottom",
@@ -624,7 +627,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             console.error(err);
             this._completeFollowAction();
             this._snackbar.open(
-              "There was an error following the user!",
+              $localize`:@@profile.follow_failed:Following did not work. Please try again.`,
               "OK",
               {
                 verticalPosition: "bottom",
@@ -708,6 +711,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           this.followRequests = requests;
           this.followRequestsLoading = false;
           this.followRequestsLoadFailed = false;
+          this.followRequestsRetryFailed = false;
           this._cdr.detectChanges();
         },
         (error) => {
@@ -726,10 +730,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.followRequests = [];
     this.followRequestsLoading = false;
     this.followRequestsLoadFailed = false;
+    this.followRequestsRetryFailed = false;
   }
 
   retryFollowRequests() {
     this._loadFollowRequests(true);
+    this.followRequestsRetryFailed = true;
   }
 
   approveFollowRequest(request: FollowRequestSchema) {
@@ -926,6 +932,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           );
           this.privateDataLoading = false;
           this.privateDataLoadFailed = false;
+          this.privateDataRetryFailed = false;
           this._cdr.detectChanges();
         },
         (error) => {
@@ -939,6 +946,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   retryPrivateData() {
     this._syncPrivateDataSubscription(true);
+    this.privateDataRetryFailed = true;
   }
 
   toggleBlockUser() {
@@ -1228,35 +1236,18 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     );
   }
 
-  private _localizedDurationSince(date: Date | null): string {
-    if (!date) {
+  /**
+   * "Freerunner since 2019": a year reads correctly after "since" in every
+   * language, unlike a duration ("seit 7 Jahre" needs the dative in German).
+   */
+  private _localizedStartYear(date: Date | null): string {
+    if (!date || Number.isNaN(date.getTime())) {
       return "";
     }
 
-    const elapsedSeconds = Math.max(
-      0,
-      Math.floor((Date.now() - date.getTime()) / 1000)
+    return new Intl.DateTimeFormat(this.locale, { year: "numeric" }).format(
+      date
     );
-    const units: ReadonlyArray<{
-      seconds: number;
-      unit: Intl.NumberFormatOptions["unit"];
-    }> = [
-      { seconds: 31_536_000, unit: "year" },
-      { seconds: 2_592_000, unit: "month" },
-      { seconds: 86_400, unit: "day" },
-      { seconds: 3_600, unit: "hour" },
-      { seconds: 60, unit: "minute" },
-      { seconds: 1, unit: "second" },
-    ];
-    const selected =
-      units.find(({ seconds }) => elapsedSeconds >= seconds) ??
-      units[units.length - 1];
-
-    return new Intl.NumberFormat(this.locale, {
-      style: "unit",
-      unit: selected.unit,
-      unitDisplay: "long",
-      maximumFractionDigits: 0,
-    }).format(Math.floor(elapsedSeconds / selected.seconds));
   }
+
 }

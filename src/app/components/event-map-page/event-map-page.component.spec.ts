@@ -360,8 +360,10 @@ describe("EventMapPageComponent", () => {
 
     expect(component.tab()).toBe("all");
     expect(
-      component.mapObjectFilterChips().map((filter) => filter.label),
-    ).toEqual(["All", "1 Spot", "1 Event"]);
+      component
+        .mapObjectFilterChips()
+        .map((filter) => `${filter.count} ${filter.label}`),
+    ).toEqual(["1 Spot", "1 Event"]);
     expect(component.staticMarkers().map((marker) => marker.type)).toEqual([
       "event-custom",
     ]);

@@ -227,6 +227,12 @@ html {
     @include mat.icon-button-color($dark-theme, $color-variant: secondary);
   }
 
+  // Checkboxes default to "accent", which the compatibility layer maps to pink
+  // tertiary. Selections are blue throughout the app.
+  .mat-mdc-checkbox.mat-accent {
+    @include mat.checkbox-color($dark-theme, $color-variant: primary);
+  }
+
   @include mat3-nav-button.theme($dark-theme);
   @include bottom-sheet.theme($dark-theme);
   @include about-page.theme($dark-theme);

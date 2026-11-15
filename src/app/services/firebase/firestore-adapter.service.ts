@@ -1,4 +1,6 @@
 import { FeatureTelemetryService } from "../feature-telemetry.service";
+import { isLocalScreenshotRun } from "../../shared/local-screenshot-run";
+import { installScreenshotFirestoreFallbacks } from "./screenshot-firestore-fallbacks";
 import { isPlatformServer } from "@angular/common";
 import {
   Injectable,
@@ -129,6 +131,9 @@ export class FirestoreAdapterService {
     console.log(
       `[FirestoreAdapter] Initialized for platform: ${this.platformService.getPlatform()}`
     );
+    // Local review runs only: the synthetic user's private reads resolve empty
+    // and writes stay local. Never active on a deployed app.
+    if (isLocalScreenshotRun()) installScreenshotFirestoreFallbacks(this);
   }
 
   deleteFieldValue(): FirestoreDeleteFieldValue {
