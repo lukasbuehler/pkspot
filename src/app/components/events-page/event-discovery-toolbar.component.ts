@@ -149,17 +149,8 @@ export class EventDiscoveryToolbarComponent {
       )
       .afterClosed()
       .subscribe((result) => {
-        if (!result) return;
-        // The page owns filter state through toggles, so apply the difference.
-        for (const id of symmetricDifference(this.selectedRegions(), result.regions)) {
-          this.regionToggled.emit(id);
-        }
-        for (const id of symmetricDifference(this.selectedSeriesIds(), result.seriesIds)) {
-          this.seriesToggled.emit(id);
-        }
-        for (const id of symmetricDifference(this.selectedListingTiers(), result.listingTiers)) {
-          this.listingTierToggled.emit(id);
-        }
+        // One output, so the page applies every change in a single navigation.
+        if (result) this.dialogFiltersApplied.emit(result);
       });
   }
 
@@ -169,6 +160,7 @@ export class EventDiscoveryToolbarComponent {
   readonly listingTierToggled = output<EventListingTier>();
   readonly regionToggled = output<EventRegionKey>();
   readonly filtersCleared = output<void>();
+  readonly dialogFiltersApplied = output<EventFiltersDialogResult>();
 
   hasFilters(): boolean {
     return (
@@ -180,11 +172,4 @@ export class EventDiscoveryToolbarComponent {
       !!this.query()
     );
   }
-}
-
-function symmetricDifference<T>(before: readonly T[], after: readonly T[]): T[] {
-  return [
-    ...before.filter((value) => !after.includes(value)),
-    ...after.filter((value) => !before.includes(value)),
-  ];
 }

@@ -376,19 +376,22 @@ export class SettingsPageComponent implements OnInit, HasUnsavedChanges {
     }
   }
 
-  /**
-   * Profile edits are drafts until saved. Leaving the profile section or the
-   * page asks first, so edits are never lost silently.
-   */
   /** Closing or reloading the tab with unsaved edits gets the browser's own prompt. */
   onBeforeUnload(event: BeforeUnloadEvent): void {
     if (this.menuPoints[0].hasChanges) event.preventDefault();
   }
 
+  /**
+   * Profile edits are drafts until saved. Leaving the profile section or the
+   * page asks first, so edits are never lost silently.
+   */
   async confirmLeave(): Promise<boolean> {
     if (!this.menuPoints[0].hasChanges) return true;
     const discard = await confirmDiscardChanges(this._dialog);
     if (discard) {
+      // The profile form stays mounted while hidden, so restore its saved
+      // values too; otherwise the discarded draft returns with the section.
+      this.editProfileComponent?.discardChanges();
       this.menuPoints[0].hasChanges = false;
       this.updateChanges();
       this.changeDetector.markForCheck();

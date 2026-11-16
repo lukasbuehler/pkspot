@@ -408,8 +408,8 @@ export class EditProfileComponent implements OnInit {
     }
   }
 
+  /** Restores the saved profile values and drops a pending picture upload. */
   discardChanges() {
-    // TODO: Discard changes
     this._updateInfoOnView();
     this.cancelProfilePictureUpload();
     this.detectIfChanges();

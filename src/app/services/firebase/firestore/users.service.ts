@@ -430,11 +430,12 @@ export class UsersService extends ConsentAwareService {
    * Only accessible by the authenticated user themselves.
    */
   getPrivateData(userId: string): Observable<PrivateUserDataSchema | null> {
-    // Local screenshot runs: saved and visited lists that match the fixture's counts.
+    // Local screenshot runs supply private data per user ID; users without an
+    // entry use the normal Firestore read.
     const fixture = isLocalScreenshotRun()
       ? (globalThis as typeof globalThis & {
-          __PKSPOT_SCREENSHOT_PRIVATE_DATA__?: PrivateUserDataSchema;
-        }).__PKSPOT_SCREENSHOT_PRIVATE_DATA__
+          __PKSPOT_SCREENSHOT_PRIVATE_DATA__?: Record<string, PrivateUserDataSchema>;
+        }).__PKSPOT_SCREENSHOT_PRIVATE_DATA__?.[userId]
       : undefined;
     if (fixture) return of(fixture);
 

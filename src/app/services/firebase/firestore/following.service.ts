@@ -265,7 +265,7 @@ export class FollowingService extends ConsentAwareService {
     userId: string,
     chunkSize: number = 50
   ): Observable<FollowingSchema[]> {
-    const fixture = readScreenshotFollows()?.followers;
+    const fixture = readScreenshotFollows(userId)?.followers;
     if (fixture) return of(fixture.slice(0, chunkSize));
     console.log(`Fetching followers for userId: ${userId} (one-time)`);
     const constraints: QueryConstraintOptions[] = [
@@ -313,7 +313,7 @@ export class FollowingService extends ConsentAwareService {
     userId: string,
     chunkSize: number = 50
   ): Observable<FollowingSchema[]> {
-    const fixture = readScreenshotFollows()?.following;
+    const fixture = readScreenshotFollows(userId)?.following;
     if (fixture) return of(fixture.slice(0, chunkSize));
     console.log(`Fetching following for userId: ${userId} (one-time)`);
     const constraints: QueryConstraintOptions[] = [
@@ -393,18 +393,20 @@ export class FollowingService extends ConsentAwareService {
   }
 }
 
-/** Follower lists for local screenshot runs, matching the fixture's counts. */
-function readScreenshotFollows(): {
+interface ScreenshotFollows {
   followers?: FollowingSchema[];
   following?: FollowingSchema[];
-} | null {
+}
+
+/**
+ * Follow lists that local screenshot runs supply per user ID. Users without
+ * an entry use the normal Firestore read.
+ */
+function readScreenshotFollows(userId: string): ScreenshotFollows | null {
   if (!isLocalScreenshotRun()) return null;
   return (
     (globalThis as typeof globalThis & {
-      __PKSPOT_SCREENSHOT_FOLLOWS__?: {
-        followers?: FollowingSchema[];
-        following?: FollowingSchema[];
-      };
-    }).__PKSPOT_SCREENSHOT_FOLLOWS__ ?? null
+      __PKSPOT_SCREENSHOT_FOLLOWS__?: Record<string, ScreenshotFollows>;
+    }).__PKSPOT_SCREENSHOT_FOLLOWS__?.[userId] ?? null
   );
 }

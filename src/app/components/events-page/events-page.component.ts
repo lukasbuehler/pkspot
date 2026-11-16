@@ -69,6 +69,7 @@ import {
   type EventSeriesFilterOption,
   type EventsListPeriod,
 } from "./event-discovery-toolbar.component";
+import type { EventFiltersDialogResult } from "./event-filters-dialog.component";
 import {
   EventDiscoveryViewToggleComponent,
   type EventsDiscoveryView,
@@ -679,6 +680,16 @@ export class EventsPageComponent {
     this.resultLimit.set(LIST_PAGE_SIZE);
     void this._updateQueryParams({
       region: serializeList(toggleValue(this.selectedRegions(), region)),
+    });
+  }
+
+  /** Applies the filters dialog's selection in one navigation. */
+  applyDialogFilters(result: EventFiltersDialogResult): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({
+      region: serializeList(result.regions),
+      series: serializeList(result.seriesIds),
+      tier: serializeList(result.listingTiers),
     });
   }
 

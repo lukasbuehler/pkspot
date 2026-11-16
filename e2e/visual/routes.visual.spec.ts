@@ -2072,16 +2072,19 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         screenshotWindow.__PKSPOT_SCREENSHOT_USER_PROFILES__ = {
           "visual-route-user": screenshotUserData,
         };
-        // Private saved and visited lists: public Spots from the map fixture area.
+        // Private saved and visited lists, by user ID: public Spots from the
+        // map fixture area.
         (window as typeof window & { __PKSPOT_SCREENSHOT_PRIVATE_DATA__?: unknown })
           .__PKSPOT_SCREENSHOT_PRIVATE_DATA__ = {
-            bookmarks: ["VqmXvKVW6Pe5dWfj15Pf", "8CHFHRFUCozO9yeLEq6N"],
-            visited_spots: [
-              "VqmXvKVW6Pe5dWfj15Pf",
-              "8CHFHRFUCozO9yeLEq6N",
-              "hF7gwisn6as4c9j77vr0",
-              "EdUIZW03vJ7wLiPx2JOC",
-            ],
+            "visual-route-user": {
+              bookmarks: ["VqmXvKVW6Pe5dWfj15Pf", "8CHFHRFUCozO9yeLEq6N"],
+              visited_spots: [
+                "VqmXvKVW6Pe5dWfj15Pf",
+                "8CHFHRFUCozO9yeLEq6N",
+                "hF7gwisn6as4c9j77vr0",
+                "EdUIZW03vJ7wLiPx2JOC",
+              ],
+            },
           };
         // Follower lists that match follower_count and following_count above.
         const followNames = [
@@ -2096,8 +2099,10 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         });
         (window as typeof window & { __PKSPOT_SCREENSHOT_FOLLOWS__?: unknown })
           .__PKSPOT_SCREENSHOT_FOLLOWS__ = {
-            followers: followNames.map(followEntry),
-            following: followNames.slice(0, 8).map((name, index) => followEntry(name, index + 20)),
+            "visual-route-user": {
+              followers: followNames.map(followEntry),
+              following: followNames.slice(0, 8).map((name, index) => followEntry(name, index + 20)),
+            },
           };
         screenshotWindow.__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__ = true;
         screenshotWindow.__PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__ = [];
