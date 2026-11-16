@@ -44,14 +44,16 @@ const angularWorkspace = JSON.parse(
 ) as AngularWorkspace;
 
 describe("Cloudflare Worker build", () => {
-  it("packages Angular's localized SSR output as one Worker", () => {
+  it("packages Angular's localized SSR output as the renderer Worker", () => {
     expect(buildScript).toContain('"--localize"');
     expect(buildScript).not.toMatch(/--localize=/u);
-    expect(profileScript).toContain('workerName: "pkspot-web"');
+    expect(profileScript).toContain('workerName: "pkspot-web-staging"');
     expect(buildScript).toContain(
-      'import { handleWorkerRequest } from "./server.mjs";',
+      'import { handleRenderRequest } from "./server.mjs";',
     );
+    expect(cloudflareServer).toContain("export async function handleRenderRequest");
     expect(profileScript).toContain('main: "server/worker.mjs"');
+    expect(profileScript).toContain('main: "front/worker.mjs"');
     expect(profileScript).toContain("no_bundle: true");
     expect(profileScript).toContain('directory: "browser"');
     expect(buildScript).toContain("rewriteFirebaseMessagingServiceWorkers");

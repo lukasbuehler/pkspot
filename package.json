@@ -173,6 +173,7 @@
     "angular-eslint": "^22.0.0",
     "baseline-browser-mapping": "^2.10.37",
     "chrome-launcher": "^1.2.1",
+    "esbuild": "^0.28.1",
     "eslint": "^9.39.4",
     "firebase-tools": "15.31.0",
     "jsdom": "^27.4.0",

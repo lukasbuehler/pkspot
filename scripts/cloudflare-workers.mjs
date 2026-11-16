@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import {
   existsSync,
   readdirSync,
@@ -9,7 +10,12 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getCloudflareBuildProfile, createWranglerConfig, createAssetHeaders } from "./cloudflare-build-profiles.mjs";
+import {
+  getCloudflareBuildProfile,
+  createWranglerConfig,
+  createRendererWranglerConfig,
+  createAssetHeaders,
+} from "./cloudflare-build-profiles.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const action = process.argv[2] ?? "build";
@@ -25,16 +31,27 @@ if (action === "build" && wranglerArgs.length) {
 }
 
 if (action === "build") {
-  buildWorker();
+  await buildWorkers();
+} else if (action === "deploy") {
+  // The renderer goes first: the front Worker's new version keys a fresh HTML
+  // cache, and it stores only pages from a renderer of its own build.
+  // Extra arguments such as --name are meant for the front Worker only.
+  runWrangler(["deploy"], getRendererConfigPath(), [], { renderer: true });
+  runWrangler(["deploy", ...wranglerArgs], getWranglerConfigPath());
 } else if (action === "dry-run") {
-  runWrangler(["deploy", "--dry-run"]);
+  runWrangler(["deploy", "--dry-run"], getRendererConfigPath(), [], { renderer: true });
+  runWrangler(["deploy", "--dry-run"], getWranglerConfigPath());
 } else if (action === "preview") {
-  runWrangler(["dev", ...wranglerArgs]);
+  // One local session runs both Workers, so the service binding resolves.
+  runWrangler(["dev", ...wranglerArgs], getWranglerConfigPath(), [getRendererConfigPath()]);
 } else {
   throw new Error(`Unknown Cloudflare action: ${action}`);
 }
 
-function buildWorker() {
+async function buildWorkers() {
+  // Shared by both Workers, so the front Worker can tell whether a page came
+  // from a renderer of the same build.
+  const buildId = randomUUID();
   const browserApiKey = readCloudflareFirebaseConfig().apiKey;
   rmSync(outputDir, { recursive: true, force: true });
   execFileSync(
@@ -56,12 +73,57 @@ function buildWorker() {
   writeFileSync(
     path.join(outputDir, "server", "worker.mjs"),
     [
-      'import { handleWorkerRequest } from "./server.mjs";',
-      "export default { fetch: handleWorkerRequest };",
+      'import { handleRenderRequest } from "./server.mjs";',
+      `const BUILD_ID = ${JSON.stringify(buildId)};`,
+      "export default {",
+      "  async fetch(request, env) {",
+      "    // The front Worker asks for this build's assets while the two Workers run different builds.",
+      '    if (request.headers.has("X-PKSpot-Renderer-Asset")) {',
+      "      const assetRequest = new Request(request);",
+      '      assetRequest.headers.delete("X-PKSpot-Renderer-Asset");',
+      "      return env.ASSETS.fetch(assetRequest);",
+      "    }",
+      "    const response = await handleRenderRequest(request);",
+      "    const headers = new Headers(response.headers);",
+      '    headers.set("X-PKSpot-Build", BUILD_ID);',
+      "    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });",
+      "  },",
+      "};",
       "",
     ].join("\n"),
   );
-  writeWranglerConfig();
+  await buildFrontWorker(buildId);
+  writeWranglerConfigs();
+}
+
+/** Bundles the small front Worker on its own, without Angular. */
+async function buildFrontWorker(buildId) {
+  const { build } = await import("esbuild");
+  const result = await build({
+    stdin: {
+      contents: [
+        'import { createFrontWorker } from "./src/cloudflare-front-worker";',
+        `export default createFrontWorker(${JSON.stringify(buildId)});`,
+      ].join("\n"),
+      resolveDir: repoRoot,
+      sourcefile: "front-worker-entry.ts",
+      loader: "ts",
+    },
+    bundle: true,
+    format: "esm",
+    platform: "neutral",
+    target: "es2022",
+    minify: true,
+    outfile: path.join(outputDir, "front", "worker.mjs"),
+    metafile: true,
+    logLevel: "warning",
+  });
+  // Angular in this bundle would bring back the slow cold starts.
+  const inputs = Object.keys(result.metafile.inputs);
+  const forbidden = inputs.filter((input) => /node_modules\/@angular|node_modules\/firebase/u.test(input));
+  if (forbidden.length > 0) {
+    throw new Error(`The front Worker must not import Angular or Firebase: ${forbidden.join(", ")}`);
+  }
 }
 
 function readCloudflareFirebaseConfig() {
@@ -109,17 +171,18 @@ function findFiles(directory, fileName) {
   });
 }
 
-function runWrangler(args) {
-  const configPath = getWranglerConfigPath();
-  if (!existsSync(configPath)) {
-    throw new Error("Build the combined Cloudflare Worker before running Wrangler.");
+function runWrangler(args, configPath, extraConfigPaths = [], { renderer = false } = {}) {
+  for (const required of [configPath, ...extraConfigPaths]) {
+    if (!existsSync(required)) {
+      throw new Error("Build the Cloudflare Workers before running Wrangler.");
+    }
   }
   execFileSync(
     path.join(repoRoot, "node_modules", ".bin", "wrangler"),
-    [...args, "--config", configPath],
+    [...args, ...[configPath, ...extraConfigPaths].flatMap((config) => ["--config", config])],
     {
       cwd: repoRoot,
-      env: {
+      env: renderer ? withoutWorkersBuildsTarget(process.env) : {
         ...process.env,
         WRANGLER_LOG_PATH: path.join("/tmp", "pkspot-wrangler.log"),
       },
@@ -128,19 +191,30 @@ function runWrangler(args) {
   );
 }
 
-function writeWranglerConfig() {
-  const configPath = getWranglerConfigPath();
-  writeFileSync(
-    configPath,
-    `${JSON.stringify(
-      createWranglerConfig(profile),
-      null,
-      2
-    )}\n`
-  );
-  return configPath;
+/**
+ * Workers Builds points Wrangler at the connected (front) Worker through these
+ * variables: it renames any deployed Worker to that name and checks its tag.
+ * The renderer is a different Worker, so it must deploy under its own name.
+ */
+function withoutWorkersBuildsTarget(environment) {
+  const {
+    WRANGLER_CI_OVERRIDE_NAME: _overrideName,
+    WRANGLER_CI_MATCH_TAG: _matchTag,
+    ...rest
+  } = environment;
+  return { ...rest, WRANGLER_LOG_PATH: path.join("/tmp", "pkspot-wrangler.log") };
 }
 
+function writeWranglerConfigs() {
+  writeFileSync(getWranglerConfigPath(), `${JSON.stringify(createWranglerConfig(profile), null, 2)}\n`);
+  writeFileSync(getRendererConfigPath(), `${JSON.stringify(createRendererWranglerConfig(profile), null, 2)}\n`);
+}
+
+/** The front Worker's config, at the path existing deploy commands use. */
 function getWranglerConfigPath() {
   return path.join(outputDir, "wrangler.jsonc");
+}
+
+function getRendererConfigPath() {
+  return path.join(outputDir, "wrangler.renderer.jsonc");
 }

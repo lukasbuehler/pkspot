@@ -51,6 +51,8 @@ const TRACKING_PARAM =
   /^(utm_\w+|fbclid|gclid|gbraid|wbraid|dclid|msclkid|igshid|ttclid|twclid|li_fat_id|mc_cid|mc_eid|yclid|_gl)$/i;
 
 const RENDERED_AT_HEADER = "X-PKSpot-Rendered-At";
+/** Set by the renderer Worker to the build it was deployed from. */
+export const RENDER_BUILD_HEADER = "X-PKSpot-Build";
 export const SSR_CACHE_STATUS_HEADER = "X-PKSpot-SSR-Cache";
 
 /** Keys re-rendering in this isolate, so a burst of stale hits renders once. */
@@ -61,6 +63,13 @@ export interface CachedRenderOptions {
   render: (request: Request) => Promise<Response>;
   /** Changes with every deploy, so old HTML never points at removed bundles. */
   deploymentId?: string;
+  /**
+   * The build this Worker belongs to. When set, only pages rendered by the
+   * same build are stored: the front and renderer Workers deploy a few
+   * seconds apart, and HTML from the other build points at bundles this
+   * deploy doesn't serve.
+   */
+  renderBuildId?: string;
   store?: SsrCacheStore;
   context?: WorkerExecutionContext;
   now?: () => number;
@@ -76,6 +85,7 @@ export async function renderWithSsrCache({
   request,
   render,
   deploymentId,
+  renderBuildId,
   store,
   context,
   now = Date.now,
@@ -101,7 +111,7 @@ export async function renderWithSsrCache({
         refreshing.add(key.url);
         context.waitUntil(
           render(renderRequest)
-            .then((fresh) => storeIfCacheable(store, key, fresh, policy, now()))
+            .then((fresh) => storeIfCacheable(store, key, fresh, policy, now(), renderBuildId))
             .catch(() => undefined)
             .finally(() => refreshing.delete(key.url)),
         );
@@ -112,11 +122,11 @@ export async function renderWithSsrCache({
   }
 
   const rendered = await render(renderRequest);
-  if (!isCacheable(rendered)) return { response: rendered, status: "miss" };
+  if (!isCacheable(rendered, renderBuildId)) return { response: rendered, status: "miss" };
   const html = await rendered.text();
   const response = new Response(html, rendered);
   context.waitUntil(
-    storeIfCacheable(store, key, new Response(html, rendered), policy, now(), html)
+    storeIfCacheable(store, key, new Response(html, rendered), policy, now(), renderBuildId, html)
       .catch(() => undefined),
   );
   return { response, status: "miss" };
@@ -147,7 +157,8 @@ function cacheKey(request: Request, url: URL, deploymentId: string, audience: st
   return new Request(key.toString(), { method: "GET" });
 }
 
-function isCacheable(response: Response): boolean {
+function isCacheable(response: Response, renderBuildId?: string): boolean {
+  if (renderBuildId && response.headers.get(RENDER_BUILD_HEADER) !== renderBuildId) return false;
   return response.status === 200 &&
     !response.headers.has("Set-Cookie") &&
     (response.headers.get("Content-Type") ?? "").startsWith("text/html");
@@ -159,9 +170,10 @@ async function storeIfCacheable(
   response: Response,
   policy: CachePolicy,
   renderedAt: number,
+  renderBuildId?: string,
   knownHtml?: string,
 ): Promise<void> {
-  if (!isCacheable(response)) {
+  if (!isCacheable(response, renderBuildId)) {
     await response.body?.cancel();
     return;
   }
@@ -178,6 +190,7 @@ async function storeIfCacheable(
 export function toBrowserResponse(response: Response, status: SsrCacheStatus): Response {
   const headers = new Headers(response.headers);
   headers.delete(RENDERED_AT_HEADER);
+  headers.delete(RENDER_BUILD_HEADER);
   headers.set(SSR_CACHE_STATUS_HEADER, status);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

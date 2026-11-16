@@ -1,13 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { getCloudflareBuildProfile, createWranglerConfig, createAssetHeaders } from "./cloudflare-build-profiles.mjs";
+import { getCloudflareBuildProfile, createWranglerConfig, createRendererWranglerConfig, createAssetHeaders } from "./cloudflare-build-profiles.mjs";
 
 const staging = getCloudflareBuildProfile();
 const production = getCloudflareBuildProfile("production");
 
 test("existing commands continue building the staging Worker", () => {
-  assert.equal(staging.workerName, "pkspot-web");
+  assert.equal(staging.workerName, "pkspot-web-staging");
   assert.equal(staging.outputDirectory, "dist/pkspot-cloudflare-worker");
   assert.equal(staging.configuration, "cloudflare");
   const config = createWranglerConfig(staging);
@@ -36,16 +36,35 @@ test("building and deploying production cannot attach a domain or expose product
   assert.deepEqual(config.assets, { binding: "ASSETS", directory: "browser" });
 });
 
-test("both Workers upload Angular's server modules unbundled so cold starts load only the entry", () => {
+test("the front Worker serves the domain and assets and renders through the private renderer", () => {
   for (const profile of [staging, production]) {
-    const config = createWranglerConfig(profile);
+    const front = createWranglerConfig(profile);
+    const renderer = createRendererWranglerConfig(profile);
+    assert.equal(front.name, profile.workerName);
+    assert.equal(front.main, "front/worker.mjs");
+    assert.deepEqual(front.services, [{ binding: "SSR", service: profile.rendererName }]);
+    assert.equal(renderer.name, profile.rendererName);
+    assert.notEqual(renderer.name, front.name);
+    // Its own build's assets, only for the front Worker's fallback requests.
+    assert.deepEqual(renderer.assets, { binding: "ASSETS", directory: "browser", run_worker_first: true });
+    assert.equal(renderer.routes, undefined);
+    assert.equal(renderer.workers_dev, false);
+    assert.equal(renderer.preview_urls, false);
+  }
+  assert.notEqual(staging.rendererName, production.rendererName);
+});
+
+test("the renderer uploads Angular's server modules unbundled so a render loads only its language", () => {
+  for (const profile of [staging, production]) {
+    const config = createRendererWranglerConfig(profile);
     assert.equal(config.main, "server/worker.mjs");
     assert.equal(config.no_bundle, true);
     assert.deepEqual(config.rules, [{ type: "ESModule", globs: ["**/*.mjs"] }]);
+    assert.deepEqual(config.compatibility_flags, ["nodejs_compat"]);
   }
 });
 
-test("both Workers expose the deployment id that keys cached SSR HTML", () => {
+test("the front Worker exposes the deployment id that keys cached SSR HTML", () => {
   for (const profile of [staging, production]) {
     assert.deepEqual(createWranglerConfig(profile).version_metadata, { binding: "CF_VERSION_METADATA" });
   }
