@@ -72,6 +72,10 @@ export function createRendererWranglerConfig(profile) {
     compatibility_flags: ["nodejs_compat"],
     workers_dev: false,
     preview_urls: false,
+    // The same assets as the front Worker, so pages it renders can load their
+    // bundles while the front Worker still runs another build. The Worker
+    // decides, so only the front Worker's asset requests reach them.
+    assets: { binding: "ASSETS", directory: "browser", run_worker_first: true },
     observability: { enabled: true },
   };
 }

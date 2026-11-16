@@ -45,7 +45,8 @@ test("the front Worker serves the domain and assets and renders through the priv
     assert.deepEqual(front.services, [{ binding: "SSR", service: profile.rendererName }]);
     assert.equal(renderer.name, profile.rendererName);
     assert.notEqual(renderer.name, front.name);
-    assert.equal(renderer.assets, undefined);
+    // Its own build's assets, only for the front Worker's fallback requests.
+    assert.deepEqual(renderer.assets, { binding: "ASSETS", directory: "browser", run_worker_first: true });
     assert.equal(renderer.routes, undefined);
     assert.equal(renderer.workers_dev, false);
     assert.equal(renderer.preview_urls, false);
