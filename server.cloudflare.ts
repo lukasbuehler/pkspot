@@ -2,7 +2,6 @@
 import "./src/cloudflare-runtime-polyfills";
 import { AngularAppEngine, createRequestHandler } from "@angular/ssr";
 import { SsrRequestScope } from "./src/ssr-request-scope";
-import { createCloudflareRequestHandler } from "./src/cloudflare-request-handler";
 
 import { environment } from "./src/environments/environment.default";
 import { cloudflareSsrAllowedHosts } from "./src/cloudflare-hosts";
@@ -28,4 +27,18 @@ export const reqHandler = createRequestHandler(async (request) => {
 
 export default reqHandler;
 
-export const handleWorkerRequest = createCloudflareRequestHandler(reqHandler);
+/**
+ * Entry of the renderer Worker. The front Worker (`src/cloudflare-front-worker.ts`)
+ * has already applied redirects, asset routing and the HTML cache, and calls
+ * this only for pages it has to render.
+ */
+export async function handleRenderRequest(request: Request): Promise<Response> {
+  const response = await reqHandler(request);
+  if (response) return response;
+  // Angular can return null after a navigation error, not only a missing route.
+  // Log no URL/query data; the Worker invocation identifies the request.
+  console.error("Cloudflare SSR returned no response", {
+    locale: new URL(request.url).pathname.split("/")[1],
+  });
+  return new Response("Not Found", { status: 404 });
+}

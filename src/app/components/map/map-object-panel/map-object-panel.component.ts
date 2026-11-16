@@ -86,6 +86,15 @@ export class MapObjectPanelComponent {
       count: option.count,
     })),
   );
+  /**
+   * Events are listed above the Spots and arrive with the area's first search.
+   * Until then the Spot cards wait too, so the Events section doesn't push
+   * them down when it appears.
+   */
+  allModeSpots = computed(() => (this.areaKnown() ? this.visibleSpots() : []));
+  allModeHighlightedSpots = computed(() =>
+    this.areaKnown() ? this.highlightedSpots() : [],
+  );
   allModeCommunities = computed(() =>
     (this.visibleCommunities().length > 0
       ? this.visibleCommunities()

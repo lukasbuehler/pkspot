@@ -38,6 +38,8 @@ export function createCloudflareRequestHandler(
   render: RenderRequest,
   fetchLegacyAsset: (request: Request) => Promise<Response> = (request) => fetch(request),
   ssrCacheStore: () => SsrCacheStore | undefined = defaultSsrCacheStore,
+  /** Set when a separate renderer Worker renders; see `renderWithSsrCache`. */
+  renderBuildId?: string,
 ) {
   return async (
     request: Request,
@@ -54,6 +56,7 @@ export function createCloudflareRequestHandler(
         render: async (cacheRequest) =>
           (await render(cacheRequest)) ?? nullRenderResponse(url),
         deploymentId: environment.CF_VERSION_METADATA?.id,
+        renderBuildId,
         store: ssrCacheStore(),
         context,
       }),
