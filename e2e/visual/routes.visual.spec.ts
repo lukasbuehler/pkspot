@@ -1,5 +1,5 @@
 import { financesFeatureEnabled } from "../../src/app/features/finances-feature";
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type CDPSession, type Locator, type Page } from "@playwright/test";
 import { CURRENT_TERMS_VERSION } from "../../src/app/services/consent-version";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -2990,6 +2990,8 @@ async function runAxe(page: Page): Promise<AxeSummary> {
  * Runs one review step. Screenshots, snapshots and axe reports are written
  * to `out` with `prefix` in front of their name.
  */
+const reviewNetworkSessions = new WeakMap<Page, CDPSession>();
+
 async function runReviewStep(page: Page, step: ReviewStep, out: string, prefix: string): Promise<void> {
   switch (step.action) {
     case "goto":
@@ -3046,7 +3048,13 @@ async function runReviewStep(page: Page, step: ReviewStep, out: string, prefix: 
     case "network": {
       const context = page.context();
       await context.setOffline(step.mode === "offline");
-      const cdp = await context.newCDPSession(page);
+      // One DevTools session per page: conditions set on an earlier session
+      // would otherwise stay in force and keep the page offline.
+      let cdp = reviewNetworkSessions.get(page);
+      if (!cdp) {
+        cdp = await context.newCDPSession(page);
+        reviewNetworkSessions.set(page, cdp);
+      }
       await cdp.send("Network.emulateNetworkConditions", step.mode === "slow"
         ? { offline: false, latency: 600, downloadThroughput: 40_000, uploadThroughput: 20_000 }
         : { offline: step.mode === "offline", latency: 0, downloadThroughput: -1, uploadThroughput: -1 });

@@ -6,6 +6,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { AnalyticsService } from "./analytics.service";
 import {
   ApplicationErrorHandler,
+  FailedNavigationTarget,
   isAngularHmrModuleError,
   isDynamicImportLoadError,
 } from "./application-error-handler.service";
@@ -30,13 +31,14 @@ function configureHandler(options: {
     reportError: vi.fn(),
   };
   const reload = vi.fn();
+  const assign = vi.fn();
   const snackbar = { open: vi.fn() };
   const setTimeout = vi.fn((callback: () => void) => {
     callback();
     return 1;
   }) as unknown as Window["setTimeout"];
   const fakeWindow = {
-    location: { reload },
+    location: { reload, assign, href: "https://pkspot.app/de/map" },
     navigator: { onLine: !options.offline },
     sessionStorage: options.sessionStorage ?? createSessionStorage(),
     setTimeout,
@@ -54,6 +56,8 @@ function configureHandler(options: {
   });
 
   return {
+    assign,
+    failedNavigation: TestBed.inject(FailedNavigationTarget),
     snackbar,
     analytics,
     handler: TestBed.inject(ApplicationErrorHandler),
@@ -176,6 +180,22 @@ describe("ApplicationErrorHandler", () => {
       "OK",
       { duration: 8000 },
     );
+  });
+
+  it("opens the page a navigation was heading to once its code can load again", () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { handler, reload, assign, failedNavigation } = configureHandler();
+    const error = new TypeError("Failed to fetch dynamically imported module: /de/chunk.js");
+
+    failedNavigation.url = "/de/events?when=upcoming";
+    handler.handleError(error);
+    failedNavigation.url = "/de/events?when=upcoming";
+    handler.handleError(error);
+
+    expect(assign).toHaveBeenCalledTimes(1);
+    expect(assign).toHaveBeenCalledWith("/de/events?when=upcoming");
+    expect(reload).not.toHaveBeenCalled();
+    expect(failedNavigation.url).toBeNull();
   });
 
   it("does not reload for non chunk-load errors", () => {

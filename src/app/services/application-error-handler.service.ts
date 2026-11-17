@@ -1,4 +1,4 @@
-import { DOCUMENT, isPlatformBrowser } from "@angular/common";
+import { DOCUMENT, isPlatformBrowser, LocationStrategy } from "@angular/common";
 import {
   ErrorHandler,
   Injectable,
@@ -7,6 +7,7 @@ import {
   inject,
 } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { NavigationError } from "@angular/router";
 import { AnalyticsService } from "./analytics.service";
 
 const dynamicImportReloadStorageKey = "pkspot.dynamic-import-reload.v1";
@@ -58,6 +59,21 @@ export function isAngularHmrModuleError(error: unknown): boolean {
   return angularHmrErrorSignals.some((signal) => signalText.includes(signal));
 }
 
+/** The page a navigation was opening when its code failed to load. */
+@Injectable({ providedIn: "root" })
+export class FailedNavigationTarget {
+  url: string | null = null;
+}
+
+/**
+ * Router navigation error handler. Remembers where a navigation was going
+ * when its page code failed to load, so recovery can open that page.
+ */
+export function rememberFailedNavigationTarget(error: NavigationError): void {
+  if (!isDynamicImportLoadError(error.error)) return;
+  inject(FailedNavigationTarget).url = inject(LocationStrategy).prepareExternalUrl(error.url);
+}
+
 @Injectable()
 export class ApplicationErrorHandler implements ErrorHandler {
   private readonly analytics = inject(AnalyticsService);
@@ -103,19 +119,30 @@ export class ApplicationErrorHandler implements ErrorHandler {
     // Without a connection the page part cannot load and a reload would only
     // replace the app with the browser's offline page. Stay on the current
     // page and say why instead; the next tap after reconnecting loads it.
+    const failedNavigation = this.injector.get(FailedNavigationTarget);
+    const target = failedNavigation.url;
+    failedNavigation.url = null;
+
     if (view.navigator?.onLine === false) {
       this.showOfflineNotice();
       return;
     }
 
+    // Browsers remember a failed module download, so the page code cannot be
+    // loaded again without a fresh page load. Open the page the person was
+    // heading to (e.g. after reconnecting), or reload the current one.
+    const attempt = target ?? view.location.href;
     try {
-      if (view.sessionStorage.getItem(dynamicImportReloadStorageKey)) {
+      if (view.sessionStorage.getItem(dynamicImportReloadStorageKey) === attempt) {
         return;
       }
 
-      view.sessionStorage.setItem(dynamicImportReloadStorageKey, "1");
-      console.warn("[AppError] Reloading once to recover from a module-load error");
-      view.setTimeout(() => view.location.reload(), 0);
+      view.sessionStorage.setItem(dynamicImportReloadStorageKey, attempt);
+      console.warn("[AppError] Loading the page again to recover from a module-load error");
+      view.setTimeout(() => {
+        if (target) view.location.assign(target);
+        else view.location.reload();
+      }, 0);
     } catch (error) {
       console.warn("Failed to schedule stale app reload", error);
     }
