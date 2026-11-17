@@ -34,7 +34,13 @@ import {
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatChipsModule } from "@angular/material/chips";
-import { MatDatepickerModule } from "@angular/material/datepicker";
+// Not MatDatepickerModule: it provides its own English MatDatepickerIntl,
+// which would hide the translated one from app.config.
+import {
+  MatDatepicker,
+  MatDatepickerInput,
+  MatDatepickerToggle,
+} from "@angular/material/datepicker";
 import { MatNativeDateModule } from "@angular/material/core";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatDialog } from "@angular/material/dialog";
@@ -362,7 +368,9 @@ export type EventEditPatch = Omit<
     MatCheckboxModule,
     MatSlideToggleModule,
     MatChipsModule,
-    MatDatepickerModule,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
     MatNativeDateModule,
     MatDividerModule,
     MatExpansionModule,

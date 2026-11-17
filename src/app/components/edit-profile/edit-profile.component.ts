@@ -3,6 +3,7 @@ import { FeatureTelemetryService } from "../../services/feature-telemetry.servic
 import {
   Component,
   Inject,
+  inject,
   LOCALE_ID,
   OnInit,
   ChangeDetectionStrategy,
@@ -34,11 +35,14 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { firstValueFrom, Observable, startWith, map } from "rxjs";
 import { countries } from "../../../scripts/Countries";
+import { localizedCountryName } from "../../../scripts/CommunityPlaceNames";
 import { Timestamp } from "firebase/firestore";
+// Not MatDatepickerModule: it provides its own English MatDatepickerIntl,
+// which would hide the translated one from app.config.
 import {
+  MatDatepicker,
   MatDatepickerInput,
   MatDatepickerToggle,
-  MatDatepickerModule,
 } from "@angular/material/datepicker";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
@@ -81,7 +85,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
     MatButtonModule,
     MatDatepickerInput,
     MatDatepickerToggle,
-    MatDatepickerModule,
+    MatDatepicker,
     MatSuffix,
     MatProgressSpinner,
     MatExpansionModule,
@@ -116,7 +120,18 @@ export class EditProfileComponent implements OnInit {
 
   // Country Autocomplete
   countries = countries;
-  countryCodes = Object.keys(countries);
+  private readonly _appLocale = inject(LOCALE_ID);
+  /** Country names in the app language, e.g. "Deutschland" in German. */
+  readonly countryNames: Readonly<Record<string, string>> = Object.fromEntries(
+    Object.entries(countries).map(([code, country]) => [
+      code,
+      localizedCountryName(code, this._appLocale, country.name),
+    ])
+  );
+  /** Codes sorted by their name in the app language. */
+  countryCodes = Object.keys(countries).sort((a, b) =>
+    this.countryNames[a].localeCompare(this.countryNames[b], this._appLocale)
+  );
   filteredCountries: Observable<string[]> | null = null;
   countryControl = new FormControl("");
 
@@ -163,6 +178,7 @@ export class EditProfileComponent implements OnInit {
        */
       const code = this.countryCodes.find(
         (c) =>
+          this.countryNames[c].toLowerCase() === val ||
           this.countries[c].name.toLowerCase() === val ||
           c.toLowerCase() === val
       );
@@ -182,6 +198,7 @@ export class EditProfileComponent implements OnInit {
     const filterValue = value.toLowerCase();
     return this.countryCodes.filter(
       (code) =>
+        this.countryNames[code].toLowerCase().includes(filterValue) ||
         this.countries[code].name.toLowerCase().includes(filterValue) ||
         code.toLowerCase().includes(filterValue)
     );
@@ -200,7 +217,7 @@ export class EditProfileComponent implements OnInit {
       this.discordUrl = user.socials?.discord_url ?? "";
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
-        this.countryControl.setValue(this.countries[this.nationalityCode].name);
+        this.countryControl.setValue(this.countryNames[this.nationalityCode]);
       } else {
         this.countryControl.setValue("");
       }

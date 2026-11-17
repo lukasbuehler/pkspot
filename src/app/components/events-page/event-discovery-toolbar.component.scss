@@ -22,3 +22,21 @@
   flex: 0 1 100%;
   min-width: 0;
 }
+
+// With enlarged text the Upcoming/Past labels wrap and hyphenate instead of
+// being cut off. The 20px line plus 10px padding keeps the normal 40px height.
+.mat-button-toggle-group {
+  max-width: 100%;
+}
+
+.mat-button-toggle {
+  min-width: 0;
+}
+
+.mat-button-toggle ::ng-deep .mat-button-toggle-label-content {
+  padding-block: max(0px, calc((var(--mat-button-toggle-height, 40px) - 1.25rem) / 2));
+  line-height: 1.25rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}

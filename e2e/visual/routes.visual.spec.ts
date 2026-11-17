@@ -3301,7 +3301,8 @@ test.describe("UI review capture", () => {
                 await page.waitForTimeout(400);
                 if (await page.locator(".map-preview").count()) break;
               }
-              await page.locator(".map-preview").scrollIntoViewIfNeeded();
+              // The SSR placeholder can linger beside the loaded card for a moment.
+              await page.locator(".map-preview").last().scrollIntoViewIfNeeded();
               loaded = await mapTilesLoaded(page, ".map-preview-frame", 25_000);
             }
             expect(loaded, "event map tiles did not load").toBe(true);

@@ -2,11 +2,14 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { provideRouter } from "@angular/router";
-import { Subject, of } from "rxjs";
+import { Subject } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FollowingSchema } from "../../../db/schemas/UserSchema";
-import { FollowingService } from "../../services/firebase/firestore/following.service";
+import {
+  FollowingService,
+  FollowPage,
+} from "../../services/firebase/firestore/following.service";
 import {
   FollowListComponent,
   FollowListDialogData,
@@ -36,23 +39,19 @@ const createFollowing = (
 describe("FollowListComponent", () => {
   let fixture: ComponentFixture<FollowListComponent>;
   let data: FollowListDialogData;
-  let followers$: Subject<FollowingSchema[]>;
-  let following$: Subject<FollowingSchema[]>;
-  const followingService = {
-    getFollowersOfUser: vi.fn(),
-    getFollowingsOfUser: vi.fn(),
+  let page$: Subject<FollowPage>;
+  const followingService = { getFollowPage: vi.fn() };
+  const followers$ = {
+    next: (users: FollowingSchema[], cursor: unknown = null) =>
+      page$.next({ users, cursor }),
+    complete: () => page$.complete(),
+    error: (error: unknown) => page$.error(error),
   };
 
   const createComponent = (overrides: Partial<FollowListDialogData> = {}) => {
     data = createDialogData(overrides);
-    followers$ = new Subject<FollowingSchema[]>();
-    following$ = new Subject<FollowingSchema[]>();
-    followingService.getFollowersOfUser.mockReturnValue(
-      followers$.asObservable()
-    );
-    followingService.getFollowingsOfUser.mockReturnValue(
-      following$.asObservable()
-    );
+    page$ = new Subject<FollowPage>();
+    followingService.getFollowPage.mockImplementation(() => page$.asObservable());
 
     TestBed.overrideProvider(MAT_DIALOG_DATA, { useValue: data });
     fixture = TestBed.createComponent(FollowListComponent);
@@ -77,9 +76,11 @@ describe("FollowListComponent", () => {
   it("shows the spinner while the first followers page is loading", () => {
     createComponent();
 
-    expect(followingService.getFollowersOfUser).toHaveBeenCalledWith(
+    expect(followingService.getFollowPage).toHaveBeenCalledWith(
       "user-1",
-      20
+      "followers",
+      20,
+      null
     );
     expect(fixture.nativeElement.querySelector("mat-spinner")).toBeTruthy();
     expect(fixture.nativeElement.textContent).not.toContain(
@@ -121,13 +122,40 @@ describe("FollowListComponent", () => {
   });
 
   it("loads the following collection for following dialogs", () => {
-    followingService.getFollowersOfUser.mockReturnValue(of([]));
     createComponent({ type: "following" });
 
-    expect(followingService.getFollowingsOfUser).toHaveBeenCalledWith(
+    expect(followingService.getFollowPage).toHaveBeenCalledWith(
       "user-1",
-      20
+      "following",
+      20,
+      null
     );
+  });
+
+  it("continues after the last loaded entry when loading more", () => {
+    createComponent();
+    followers$.next([createFollowing("follower-1", "Blake")], "cursor-1");
+    fixture.detectChanges();
+
+    page$ = new Subject<FollowPage>();
+    fixture.componentInstance.loadMoreFollowing();
+    expect(followingService.getFollowPage).toHaveBeenLastCalledWith(
+      "user-1",
+      "followers",
+      20,
+      "cursor-1"
+    );
+    followers$.next([
+      createFollowing("follower-1", "Blake"),
+      createFollowing("follower-2", "Casey"),
+    ]);
+    fixture.detectChanges();
+
+    const names = fixture.componentInstance
+      .followUsers()
+      .map((user) => user.display_name);
+    expect(names).toEqual(["Blake", "Casey"]);
+    expect(fixture.componentInstance.hasLoadedAll()).toBe(true);
   });
 
   it("shows a retry instead of an empty list when loading fails", () => {

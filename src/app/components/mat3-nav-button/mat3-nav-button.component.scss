@@ -83,3 +83,10 @@
 .button-container:focus-visible {
   outline: none;
 }
+
+// Five destinations share a phone-wide bar, so enlarged text would cut every
+// label to a few letters. Labels grow up to 14px, like platform tab bars; the
+// icon and the full accessible name stay unchanged.
+.nav-label {
+  font-size: min(1em, 14px);
+}

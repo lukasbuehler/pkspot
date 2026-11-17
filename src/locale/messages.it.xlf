@@ -1224,6 +1224,18 @@
         <target>Apertura del link di Maps...</target>
       </segment>
     </unit>
+    <unit id="selectLanguage.label">
+      <segment state="translated">
+        <source>Language</source>
+        <target>Lingua</target>
+      </segment>
+    </unit>
+    <unit id="selectLanguage.title">
+      <segment state="translated">
+        <source>Select language</source>
+        <target>Seleziona lingua</target>
+      </segment>
+    </unit>
     <unit id="session_planner.form.add_co_host">
       <segment state="initial">
         <source> Add co-host </source>
@@ -3675,6 +3687,18 @@
         <target>Copia link</target>
       </segment>
     </unit>
+    <unit id="share_card.copy_manually">
+      <segment state="translated">
+        <source>Copy this link: <ph id="0" equiv="url" disp="url"/></source>
+        <target>Copia questo link: <ph id="0" equiv="url" disp="url"/></target>
+      </segment>
+    </unit>
+    <unit id="share_card.copy_manually.dismiss">
+      <segment state="translated">
+        <source>OK</source>
+        <target>OK</target>
+      </segment>
+    </unit>
     <unit id="share_card.failed">
       <segment state="initial">
         <source>Couldn&apos;t share the link. Please try again.</source>
@@ -5633,6 +5657,18 @@
       <segment state="translated">
         <source>Analytics</source>
         <target>Statistiche di utilizzo</target>
+      </segment>
+    </unit>
+    <unit id="app.offline.page_unavailable">
+      <segment state="translated">
+        <source>You&apos;re offline. This page opens once you&apos;re connected again.</source>
+        <target>Sei offline. Questa pagina si aprirà appena sarai di nuovo connesso.</target>
+      </segment>
+    </unit>
+    <unit id="app.offline.page_unavailable.dismiss">
+      <segment state="translated">
+        <source>OK</source>
+        <target>OK</target>
       </segment>
     </unit>
     <unit id="app_check_error.body">
@@ -8551,6 +8587,12 @@
       <segment state="initial">
         <source>@yourhandle or full profile URL</source>
         <target>@tuonomeutente o URL completa del profilo</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.nationality.placeholder">
+      <segment state="translated">
+        <source>e.g. Germany</source>
+        <target>ad es. Germania</target>
       </segment>
     </unit>
     <unit id="editProfile.nationalityCode">
@@ -16166,6 +16208,12 @@
         <target>Tipo di Spot</target>
       </segment>
     </unit>
+    <unit id="spotEditor.typeToSearch.placeholder">
+      <segment state="translated">
+        <source>Type to search</source>
+        <target>Digita per cercare</target>
+      </segment>
+    </unit>
     <unit id="spotPersonalStats.allStats">
       <segment state="translated">
         <source>Your stats</source>
@@ -19724,6 +19772,30 @@
         <target>Previsioni non ancora disponibili</target>
       </segment>
     </unit>
+    <unit id="eventEdit.placeholder.badWeather">
+      <segment state="translated">
+        <source>Bad weather</source>
+        <target>Maltempo</target>
+      </segment>
+    </unit>
+    <unit id="eventEdit.placeholder.cityCountry">
+      <segment state="translated">
+        <source>City, Country</source>
+        <target>Città, paese</target>
+      </segment>
+    </unit>
+    <unit id="eventEdit.placeholder.mainStage">
+      <segment state="translated">
+        <source>Main stage</source>
+        <target>Palco principale</target>
+      </segment>
+    </unit>
+    <unit id="eventEdit.placeholder.pathway">
+      <segment state="translated">
+        <source>Swiss pathway</source>
+        <target>Percorso svizzero</target>
+      </segment>
+    </unit>
     <unit id="event_edit.private_audience">
       <segment state="initial">
         <source> Who can open this event? </source>
@@ -21150,6 +21222,12 @@
       <segment state="initial">
         <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </source>
         <target> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </target>
+      </segment>
+    </unit>
+    <unit id="communityLocalityPicker.placeholder">
+      <segment state="translated">
+        <source>Search localities</source>
+        <target>Cerca località</target>
       </segment>
     </unit>
     <unit id="community_event.created">

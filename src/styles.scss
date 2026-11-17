@@ -113,6 +113,18 @@ body {
   color: var(--mat-sys-on-surface);
 }
 
+// A single word longer than the line (German compounds, especially with
+// enlarged text) breaks instead of running off the screen. Words that fit
+// keep wrapping whole.
+h1,
+h2,
+h3,
+.mat-headline-large,
+.mat-headline-medium,
+.mat-headline-small {
+  overflow-wrap: break-word;
+}
+
 html.map-glass-blur-enabled {
   --map-glass-surface: color-mix(
     in srgb,

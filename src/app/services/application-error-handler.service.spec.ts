@@ -2,6 +2,7 @@ import { DOCUMENT } from "@angular/common";
 import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { AnalyticsService } from "./analytics.service";
 import {
   ApplicationErrorHandler,
@@ -23,17 +24,20 @@ function createSessionStorage() {
 function configureHandler(options: {
   platformId?: string;
   sessionStorage?: Storage;
+  offline?: boolean;
 } = {}) {
   const analytics: Pick<AnalyticsService, "reportError"> = {
     reportError: vi.fn(),
   };
   const reload = vi.fn();
+  const snackbar = { open: vi.fn() };
   const setTimeout = vi.fn((callback: () => void) => {
     callback();
     return 1;
   }) as unknown as Window["setTimeout"];
   const fakeWindow = {
     location: { reload },
+    navigator: { onLine: !options.offline },
     sessionStorage: options.sessionStorage ?? createSessionStorage(),
     setTimeout,
   } as unknown as Window;
@@ -45,10 +49,12 @@ function configureHandler(options: {
       { provide: AnalyticsService, useValue: analytics },
       { provide: DOCUMENT, useValue: fakeDocument },
       { provide: PLATFORM_ID, useValue: options.platformId ?? "browser" },
+      { provide: MatSnackBar, useValue: snackbar },
     ],
   });
 
   return {
+    snackbar,
     analytics,
     handler: TestBed.inject(ApplicationErrorHandler),
     reload,
@@ -152,6 +158,24 @@ describe("ApplicationErrorHandler", () => {
 
     expect(setTimeout).toHaveBeenCalledTimes(1);
     expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it("stays on the page and explains when a page part cannot load offline", () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const sessionStorage = createSessionStorage();
+    const { handler, reload, snackbar } = configureHandler({ offline: true, sessionStorage });
+
+    handler.handleError(
+      new TypeError("Failed to fetch dynamically imported module: /de/chunk.js"),
+    );
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(sessionStorage.setItem).not.toHaveBeenCalled();
+    expect(snackbar.open).toHaveBeenCalledWith(
+      "You're offline. This page opens once you're connected again.",
+      "OK",
+      { duration: 8000 },
+    );
   });
 
   it("does not reload for non chunk-load errors", () => {

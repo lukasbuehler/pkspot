@@ -261,102 +261,45 @@ export class FollowingService extends ConsentAwareService {
     }, true);
   }
 
-  getFollowersOfUser(
+  /**
+   * One page of a user's followers or followings, newest first within the
+   * page. Pass the returned cursor to get the next page. Pages follow the
+   * document order because legacy entries have no `start_following` to order
+   * by, so a query ordered by date would leave them out.
+   */
+  getFollowPage(
     userId: string,
-    chunkSize: number = 50
-  ): Observable<FollowingSchema[]> {
-    const fixture = readScreenshotFollows(userId)?.followers;
-    if (fixture) return of(fixture.slice(0, chunkSize));
-    console.log(`Fetching followers for userId: ${userId} (one-time)`);
-    const constraints: QueryConstraintOptions[] = [
-      // { type: "orderBy", fieldPath: "start_following", direction: "desc" }, // Removed to include legacy docs
-      { type: "limit", limit: chunkSize },
-    ];
-    console.log(
-      "DEBUG: getFollowersOfUser constraints",
-      JSON.stringify(constraints)
-    );
+    type: "followers" | "following",
+    chunkSize: number = 50,
+    cursor: FollowPageCursor | null = null
+  ): Observable<FollowPage> {
+    const fixture = readScreenshotFollows(userId)?.[type];
+    if (fixture) {
+      const offset = typeof cursor === "number" ? cursor : 0;
+      const end = offset + chunkSize;
+      return of({
+        users: fixture.slice(offset, end),
+        cursor: end < fixture.length ? end : null,
+      });
+    }
 
-    // Use one-time fetch to avoid Android persistent cache issues
     return from(
-      this._firestoreAdapter.getCollection<FollowingSchema & { id: string }>(
-        `users/${userId}/followers`,
+      this._firestoreAdapter.getCollectionWithMetadata<FollowingSchema>(
+        `users/${userId}/${type}`,
         undefined,
-        constraints
+        [{ type: "limit", limit: chunkSize }],
+        cursor ?? undefined
       )
     ).pipe(
-      map((arr) => {
-        const users = arr.map((d) => {
-          // Debug check for iOS timestamps
-          // if (d.start_following === undefined) console.log('Follower missing timestamp:', JSON.stringify(d));
-          return {
-            ...(d as FollowingSchema),
-            uid: d.id,
-          };
-        });
-        // Client-side sort: Newest first, then those without timestamp
-        // Prioritize raw milliseconds if available (fixes iOS bug)
-        return users.sort((a, b) => {
-          const timeA =
-            a.start_following_raw_ms ??
-            (((a.start_following as any)?.seconds ?? 0) * 1000);
-          const timeB =
-            b.start_following_raw_ms ??
-            (((b.start_following as any)?.seconds ?? 0) * 1000);
-          return timeB - timeA;
-        });
-      })
+      map(({ data, lastDoc }) => ({
+        users: sortNewestFollowFirst(
+          data.map((d) => ({ ...(d as FollowingSchema), uid: d.id }))
+        ),
+        cursor: data.length < chunkSize ? null : (lastDoc as FollowPageCursor),
+      }))
     );
   }
 
-  getFollowingsOfUser(
-    userId: string,
-    chunkSize: number = 50
-  ): Observable<FollowingSchema[]> {
-    const fixture = readScreenshotFollows(userId)?.following;
-    if (fixture) return of(fixture.slice(0, chunkSize));
-    console.log(`Fetching following for userId: ${userId} (one-time)`);
-    const constraints: QueryConstraintOptions[] = [
-      // { type: "orderBy", fieldPath: "start_following", direction: "desc" }, // Removed to include legacy docs
-      { type: "limit", limit: chunkSize },
-    ];
-    console.log(
-      "DEBUG: getFollowingsOfUser constraints",
-      JSON.stringify(constraints)
-    );
-
-    // Use one-time fetch to avoid Android persistent cache issues
-    return from(
-      this._firestoreAdapter.getCollection<FollowingSchema & { id: string }>(
-        `users/${userId}/following`,
-        undefined,
-        constraints
-      )
-    ).pipe(
-      map((arr) => {
-        const users = arr.map((d) => {
-          if (Capacitor.getPlatform() === "ios") {
-            console.log("iOS Following JSON:", JSON.stringify(d));
-          }
-          return {
-            ...(d as FollowingSchema),
-            uid: d.id,
-          };
-        });
-        // Client-side sort: Newest first, then those without timestamp
-        // Prioritize raw milliseconds if available (fixes iOS bug)
-        return users.sort((a, b) => {
-          const timeA =
-            a.start_following_raw_ms ??
-            (((a.start_following as any)?.seconds ?? 0) * 1000);
-          const timeB =
-            b.start_following_raw_ms ??
-            (((b.start_following as any)?.seconds ?? 0) * 1000);
-          return timeB - timeA;
-        });
-      })
-    );
-  }
 
   getFollowRequestsForUser(
     userId: string,
@@ -391,6 +334,23 @@ export class FollowingService extends ConsentAwareService {
       )
     );
   }
+}
+
+/** Opaque position after the last loaded follow entry. */
+export type FollowPageCursor = unknown;
+
+export interface FollowPage {
+  users: FollowingSchema[];
+  /** Null once the last page was loaded. */
+  cursor: FollowPageCursor | null;
+}
+
+/** Newest first; prefers raw milliseconds, which iOS reads reliably. */
+function sortNewestFollowFirst(users: FollowingSchema[]): FollowingSchema[] {
+  const time = (user: FollowingSchema) =>
+    user.start_following_raw_ms ??
+    ((user.start_following as { seconds?: number } | undefined)?.seconds ?? 0) * 1000;
+  return users.sort((a, b) => time(b) - time(a));
 }
 
 interface ScreenshotFollows {

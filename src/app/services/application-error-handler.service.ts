@@ -2,9 +2,11 @@ import { DOCUMENT, isPlatformBrowser } from "@angular/common";
 import {
   ErrorHandler,
   Injectable,
+  Injector,
   PLATFORM_ID,
   inject,
 } from "@angular/core";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { AnalyticsService } from "./analytics.service";
 
 const dynamicImportReloadStorageKey = "pkspot.dynamic-import-reload.v1";
@@ -61,6 +63,7 @@ export class ApplicationErrorHandler implements ErrorHandler {
   private readonly analytics = inject(AnalyticsService);
   private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly injector = inject(Injector);
 
   handleError(error: unknown): void {
     this.analytics.reportError(error, {
@@ -97,6 +100,14 @@ export class ApplicationErrorHandler implements ErrorHandler {
       return;
     }
 
+    // Without a connection the page part cannot load and a reload would only
+    // replace the app with the browser's offline page. Stay on the current
+    // page and say why instead; the next tap after reconnecting loads it.
+    if (view.navigator?.onLine === false) {
+      this.showOfflineNotice();
+      return;
+    }
+
     try {
       if (view.sessionStorage.getItem(dynamicImportReloadStorageKey)) {
         return;
@@ -107,6 +118,18 @@ export class ApplicationErrorHandler implements ErrorHandler {
       view.setTimeout(() => view.location.reload(), 0);
     } catch (error) {
       console.warn("Failed to schedule stale app reload", error);
+    }
+  }
+
+  private showOfflineNotice(): void {
+    try {
+      this.injector.get(MatSnackBar).open(
+        $localize`:@@app.offline.page_unavailable:You're offline. This page opens once you're connected again.`,
+        $localize`:@@app.offline.page_unavailable.dismiss:OK`,
+        { duration: 8000 },
+      );
+    } catch (error) {
+      console.warn("Failed to show the offline notice", error);
     }
   }
 }

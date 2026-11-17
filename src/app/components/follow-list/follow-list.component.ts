@@ -18,8 +18,7 @@ import {
 } from "@angular/material/dialog";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 
-import { Observable, take } from "rxjs";
-import { Timestamp } from "firebase/firestore";
+import { take } from "rxjs";
 import {
   parseFirestoreTimestamp,
 } from "../../../scripts/Helpers";
@@ -39,7 +38,10 @@ import {
   MatRowDef,
   MatRow,
 } from "@angular/material/table";
-import { FollowingService } from "../../services/firebase/firestore/following.service.js";
+import {
+  FollowingService,
+  FollowPageCursor,
+} from "../../services/firebase/firestore/following.service.js";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import {
   FollowingDataSchema,
@@ -135,7 +137,8 @@ export class FollowListComponent implements OnInit {
 
   readonly otherUserFallback = $localize`:@@follow_list.other_user_fallback:This user`;
 
-  lastLoadedFollowing: Timestamp | null = null;
+  /** Where the next page starts; null before the first page and after the last. */
+  private _cursor: FollowPageCursor | null = null;
   private _isFirstLoad = true;
   private readonly _chunkSize = 20;
 
@@ -169,56 +172,36 @@ export class FollowListComponent implements OnInit {
     this.isLoading.set(true);
     this.loadFailed.set(false);
 
-    let obs: Observable<FollowingSchema[]>;
-    if (this.data.type === "followers") {
-      obs = this._followingService.getFollowersOfUser(
-        this.data.userId,
-        this._chunkSize
-      );
-    } else {
-      obs = this._followingService.getFollowingsOfUser(
-        this.data.userId,
-        this._chunkSize
-      );
-    }
+    this._followingService
+      .getFollowPage(this.data.userId, this.data.type, this._chunkSize, this._cursor)
+      .pipe(take(1))
+      .subscribe({
+        next: ({ users, cursor }) => {
+          this.isLoading.set(false);
+          this.hasLoadedFirstPage.set(true);
+          const page = this._processFollowUsers(users);
 
-    obs.pipe(take(1)).subscribe({
-      next: (followings) => {
-        this.isLoading.set(false);
-        this.hasLoadedFirstPage.set(true);
-        console.log(`Loaded ${followings.length} items for ${this.data.type}`);
-        if (followings.length === 0 && this._isFirstLoad) {
-          console.warn(
-            `Warning: First load returned 0 items for ${this.data.type}. Check database count vs collection content.`
-          );
-        }
+          if (this._isFirstLoad) {
+            this.followUsers.set(page);
+            this._isFirstLoad = false;
+          } else {
+            // Entries handed in by the profile page may reappear in a page.
+            this.followUsers.update((existing) => {
+              const known = new Set(existing.map((user) => user.uid));
+              return existing.concat(page.filter((user) => !known.has(user.uid)));
+            });
+          }
 
-        const processedFollowings = this._processFollowUsers(followings);
-
-        if (this._isFirstLoad) {
-          this.followUsers.set(processedFollowings);
-          this._isFirstLoad = false;
-        } else {
-          this.followUsers.update((existing) =>
-            existing.concat(processedFollowings)
-          );
-        }
-
-        if (followings.length < this._chunkSize) {
-          this.lastLoadedFollowing = null;
-          this.hasLoadedAll.set(true);
-        } else {
-          this.lastLoadedFollowing =
-            followings[followings.length - 1].start_following ?? null;
-        }
-      },
-      error: (err: unknown) => {
-        console.error("Error loading follow list:", err);
-        this.isLoading.set(false);
-        this.hasLoadedFirstPage.set(true);
-        this.loadFailed.set(true);
-      },
-    });
+          this._cursor = cursor;
+          this.hasLoadedAll.set(cursor === null);
+        },
+        error: (err: unknown) => {
+          console.error("Error loading follow list:", err);
+          this.isLoading.set(false);
+          this.hasLoadedFirstPage.set(true);
+          this.loadFailed.set(true);
+        },
+      });
   }
 
   private _processFollowUsers(users: FollowingSchema[]): FollowListUser[] {

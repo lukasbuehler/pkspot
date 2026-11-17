@@ -2977,6 +2977,16 @@
         <source>Analytics</source>
       </segment>
     </unit>
+    <unit id="app.offline.page_unavailable">
+      <segment>
+        <source>You&apos;re offline. This page opens once you&apos;re connected again.</source>
+      </segment>
+    </unit>
+    <unit id="app.offline.page_unavailable.dismiss">
+      <segment>
+        <source>OK</source>
+      </segment>
+    </unit>
     <unit id="app_check_error.body">
       <segment>
         <source> PK Spot could not verify this app installation. Some data and actions may not work until verification succeeds. </source>
@@ -3205,6 +3215,11 @@
     <unit id="editProfile.instagram.placeholder">
       <segment>
         <source>@yourhandle or full profile URL</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.nationality.placeholder">
+      <segment>
+        <source>e.g. Germany</source>
       </segment>
     </unit>
     <unit id="editProfile.nationalityCode">
@@ -6879,6 +6894,26 @@
         <source>Forecast not available yet</source>
       </segment>
     </unit>
+    <unit id="eventEdit.placeholder.badWeather">
+      <segment>
+        <source>Bad weather</source>
+      </segment>
+    </unit>
+    <unit id="eventEdit.placeholder.cityCountry">
+      <segment>
+        <source>City, Country</source>
+      </segment>
+    </unit>
+    <unit id="eventEdit.placeholder.mainStage">
+      <segment>
+        <source>Main stage</source>
+      </segment>
+    </unit>
+    <unit id="eventEdit.placeholder.pathway">
+      <segment>
+        <source>Swiss pathway</source>
+      </segment>
+    </unit>
     <unit id="events.area_filter_area">
       <segment>
         <source>Area</source>
@@ -9152,6 +9187,16 @@
     <unit id="searchField.openingMapsLink">
       <segment>
         <source>Opening Maps link...</source>
+      </segment>
+    </unit>
+    <unit id="selectLanguage.label">
+      <segment>
+        <source>Language</source>
+      </segment>
+    </unit>
+    <unit id="selectLanguage.title">
+      <segment>
+        <source>Select language</source>
       </segment>
     </unit>
     <unit id="session_planner.form.add_co_host">
@@ -11847,6 +11892,16 @@
         <source>Copy link</source>
       </segment>
     </unit>
+    <unit id="share_card.copy_manually">
+      <segment>
+        <source>Copy this link: <ph id="0" equiv="url" disp="url"/></source>
+      </segment>
+    </unit>
+    <unit id="share_card.copy_manually.dismiss">
+      <segment>
+        <source>OK</source>
+      </segment>
+    </unit>
     <unit id="share_card.failed">
       <segment>
         <source>Couldn&apos;t share the link. Please try again.</source>
@@ -12653,6 +12708,11 @@
     <unit id="spot_type_label">
       <segment>
         <source>Spot Type</source>
+      </segment>
+    </unit>
+    <unit id="spotEditor.typeToSearch.placeholder">
+      <segment>
+        <source>Type to search</source>
       </segment>
     </unit>
     <unit id="spotPersonalStats.allStats">
@@ -17700,6 +17760,11 @@
     <unit id="community_links.spot_heading">
       <segment>
         <source> <ph id="0" equiv="ICU" disp="{links().length, plural, =1 {Community} other {Communities}}" subFlows="3977243832602167967"/> </source>
+      </segment>
+    </unit>
+    <unit id="communityLocalityPicker.placeholder">
+      <segment>
+        <source>Search localities</source>
       </segment>
     </unit>
     <unit id="community_event.created">

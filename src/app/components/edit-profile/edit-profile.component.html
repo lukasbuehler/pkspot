@@ -152,13 +152,14 @@
       appAutoScrollOnFocus
       type="text"
       placeholder="e.g. Germany"
+      i18n-placeholder="@@editProfile.nationality.placeholder"
       [formControl]="countryControl"
       [matAutocomplete]="auto"
     />
     <mat-autocomplete #auto="matAutocomplete">
       @for (code of filteredCountries | async; track code) {
-      <mat-option [value]="countries[code].name">
-        <span>{{ countries[code].emoji }} {{ countries[code].name }}</span>
+      <mat-option [value]="countryNames[code]">
+        <span>{{ countries[code].emoji }} {{ countryNames[code] }}</span>
       </mat-option>
       }
     </mat-autocomplete>
