@@ -25,6 +25,7 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatSelectModule } from "@angular/material/select";
+import { MatInputModule } from "@angular/material/input";
 import { MatExpansionModule } from "@angular/material/expansion";
 import {
   MatDialog,
@@ -64,7 +65,10 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
-import type { CommunityMergeLocalityOptionSchema } from "../../../db/schemas/CommunityMergeAdminSchema";
+import type {
+  CommunityMergeLocalityOptionSchema,
+  CommunityRegionOverrideAdminSchema,
+} from "../../../db/schemas/CommunityMergeAdminSchema";
 import { CommunityLocalityPickerComponent } from "../community-locality-picker/community-locality-picker.component";
 import {
   CommunityLocalityMergeConfirmDialogComponent,
@@ -102,6 +106,9 @@ interface CommunityInfoCardView {
   priority: number;
 }
 
+/** Suggested radius before an admin has saved one for a community. */
+const DEFAULT_REGION_OVERRIDE_RADIUS_KM = 30;
+
 @Component({
   selector: "app-community-landing-page",
   imports: [
@@ -117,6 +124,7 @@ interface CommunityInfoCardView {
     MatTooltipModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatInputModule,
     MatExpansionModule,
     MatDialogModule,
     RouterLink,
@@ -230,6 +238,53 @@ export class CommunityLandingPageComponent {
       ) ?? null,
   );
   private _localityMergeStateTargetKey = "";
+  regionOverride = signal<CommunityRegionOverrideAdminSchema | null>(null);
+  /** Radius typed by the admin; null while the field is empty or invalid. */
+  regionOverrideRadiusKm = signal<number | null>(null);
+  isSavingRegionOverride = signal(false);
+  canSaveRegionOverride = computed(() => {
+    const state = this.regionOverride();
+    const radiusKm = this.regionOverrideRadiusKm();
+    return (
+      !!state &&
+      radiusKm !== null &&
+      radiusKm >= state.minRadiusKm &&
+      radiusKm <= state.maxRadiusKm &&
+      radiusKm !== state.radiusKm
+    );
+  });
+  /** What the typed radius would include, computed from the server's list. */
+  regionOverridePreview = computed(() => {
+    const state = this.regionOverride();
+    const radiusKm = this.regionOverrideRadiusKm();
+    if (!state || radiusKm === null) {
+      return null;
+    }
+    const inside = state.localities.filter(
+      (locality) => locality.distanceKm <= radiusKm,
+    );
+    const joining = inside.filter((locality) => locality.status === "available");
+    const outside = state.localities.filter(
+      (locality) =>
+        locality.distanceKm > radiusKm && locality.status === "available",
+    );
+    return {
+      radiusKm,
+      joiningLocalityCount: joining.length,
+      joiningSpotCount: joining.reduce(
+        (total, locality) => total + locality.spotCount,
+        0,
+      ),
+      outsideSpotCount: outside.reduce(
+        (total, locality) => total + locality.spotCount,
+        0,
+      ),
+      keepPageNames: inside
+        .filter((locality) => locality.status === "has_page")
+        .map((locality) => locality.displayName)
+        .join(", "),
+    };
+  });
   private _communityKnowledgeDialogTemplate =
     viewChild<TemplateRef<unknown>>("communityKnowledgeDialog");
   private _communityKnowledgeDialogRef: MatDialogRef<unknown> | null = null;
@@ -807,6 +862,10 @@ export class CommunityLandingPageComponent {
       this._localityMergeStateTargetKey = data.communityKey;
       this.localityMergeCandidates.set(state.candidates);
       this.mergedUnpublishedLocalities.set(state.mergedLocalities);
+      this.regionOverride.set(state.regionOverride ?? null);
+      this.regionOverrideRadiusKm.set(
+        state.regionOverride?.radiusKm ?? DEFAULT_REGION_OVERRIDE_RADIUS_KM,
+      );
       if (
         !state.candidates.some(
           (candidate) =>
@@ -914,6 +973,86 @@ export class CommunityLandingPageComponent {
       );
     } finally {
       this.isSavingLocalityMerge.set(false);
+    }
+  }
+
+  setRegionOverrideRadius(event: globalThis.Event): void {
+    const value = (event.target as HTMLInputElement | null)?.valueAsNumber;
+    this.regionOverrideRadiusKm.set(
+      typeof value === "number" && Number.isFinite(value) ? value : null,
+    );
+  }
+
+  async saveRegionOverride(): Promise<void> {
+    const data = this.communityData();
+    const radiusKm = this.regionOverrideRadiusKm();
+    if (
+      !data ||
+      radiusKm === null ||
+      !this.canSaveRegionOverride() ||
+      this.isSavingRegionOverride()
+    ) {
+      return;
+    }
+    await this._runRegionOverrideAction(data, "save", () =>
+      this._landingPagesService.setCommunityRegionOverride(
+        data.communityKey,
+        radiusKm,
+      ),
+    );
+  }
+
+  async removeRegionOverride(): Promise<void> {
+    const data = this.communityData();
+    if (!data || this.isSavingRegionOverride()) {
+      return;
+    }
+    await this._runRegionOverrideAction(data, "remove", () =>
+      this._landingPagesService.removeCommunityRegionOverride(
+        data.communityKey,
+      ),
+    );
+  }
+
+  private async _runRegionOverrideAction(
+    data: CommunityPanelData,
+    action: "save" | "remove",
+    run: () => Promise<{
+      addedLocalityCount: number;
+      removedLocalityCount: number;
+    }>,
+  ): Promise<void> {
+    if (!this.canEditKnowledge()) {
+      return;
+    }
+    this.isSavingRegionOverride.set(true);
+    try {
+      const result = await run();
+      await Promise.all([
+        this.loadLocalityMergeAdminState(true),
+        this._refreshCommunityPage(data),
+      ]);
+      this._snackbar.open(
+        `${data.displayName}: ${result.addedLocalityCount} localities added, ${result.removedLocalityCount} released`,
+        undefined,
+        { duration: 5000 },
+      );
+    } catch (error) {
+      this.featureTelemetry.failure(
+        "community-landing-page",
+        "_runRegionOverrideAction",
+        error,
+      );
+      console.error(`Failed to ${action} community region override`, error);
+      this._snackbar.open(
+        action === "save"
+          ? "Failed to save the region radius"
+          : "Failed to remove the region radius",
+        undefined,
+        { duration: 5000 },
+      );
+    } finally {
+      this.isSavingRegionOverride.set(false);
     }
   }
 

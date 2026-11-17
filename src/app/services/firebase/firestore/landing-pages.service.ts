@@ -17,8 +17,11 @@ import { CommunitySlugSchema } from "../../../../db/schemas/CommunitySlugSchema"
 import type {
   CommunityMergeActionResponse,
   CommunityMergeAdminStateSchema,
+  CommunityRegionOverrideActionResponse,
   GetCommunityMergeAdminStateRequest,
   MergeUnpublishedLocalityRequest,
+  RemoveCommunityRegionOverrideRequest,
+  SetCommunityRegionOverrideRequest,
   UnmergeUnpublishedLocalityRequest,
 } from "../../../../db/schemas/CommunityMergeAdminSchema";
 import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
@@ -331,6 +334,29 @@ export class LandingPagesService {
       UnmergeUnpublishedLocalityRequest,
       CommunityMergeActionResponse
     >("unmergeUnpublishedLocality", { sourceCommunityKey, targetCommunityKey });
+  }
+
+  /**
+   * Makes a locality community absorb every locality of its region whose
+   * spots centre within `radiusKm`. Admin only; the server rebuilds pages.
+   */
+  setCommunityRegionOverride(
+    targetCommunityKey: string,
+    radiusKm: number,
+  ): Promise<CommunityRegionOverrideActionResponse> {
+    return this._functionsAdapter.call<
+      SetCommunityRegionOverrideRequest,
+      CommunityRegionOverrideActionResponse
+    >("setCommunityRegionOverride", { targetCommunityKey, radiusKm });
+  }
+
+  removeCommunityRegionOverride(
+    targetCommunityKey: string,
+  ): Promise<CommunityRegionOverrideActionResponse> {
+    return this._functionsAdapter.call<
+      RemoveCommunityRegionOverrideRequest,
+      CommunityRegionOverrideActionResponse
+    >("removeCommunityRegionOverride", { targetCommunityKey });
   }
 
   private _normalizeCommunityPath(path: string): string {

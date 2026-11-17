@@ -358,7 +358,9 @@ remain listed in the complete inventory below.
 4. When needed, it performs nine z16 neighboring-tile queries, filters candidates
    to 5 metres, and stores `duplicate_check`.
 5. It rebuilds every community candidate derived from the Spot's before/after
-   address/landing state.
+   address/landing state. First, if a `community_region_overrides` radius in
+   the Spot's region covers it and its locality has no merge or published page,
+   it absorbs that locality as a `region_override` merge (see below).
 6. It writes the Spot only when a derived value changed, preventing an infinite
    self-trigger loop.
 
@@ -540,8 +542,29 @@ N_spots R
 + 1 trigger status write
 ```
 
+Before rebuilding, the manual trigger reconciles region override merges, which
+adds two country Spot queries per country with an override.
+
 This is not a cheap per-request operation. It is a maintenance job and should be
 run with the production checklist and logs open.
+
+### Community region overrides
+
+`community_region_overrides/{targetKey}` (server-only) stores a country, a
+first-level region, a fixed centre, and `radius_km` for one locality community.
+Every locality of that region whose Spot centre lies within the radius, and
+that has no explicit merge and no published page of its own, is stored as an
+ordinary `community_merges` record with `source_origin: "region_override"` and a
+redirect placeholder page. All merge readers therefore work unchanged. The
+nearest centre wins where radii overlap, and override targets are never
+absorbed. The country check means an override never crosses a border.
+
+- Saving or removing an override reconciles its country (two country Spot
+  queries, page reads per locality, and one merge write batch per added or
+  released locality), then runs the full rebuild.
+- Spot writes and import completion only add localities. A Spot write reads the
+  overrides of its country (one query) and runs the country reconcile only when
+  its unmerged locality falls inside a radius.
 
 ### Import completion and provenance
 
@@ -1055,6 +1078,8 @@ Source: [`eventRegistrationFunctions.ts`](functions/src/eventRegistrationFunctio
 | `getCommunityMergeAdminState` | admin callable | Reads target/source pages, Spot groups, aliases, and merge state to preview choices. |
 | `mergeUnpublishedLocality` | admin callable | Validates pages/groups, writes merge/redirect/aliases/authored-card changes, then rebuilds. |
 | `unmergeUnpublishedLocality` | admin callable | Reads merge/source aliases, restores source and aliases, removes merge, then rebuilds affected state. |
+| `setCommunityRegionOverride` | admin callable | Writes `community_region_overrides/{targetKey}`, reconciles `region_override` merges for its country, then runs the full rebuild. |
+| `removeCommunityRegionOverride` | admin callable | Deletes the override, releases its `region_override` merges and placeholders, then runs the full rebuild. |
 | `saveCommunityKnowledge` | authenticated callable | Creates or updates a community knowledge edit; approved path can update public/private card data. |
 | `reviewCommunityEdit` | admin/reviewer callable | Reads edit/community authority and writes decision plus public/private community content. |
 
