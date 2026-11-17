@@ -1862,6 +1862,18 @@
         <target>spots</target>
       </segment>
     </unit>
+    <unit id="map.side_panel.hide">
+      <segment state="translated">
+        <source>Hide side panel</source>
+        <target>Zijpaneel verbergen</target>
+      </segment>
+    </unit>
+    <unit id="map.side_panel.show">
+      <segment state="translated">
+        <source>Show side panel</source>
+        <target>Zijpaneel tonen</target>
+      </segment>
+    </unit>
     <unit id="map.spot_loading_fallback">
       <segment state="initial">
         <source>Spot</source>

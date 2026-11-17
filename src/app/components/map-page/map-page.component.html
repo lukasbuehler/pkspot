@@ -459,6 +459,8 @@
             mat-icon-button
             (click)="toggleSidenav()"
             class="sidenav-toggle__button d-flex border justify-content-center align-items-center p-0"
+            [attr.aria-label]="sidenavOpen() ? hideSidePanelLabel : showSidePanelLabel"
+            [attr.aria-expanded]="sidenavOpen()"
           >
             @if (sidenavOpen()) {
               <mat-icon>chevron_left</mat-icon>

@@ -775,6 +775,8 @@ export class MapPageComponent
   );
   /** The Spot list loads separately and later, unless the area has no Spots. */
   readonly mapSpotListReady = computed(() => this._isMapSpotListReady());
+  readonly hideSidePanelLabel = $localize`:@@map.side_panel.hide:Hide side panel`;
+  readonly showSidePanelLabel = $localize`:@@map.side_panel.show:Show side panel`;
   mapObjectMode = signal<MapObjectMode>("all");
   /**
    * Type chips double as counters for the visible area. "Everything" has no

@@ -176,6 +176,10 @@ export class UsersService extends ConsentAwareService {
 
   async getAccessibleUserProfile(userId: string): Promise<User | null> {
     if (!userId) return null;
+    // Same per-user screenshot fixture as getUserById.
+    const screenshotProfile = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_USER_PROFILES__?.[userId];
+    if (screenshotProfile) return new User(userId, screenshotProfile);
 
     try {
       const profile = await this.executeWhenConsent(() =>

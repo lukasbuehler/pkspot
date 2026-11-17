@@ -8062,6 +8062,16 @@
         <source>spots</source>
       </segment>
     </unit>
+    <unit id="map.side_panel.hide">
+      <segment>
+        <source>Hide side panel</source>
+      </segment>
+    </unit>
+    <unit id="map.side_panel.show">
+      <segment>
+        <source>Show side panel</source>
+      </segment>
+    </unit>
     <unit id="map.spot_loading_fallback">
       <segment>
         <source>Spot</source>
