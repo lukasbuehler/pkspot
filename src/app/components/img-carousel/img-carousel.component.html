@@ -32,7 +32,7 @@
                 type="button"
                 mat-icon-button
                 class="video-mute-button"
-                [attr.aria-label]="videoMuted() ? 'Unmute video' : 'Mute video'"
+                [attr.aria-label]="videoMuted() ? unmuteVideoLabel : muteVideoLabel"
                 (click)="togglePreviewVideoMuted($event)"
               >
                 <mat-icon>{{
@@ -44,7 +44,7 @@
             ) {
               <img
                 [ngSrc]="getImageSrc($index, mediaObj)"
-                [alt]="imageDescription()"
+                [alt]="imageAlts()[$index] ?? imageDescription()"
                 fill
                 [priority]="$index === 0"
                 [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
@@ -180,7 +180,7 @@
         [style.aspect-ratio]="trailingPhotoAspectRatio"
       >
         <div class="spot-img-frame">
-          <img [src]="photo.src" [alt]="imageDescription()" />
+          <img [src]="photo.src" [alt]="trailingPhotoAlt()" />
         </div>
         @if (photo.attribution) {
           <span class="trailing-photo-attribution" [title]="photo.attribution">

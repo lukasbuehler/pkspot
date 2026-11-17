@@ -33,7 +33,7 @@
           }
         </ng-template>
         <form class="pt-3 px-3" [formGroup]="uploadFormGroup!">
-          <h3 class="mat-h3">Please select a KML file.</h3>
+          <h3 class="mat-title-medium">Please select a KML file.</h3>
           @if(uploadAccessMessage(); as uploadAccessMessage) {
           <p class="mat-body-small text-danger mb-2">
             {{ uploadAccessMessage }}

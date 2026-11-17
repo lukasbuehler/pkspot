@@ -204,4 +204,15 @@ describe("NotificationSettingsComponent", () => {
     });
     expect(component.allCommunitySpotsEnabled()).toBe(true);
   });
+
+  it("toggles a preference from its row title, not only the checkbox", async () => {
+    const title: HTMLElement = fixture.nativeElement.querySelector(
+      ".preference-row__toggle h4",
+    );
+    title.click();
+    await fixture.whenStable();
+
+    expect(setPreferences).toHaveBeenCalledTimes(1);
+    expect(setPreferences.mock.calls[0][1]).toBe(true);
+  });
 });

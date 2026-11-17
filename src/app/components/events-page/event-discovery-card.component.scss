@@ -36,6 +36,14 @@
   height: 200px;
 }
 
+// In a grid every cover has the same height, so titles line up across a row.
+// Phones list one card per row, so there the date-only fallback is shorter.
+@media (max-width: 599.98px) {
+  .image-wrap.is-fallback {
+    height: 120px;
+  }
+}
+
 .banner-frame {
   position: absolute;
   inset: 0;

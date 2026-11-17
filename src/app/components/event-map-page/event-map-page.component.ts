@@ -46,6 +46,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatDialog } from "@angular/material/dialog";
 import { MapsApiService } from "../../services/maps-api.service";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -133,6 +134,7 @@ type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
 @Component({
   selector: "app-event-map-page",
   imports: [
+    MatProgressSpinnerModule,
     NgTemplateOutlet,
     SpotListComponent,
     MatButtonModule,
@@ -256,10 +258,18 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   sidenavOpen = signal<boolean>(false);
   tab = signal<EventMapTab>("all");
+  readonly selectedTabChip = computed(() =>
+    this.tab() === "all" ? "" : this.tab(),
+  );
+  readonly objectTypeLabel = $localize`:@@map.object_type_label:Show on the map`;
+  readonly eventMarkerFallbackName = $localize`:@@event_map.marker_fallback_name:Event marker`;
   private _hasInitializedResponsiveSidenav = false;
   private _userToggledSidenav = false;
 
-  /** Object filters mirror the main map's shared chip bar and include counts. */
+  /**
+   * Object filters mirror the main map's shared chip bar and include counts.
+   * The overview ("all") is the state with no chip selected.
+   */
   readonly mapObjectFilterChips = computed<readonly PresetFilterChip[]>(() => {
     const spotCount = this.spots().length;
     const eventMarkerCount = this.customMarkers().length;
@@ -269,16 +279,13 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     ).length;
     const filters: PresetFilterChip[] = [
       {
-        urlParam: "all",
-        label: $localize`:@@map_objects_all_chip_label:All`,
-      },
-      {
         urlParam: "spots",
-        label: `${spotCount} ${this._pluralizeCount(
+        count: spotCount,
+        label: this._pluralizeCount(
           spotCount,
           $localize`:@@map_objects_spot_singular:Spot`,
           $localize`:@@map_objects_spot_plural:Spots`,
-        )}`,
+        ),
       },
       ...(programCount > 0
         ? [
@@ -290,22 +297,24 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         : []),
       {
         urlParam: "event",
-        label: `${eventMarkerCount} ${this._pluralizeCount(
+        count: eventMarkerCount,
+        label: this._pluralizeCount(
           eventMarkerCount,
           $localize`:@@map_objects_event_singular:Event`,
           $localize`:@@map_objects_event_plural:Events`,
-        )}`,
+        ),
       },
     ];
 
     if (challengeCount > 0) {
       filters.push({
         urlParam: "challenges",
-        label: `${challengeCount} ${this._pluralizeCount(
+        count: challengeCount,
+        label: this._pluralizeCount(
           challengeCount,
           $localize`:@@event_map_page.challenge_singular:Challenge`,
           $localize`:@@event_map_page.challenge_plural:Challenges`,
-        )}`,
+        ),
       });
     }
 
@@ -838,6 +847,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     this.visibleMapBounds.set(bounds.toJSON());
   }
 
+  /** The map reports bounds once it is drawn; until then a spinner shows. */
+  readonly mapReady = computed(() => this.visibleMapBounds() !== null);
+  readonly mapLoadingLabel = $localize`:@@event_map.loading:Loading map`;
+
   private async _loadEventFromRoute(paramMap: ParamMap) {
     const slug =
       paramMap.get("slug") ?? paramMap.get("eventID") ?? "";
@@ -1234,6 +1247,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   selectTab(tab: string): void {
+    // Deselecting a chip returns to the overview.
+    tab ||= "all";
     if (
       tab === "all" ||
       tab === "event" ||

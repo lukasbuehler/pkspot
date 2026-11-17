@@ -1,0 +1,14 @@
+<h2 mat-dialog-title i18n="@@discard_changes.title">Discard changes?</h2>
+<mat-dialog-content>
+  <p class="m-0" i18n="@@discard_changes.body">
+    Your edits have not been saved. If you leave now, they are lost.
+  </p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false" i18n="@@discard_changes.keep">
+    Keep editing
+  </button>
+  <button mat-flat-button [mat-dialog-close]="true" i18n="@@discard_changes.discard">
+    Discard
+  </button>
+</mat-dialog-actions>

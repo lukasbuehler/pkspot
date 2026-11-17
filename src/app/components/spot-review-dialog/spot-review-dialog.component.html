@@ -10,8 +10,9 @@
       (mouseover)="hoverRating = star; isHovering = true"
       (mouseleave)="hoverRating = review.rating; isHovering = false"
       (click)="review.rating = star; hoverRating = star"
-      color="accent"
-      locale
+      color="primary"
+      [attr.aria-label]="starLabels[star - 1]"
+      [attr.aria-pressed]="review.rating === star"
       style="width: 64px; height: 64px"
     >
       <mat-icon
@@ -30,7 +31,8 @@
   <button
     mat-flat-button
     [mat-dialog-close]="review"
-    color="accent"
+    color="primary"
+    [disabled]="!review.rating"
     cdkFocusInitial
     (click)="submitReview()"
   >

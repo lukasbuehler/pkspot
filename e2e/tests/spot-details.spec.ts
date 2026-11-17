@@ -26,7 +26,7 @@ test.describe("Spot Details", () => {
       /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
     );
     await expect(details).toContainText(
-      /Rating and user reviews|Bewertung und user Rezensionen/u,
+      /Rating and user reviews|Bewertungen und Rezensionen/u,
     );
     await expect(details).toContainText(/24 reviews|24 Bewertungen/u);
     await expect(details).toContainText(

@@ -30,6 +30,39 @@ html {
   /* Keep document scrolling on the platform root while clipping only accidental overflow. */
   min-height: 100%;
   overflow-x: clip;
+
+  /* Material fills selected toggles with the green secondary container. Green is
+     the sparing live/active accent, so toggle selections use the blue highlight. */
+  /* Expansion headers grow with their text instead of clipping it. */
+  @include mat.expansion-overrides((
+    header-collapsed-state-height: auto,
+    header-expanded-state-height: auto,
+  ));
+
+  @include mat.button-toggle-overrides((
+    selected-state-background-color: var(--mat-sys-primary-container),
+    selected-state-text-color: var(--mat-sys-on-primary-container),
+  ));
+
+  // Tonal buttons default to the secondary container, which is green in this
+  // theme; green is reserved for live things, so tonal actions use blue.
+  @include mat.button-overrides((
+    tonal-container-color: var(--mat-sys-primary-container),
+    tonal-label-text-color: var(--mat-sys-on-primary-container),
+    tonal-state-layer-color: var(--mat-sys-on-primary-container),
+    tonal-ripple-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent),
+  ));
+
+  // Selected chips use the same blue highlight as selected toggles.
+  @include mat.chips-overrides((
+    elevated-selected-container-color: var(--mat-sys-primary-container),
+    selected-label-text-color: var(--mat-sys-on-primary-container),
+    selected-trailing-icon-color: var(--mat-sys-on-primary-container),
+    with-icon-selected-icon-color: var(--mat-sys-on-primary-container),
+    selected-focus-state-layer-color: var(--mat-sys-on-primary-container),
+    selected-hover-state-layer-color: var(--mat-sys-on-primary-container),
+    selected-trailing-action-state-layer-color: var(--mat-sys-on-primary-container),
+  ));
 }
 
 body {
@@ -62,6 +95,12 @@ body {
   --app-card-outline-color: var(--mat-sys-outline-variant);
   --app-card-radius: 18px;
   --app-card-background: var(--mat-sys-surface-container-low);
+  // Status notices (load errors, blocked permissions) sit on the neutral card
+  // surface. Their role colour is limited to the icon tile so a failure stays
+  // noticeable without a filled red or blue box dominating the page.
+  --app-notice-background: var(--mat-sys-surface-container-low);
+  --app-notice-outline: var(--mat-sys-outline-variant);
+  --app-notice-text: var(--mat-sys-on-surface);
 }
 
 // Shared treatment for card-like surfaces that are not Angular Material cards.
@@ -139,6 +178,19 @@ html.native-platform.platform-ios:not(.running-on-macos-or-ipad) {
   z-index: 10;
 }
 
+// A page with a floating action reserves room for it at the end of the
+// document, so the last card is never hidden underneath.
+app-root:has(.app-page-fab) {
+  --page-fab-clearance: 5.5rem;
+}
+
+// Fields focused or scrolled to by the browser stop above the floating action
+// instead of underneath it, whichever element is the page's scroller.
+html:has(.app-page-fab),
+html:has(.app-page-fab) .main-content {
+  scroll-padding-block-end: calc(var(--page-fab-clearance, 5.5rem) + 1.5rem);
+}
+
 // Material's FAB base style sets `position: relative`; retain the reusable
 // page-level placement when the class is applied directly to a Material FAB.
 .app-page-fab.mat-mdc-fab {
@@ -190,6 +242,10 @@ body:has(#alainMenuButton) {
   @include mat.chips-color(theme.$dark-theme, $color-variant: primary);
 }
 
+// Keyboard focus shows a clear outline on every Material control, in the blue
+// highlight colour (the default would use green, which means "live").
+@include mat.strong-focus-indicators((border-color: var(--mat-sys-primary)));
+
 .secondary-chips {
   @include mat.chips-color(theme.$dark-theme, $color-variant: secondary);
 }
@@ -211,6 +267,50 @@ body:has(#alainMenuButton) {
 
 .mdc-button mat-icon {
   flex-shrink: 0;
+}
+
+// In a flex row, let neighbouring text wrap before a button label is cut off.
+// The ellipsis above remains the fallback for a button wider than its container.
+.mat-mdc-button-base {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+// Expansion headers: keep the default 48px rhythm, and move the description
+// below the title when both no longer fit on one line.
+.mat-expansion-panel .mat-expansion-panel-header {
+  padding-block: 12px;
+}
+
+:where(.mat-expansion-panel-header) {
+  min-height: 48px;
+}
+
+:where(.mat-expansion-panel-header) .mat-content {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.mat-expansion-panel-header .mat-expansion-panel-header-title {
+  flex-basis: auto;
+}
+
+.mat-expansion-panel-header .mat-expansion-panel-header-description {
+  flex-basis: 12rem;
+  margin-inline: 0 16px;
+}
+
+// Opt-in for long text buttons that should wrap onto more lines instead.
+.mat-mdc-button-base.wrap-label {
+  height: auto;
+  min-height: var(--mat-button-text-container-height, 40px);
+  padding-block: 8px;
+
+  .mdc-button__label,
+  .mdc-button__label span {
+    white-space: normal;
+    text-align: center;
+  }
 }
 
 .cdk-overlay-pane.mat-mdc-dialog-panel {
@@ -302,6 +402,17 @@ body:has(#alainMenuButton) {
   margin-bottom: calc(
     var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) +
       var(--keyboard-offset, 0px)
+  );
+}
+
+// Snackbars live in the overlay container outside app-root, so they cannot read
+// its navigation variables. With the floating bottom navigation they sit above
+// it instead of covering it (same clearance as app-root's).
+body:has(app-root.has-floating-bottom-navigation) .mat-mdc-snack-bar-container {
+  margin-bottom: calc(
+    76px +
+      max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) +
+      var(--terms-footer-offset, 0px) + 8px + var(--keyboard-offset, 0px)
   );
 }
 
@@ -505,4 +616,40 @@ app-notification-settings {
   .my-events-safe-dialog {
     max-width: min(760px, 100%) !important;
   }
+}
+
+// Auth pages (sign-in, sign-up, forgot password) share one card surface so the
+// flow looks like one place.
+.auth-page-narrow {
+  --keyboard-padding-base: 32px;
+
+  max-width: 520px;
+  margin: 0 auto;
+  padding: max(48px, var(--alain-menu-block-start-clearance, 48px)) 16px 32px;
+}
+
+.auth-card {
+  padding: 1.5rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 24px;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.auth-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.5rem;
+  margin: 1.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
 }

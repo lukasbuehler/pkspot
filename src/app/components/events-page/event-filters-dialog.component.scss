@@ -1,0 +1,13 @@
+.filter-sections {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.filter-section h3 {
+  margin: 0 0 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.series-logo {
+  object-fit: contain;
+}

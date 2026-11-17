@@ -35,4 +35,17 @@ describe("TrainingActivityContributionGraphComponent", () => {
     expect(element.querySelectorAll(".week").length).toBeGreaterThanOrEqual(27);
     expect(element.querySelector("header")).not.toBeNull();
   });
+
+  it("names each week with its training days for screen readers", () => {
+    const today = dateKey(Date.now());
+    const element = render({
+      days: [{ key: today, entryIds: [], sessionCount: 2, durationMinutes: 0, spotCount: 1 }],
+      interactive: false,
+    });
+
+    const weeks = Array.from(element.querySelectorAll(".weeks > .week"));
+    const lastWeek = weeks.at(-1);
+    expect(lastWeek?.getAttribute("aria-label")).toMatch(/1 training day$/);
+    expect(weeks[0]?.getAttribute("aria-label")).toMatch(/0 training days$/);
+  });
 });

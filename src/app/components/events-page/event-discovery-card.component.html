@@ -9,7 +9,7 @@
     [attr.data-status]="status()"
     [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
   >
-    <div class="image-wrap">
+    <div class="image-wrap" [class.is-fallback]="!imageSrc()">
       @if (seriesBadges().length > 0) {
         <div class="series-badges" aria-label="Event series" i18n-aria-label>
           @for (series of seriesBadges(); track series.id) {
@@ -21,7 +21,7 @@
               @if (series.logoSrc) {
                 <img [src]="series.logoSrc" alt="" />
               } @else {
-                <span>{{ series.label.slice(0, 3) }}</span>
+                <span>{{ series.initials }}</span>
               }
             </span>
           }
@@ -48,6 +48,10 @@
           [src]="null"
           variant="event"
           [label]="event().name"
+          [dateDay]="coverDate()?.day ?? null"
+          [dateMonth]="coverDate()?.month ?? null"
+          [icon]="coverIcon()"
+          [tone]="event().listingTier === 'community' ? 'neutral' : 'primary'"
         />
       }
     </div>

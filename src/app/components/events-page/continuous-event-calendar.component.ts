@@ -39,7 +39,6 @@ import {
   prependCalendarMonths,
 } from "./continuous-event-calendar.model";
 import { EventCalendarItemComponent } from "./event-calendar-item.component";
-import { EventCalendarThumbnailComponent } from "./event-calendar-thumbnail.component";
 import { EventDiscoveryListComponent } from "./event-discovery-list.component";
 
 export interface ContinuousEventCalendarLoadRequest {
@@ -67,7 +66,6 @@ const SCROLL_LOAD_THRESHOLD_PX = 480;
     MatButtonModule,
     MatIconModule,
     EventCalendarItemComponent,
-    EventCalendarThumbnailComponent,
     EventDiscoveryListComponent,
   ],
   templateUrl: "./continuous-event-calendar.component.html",
@@ -166,11 +164,13 @@ export class ContinuousEventCalendarComponent {
         .days.filter((day) => day.dayNumber === 1)
         .map((day) => [
           day.key,
-          this._dateTime.format(day.date, {
-            month: "long",
-            year: "numeric",
-            timeZone: "UTC",
-          }),
+          // Narrow cells have room for "Aug." beside the date, not the year.
+          this._dateTime.format(
+            day.date,
+            this.wide()
+              ? { month: "long", year: "numeric", timeZone: "UTC" }
+              : { month: "short", timeZone: "UTC" },
+          ),
         ]),
     ),
   );

@@ -34,4 +34,16 @@ describe("FancyCounterComponent", () => {
     expect(nextDigit).not.toBe(initialDigit);
     expect(nextDigit.textContent?.trim()).toBe("2");
   });
+
+  it("reads the number as one value instead of separate digits", async () => {
+    fixture.componentRef.setInput("number", 4);
+    fixture.componentRef.setInput("decimals", 1);
+    await fixture.whenStable();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector(".visually-hidden")?.textContent).toBe("4.0");
+    expect(element.querySelector(".counter")?.getAttribute("aria-hidden")).toBe(
+      "true",
+    );
+  });
 });

@@ -77,7 +77,7 @@ describe("navigation layout", () => {
     );
 
     expect(contentStyles).toMatch(
-      /\.main-content\s*{[^}]*padding-block-end:\s*var\(\s*--document-navigation-bottom-clearance,\s*var\(--navigation-bottom-clearance,\s*0px\)\s*\)/s,
+      /\.main-content\s*{[^}]*padding-block-end:\s*calc\(\s*var\(\s*--document-navigation-bottom-clearance,\s*var\(--navigation-bottom-clearance,\s*0px\)\s*\)\s*\+\s*var\(--page-fab-clearance,\s*0px\)\s*\)/s,
     );
     expect(globalStyles).toMatch(
       /app-root\.immersive-map-route,\s*app-root\.event-map-route\s*{[^}]*--document-navigation-bottom-clearance:\s*0px/s,

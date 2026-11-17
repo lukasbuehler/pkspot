@@ -217,8 +217,11 @@
           class="marker-info-window fade-in d-flex flex-column align-items-center"
           style="width: 200px"
         >
+          <!-- Always on screen while shown, so load its photo right away: the
+               card's visibility check does not fire inside the marker layer. -->
           <app-spot-preview-card
             [spotData]="selectedSpot()"
+            [loadingPriority]="true"
             [mapZoom]="zoom"
             [hasBorder]="false"
             (dismiss)="closeSelectedSpot()"

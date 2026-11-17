@@ -71,6 +71,7 @@
     (listingTierToggled)="toggleListingTier($event)"
     (regionToggled)="toggleRegion($event)"
     (filtersCleared)="clearFilters()"
+    (dialogFiltersApplied)="applyDialogFilters($event)"
   />
 
   @if (discoveryResource.error() && !usesContinuousCalendar()) {

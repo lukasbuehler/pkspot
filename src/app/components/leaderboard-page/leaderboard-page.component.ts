@@ -16,6 +16,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { FirestoreAdapterService } from "../../services/firebase/firestore-adapter.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { getResizedProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
@@ -51,6 +52,7 @@ interface UserData {
     MatTabsModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    MatButtonToggleModule,
   ],
   templateUrl: "./leaderboard-page.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -119,8 +121,9 @@ export class LeaderboardPageComponent implements OnInit {
             rank: rank++,
             uid: user.id,
             display_name: isBlocked
-              ? "Blocked User"
-              : user.display_name || "Anonymous", // Redact name
+              ? $localize`:@@leaderboard.blocked_user:Blocked user`
+              : user.display_name ||
+                $localize`:@@leaderboard.anonymous:Anonymous`, // Redact name
             profile_picture: isBlocked
               ? undefined
               : getResizedProfilePictureUrl(user.profile_picture),

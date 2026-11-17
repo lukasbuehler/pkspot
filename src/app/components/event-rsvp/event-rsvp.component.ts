@@ -14,7 +14,6 @@ import {
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {
   EventRSVPCountsSchema,
@@ -38,7 +37,6 @@ type ScreenshotGlobal = typeof globalThis & {
     RouterLink,
     MatButtonModule,
     MatIconModule,
-    MatMenuModule,
     MatTooltipModule,
     FancyCounterComponent,
   ],
@@ -71,9 +69,11 @@ export class EventRsvpComponent {
   readonly isSaving = signal(false);
   readonly relationshipFallbackSuppressed = signal(false);
   readonly errorMessage = signal("");
+  /** Loading the saved answer failed, so the error offers a retry. */
+  readonly loadFailed = signal(false);
   readonly disclaimerText = $localize`:@@event_rsvp.disclaimer:These numbers show PK Spot user intent, not tickets bought.`;
-  readonly addLabel = $localize`:@@event_rsvp.add_to_my_events:Add to My Events`;
-  readonly changeLabel = $localize`:@@event_rsvp.change_my_event_status:Change My Events status`;
+  readonly myEventsGroupLabel = $localize`:@@event_rsvp.group_label:Save to My Events`;
+  readonly signInToGoLabel = $localize`:@@event_add.sign_in:Sign in to mark Going`;
 
   readonly isSignedIn = computed(() => !!this.userId());
   readonly myEventsRsvp = computed<"going" | "interested" | null>(() => {
@@ -288,6 +288,24 @@ export class EventRsvpComponent {
     }
   }
 
+  /** Interested, or remove it again when it is already the answer. */
+  async toggleInterested(): Promise<void> {
+    if (this.myEventsRsvp() === "interested") {
+      await this.clearRsvp();
+      return;
+    }
+    await this.selectInterested();
+  }
+
+  /** Going, or remove it again when it is already the answer. */
+  async toggleGoing(): Promise<void> {
+    if (this.myEventsRsvp() === "going") {
+      await this.clearRsvp();
+      return;
+    }
+    await this.selectRsvp("going");
+  }
+
   trackRsvpMenuOpened(): void {
     const eventId = this.eventId();
     if (!eventId) {
@@ -311,10 +329,16 @@ export class EventRsvpComponent {
     });
   }
 
+  retryLoad(): void {
+    const eventId = this.eventId();
+    if (eventId) void this._loadRsvp(eventId);
+  }
+
   private async _loadRsvp(eventId: string): Promise<void> {
     const version = ++this._loadVersion;
     this.isLoading.set(true);
     this.errorMessage.set("");
+    this.loadFailed.set(false);
     try {
       const doc = await this._events().getMyRsvp(eventId);
       if (version !== this._loadVersion) return;
@@ -330,6 +354,7 @@ export class EventRsvpComponent {
       this.errorMessage.set(
         $localize`:@@event_rsvp.load_failed:Couldn't load your response.`,
       );
+      this.loadFailed.set(true);
     } finally {
       if (version === this._loadVersion) {
         this.isLoading.set(false);

@@ -23,6 +23,22 @@
   padding: 3rem;
 }
 
+// Phones use the short column labels from the toggle.
+.label-short {
+  display: none;
+}
+
+// The count picker is only needed when phones hide the other columns.
+.mobile-sort {
+  display: none;
+  width: 100%;
+  margin-bottom: 0.75rem;
+
+  mat-button-toggle {
+    flex: 1;
+  }
+}
+
 .table-container {
   overflow-x: auto;
   border-radius: 12px;
@@ -134,5 +150,59 @@
   .avatar {
     width: 28px;
     height: 28px;
+  }
+
+  // Phones show rank, name and only the sorted count (always the third
+  // column); the toggle above picks which count, so names have room.
+  .leaderboard-table {
+    table-layout: fixed;
+
+    .mat-mdc-header-cell:nth-of-type(n + 4),
+    .mat-mdc-cell:nth-of-type(n + 4) {
+      display: none;
+    }
+
+    .mat-mdc-header-cell:first-of-type,
+    .mat-mdc-cell:first-of-type {
+      width: 48px;
+      padding-inline: 0.5rem 0;
+      overflow: visible;
+    }
+
+    // The toggle above names the count, so its heading may wrap small.
+    .mat-mdc-header-cell:nth-of-type(3),
+    .mat-mdc-cell:nth-of-type(3) {
+      width: 7.5rem;
+      text-align: end;
+    }
+
+    .label-full {
+      display: none;
+    }
+
+    .label-short {
+      display: inline;
+    }
+  }
+
+  .mobile-sort {
+    display: flex;
+  }
+
+  .rank {
+    width: 28px;
+    height: 28px;
+  }
+
+  .user-link {
+    min-width: 0;
+    gap: 0.5rem;
+  }
+
+  .user-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

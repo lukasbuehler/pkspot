@@ -1,6 +1,6 @@
 <header class="notification-settings-header">
   <div>
-    <h2 class="mat-h2 m-0" i18n="@@settings.notifications.heading">
+    <h2 class="mat-headline-small m-0" i18n="@@settings.notifications.heading">
       Notifications
     </h2>
     <p class="mat-body m-0" i18n="@@settings.notifications.description">
@@ -77,6 +77,14 @@
                 >Open system settings</span
               >
             </button>
+          } @else {
+            <p
+              class="mat-body-small m-0"
+              i18n="@@settings.notifications.browser_unblock_hint"
+            >
+              To allow them again, open the site settings next to the address
+              bar and set notifications to “Allow”.
+            </p>
           }
         }
         @case ("denied") {
@@ -104,6 +112,14 @@
                 >Open system settings</span
               >
             </button>
+          } @else {
+            <p
+              class="mat-body-small m-0"
+              i18n="@@settings.notifications.browser_unblock_hint"
+            >
+              To allow them again, open the site settings next to the address
+              bar and set notifications to “Allow”.
+            </p>
           }
         }
         @default {
@@ -164,16 +180,24 @@
       </div>
       @for (row of notificationRows; track row.key) {
         <div class="preference-row">
-          <div class="preference-row__heading">
-            <h4 [id]="'notification-' + row.key">{{ row.title }}</h4>
-            <mat-checkbox
-              [checked]="preferenceEnabled(row.key)"
-              [disabled]="notificationPreferences.loading() || pushNotifications.busy() || savingPreferences()"
-              (change)="setNotificationPreference(row.key, $event.checked)"
-              [aria-labelledby]="'notification-' + row.key"
-            />
+          <!-- The title and description toggle the checkbox too, like a list
+               row with a trailing control. The checkbox keeps its own click. -->
+          <div
+            class="preference-row__toggle"
+            (click)="onPreferenceRowClick(row.key, $event)"
+          >
+            <div class="preference-row__heading">
+              <h4 [id]="'notification-' + row.key">{{ row.title }}</h4>
+              <mat-checkbox
+                [checked]="preferenceEnabled(row.key)"
+                [disabled]="notificationPreferences.loading() || pushNotifications.busy() || savingPreferences()"
+                (change)="setNotificationPreference(row.key, $event.checked)"
+                [aria-labelledby]="'notification-' + row.key"
+                [aria-describedby]="'notification-desc-' + row.key"
+              />
+            </div>
+            <p [id]="'notification-desc-' + row.key">{{ row.description }}</p>
           </div>
-          <p>{{ row.description }}</p>
               @if (row.key === "event_reminders" && preferenceEnabled(row.key)) {
                 <div class="reminder-settings">
                   <span

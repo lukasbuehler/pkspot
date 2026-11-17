@@ -160,12 +160,12 @@
         >
           <app-filter-chips-bar
             class="d-block p-3 w-100"
-            [selectedFilter]="tab()"
+            [selectedFilter]="selectedTabChip()"
             [presetFilters]="mapObjectFilterChips()"
             [showFiltersChip]="false"
             [showClearChip]="false"
-            [allowDeselect]="false"
-            ariaLabel="Event map object type"
+            [showDeselectIcon]="true"
+            [ariaLabel]="objectTypeLabel"
             appearance="solid"
             (filterChange)="selectTab($event)"
           ></app-filter-chips-bar>
@@ -193,7 +193,7 @@
                           ></app-marker>
                           <span class="custom-marker-row-copy">
                             <span class="text-truncate">{{
-                              marker.name || "Event marker"
+                              marker.name || eventMarkerFallbackName
                             }}</span>
                             @if (marker.locality || marker.description) {
                               <span class="mat-label-small text-truncate">
@@ -292,7 +292,7 @@
                           class="d-flex flex-column justify-content-start gap-1 min-w-0"
                         >
                           <h3 class="mat-title-medium m-0 text-truncate">
-                            {{ marker.name || "Event marker" }}
+                            {{ marker.name || eventMarkerFallbackName }}
                           </h3>
                           @if (marker.locality) {
                             <p class="mat-label-large m-0 custom-marker-locality text-truncate">
@@ -362,6 +362,7 @@
                       @if (selectedCustomMarkerMedia().length > 0) {
                         <app-img-carousel
                           [media]="selectedCustomMarkerMedia()"
+                          [imageDescription]="marker.name || name()"
                           reportContext="event"
                           [reportTargetId]="event()?.id"
                         ></app-img-carousel>
@@ -402,7 +403,7 @@
                         ></app-marker>
                         <span class="custom-marker-row-copy">
                           <span class="text-truncate">{{
-                            marker.name || "Event marker"
+                            marker.name || eventMarkerFallbackName
                           }}</span>
                           @if (marker.locality || marker.description) {
                             <span class="mat-label-small text-truncate">
@@ -483,6 +484,15 @@
         style="border-radius: 16px"
         [class.no-rounding]="isCompactView"
       >
+        @if (!mapReady()) {
+          <div class="event-map-loading" role="status">
+            <mat-progress-spinner
+              mode="indeterminate"
+              diameter="40"
+              [attr.aria-label]="mapLoadingLabel"
+            ></mat-progress-spinner>
+          </div>
+        }
         @defer {
           @if (bounds()) {
             <app-google-map-2d

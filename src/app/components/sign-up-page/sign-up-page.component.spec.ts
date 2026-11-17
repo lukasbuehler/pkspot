@@ -64,7 +64,7 @@ describe("SignUpPageComponent", () => {
     expect(component.repeatPasswordMatcher.isErrorState(repeated, null)).toBe(false);
   });
 
-  it("shows a form-level error for mismatched passwords before account creation", () => {
+  it("reports mismatched passwords on the field only, without a duplicate summary", () => {
     const formValue = {
       displayName: "E2E User",
       email: "e2e@example.test",
@@ -77,11 +77,38 @@ describe("SignUpPageComponent", () => {
     component.createAccountForm?.setValue(formValue);
     component.tryCreateAccount(formValue);
 
-    expect(component.signUpError()).toMatch(/password/i);
+    expect(
+      component.createAccountForm?.hasError("repeatedPasswordDoesNotMatchPassword"),
+    ).toBe(true);
+    expect(component.signUpError()).toBe("");
     expect(createAccount).not.toHaveBeenCalled();
   });
 
-  it("shows a form-level error when terms are not accepted before account creation", () => {
+  it("treats an empty form as missing fields, not as a password mismatch", () => {
+    const formValue = {
+      displayName: "",
+      email: "",
+      password: "",
+      repeatPassword: "",
+      agreeCheck: false,
+      analyticsCheck: false,
+    };
+
+    component.createAccountForm?.setValue(formValue);
+    component.tryCreateAccount(formValue);
+
+    expect(
+      component.createAccountForm?.hasError("repeatedPasswordDoesNotMatchPassword"),
+    ).toBe(false);
+    expect(component.createAccountForm?.controls["password"].hasError("required")).toBe(true);
+    // The agreement shows its own error below the checkbox, not a summary.
+    expect(component.createAccountForm?.controls["agreeCheck"].touched).toBe(true);
+    expect(component.createAccountForm?.controls["agreeCheck"].invalid).toBe(true);
+    expect(component.signUpError()).toBe("");
+    expect(createAccount).not.toHaveBeenCalled();
+  });
+
+  it("marks the agreement as the error when terms are not accepted before account creation", () => {
     const formValue = {
       displayName: "E2E User",
       email: "e2e@example.test",
@@ -94,7 +121,9 @@ describe("SignUpPageComponent", () => {
     component.createAccountForm?.setValue(formValue);
     component.tryCreateAccount(formValue);
 
-    expect(component.signUpError()).toMatch(/agree|terms/i);
+    const agreeCheck = component.createAccountForm?.controls["agreeCheck"];
+    expect(agreeCheck?.touched && agreeCheck.invalid).toBe(true);
+    expect(component.signUpError()).toBe("");
     expect(createAccount).not.toHaveBeenCalled();
   });
 

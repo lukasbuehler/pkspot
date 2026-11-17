@@ -40,7 +40,7 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
-import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import { eventCategoryIcon, eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { EventCardComponent } from "../event-card/event-card.component";
 import {
   type FabMenuAction,
@@ -69,6 +69,7 @@ import {
   type EventSeriesFilterOption,
   type EventsListPeriod,
 } from "./event-discovery-toolbar.component";
+import type { EventFiltersDialogResult } from "./event-filters-dialog.component";
 import {
   EventDiscoveryViewToggleComponent,
   type EventsDiscoveryView,
@@ -451,7 +452,7 @@ export class EventsPageComponent {
       this.availableFacets()?.categories, category, this.selectedCategories(),
     )).map((category) => ({
       id: category,
-      icon: categoryIcon(category),
+      icon: eventCategoryIcon(category),
       label: categoryLabel(category),
       count: counts.get(category) ?? 0,
     }));
@@ -679,6 +680,16 @@ export class EventsPageComponent {
     this.resultLimit.set(LIST_PAGE_SIZE);
     void this._updateQueryParams({
       region: serializeList(toggleValue(this.selectedRegions(), region)),
+    });
+  }
+
+  /** Applies the filters dialog's selection in one navigation. */
+  applyDialogFilters(result: EventFiltersDialogResult): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({
+      region: serializeList(result.regions),
+      series: serializeList(result.seriesIds),
+      tier: serializeList(result.listingTiers),
     });
   }
 
@@ -1077,28 +1088,6 @@ function toggleValue<T>(values: readonly T[], value: T): T[] {
     : [...values, value];
 }
 
-function categoryIcon(category: EventCategory): string {
-  switch (category) {
-    case "competition":
-      return "trophy";
-    case "jam":
-      return "groups";
-    case "camp":
-      return "camping";
-    case "workshop":
-      return "school";
-    case "show":
-      return "theater_comedy";
-    case "awards":
-      return "workspace_premium";
-    case "social":
-      return "celebration";
-    case "travel":
-      return "travel_explore";
-    case "other":
-      return "sell";
-  }
-}
 
 function parseList(params: ParamMap, key: string): string[] {
   return [

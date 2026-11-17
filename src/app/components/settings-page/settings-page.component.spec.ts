@@ -2,7 +2,7 @@ import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { MatDialog } from "@angular/material/dialog";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, of } from "rxjs";
 import { vi } from "vitest";
 
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -69,7 +69,10 @@ describe("SettingsPageComponent", () => {
           provide: FirebaseAppCheckService,
           useValue: { status: signal({ state: "idle" }) },
         },
-        { provide: MatDialog, useValue: { open: vi.fn() } },
+        {
+          provide: MatDialog,
+          useValue: { open: vi.fn(() => ({ afterClosed: () => of(true) })) },
+        },
         { provide: FeatureTelemetryService, useValue: {} },
         { provide: MapPerformanceProfilerService, useValue: {} },
         { provide: ExternalMediaPreferencesService, useValue: {} },
@@ -113,5 +116,21 @@ describe("SettingsPageComponent", () => {
     fixture.destroy();
 
     expect(authState$.observed).toBe(false);
+  });
+
+  it("restores the saved profile in the hidden form when edits are discarded", async () => {
+    const fixture = TestBed.createComponent(SettingsPageComponent);
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const discardChanges = vi.fn();
+    component.editProfileComponent = {
+      discardChanges,
+    } as unknown as SettingsPageComponent["editProfileComponent"];
+    component.menuPoints[0].hasChanges = true;
+
+    await expect(component.confirmLeave()).resolves.toBe(true);
+
+    expect(discardChanges).toHaveBeenCalledOnce();
+    expect(component.menuPoints[0].hasChanges).toBe(false);
   });
 });

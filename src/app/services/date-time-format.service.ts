@@ -25,6 +25,8 @@ const nativeDateTimePreferences = registerPlugin<DateTimePreferencesPlugin>(
 export type SystemDateFormat =
   | "short"
   | "medium"
+  /** A date with minutes but no seconds, e.g. "12.08.2026, 18:00". */
+  | "mediumDateShortTime"
   | "shortTime"
   | "shortDate"
   | "mediumDate"
@@ -275,6 +277,8 @@ function presetOptions(format: SystemDateFormat): Intl.DateTimeFormatOptions {
       return { dateStyle: "short", timeStyle: "short" };
     case "medium":
       return { dateStyle: "medium", timeStyle: "medium" };
+    case "mediumDateShortTime":
+      return { dateStyle: "medium", timeStyle: "short" };
     case "shortTime":
       return { timeStyle: "short" };
     case "shortDate":

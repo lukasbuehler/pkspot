@@ -3,13 +3,16 @@
   display: block;
 }
 
+// Headings keep a readable width; the action moves below once space runs out.
 .notification-settings-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px 24px;
 
   > div {
+    flex: 1 1 22rem;
     min-width: 0;
   }
 
@@ -24,10 +27,10 @@
   gap: 14px;
   margin-block: 24px;
   padding: 16px;
-  border: 1px solid var(--mat-sys-primary);
+  border: 1px solid var(--app-notice-outline);
   border-radius: 18px;
-  color: var(--mat-sys-on-primary-container);
-  background: var(--mat-sys-primary-container);
+  color: var(--app-notice-text);
+  background: var(--app-notice-background);
 
   > div:last-child {
     min-width: 0;
@@ -41,28 +44,23 @@
   height: 40px;
   place-items: center;
   border-radius: 13px;
-  color: var(--mat-sys-primary);
-  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
 }
 
 .notification-status-card--neutral {
-  border-color: var(--mat-sys-outline);
   color: var(--mat-sys-on-surface-variant);
-  background: var(--mat-sys-surface-container);
 
   .notification-status-card__icon {
     color: var(--mat-sys-on-surface-variant);
+    background: var(--mat-sys-surface-container-highest);
   }
 }
 
-.notification-status-card--blocked {
-  border-color: var(--mat-sys-error);
-  color: var(--mat-sys-on-error-container);
-  background: var(--mat-sys-error-container);
-
-  .notification-status-card__icon {
-    color: var(--mat-sys-error);
-  }
+// Blocked delivery is a setting to change, not an error: tertiary, not red.
+.notification-status-card--blocked .notification-status-card__icon {
+  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-tertiary-container);
 }
 
 .notification-table-section {
@@ -73,11 +71,13 @@
 
 .section-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: end;
   justify-content: space-between;
   gap: 16px;
 
   > div {
+    flex: 1 1 22rem;
     min-width: 0;
   }
 
@@ -162,17 +162,6 @@ mat-chip-listbox {
 }
 
 @media (max-width: 600px) {
-  .notification-settings-header,
-  .section-heading {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .notification-settings-header > a,
-  .section-heading button {
-    align-self: flex-start;
-  }
-
   .notification-control-column {
     min-width: 72px;
   }
@@ -200,6 +189,7 @@ mat-chip-listbox {
 .preference-row { padding: 16px 24px 20px; border-top: 1px solid var(--mat-sys-outline-variant); }
 .preference-row__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .preference-row h4 { margin: 0; font: var(--mat-sys-title-medium); }
+.preference-row__toggle { cursor: pointer; }
 .preference-row p { margin: 2px 48px 0 0; max-width: 65ch; color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-medium); }
 @media (max-width: 600px) {
   .preference-row { padding: 12px 16px 18px; }

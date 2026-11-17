@@ -225,11 +225,11 @@ const quickFilters = [
   { name: "water", query: "water", index: 4 },
 ];
 
+// Nothing selected shows everything, so there is no "All" chip.
 const objectModes = [
-  { name: "all", index: 0 },
-  { name: "spots", index: 1 },
-  { name: "events", index: 2 },
-  { name: "communities", index: 3 },
+  { name: "spots", index: 0 },
+  { name: "events", index: 1 },
+  { name: "communities", index: 2 },
 ];
 
 test.describe("high-priority user workflow matrix", () => {
@@ -372,14 +372,18 @@ test.describe("high-priority user workflow matrix", () => {
       await gotoWorkflow(page, "/map", workflowViewports[0]);
 
       const objectModeList = page
-        .locator('mat-chip-listbox[aria-label="Map object type"]')
+        .locator("app-map-object-panel app-filter-chips-bar mat-chip-listbox")
         .first();
       await expect(objectModeList).toBeVisible({ timeout: 15_000 });
-      await objectModeList.locator("mat-chip-option").nth(mode.index).click();
+      const chip = objectModeList.locator("mat-chip-option").nth(mode.index);
+      await chip.click();
 
-      await expectChipMarkedSelected(
-        objectModeList.locator("mat-chip-option").nth(mode.index),
-      );
+      await expectChipMarkedSelected(chip);
+      await expect(page).toHaveURL(new RegExp(`type=${mode.name}`, "u"));
+
+      // Selecting the chip again returns to everything.
+      await chip.click();
+      await expect(page).not.toHaveURL(/type=/u);
       await expectAppRendered(page);
     });
   }

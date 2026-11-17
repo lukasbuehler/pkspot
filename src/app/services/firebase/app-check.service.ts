@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from "@angular/common";
+import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
 import {
   Injectable,
   PLATFORM_ID,
@@ -166,6 +167,17 @@ export class FirebaseAppCheckService {
         state: "skipped",
         platform: "store-screenshot",
         message: "App Check is skipped for local store screenshot rendering.",
+      });
+      return;
+    }
+
+    if (getFirebaseEmulatorSettings()) {
+      // Emulator runs use the demo project, which App Check cannot verify;
+      // the emulators do not enforce it. Never active in production builds.
+      this._status.set({
+        state: "skipped",
+        platform: "emulator",
+        message: "App Check is skipped while using the Firebase emulators.",
       });
       return;
     }

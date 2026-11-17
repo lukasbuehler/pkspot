@@ -87,6 +87,13 @@
   min-height: 194px;
 }
 
+// Narrow calendars: the date, then up to three thin event bars and a "+N" row.
+.calendar-shell:not(.is-wide) .calendar-week {
+  grid-template-rows: 28px repeat(3, 18px) 14px;
+  min-height: 0;
+  padding-bottom: 4px;
+}
+
 .day-cell {
   display: flex;
   position: relative;
@@ -146,36 +153,6 @@
   white-space: nowrap;
 }
 
-.compact-event-indicator {
-  display: flex;
-  position: absolute;
-  right: 0.35rem;
-  bottom: 0.35rem;
-  left: 0.35rem;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-}
-
-.compact-event-indicator small {
-  display: grid;
-  min-width: 18px;
-  min-height: 18px;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
-  font: var(--mat-sys-label-small);
-}
-
-.compact-event-indicator app-event-calendar-thumbnail {
-  --event-calendar-thumbnail-radius: 50%;
-  --event-calendar-thumbnail-size: 20px;
-
-  border: 1px solid var(--mat-sys-outline);
-}
-
 .more-events {
   z-index: 2;
   grid-row: 5;
@@ -187,6 +164,14 @@
   color: var(--mat-sys-primary);
   font: var(--mat-sys-label-small);
   cursor: pointer;
+}
+
+.more-events.more-events--compact {
+  margin-left: 4px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 10px;
+  line-height: 14px;
+  pointer-events: none;
 }
 
 .edge-status {
@@ -235,29 +220,31 @@
     display: none;
   }
 
+  // Capped so the selected day's agenda stays in view below the calendar.
   .calendar-scroll {
     height: clamp(220px, 34dvh, 300px);
     min-height: 0;
   }
 
   .day-cell {
-    min-height: 78px;
-    padding: 0.35rem;
+    padding: 0.3rem;
   }
 
+  // The month name sits beside the date in the first row, above the bars.
   .month-marker {
     z-index: 3;
-    top: 2rem;
+    top: 0.55rem;
     right: auto;
     left: 0.25rem;
-    width: max-content;
     max-width: none;
     overflow: visible;
     font: var(--mat-sys-label-small);
+    font-size: 10px;
+    letter-spacing: 0;
   }
 
   .month-marker.align-end {
-    right: 0.25rem;
-    left: auto;
+    right: auto;
+    left: 0.3rem;
   }
 }

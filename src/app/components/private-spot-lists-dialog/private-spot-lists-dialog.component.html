@@ -6,7 +6,7 @@
     [selectedIndex]="selectedTab() === 'visited' ? 1 : 0"
     (selectedTabChange)="onTabChange($event)"
   >
-    <mat-tab label="Saved">
+    <mat-tab label="Saved" i18n-label="@@private_spots.tab_saved">
       <div class="tab-content">
         @if(isSavedLoading()) {
         <div class="loading-state">
@@ -60,7 +60,7 @@
       </div>
     </mat-tab>
 
-    <mat-tab label="Visited">
+    <mat-tab label="Visited" i18n-label="@@private_spots.tab_visited">
       <div class="tab-content">
         @if(isVisitedLoading()) {
         <div class="loading-state">

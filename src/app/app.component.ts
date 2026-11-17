@@ -58,6 +58,7 @@ import { isAcceptanceFreePath, withoutLocalePrefix } from "./startup/welcome-pol
 import { EARLY_WELCOME_CONTEXT } from "./startup/welcome-acceptance";
 import { WELCOME_DIALOG_OPTIONS } from "./startup/welcome-dialog-options";
 import {
+  DOCUMENT,
   Location,
   NgOptimizedImage,
   PathLocationStrategy,
@@ -233,6 +234,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _structuredDataService = inject(StructuredDataService);
   private _appRef = inject(ApplicationRef);
   private readonly _destroyRef = inject(DestroyRef);
+  private readonly _document = inject(DOCUMENT);
   readonly responsive = inject(ResponsiveService);
   private readonly _platformService = inject(PlatformService);
   private readonly _uiLanguageService = inject(UiLanguageService);
@@ -1767,6 +1769,20 @@ html.pkspot-roboto-loaded body {
   readonly hasNavbarOverflow = computed(
     () => this.overflowNavbarButtons().length > 0,
   );
+  /** Moves keyboard focus past the navigation to the page content. */
+  skipToMainContent(event: Event): void {
+    event.preventDefault();
+    const main = this._document?.getElementById("main-content");
+    if (!main) return;
+    const target = main.querySelector<HTMLElement>("h1, [role='main'], main") ?? main;
+    if (target !== main && !target.hasAttribute("tabindex")) {
+      target.setAttribute("tabindex", "-1");
+    }
+    target.focus();
+  }
+
+  /** Appended to a navigation link's name while one of its events is live. */
+  readonly liveEventLabel = $localize`:@@navigation.live_event:live event underway`;
   readonly moreNavigationLabel = $localize`:More navbar button label|A very short label that opens overflow navigation@@more.nav:More`;
   readonly overflowNavigationActive = computed(() =>
     this.overflowNavbarButtons().some(

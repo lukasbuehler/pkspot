@@ -1,6 +1,7 @@
 import { financesFeatureEnabled } from "../../src/app/features/finances-feature";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { CURRENT_TERMS_VERSION } from "../../src/app/services/consent-version";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 interface RouteVisualCase {
   name: string;
@@ -413,6 +414,13 @@ const routeVisualCases: RouteVisualCase[] = [
     signedIn: true,
     scrollToSelector: ".notification-table-section",
     maxDiffPixels: 1_500,
+  },
+  {
+    // Phones drill into settings: /settings lists the sections.
+    name: "settings-index-mobile",
+    path: "/settings",
+    viewport: mobileViewport,
+    signedIn: true,
   },
   {
     name: "notifications",
@@ -955,20 +963,11 @@ test.describe("Route visual regression @visual", () => {
         await expect(filters).toBeVisible();
         const detailTops = await filters.locator('mat-chip-option').evaluateAll(chips => chips.map(chip => Math.round(chip.getBoundingClientRect().top)));
         expect(new Set(detailTops).size).toBe(1);
-        const regionBar = page.locator(".region-filters");
-        await expect(regionBar).toBeVisible();
-        const chipTops = await regionBar.locator("mat-chip-option").evaluateAll(
-          chips => chips.map(chip => Math.round(chip.getBoundingClientRect().top)),
-        );
-        expect(new Set(chipTops).size).toBe(1);
+        // Regions, series and organisers sit behind the Filter chip, not in the type row.
+        await expect(filters.locator(".filters-chip")).toBeVisible();
+        await expect(filters).not.toContainText("Europa");
         expect(await page.evaluate(() => document.documentElement.scrollWidth))
           .toBeLessThanOrEqual(route.viewport!.width);
-        const scroller = regionBar.locator(".chips-scroll-area");
-        if (await regionBar.locator(".scroll-button.right").isVisible()) {
-          await regionBar.locator(".scroll-button.right").click();
-          await expect.poll(() => scroller.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
-        }
-        await scroller.evaluate(element => element.scrollTo({ left: 0, behavior: "instant" }));
       }
 
       if (route.name === 'events-mobile-filters') {
@@ -1319,7 +1318,8 @@ test.describe("Route visual regression @visual", () => {
   });
 
   test("scrolls the chip row horizontally without dragging the bottom sheet", async ({ page }) => {
-    await prepareRoute(page, { name: "sheet-chip-gesture", path: "/map", viewport: { width: 390, height: 650 } });
+    // The three type chips fit a 390px phone, so a narrow phone makes the row scroll.
+    await prepareRoute(page, { name: "sheet-chip-gesture", path: "/map", viewport: { width: 320, height: 650 } });
     const sheet = page.locator(".map-bottom-sheet .sheet");
     await sheet.locator(".handle-region").click();
     await expect.poll(() => sheet.evaluate(el => getComputedStyle(el).transform)).toBe("matrix(1, 0, 0, 1, 0, 0)");
@@ -1393,6 +1393,21 @@ test.describe("Route visual regression @visual", () => {
     expect(scrolling.scrollingElement).toBe("HTML");
   });
 });
+
+/**
+ * Hides fixed, floating UI (bottom navigation, legal bar, page action
+ * buttons) for a long screenshot, where it would land in an arbitrary place
+ * over the content. Returns a function that shows it again.
+ */
+async function hideFloatingUi(page: Page): Promise<() => Promise<void>> {
+  const style = await page.addStyleTag({
+    content: `.floating-bottom-navigation, .terms-footer, .app-page-fab
+      { visibility: hidden !important; }`,
+  });
+  return async () => {
+    await style.evaluate((element) => element.remove());
+  };
+}
 
 async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.setViewportSize(route.viewport ?? desktopViewport);
@@ -2007,7 +2022,8 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
           verified_email: true,
           follower_count: 12,
           following_count: 8,
-          visited_spots_count: 24,
+          // Matches the visited list in __PKSPOT_SCREENSHOT_PRIVATE_DATA__ below.
+          visited_spots_count: 4,
           start_date: {
             seconds: Date.UTC(2019, 3, 12) / 1_000,
             nanoseconds: 0,
@@ -2056,6 +2072,38 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         screenshotWindow.__PKSPOT_SCREENSHOT_USER_PROFILES__ = {
           "visual-route-user": screenshotUserData,
         };
+        // Private saved and visited lists, by user ID: public Spots from the
+        // map fixture area.
+        (window as typeof window & { __PKSPOT_SCREENSHOT_PRIVATE_DATA__?: unknown })
+          .__PKSPOT_SCREENSHOT_PRIVATE_DATA__ = {
+            "visual-route-user": {
+              bookmarks: ["VqmXvKVW6Pe5dWfj15Pf", "8CHFHRFUCozO9yeLEq6N"],
+              visited_spots: [
+                "VqmXvKVW6Pe5dWfj15Pf",
+                "8CHFHRFUCozO9yeLEq6N",
+                "hF7gwisn6as4c9j77vr0",
+                "EdUIZW03vJ7wLiPx2JOC",
+              ],
+            },
+          };
+        // Follower lists that match follower_count and following_count above.
+        const followNames = [
+          "Alex Runner", "Bea Climb", "Chris Vault", "Dana Flow", "Eli Precision",
+          "Fay Wallrun", "Gus Kong", "Hana Lache", "Ivo Cat", "Jo Tic Tac",
+          "Kim Dash", "Lou Roll",
+        ];
+        const followEntry = (name: string, index: number) => ({
+          uid: `visual-follow-${index}`,
+          display_name: name,
+          start_following_raw_ms: Date.UTC(2026, 0, 1 + index * 9),
+        });
+        (window as typeof window & { __PKSPOT_SCREENSHOT_FOLLOWS__?: unknown })
+          .__PKSPOT_SCREENSHOT_FOLLOWS__ = {
+            "visual-route-user": {
+              followers: followNames.map(followEntry),
+              following: followNames.slice(0, 8).map((name, index) => followEntry(name, index + 20)),
+            },
+          };
         screenshotWindow.__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__ = true;
         screenshotWindow.__PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__ = [];
         screenshotWindow.__PKSPOT_SCREENSHOT_REPORT_OUTCOMES__ = {
@@ -2204,6 +2252,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
           ];
         }
         if (liveEventFixture) {
+          // Meine Events lists this event under "Dabei", so its page shows Going too.
+          (window as typeof window & { __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown })
+            .__PKSPOT_SCREENSHOT_EVENT_RSVPS__ = { "visual-city-jam": "going" };
           (
             window as typeof window & {
               __PKSPOT_SCREENSHOT_ATTENDED_EVENTS__?: unknown;
@@ -2776,3 +2827,269 @@ for (const viewport of [{width: 466, height: 678}, {width: 1040, height: 768}]) 
     await expect(page).toHaveScreenshot(`duo-carousel-${viewport.width}.png`);
   });
 }
+
+/**
+ * UI review capture. Runs only when UI_REVIEW_DIR is set and writes plain
+ * screenshots of the reviewed sections at fixed breakpoints, reusing the
+ * route fixtures above. It never compares against baselines.
+ */
+const uiReviewDir = process.env["UI_REVIEW_DIR"];
+const uiReviewViewports = {
+  desktop: { width: 1440, height: 900 },
+  tablet: { width: 820, height: 1180 },
+  mobile: { width: 390, height: 844 },
+} as const;
+const uiReviewSections: { section: string; base: string; only?: string }[] = [
+  { section: "training", base: "train" },
+  { section: "training-signed-out", base: "train-signed-out" },
+  { section: "training-check-in", base: "train-check-in-prompt" },
+  { section: "own-profile", base: "profile-own" },
+  { section: "events-signed-in", base: "events-alain" },
+  { section: "map", base: "map" },
+  // Desktop and tablet show results in a side panel; only phones use the sheet.
+  { section: "map-sheet-open", base: "map", only: "mobile" },
+  { section: "spot-details", base: "map" },
+  { section: "spot-details-signed-in", base: "map" },
+  { section: "events", base: "events" },
+  { section: "event-detail", base: "event-detail" },
+  { section: "about", base: "about" },
+  { section: "support", base: "support" },
+  { section: "contact", base: "contact" },
+  { section: "sign-in", base: "account" },
+  { section: "sign-up", base: "sign-up" },
+  { section: "forgot-password", base: "forgot-password" },
+  { section: "settings-index", base: "settings-index-mobile", only: "mobile" },
+  { section: "settings-profile", base: "settings-profile" },
+  { section: "settings-account", base: "settings-account" },
+  { section: "settings-general", base: "settings-general" },
+  { section: "settings-notifications", base: "settings-notifications" },
+];
+
+/** Waits until a Google map under `scope` shows loaded raster tiles. */
+async function mapTilesLoaded(page: Page, scope: string, timeout = 30_000): Promise<boolean> {
+  try {
+    await expect.poll(() => page.evaluate((selector) => {
+      const images = [...document.querySelectorAll<HTMLImageElement>(`${selector} .gm-style img`)];
+      return images.filter(image => image.complete && image.naturalWidth > 0).length;
+    }, scope), { timeout }).toBeGreaterThan(4);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+test.describe("UI review capture", () => {
+  test.skip(!uiReviewDir, "Set UI_REVIEW_DIR to capture review screenshots.");
+  for (const { section, base, only } of uiReviewSections) {
+    for (const [label, viewport] of Object.entries(uiReviewViewports)) {
+      if (only && only !== label) continue;
+      test(`capture ${section} ${label}`, async ({ page }) => {
+        const route = routeVisualCases.find(candidate => candidate.name === base);
+        expect(route, `missing route fixture ${base}`).toBeDefined();
+        const { assertAlainClearance: _alain, clip: _clip, ...rest } = route!;
+        await prepareRoute(page, { ...rest, viewport, ...(section === "spot-details-signed-in" ? { signedIn: true } : {}) });
+        // The App Check status only appears in local and screenshot builds.
+        await page.addStyleTag({ content: ".app-check-status { display: none !important; }" });
+        await page.waitForTimeout(1_000);
+        if (section.startsWith("map") || section.startsWith("spot-details")) {
+          // Map tiles sometimes stall in the test browser; reload once before giving up.
+          if (!(await mapTilesLoaded(page, "body"))) {
+            await page.reload();
+            await page.addStyleTag({ content: ".app-check-status { display: none !important; }" });
+            expect(await mapTilesLoaded(page, "body", 45_000), "map tiles did not load").toBe(true);
+          }
+        }
+        if (section === "map-sheet-open") {
+          await page.locator("app-bottom-sheet .handle-region").first().click();
+          await page.waitForTimeout(1_500);
+        }
+        if (section.startsWith("spot-details")) {
+          // Open a real Spot from the map list, as a person would.
+          await page.locator("app-spot-preview-card").first().click();
+          await expect(page.locator("app-spot-details")).toBeVisible({ timeout: 20_000 });
+          await page.waitForTimeout(2_500);
+          // Let the map settle so the selected-spot preview loads its photo too.
+          await page.locator(".gm-style app-spot-preview-card img.is-loaded").first()
+            .waitFor({ state: "visible", timeout: 15_000 }).catch(() => undefined);
+        }
+        const isMapLike = section.startsWith("map") || section.startsWith("spot-details");
+        if (!isMapLike) {
+          // Grow the viewport to the document height so fixed navigation stays
+          // at the bottom edge instead of floating over the middle of the page.
+          const fitToDocument = async () => {
+            const height = await page.evaluate(() => document.documentElement.scrollHeight);
+            await page.setViewportSize({ width: viewport.width, height: Math.min(Math.max(height, viewport.height), 6_000) });
+            await page.waitForTimeout(800);
+          };
+          if (section === "event-detail") {
+            // The event map is deferred until it scrolls into view; bring it in
+            // at the normal viewport size and let its tiles load first.
+            // It intermittently never initialises in the test browser, so
+            // reload a few times rather than show the council an empty box.
+            let loaded = false;
+            for (let load = 0; load < 4 && !loaded; load++) {
+              if (load > 0) {
+                await page.reload();
+                await page.addStyleTag({ content: ".app-check-status { display: none !important; }" });
+              }
+              for (let attempt = 0; attempt < 6; attempt++) {
+                await page.mouse.wheel(0, 600);
+                await page.waitForTimeout(400);
+                if (await page.locator(".map-preview").count()) break;
+              }
+              await page.locator(".map-preview").scrollIntoViewIfNeeded();
+              loaded = await mapTilesLoaded(page, ".map-preview-frame", 25_000);
+            }
+            expect(loaded, "event map tiles did not load").toBe(true);
+            await page.evaluate(() => window.scrollTo(0, 0));
+            await page.waitForTimeout(1_000);
+          }
+          await fitToDocument();
+          // Late content can grow the document; measure once more.
+          await fitToDocument();
+        }
+        const restoreFloatingUi = isMapLike ? null : await hideFloatingUi(page);
+        await page.screenshot({
+          path: `${uiReviewDir}/${section}--${label}.png`,
+          animations: "disabled",
+        });
+        await restoreFloatingUi?.();
+      });
+    }
+  }
+});
+
+/**
+ * Interactive UI review sessions. Runs only when UI_REVIEW_SESSION points at a
+ * session JSON file. A reviewer picks a fixture state, then lists steps
+ * (navigate, click, type, scroll, resize, screenshot, accessibility snapshot);
+ * the results land in the session's `out` folder. Every run is a fresh,
+ * isolated browser context on mocked data, so nothing touches real accounts.
+ */
+type ReviewTarget =
+  | { text: string; exact?: boolean }
+  | { role: Parameters<Page["getByRole"]>[0]; name?: string }
+  | { label: string }
+  | { placeholder: string }
+  | { css: string };
+
+type ReviewStep =
+  | { action: "goto"; path: string }
+  | { action: "click" | "hover"; target: ReviewTarget; index?: number }
+  | { action: "fill"; target: ReviewTarget; value: string; index?: number }
+  | { action: "press"; key: string }
+  | { action: "scroll"; y?: number; target?: ReviewTarget }
+  | { action: "wait"; ms: number }
+  | { action: "viewport"; width: number; height: number }
+  | { action: "back" }
+  | { action: "screenshot"; name: string; fullPage?: boolean }
+  | { action: "snapshot"; name: string };
+
+interface ReviewSession {
+  fixture: string;
+  viewport?: "desktop" | "tablet" | "mobile" | { width: number; height: number };
+  signedIn?: boolean;
+  out: string;
+  steps: ReviewStep[];
+}
+
+function reviewLocator(page: Page, target: ReviewTarget, index = 0): Locator {
+  let locator: Locator;
+  if ("text" in target) locator = page.getByText(target.text, { exact: target.exact ?? false });
+  else if ("role" in target) locator = page.getByRole(target.role, target.name ? { name: target.name } : {});
+  else if ("label" in target) locator = page.getByLabel(target.label);
+  else if ("placeholder" in target) locator = page.getByPlaceholder(target.placeholder);
+  else locator = page.locator(target.css);
+  return locator.nth(index);
+}
+
+const uiReviewSessionFile = process.env["UI_REVIEW_SESSION"];
+
+test.describe("UI review session", () => {
+  test.skip(!uiReviewSessionFile, "Set UI_REVIEW_SESSION to run a review session.");
+
+  test("run review session", async ({ page }) => {
+    test.setTimeout(300_000);
+    const session = JSON.parse(readFileSync(uiReviewSessionFile!, "utf8")) as ReviewSession;
+    mkdirSync(session.out, { recursive: true });
+    const log: { step: number; action: string; ok: boolean; note?: string; url?: string }[] = [];
+    const writeLog = () => writeFileSync(`${session.out}/log.json`, JSON.stringify(log, null, 2));
+
+    const route = routeVisualCases.find(candidate => candidate.name === session.fixture);
+    if (!route) {
+      log.push({ step: -1, action: "fixture", ok: false, note: `Unknown fixture "${session.fixture}". Known: ${routeVisualCases.map(c => c.name).join(", ")}` });
+      writeLog();
+      return;
+    }
+    const viewport = typeof session.viewport === "object"
+      ? session.viewport
+      : uiReviewViewports[session.viewport ?? "desktop"];
+    const { assertAlainClearance: _alain, clip: _clip, ...rest } = route;
+    await prepareRoute(page, { ...rest, viewport, ...(session.signedIn !== undefined ? { signedIn: session.signedIn } : {}) });
+    await page.addStyleTag({ content: ".app-check-status { display: none !important; }" });
+    await page.waitForTimeout(1_000);
+    log.push({ step: -1, action: "fixture", ok: true, url: page.url() });
+
+    for (const [index, step] of session.steps.entries()) {
+      try {
+        switch (step.action) {
+          case "goto":
+            await page.goto(step.path.startsWith("/de") ? step.path : `/de${step.path}`, { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(1_500);
+            break;
+          case "click":
+            await reviewLocator(page, step.target, step.index).click({ timeout: 10_000 });
+            await page.waitForTimeout(800);
+            break;
+          case "hover":
+            await reviewLocator(page, step.target, step.index).hover({ timeout: 10_000 });
+            await page.waitForTimeout(400);
+            break;
+          case "fill":
+            await reviewLocator(page, step.target, step.index).fill(step.value, { timeout: 10_000 });
+            break;
+          case "press":
+            await page.keyboard.press(step.key);
+            await page.waitForTimeout(300);
+            break;
+          case "scroll":
+            if (step.target) await reviewLocator(page, step.target).scrollIntoViewIfNeeded({ timeout: 10_000 });
+            else await page.mouse.wheel(0, step.y ?? 600);
+            await page.waitForTimeout(500);
+            break;
+          case "wait":
+            await page.waitForTimeout(Math.min(step.ms, 10_000));
+            break;
+          case "viewport":
+            await page.setViewportSize({ width: step.width, height: step.height });
+            await page.waitForTimeout(800);
+            break;
+          case "back":
+            await page.goBack();
+            await page.waitForTimeout(1_000);
+            break;
+          case "screenshot": {
+            // A long image cannot show fixed UI where people see it, so the
+            // floating navigation and action buttons are left out of it.
+            const restoreFloatingUi = step.fullPage ? await hideFloatingUi(page) : null;
+            await page.screenshot({ path: `${session.out}/${String(index).padStart(2, "0")}-${step.name}.png`, fullPage: step.fullPage ?? false });
+            await restoreFloatingUi?.();
+            break;
+          }
+          case "snapshot":
+            writeFileSync(
+              `${session.out}/${String(index).padStart(2, "0")}-${step.name}.aria.yml`,
+              (await page.locator("body").ariaSnapshot()).slice(0, 40_000),
+            );
+            break;
+        }
+        log.push({ step: index, action: step.action, ok: true, url: page.url() });
+      } catch (error) {
+        log.push({ step: index, action: step.action, ok: false, note: String(error).split("\n")[0], url: page.url() });
+        await page.screenshot({ path: `${session.out}/${String(index).padStart(2, "0")}-failed.png` }).catch(() => undefined);
+      }
+      writeLog();
+    }
+    writeLog();
+  });
+});

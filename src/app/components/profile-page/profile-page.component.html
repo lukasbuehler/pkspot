@@ -244,18 +244,6 @@
                         <div class="profile-stat">
                           <span class="profile-stat__value mat-headline-small">
                             <app-fancy-counter
-                              [number]="totalContributions"
-                            ></app-fancy-counter>
-                          </span>
-                          <span
-                            class="profile-stat__label mat-body-small"
-                            i18n="@@profile.stats.contributions"
-                            >Contributions</span
-                          >
-                        </div>
-                        <div class="profile-stat">
-                          <span class="profile-stat__value mat-headline-small">
-                            <app-fancy-counter
                               [number]="user.visitedSpotsCount || 0"
                             ></app-fancy-counter>
                           </span>
@@ -397,11 +385,11 @@
             @if (isMyProfile) {
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
-                  <mat-card-title class="mat-title-small" i18n>
+                  <mat-card-title role="heading" aria-level="2" class="mat-title-small" i18n>
                     Follow requests
                   </mat-card-title>
-                  <mat-card-subtitle class="mat-body-small text-muted" i18n>
-                    Private accounts can approve who follows them.
+                  <mat-card-subtitle class="mat-body-small text-muted" i18n="@@profile.follow_requests.subtitle">
+                    You decide who follows you.
                   </mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content class="profile-section__content">
@@ -410,12 +398,22 @@
                       <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
                     </div>
                   } @else if (followRequestsLoadFailed) {
-                    <div class="profile-section__load-error">
+                    <div class="profile-section__load-error" role="alert">
+                      <span class="profile-section__load-error-icon" aria-hidden="true">
+                        <mat-icon>error</mat-icon>
+                      </span>
                       <p
-                        class="profile-section__placeholder mat-body-medium"
-                        i18n
+                        class="profile-section__load-error-text mat-body-medium"
                       >
-                        Unable to process this request. Please try again later.
+                        @if (followRequestsRetryFailed) {
+                          <span i18n="@@profile.load_error.retry_failed">
+                            Still unable to load this. Check your connection and try again.
+                          </span>
+                        } @else {
+                          <span i18n="@@profile.load_error.follow_requests">
+                            Follow requests could not be loaded.
+                          </span>
+                        }
                       </p>
                       <button
                         mat-stroked-button
@@ -518,7 +516,7 @@
 
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
-                  <mat-card-title class="mat-title-small" i18n>
+                  <mat-card-title role="heading" aria-level="2" class="mat-title-small" i18n>
                     Your Private Spot Lists
                   </mat-card-title>
                   <mat-card-subtitle class="mat-body-small text-muted" i18n
@@ -531,12 +529,22 @@
                       <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
                     </div>
                   } @else if (privateDataLoadFailed) {
-                    <div class="profile-section__load-error">
+                    <div class="profile-section__load-error" role="alert">
+                      <span class="profile-section__load-error-icon" aria-hidden="true">
+                        <mat-icon>error</mat-icon>
+                      </span>
                       <p
-                        class="profile-section__placeholder mat-body-medium"
-                        i18n
+                        class="profile-section__load-error-text mat-body-medium"
                       >
-                        Unable to process this request. Please try again later.
+                        @if (privateDataRetryFailed) {
+                          <span i18n="@@profile.load_error.retry_failed">
+                            Still unable to load this. Check your connection and try again.
+                          </span>
+                        } @else {
+                          <span i18n="@@profile.load_error.private_lists">
+                            Your saved and visited Spots could not be loaded.
+                          </span>
+                        }
                       </p>
                       <button
                         mat-stroked-button
@@ -599,11 +607,12 @@
           <section
             class="profile-secondary"
             aria-label="Additional profile details"
+            i18n-aria-label="@@profile.secondary_region"
           >
             @if (badges.length > 0) {
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
-                  <mat-card-title i18n class="mat-title-small"
+                  <mat-card-title role="heading" aria-level="2" i18n class="mat-title-small"
                     >Badges</mat-card-title
                   >
                 </mat-card-header>

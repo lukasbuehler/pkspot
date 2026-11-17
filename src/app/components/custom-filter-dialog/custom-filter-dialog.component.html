@@ -60,6 +60,7 @@
           <span>{{ amenityNames[amenity] }}</span>
         </div>
         <mat-button-toggle-group
+          [attr.aria-label]="amenityNames[amenity]"
           [value]="getAmenityState(amenity)"
           (change)="setAmenityState(amenity, $event.value)"
         >

@@ -6,7 +6,7 @@
   } @else {
     @if (error()) { <p role="alert">{{ error() }}</p><button mat-button (click)="load()" i18n="@@planned.retry">Try again</button> }
     @if (loading()) { <p aria-live="polite" i18n="@@planned.loading">Loading…</p> }
-    @if (!signedIn()) { <a mat-flat-button routerLink="/sign-in" i18n="@@planned.signin">Sign in to save or plan sessions</a> }
+    @if (!signedIn()) { <a mat-flat-button class="wrap-label" routerLink="/sign-in" i18n="@@planned.signin">Sign in to save or plan sessions</a> }
     @if (listMode && signedIn()) {
       <button mat-button (click)="browse(false)" i18n="@@planned.mine">My sessions</button>
       @if (adult()) { <button mat-button (click)="browse(true)" i18n="@@planned.community">Community sessions</button> }

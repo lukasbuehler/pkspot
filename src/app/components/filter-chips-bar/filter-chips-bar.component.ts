@@ -17,6 +17,7 @@ import {
 import { isPlatformBrowser } from "@angular/common";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
+import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { AmenityIcons } from "../../../db/schemas/Amenities";
 import { SpotFilterMode } from "../spot-map/spot-filter-config";
 
@@ -30,10 +31,11 @@ export interface PresetFilterChip {
   icon?: string;
   imageSrc?: string;
   imageBackground?: string;
+  /** Optional count shown before the label with the animated counter. */
+  count?: number;
 }
 
 export type FilterChipsBarAppearance = "glass" | "solid";
-export type FilterChipsBarSelectionRole = "primary" | "secondary";
 
 /**
  * Horizontally scrollable filter chips bar with preset filters
@@ -41,7 +43,7 @@ export type FilterChipsBarSelectionRole = "primary" | "secondary";
  */
 @Component({
   selector: "app-filter-chips-bar",
-  imports: [MatChipsModule, MatIconModule],
+  imports: [MatChipsModule, MatIconModule, FancyCounterComponent],
   templateUrl: "./filter-chips-bar.component.html",
   styleUrl: "./filter-chips-bar.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,14 +77,17 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   /** Whether clicking the active chip clears the selection. */
   allowDeselect = input(true);
 
+  /**
+   * Shows a close icon on the selected chip, for rows where clicking it again
+   * returns to "everything" and no separate clear chip is shown.
+   */
+  showDeselectIcon = input(false);
+
   /** Optional aria label override for non-spot filter bars. */
   ariaLabel = input<string | null>(null);
 
   /** Visual treatment for the chips. */
   appearance = input<FilterChipsBarAppearance>("glass");
-
-  /** Material color role used for the active selection. */
-  selectionRole = input<FilterChipsBarSelectionRole>("secondary");
 
   /** Emits when a preset filter is selected/deselected */
   filterChange = output<string>();
@@ -158,6 +163,7 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   readonly savedLabel = $localize`:@@saved_spots_chip_label:Saved`;
   readonly visitedLabel = $localize`:@@visited_spots_chip_label:Visited`;
   readonly clearLabel = $localize`:@@filter_clear:Clear`;
+  readonly deselectHint = $localize`:@@filter_chip_deselect_hint:Select again to show everything`;
   readonly quickFiltersLabel = $localize`:@@quick_filters_aria_label:Quick filters`;
   readonly scrollLeftLabel = $localize`:@@filter_scroll_left:Scroll filters left`;
   readonly scrollRightLabel = $localize`:@@filter_scroll_right:Scroll filters right`;

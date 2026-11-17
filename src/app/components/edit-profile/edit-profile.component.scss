@@ -4,6 +4,20 @@
   max-width: 100%;
 }
 
+.profile-initial {
+  display: grid;
+  width: 120px;
+  height: 120px;
+  place-items: center;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 50%;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+  font-family: "Roboto", sans-serif;
+  font-size: 48px;
+  font-weight: 500;
+}
+
 .profile-privacy-note {
   display: flex;
   gap: 12px;

@@ -55,6 +55,28 @@ mat-tab-group {
   justify-content: space-around;
 }
 
+.spot-summary {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Access and Spot type sit side by side, and stack in narrow panels so their
+// values stay whole instead of being cut off.
+.property-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.property-column {
+  flex: 1 1 14rem;
+}
+
+.property-value {
+  min-width: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
 .spot-title-text {
   min-width: 0;
   white-space: nowrap;
@@ -379,4 +401,35 @@ div.google-img-container {
   height: 1lh;
   border-radius: 4px;
   background: var(--mat-sys-surface-variant);
+}
+
+.spot-header-badges { margin-block: 4px; }
+.spot-header-badges[data-collapsed] { margin-block: 0; }
+
+.spot-locality { max-width: 100%; white-space: normal; }
+
+// The header rating is a quiet text button that jumps to the reviews.
+.header-rating-button {
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+// Jumping to reviews stops below the floating search field and chips.
+.spot-ratings-section {
+  scroll-margin-top: 152px;
 }

@@ -1,42 +1,58 @@
-<div class="settings-page-container">
-  <div class="container settings-page-content">
-    <div class="row">
-      <div class="col-md-4">
-        <div class="menu d-flex flex-column settings-box border mb-5">
-          @for(menuPoint of menuPoints; track menuPoint.id) {
-          <button
-            mat-button
-            (click)="openMenuPoint(menuPoint.id)"
-            class="menuButton"
-            [class.selected]="menuPoint.id === selectedPoint"
-          >
-            <mat-icon
-              matBadge="&#8288;"
-              [matBadgeHidden]="!menuPoint.hasChanges"
-              matBadgeColor="accent"
-              [matBadgeOverlap]="true"
-              matBadgePosition="before"
-              matBadgeSize="small"
-              aria-hidden="false"
-              >{{ menuPoint.icon }}</mat-icon
-            >
-            <span>{{ menuPoint.name }}</span>
-          </button>
-          }
-        </div>
-      </div>
-      <div class="col-md-8">
-        <h1
-          class="mat-h1 mb-2"
-          i18n="settings page title|Title of the settings page@@settings.title"
+<!-- Wide screens show the section list beside the open section. Narrow
+     screens drill in like system settings: /settings lists the sections and
+     /settings/:tab shows one with a back link. -->
+<div class="settings-page-container" [class.section-open]="sectionOpen()">
+  <div class="settings-page-content">
+    <h1
+      class="mat-headline-medium settings-title"
+      i18n="settings page title|Title of the settings page@@settings.title"
+    >
+      Settings
+    </h1>
+    <div class="settings-layout">
+      <nav class="settings-nav" aria-label="Settings sections" i18n-aria-label="@@settings.nav_label">
+        @for(menuPoint of menuPoints; track menuPoint.id) {
+        <button
+          mat-button
+          type="button"
+          (click)="openMenuPoint(menuPoint.id)"
+          class="settings-nav-item"
+          [class.selected]="menuPoint.id === selectedPoint"
+          [attr.aria-current]="menuPoint.id === selectedPoint ? 'page' : null"
         >
-          Settings
-        </h1>
-        <mat-divider class="mb-3"></mat-divider>
+          <mat-icon
+            matBadge="&#8288;"
+            [matBadgeHidden]="!menuPoint.hasChanges"
+            matBadgeColor="accent"
+            [matBadgeOverlap]="true"
+            matBadgePosition="before"
+            matBadgeSize="small"
+            aria-hidden="false"
+            >{{ menuPoint.icon }}</mat-icon
+          >
+          <span class="settings-nav-label">
+            <span class="settings-nav-name">
+              {{ menuPoint.name }}
+              @if (menuPoint.hasChanges) {
+                <span class="settings-nav-unsaved mat-body-small" i18n="@@settings.unsaved">Unsaved</span>
+              }
+            </span>
+            <!-- The section list on phones says what each section holds. -->
+            <span class="settings-nav-summary mat-body-small">{{ menuPoint.description }}</span>
+          </span>
+          <mat-icon class="settings-nav-chevron" iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+        </button>
+        }
+      </nav>
+      <div class="settings-section">
+        <a mat-button class="settings-back" routerLink="/settings">
+          <mat-icon>arrow_back</mat-icon>
+          <span i18n="@@settings.back">All settings</span>
+        </a>
         <div [hidden]="selectedPoint !== 'profile'">
           <!-- Basic profile properties -->
           <h2
-            class="mat-h2"
+            class="mat-headline-small"
             i18n="
               public profile section|Header for public profile
               section@@settings.profile.header"
@@ -67,7 +83,7 @@
         @case ("account") {
         <div>
           <h2
-            class="mat-h2"
+            class="mat-headline-small"
             i18n="account section header@@settings.account.header"
           >
             Account
@@ -83,7 +99,7 @@
           <!-- Email Section -->
           <div class="my-4 p-3 settings-box border">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h3 class="mat-h3 m-0" i18n>E-Mail address</h3>
+              <h3 class="mat-title-medium m-0" i18n>E-Mail address</h3>
               @if(!isEmailExpanded && !isOAuthUser) {
               <button
                 mat-button
@@ -117,7 +133,7 @@
               >
               <button
                 mat-button
-                color="accent"
+                color="primary"
                 (click)="verifyUserEmailAddress()"
                 i18n
               >
@@ -190,7 +206,7 @@
           @if(!isOAuthUser) {
           <div class="my-4 p-3 settings-box border">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h3 class="mat-h3 m-0" i18n>Password</h3>
+              <h3 class="mat-title-medium m-0" i18n>Password</h3>
               @if(!isPasswordExpanded) {
               <button
                 mat-button
@@ -259,7 +275,7 @@
 
           <section class="profile-access-card">
             <header class="profile-access-header">
-              <h3 class="mat-h3 m-0" i18n="@@settings.profileAccess.title">
+              <h3 class="mat-title-medium m-0" i18n="@@settings.profileAccess.title">
                 Profile access
               </h3>
               <p class="mat-body m-0" i18n="@@settings.profileAccess.description">
@@ -374,7 +390,7 @@
           <div class="my-4 p-3 settings-box border">
             <div class="d-flex justify-content-between align-items-center gap-3">
               <div>
-                <h3 class="mat-h3 m-0" i18n>Session</h3>
+                <h3 class="mat-title-medium m-0" i18n>Session</h3>
                 <p class="mat-body m-0" i18n>Sign out of your account.</p>
               </div>
               <button mat-stroked-button color="primary" (click)="logOut()" i18n>
@@ -385,7 +401,7 @@
 
           <!-- Delete Account Section -->
           <div class="my-4 p-3 settings-box border border-danger">
-            <h3 class="mat-h3 text-danger" i18n>Delete Account</h3>
+            <h3 class="mat-title-medium text-danger" i18n>Delete Account</h3>
             <p class="mat-body" i18n>
               Permanently delete your account and all associated data. This
               action cannot be undone.
@@ -449,37 +465,37 @@
         }
         @case ("general") {
         <div>
-          <h2 class="mat-h2" i18n>General settings</h2>
-          <h3 class="mat-body" i18n>
+          <h2 class="mat-headline-small" i18n>General settings</h2>
+          <p class="mat-body-medium section-description" i18n>
             General settings to tune your experience on PK Spot.
-          </h3>
+          </p>
 
+          <h3 class="mat-title-large mt-4" i18n="@@settings.group.privacy">Privacy and permissions</h3>
           <app-local-legend-settings class="my-4" />
           <section class="my-4 p-3 settings-box border">
-            <h3 class="mat-h3 m-0" i18n="@@external_media.settings.title">External media</h3>
+            <h3 class="mat-title-medium m-0" i18n="@@external_media.settings.title">External media</h3>
             <p class="mat-body mt-2" i18n="@@external_media.settings.description">These choices are saved on this device. Loading third-party content connects to its provider and may share device and playback data.</p>
             <div class="d-flex flex-column gap-3">
               <p class="mat-body-small">
-                <span i18n="@@youtube.settings_agreement">By allowing YouTube, you agree to its Terms of Service.</span>
-                <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" i18n="@@youtube.terms">YouTube Terms</a>
+                <span i18n="@@youtube.settings_agreement">By allowing YouTube, you agree to its Terms of Service.</span>&ngsp;<a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" i18n="@@youtube.terms">YouTube Terms</a>
                 · <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" i18n="@@youtube.privacy">Google Privacy Policy</a>
               </p>
               <mat-slide-toggle [checked]="externalMedia.youtubeAllowed()" (change)="externalMedia.setYoutubeAllowed($event.checked)" i18n="@@external_media.settings.youtube">Always allow YouTube</mat-slide-toggle>
               <mat-slide-toggle [checked]="externalMedia.external().allowAll" (change)="externalMedia.setOtherAllowed($event.checked)" i18n="@@external_media.settings.other">Always allow other external images and videos</mat-slide-toggle>
               <p class="mat-body-small" i18n="@@external_media.settings.separate">YouTube is controlled separately. Individual website permissions can also be granted in the media carousel. Resetting clears all saved and temporary permissions.</p>
-              <button mat-stroked-button type="button" (click)="externalMedia.reset()" i18n="@@external_media.settings.reset">Reset external media permissions</button>
+              <button mat-stroked-button class="wrap-label" type="button" (click)="externalMedia.reset()" i18n="@@external_media.settings.reset">Reset external media permissions</button>
             </div>
           </section>
 
 
           <section class="my-4 p-3 settings-box border">
-            <h3 class="mat-h3 m-0" i18n="@@analytics.settings.title">Analytics</h3>
+            <h3 class="mat-title-medium m-0" i18n="@@analytics.settings.title">Analytics</h3>
             <p class="mat-body mt-2" i18n="@@analytics.settings.description">PK Spot counts visits anonymously and stores nothing on your device for it, so a visit cannot be linked to earlier ones. Optionally, you can let analytics remember this device and link it to your account. This helps us understand how people come back to PK Spot. It is off unless you turn it on, and you can turn it off at any time.</p>
             <mat-slide-toggle [checked]="persistentAnalytics()" (change)="setPersistentAnalytics($event.checked)" i18n="@@analytics.settings.persistent">Remember this device for analytics</mat-slide-toggle>
           </section>
 
           <div class="my-4 p-3 settings-box border">
-            <h3 class="mat-h3 m-0" i18n="@@locationAccess.settings.title">Location</h3>
+            <h3 class="mat-title-medium m-0" i18n="@@locationAccess.settings.title">Location</h3>
             <p class="mat-body mt-2 mb-3" i18n="@@locationAccess.settings.description">
               Use location for the map position and nearby check-ins. It is off until you choose otherwise.
             </p>
@@ -494,8 +510,9 @@
             </div>
           </div>
 
+          <h3 class="mat-title-large mt-4" i18n="@@settings.group.regional">Language and regional preferences</h3>
           <div class="my-4 p-3 settings-box border">
-            <h3 class="mat-h3 m-0" i18n>Language</h3>
+            <h3 class="mat-title-medium m-0" i18n>Language</h3>
             <p class="mat-body mt-2 mb-3" i18n>
               Choose the language used in the app.
             </p>
@@ -510,7 +527,7 @@
           </div>
 
           <div class="my-4 p-3 settings-box border">
-            <h3 class="mat-h3 m-0" i18n="@@settings.temperature.heading">
+            <h3 class="mat-title-medium m-0" i18n="@@settings.temperature.heading">
               Temperature
             </h3>
             <p
@@ -548,7 +565,7 @@
           </div>
 
           <div class="my-4 p-3 settings-box border">
-            <h3 class="mat-h3 m-0" i18n="@@settings.maps_app.heading">
+            <h3 class="mat-title-medium m-0" i18n="@@settings.maps_app.heading">
               Maps app
             </h3>
             <p
@@ -574,7 +591,7 @@
           </div>
 
           <div class="my-4 p-3 settings-box border">
-            <h3 class="mat-h3 m-0" i18n="@@settings.time_format.heading">
+            <h3 class="mat-title-medium m-0" i18n="@@settings.time_format.heading">
               Time format
             </h3>
             <p
@@ -611,12 +628,14 @@
             </mat-button-toggle-group>
           </div>
 
-          <div class="my-4">
-            <h3 class="mat-h3" i18n>Vector map rendering</h3>
+          <mat-expansion-panel class="my-4">
+            <mat-expansion-panel-header>
+              <mat-panel-title i18n="@@settings.group.display">Advanced map display</mat-panel-title>
+            </mat-expansion-panel-header>
+          <div class="my-4 p-3 settings-box border">
+            <h3 class="mat-title-medium" i18n>Vector map rendering</h3>
             <p class="mat-body" i18n>
-              Enable smoother fractional zoom and vector map effects. Raster
-              rendering is the default because it is more stable on some mobile
-              WebViews.
+              Use smoother zoom and map effects. Leave this off if the map becomes unstable.
             </p>
             <mat-slide-toggle
               i18n
@@ -628,8 +647,8 @@
             </mat-slide-toggle>
           </div>
 
-          <div class="my-4">
-            <h3 class="mat-h3" i18n="@@settings.map_glass_blur.heading">
+          <div class="my-4 p-3 settings-box border">
+            <h3 class="mat-title-medium" i18n="@@settings.map_glass_blur.heading">
               Map glass blur
             </h3>
             <p class="mat-body" i18n="@@settings.map_glass_blur.description">
@@ -646,43 +665,49 @@
             </mat-slide-toggle>
           </div>
 
+          </mat-expansion-panel>
+
+          <!-- Diagnostics are for maintainers, so only administrators see them. -->
+          @if (authService.isAdmin()) {
           <mat-expansion-panel class="my-4">
             <mat-expansion-panel-header>
-              <mat-panel-title>Developer options</mat-panel-title>
-              <mat-panel-description>
+              <mat-panel-title i18n="@@settings.developer.title">Developer options</mat-panel-title>
+              <mat-panel-description i18n="@@settings.developer.description">
                 Map diagnostics
               </mat-panel-description>
             </mat-expansion-panel-header>
 
             <div>
-              <h3 class="mat-h3">Map Debug Mode</h3>
-              <p class="mat-body">
+              <h3 class="mat-title-medium" i18n="@@settings.developer.map_debug.heading">Map debug mode</h3>
+              <p class="mat-body" i18n="@@settings.developer.map_debug.description">
                 Enable the map debug overlay with technical map information.
               </p>
               <mat-slide-toggle
                 [checked]="appSettings.debugMode()"
                 (change)="appSettings.debugMode.set($event.checked)"
                 color="primary"
+                i18n="@@settings.developer.map_debug.toggle"
               >
-                Enable Map Debug Mode
+                Enable map debug mode
               </mat-slide-toggle>
             </div>
             @if (mapProfiler.available) {
               <div class="mt-4">
-                <h3 class="mat-h3">Map performance capture</h3>
-                <p class="mat-body">Record camera, gestures, rendering and performance locally. Captures can include map coordinates. Nothing is uploaded automatically. The previous session is retained after restarting the app.</p>
-                <mat-slide-toggle [checked]="mapProfiler.enabled()" (change)="mapProfiler.setEnabled($event.checked)">Record map diagnostics</mat-slide-toggle>
+                <h3 class="mat-title-medium" i18n="@@settings.developer.capture.heading">Map performance capture</h3>
+                <p class="mat-body" i18n="@@settings.developer.capture.description">Record camera, gestures, rendering and performance locally. Captures can include map coordinates. Nothing is uploaded automatically. The previous session is retained after restarting the app.</p>
+                <mat-slide-toggle [checked]="mapProfiler.enabled()" (change)="mapProfiler.setEnabled($event.checked)" i18n="@@settings.developer.capture.toggle">Record map diagnostics</mat-slide-toggle>
                 <div class="mt-3 d-flex gap-2">
-                  <button mat-stroked-button (click)="copyMapDiagnostics()">Copy capture</button>
-                  <button mat-button (click)="mapProfiler.clearBreadcrumbs()">Clear capture</button>
+                  <button mat-stroked-button (click)="copyMapDiagnostics()" i18n="@@settings.developer.capture.copy">Copy capture</button>
+                  <button mat-button (click)="mapProfiler.clearBreadcrumbs()" i18n="@@settings.developer.capture.clear">Clear capture</button>
                 </div>
               </div>
             }
           </mat-expansion-panel>
+          }
 
           <!--
           <div class="my-4">
-            <h3 class="mat-h3">Geo-URI links</h3>
+            <h3 class="mat-title-medium">Geo-URI links</h3>
             <p class="mat-body">
               On supported mobile devices this will open the spot location in
               the preferred native maps app. This is enabled by default for the
@@ -698,7 +723,7 @@
         @case ("about") {
         <div>
           <h2
-            class="mat-h2"
+            class="mat-headline-small"
             i18n="about section header@@settings.about.header"
           >
             About &amp; Credits
@@ -719,7 +744,7 @@
                 style="height: 64px; width: 64px; border-radius: 16px;"
               />
               <div>
-                <h3 class="mat-h3 m-0">PK Spot</h3>
+                <h3 class="mat-title-medium m-0">PK Spot</h3>
                 <p
                   class="mat-body-medium m-0"
                   style="color: var(--mat-sys-on-surface-variant)"
@@ -782,7 +807,7 @@
           </div>
 
           <div class="my-4">
-            <h3 class="mat-h3" i18n="@@settings.review.heading">Review PK Spot</h3>
+            <h3 class="mat-title-medium" i18n="@@settings.review.heading">Review PK Spot</h3>
             <p class="mat-body" i18n="@@settings.review.description">
               PK Spot grows through its community. An honest store review helps others discover the app.
             </p>
@@ -800,7 +825,7 @@
 
           <!-- Crew Credits Section -->
           <div class="my-4">
-            <h3 class="mat-h3 mb-3" i18n>The Crew</h3>
+            <h3 class="mat-title-medium mb-3" i18n>The Crew</h3>
             <div class="row g-3">
               @for (member of crew; track member.name) {
                 <div class="col-sm-6">
@@ -820,7 +845,7 @@
           
           <!-- Open Data / Licensing details -->
           <div class="my-4 p-3 settings-box border" style="background: var(--mat-sys-surface-container-low)">
-            <h3 class="mat-h3 m-0" i18n>Open Data License</h3>
+            <h3 class="mat-title-medium m-0" i18n>Open Data License</h3>
             <p class="mat-body-medium mt-2 mb-0">
               <span i18n="@@settings.about.license_prefix">
                 All community spot data on PK Spot is licensed under
@@ -847,15 +872,18 @@
     </div>
   </div>
 </div>
-@if(hasChanges && (selectedPoint !== 'profile' || ageAssurance.canParticipatePublicly())) {
-<app-speed-dial-fab
-  #saveSpeedDial
-  id="saveSpeedDial"
+@if(selectedPoint === 'profile' && menuPoints[0].hasChanges && ageAssurance.canParticipatePublicly()) {
+<!-- Only profile edits are drafted, so the save action appears with the
+     profile form and names what it saves. Other sections save inline. -->
+<button
+  mat-fab
+  extended
+  color="primary"
   class="app-page-fab"
-  [buttonConfig]="speedDialButtonConfig"
-  [openOnHover]="true"
-  [rotationDegrees]="0"
-  (mainFabClick)="saveAllChanges()"
-  (miniFabClick)="miniFabPressed()"
-></app-speed-dial-fab>
+  type="button"
+  (click)="saveAllChanges()"
+>
+  <mat-icon>save</mat-icon>
+  <span i18n="@@settings.save_profile">Save profile</span>
+</button>
 }

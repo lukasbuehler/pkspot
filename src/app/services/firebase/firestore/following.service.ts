@@ -1,7 +1,8 @@
 import { FeatureTelemetryService } from "../../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
-import { map, Observable, from, Subscription } from "rxjs";
+import { map, Observable, from, of, Subscription } from "rxjs";
+import { isLocalScreenshotRun } from "../../../shared/local-screenshot-run";
 import {
   FollowRequestDataSchema,
   FollowRequestSchema,
@@ -264,6 +265,8 @@ export class FollowingService extends ConsentAwareService {
     userId: string,
     chunkSize: number = 50
   ): Observable<FollowingSchema[]> {
+    const fixture = readScreenshotFollows(userId)?.followers;
+    if (fixture) return of(fixture.slice(0, chunkSize));
     console.log(`Fetching followers for userId: ${userId} (one-time)`);
     const constraints: QueryConstraintOptions[] = [
       // { type: "orderBy", fieldPath: "start_following", direction: "desc" }, // Removed to include legacy docs
@@ -310,6 +313,8 @@ export class FollowingService extends ConsentAwareService {
     userId: string,
     chunkSize: number = 50
   ): Observable<FollowingSchema[]> {
+    const fixture = readScreenshotFollows(userId)?.following;
+    if (fixture) return of(fixture.slice(0, chunkSize));
     console.log(`Fetching following for userId: ${userId} (one-time)`);
     const constraints: QueryConstraintOptions[] = [
       // { type: "orderBy", fieldPath: "start_following", direction: "desc" }, // Removed to include legacy docs
@@ -386,4 +391,22 @@ export class FollowingService extends ConsentAwareService {
       )
     );
   }
+}
+
+interface ScreenshotFollows {
+  followers?: FollowingSchema[];
+  following?: FollowingSchema[];
+}
+
+/**
+ * Follow lists that local screenshot runs supply per user ID. Users without
+ * an entry use the normal Firestore read.
+ */
+function readScreenshotFollows(userId: string): ScreenshotFollows | null {
+  if (!isLocalScreenshotRun()) return null;
+  return (
+    (globalThis as typeof globalThis & {
+      __PKSPOT_SCREENSHOT_FOLLOWS__?: Record<string, ScreenshotFollows>;
+    }).__PKSPOT_SCREENSHOT_FOLLOWS__?.[userId] ?? null
+  );
 }

@@ -78,6 +78,7 @@ import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.c
 import { EventCardComponent } from "../event-card/event-card.component";
 import { EventProgramTimelineComponent } from "./event-program-timeline.component";
 import {
+  eventCategoryIcon,
   eventHeroMedia,
   eventImageDisplaySrc,
   eventScheduleLabel,
@@ -363,14 +364,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (!event) return "";
     return eventScheduleLabel(event, this._dateTime, "long");
   });
-  readonly websiteUrl = computed(() =>
-    this._analytics.addUtmToUrl(
-      this._safeExternalUrl(
-        this.event()?.url ?? this.event()?.externalSource?.url,
-      ),
-      "event_page",
-    ),
-  );
   readonly eventLinks = computed<EventLinkSchema[]>(() => {
     const event = this.event();
     if (!event) return [];
@@ -533,6 +526,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
             candidate.series_id === membership.series_id &&
             candidate.role === membership.role,
         ) === index,
+    ),
+  );
+  /** Category chips, without the generic "other" that tells visitors nothing. */
+  readonly displayCategories = computed(() =>
+    (this.event()?.eventCategories ?? []).filter(
+      (category) => category !== "other",
     ),
   );
   readonly visibleSeriesTags = computed<VisibleSeriesTag[]>(() => {
@@ -976,23 +975,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  trackWebsiteClick(): boolean {
-    const event = this.event();
-    this._analytics.trackEvent("click_event_website", {
-      surface: "event_info_page",
-      event_id: event?.id,
-      event_slug: event?.slug,
-      event_name: event?.name,
-      event_status: event?.status(),
-      is_sponsored: event?.isSponsored ?? false,
-      sponsor_name: event?.sponsor?.name,
-      organizer_name: this.organizerName(),
-      external_provider: event?.externalSource?.provider,
-      url: this.websiteUrl(),
-    });
-    return true;
-  }
-
   trackEventLinkClick(link: EventLinkSchema): boolean {
     const event = this.event();
     this._analytics.trackEvent("click_event_link", {
@@ -1414,26 +1396,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   categoryIcon(category: EventCategory): string {
-    switch (category) {
-      case "camp":
-        return "camping";
-      case "competition":
-        return "trophy";
-      case "jam":
-        return "groups";
-      case "workshop":
-        return "school";
-      case "show":
-        return "theater_comedy";
-      case "awards":
-        return "workspace_premium";
-      case "social":
-        return "celebration";
-      case "travel":
-        return "directions_bus";
-      default:
-        return "sell";
-    }
+    return eventCategoryIcon(category);
   }
 
   seriesLabel(seriesId: string): string {

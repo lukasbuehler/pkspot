@@ -71,6 +71,12 @@ export class MapFloatingControlsComponent {
       ? $localize`:@@map.geolocation.tooltip:Go to your location`
       : $localize`:@@map.geolocation.disabled.tooltip:Location is off`,
   );
+  readonly resetNorthLabel = $localize`:@@map.reset_north.tooltip:Reset map orientation to north`;
+  readonly mapStyleLabel = computed(() =>
+    this.mapStyle() === "roadmap"
+      ? $localize`:@@map.style.show_satellite:Show satellite map`
+      : $localize`:@@map.style.show_roadmap:Show roadmap`,
+  );
   readonly createActions = computed(() => {
     const actions: MapFabMenuAction[] = [];
     if (this.draftCount()) {

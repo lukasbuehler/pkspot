@@ -637,6 +637,25 @@ describe("EventsPageComponent", () => {
     expect(eventsService.getEvents).not.toHaveBeenCalled();
   });
 
+  it("applies every filters dialog change in one navigation", () => {
+    const { component, router } = createComponent();
+    router.navigate.mockClear();
+
+    component.applyDialogFilters({
+      regions: ["europe", "asia"],
+      seriesIds: ["visual-series"],
+      listingTiers: [],
+    });
+
+    expect(router.navigate).toHaveBeenCalledOnce();
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: expect.anything(),
+      queryParams: { region: "europe,asia", series: "visual-series", tier: null },
+      queryParamsHandling: "merge",
+      replaceUrl: false,
+    });
+  });
+
   it("updates shareable query parameters for navigation and filters", () => {
     const { component, router } = createComponent();
 

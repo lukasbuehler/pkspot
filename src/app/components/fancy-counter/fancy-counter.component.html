@@ -1,4 +1,6 @@
-<span class="counter">
+<!-- Screen readers get the whole number; the animated digits are visual only. -->
+<span class="visually-hidden">{{ displayString() }}</span>
+<span class="counter" aria-hidden="true">
   @for(digit of displayDigits(); track digit + '-' + $index) {
   <span
     [@digitChange]="{

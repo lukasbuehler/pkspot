@@ -10,14 +10,6 @@
   gap: 1.25rem;
 }
 
-.account-panel {
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-on-surface);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 24px;
-  padding: 1.5rem;
-}
-
 .section-kicker {
   margin-bottom: 0.25rem;
   text-transform: uppercase;
@@ -36,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 0.25rem 0.5rem;
   padding: 0 0.25rem;
   color: var(--mat-sys-on-surface-variant);
 }
@@ -49,8 +41,13 @@
 
 .language-button {
   flex-shrink: 0;
-  min-width: 160px;
   justify-content: center;
+}
+
+@media (min-width: 600px) {
+  .language-button {
+    min-width: 160px;
+  }
 }
 
 // Two-column grid for sign-in / why-join
@@ -58,14 +55,14 @@
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   gap: 1.25rem;
-  align-items: stretch;
+  // Each card keeps its own height, so the form never gains an empty tail.
+  align-items: start;
 }
 
 .auth-panel,
 .benefits-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .auth-panel h2,
@@ -74,18 +71,15 @@
   margin-bottom: 1rem;
 }
 
-// OAuth row + divider
-.divider-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 1rem 0;
-  color: var(--mat-sys-on-surface-variant);
+.forgot-link {
+  align-self: flex-end;
+  margin-top: -0.75rem;
 }
 
+// The sign-in button spans the form; registration sits below as a prompt.
 .auth-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.5rem;
   margin-top: 0.5rem;
 
@@ -204,7 +198,7 @@
   padding: 0.625rem 0.875rem;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 959.98px) {
   .account-page {
     padding: 24px 12px;
   }
@@ -224,4 +218,10 @@
   :host-context(app-root:not(.has-native-tab-bar)) .account-page {
     padding-block-start: var(--alain-menu-block-start);
   }
+}
+
+// An outlined field's floating label sits above its border, so a one-line
+// error under the previous field needs a little more room before it.
+form mat-form-field + mat-form-field {
+  margin-top: 6px;
 }

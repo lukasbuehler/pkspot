@@ -4,9 +4,10 @@
   overflow: visible;
 }
 
+// Selected filters use the blue highlight, like every other selection.
 .filter-chips-container {
-  --filter-chip-selected-container: var(--mat-sys-secondary-container);
-  --filter-chip-selected-label: var(--mat-sys-on-secondary-container);
+  --filter-chip-selected-container: var(--mat-sys-primary-container);
+  --filter-chip-selected-label: var(--mat-sys-on-primary-container);
 
   display: flex;
   align-items: center;
@@ -16,13 +17,10 @@
   position: relative;
 }
 
-.primary-selection {
-  --filter-chip-selected-container: var(--mat-sys-primary-container);
-  --filter-chip-selected-label: var(--mat-sys-on-primary-container);
-}
-
+// The shell only grows to its chips, so the clear/Filters action sits right
+// after the last chip and only reaches the edge once the row has to scroll.
 .chips-scroll-shell {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   position: relative;
 
@@ -162,8 +160,13 @@ mat-chip {
   flex-shrink: 0;
   cursor: pointer;
 
-  // When active, match the selected chip appearance
-  &.mat-mdc-chip-selected {
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+
+  // A custom filter is active: match the selected chip appearance.
+  &.is-active {
     ::ng-deep {
       .mdc-evolution-chip__action--primary {
         background-color: var(--filter-chip-selected-container) !important;
@@ -281,3 +284,21 @@ mat-chip {
 }
 
 .preset-image { object-fit: contain; }
+
+// Counts tick with the shared counter; keep the digits on one baseline.
+.chip-count {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+// Material draws its checkmark over a selected chip's icon. Rows that clear on
+// a second tap show the close icon instead, so the checkmark stays hidden.
+.deselect-icon-row ::ng-deep .mat-mdc-chip-selected {
+  .mdc-evolution-chip__checkmark {
+    display: none;
+  }
+
+  .mdc-evolution-chip__icon--primary {
+    opacity: 1;
+  }
+}

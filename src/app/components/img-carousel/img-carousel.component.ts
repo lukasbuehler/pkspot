@@ -73,7 +73,28 @@ const TRAILING_PHOTO_ASPECT_RATIO = 4 / 3;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
+  /** What the photos show, usually the Spot or event name. */
   readonly imageDescription = input("PK Spot");
+  /**
+   * One alt text per media item. Numbering tells screen-reader users the
+   * photos apart instead of repeating the same name for every photo.
+   */
+  readonly imageAlts = computed(() => {
+    const name = this.imageDescription();
+    const total = this.media()?.length ?? 0;
+    if (total <= 1) return [name];
+    return Array.from(
+      { length: total },
+      (_, i) =>
+        $localize`:@@media.image_alt_numbered:${name}:name:, photo ${i + 1}:index: of ${total}:total:`,
+    );
+  });
+  readonly trailingPhotoAlt = computed(
+    () =>
+      $localize`:@@media.google_photo_alt:${this.imageDescription()}:name: on Google Maps`,
+  );
+  readonly muteVideoLabel = $localize`:@@media.video_mute:Mute video`;
+  readonly unmuteVideoLabel = $localize`:@@media.video_unmute:Unmute video`;
   readonly trailingPhotoAspectRatio = TRAILING_PHOTO_ASPECT_RATIO;
   media = input<AnyMedia[] | undefined>();
   processingMedia = input<PendingMediaPreview[]>([]);
@@ -142,8 +163,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   private readonly previewGapPx = 10;
   private readonly containedImageDefaultBackground =
     "var(--mat-sys-surface-container-highest)";
-  readonly scrollLeftLabel = "Scroll images left";
-  readonly scrollRightLabel = "Scroll images right";
+  readonly scrollLeftLabel = $localize`:@@media.scroll_left:Previous photos`;
+  readonly scrollRightLabel = $localize`:@@media.scroll_right:Next photos`;
 
   @ViewChild("previewViewport")
   private previewViewport: ElementRef<HTMLElement> | undefined;
