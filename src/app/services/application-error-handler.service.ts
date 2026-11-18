@@ -118,13 +118,14 @@ export class ApplicationErrorHandler implements ErrorHandler {
 
     // Without a connection the page part cannot load and a reload would only
     // replace the app with the browser's offline page. Stay on the current
-    // page and say why instead; the next tap after reconnecting loads it.
+    // page, say why, and open the page once the connection is back.
     const failedNavigation = this.injector.get(FailedNavigationTarget);
     const target = failedNavigation.url;
     failedNavigation.url = null;
 
     if (view.navigator?.onLine === false) {
       this.showOfflineNotice();
+      if (target) this.openWhenBackOnline(view, target);
       return;
     }
 
@@ -146,6 +147,32 @@ export class ApplicationErrorHandler implements ErrorHandler {
     } catch (error) {
       console.warn("Failed to schedule stale app reload", error);
     }
+  }
+
+  /** The page to open on reconnecting; only the latest tap counts. */
+  private pendingOnlineTarget: string | null = null;
+
+  /**
+   * Keeps the offline notice's promise: once the browser is online again,
+   * open the page the person tapped, unless they have moved on since.
+   */
+  private openWhenBackOnline(view: Window, target: string): void {
+    const waiting = this.pendingOnlineTarget !== null;
+    this.pendingOnlineTarget = target;
+    if (waiting) return;
+
+    const startedOn = view.location.href;
+    view.addEventListener(
+      "online",
+      () => {
+        const pending = this.pendingOnlineTarget;
+        this.pendingOnlineTarget = null;
+        if (pending && view.location.href === startedOn) {
+          view.location.assign(pending);
+        }
+      },
+      { once: true },
+    );
   }
 
   private showOfflineNotice(): void {

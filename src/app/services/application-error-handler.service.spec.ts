@@ -37,11 +37,15 @@ function configureHandler(options: {
     callback();
     return 1;
   }) as unknown as Window["setTimeout"];
+  const listeners = new Map<string, () => void>();
   const fakeWindow = {
     location: { reload, assign, href: "https://pkspot.app/de/map" },
     navigator: { onLine: !options.offline },
     sessionStorage: options.sessionStorage ?? createSessionStorage(),
     setTimeout,
+    addEventListener: vi.fn((type: string, listener: () => void) => {
+      listeners.set(type, listener);
+    }),
   } as unknown as Window;
   const fakeDocument = { defaultView: fakeWindow } as Document;
 
@@ -57,6 +61,8 @@ function configureHandler(options: {
 
   return {
     assign,
+    fakeWindow,
+    goOnline: () => listeners.get("online")?.(),
     failedNavigation: TestBed.inject(FailedNavigationTarget),
     snackbar,
     analytics,
@@ -180,6 +186,34 @@ describe("ApplicationErrorHandler", () => {
       "OK",
       { duration: 8000 },
     );
+  });
+
+  it("opens the tapped page once the connection is back", () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { handler, assign, failedNavigation, goOnline } = configureHandler({ offline: true });
+    const error = new TypeError("Failed to fetch dynamically imported module: /de/chunk.js");
+
+    failedNavigation.url = "/de/events";
+    handler.handleError(error);
+    failedNavigation.url = "/de/train";
+    handler.handleError(error);
+    expect(assign).not.toHaveBeenCalled();
+
+    goOnline();
+    expect(assign).toHaveBeenCalledTimes(1);
+    expect(assign).toHaveBeenCalledWith("/de/train");
+  });
+
+  it("does not open the tapped page after reconnecting if the person moved on", () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { handler, assign, failedNavigation, goOnline, fakeWindow } = configureHandler({ offline: true });
+
+    failedNavigation.url = "/de/events";
+    handler.handleError(new TypeError("Failed to fetch dynamically imported module: /de/chunk.js"));
+    (fakeWindow.location as { href: string }).href = "https://pkspot.app/de/map/lindenhof";
+
+    goOnline();
+    expect(assign).not.toHaveBeenCalled();
   });
 
   it("opens the page a navigation was heading to once its code can load again", () => {
