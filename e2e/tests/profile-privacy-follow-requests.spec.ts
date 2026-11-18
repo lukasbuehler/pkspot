@@ -134,13 +134,16 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Requested|Angefragt/u);
     await expect(followButton).toHaveAttribute("aria-busy", "false");
     await expect(followButton.locator("mat-spinner")).toBeHidden();
-    const notificationPrompt = page.locator(
-      "app-notification-opt-in-dialog",
-    );
+    // Following offers notifications inline, as a snackbar that leaves the
+    // profile usable, rather than interrupting with the full opt-in dialog.
+    await expect(page.locator("app-notification-opt-in-dialog")).toHaveCount(0);
+    const notificationPrompt = page.locator("mat-snack-bar-container", {
+      hasText: /Get notified when someone follows you|Benachrichtigt werden, wenn dir jemand folgt/u,
+    });
     await expect(notificationPrompt).toBeVisible();
-    await notificationPrompt.getByRole("button").first().click();
-    await expect(notificationPrompt).toBeHidden();
-    await page.waitForTimeout(500);
+    await expect(
+      notificationPrompt.getByRole("button", { name: /Notify me|Benachrichtigen/u }),
+    ).toBeVisible();
     await expect(followButton).toContainText(/Requested|Angefragt/u);
     await expect(actions).toHaveScreenshot("profile-follow-action-requested.png", {
       animations: "disabled",
@@ -199,6 +202,10 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Unfollow|Entfolgen/u);
 
     await page.goBack();
-    await expect(profile).toContainText(/No pending follow requests\.|Keine offenen Folgeanfragen\./u);
+    // With nothing left to review, the follow requests card goes away and the
+    // approved requester counts as a follower.
+    await expect(profile.getByRole("button", { name: /^1 (Follower|Followers)$/u }))
+      .toBeVisible();
+    await expect(profile).not.toContainText(/Follow requests|Folgeanfragen/u);
   });
 });
