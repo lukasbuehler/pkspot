@@ -14,6 +14,7 @@ import {
   MatDialogTitle,
   MatDialogActions,
   MatDialogClose,
+  MatDialogContent,
   MatDialogRef,
 } from "@angular/material/dialog";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
@@ -81,6 +82,7 @@ export class FollowDurationPipe implements PipeTransform {
     MatDialogTitle,
     MatDialogActions,
     MatDialogClose,
+    MatDialogContent,
     RouterLink,
     MatIcon,
     MatProgressSpinner,

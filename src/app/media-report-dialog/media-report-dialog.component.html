@@ -8,7 +8,7 @@
     </p>
   }
   <div class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3">
-    <div class="rounded bg-black" style="width: 200px; height: 200px; position: relative">
+    <div class="media-report-preview rounded bg-black">
       @if (getPreviewSrc(dialogData.media)) {
         <img [ngSrc]="getPreviewSrc(dialogData.media)!" alt="Image to report" i18n-alt="@@media_report.preview_alt" style="object-fit: contain" priority fill />
       } @else if (getVideoPreviewSrc(dialogData.media)) {

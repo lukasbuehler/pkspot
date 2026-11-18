@@ -273,10 +273,7 @@
                     mat-icon-button
                     color="primary"
                     [disabled]="isBookmarkUpdating()"
-                    matTooltip="Bookmark this spot"
-                    i18n-matTooltip="
-                      Bookmark spot tooltip|The tooltip of the bookmark spot
-                      icon button@@bookmark_spot_tooltip"
+                    [matTooltip]="bookmarkTooltip()"
                     aria-label="Save Spot"
                     i18n-aria-label="
                       Bookmark spot aria label|The aria label of the bookmark
@@ -296,11 +293,7 @@
                     mat-icon-button
                     [color]="visited() ? 'accent' : 'white'"
                     [disabled]="isVisitedUpdating()"
-                    matTooltip="Mark this spot as visited"
-                    i18n-matTooltip="
-                      Mark this spot as visited tooltip|The tooltip of the mark
-                      this spot as visited icon
-                      button@@mark_this_spot_as_visited_tooltip"
+                    [matTooltip]="visitedTooltip()"
                     aria-label="Mark Spot as visited"
                     i18n-aria-label="
                       Mark this spot as visited aria label|The aria label of the

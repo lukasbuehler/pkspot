@@ -77,3 +77,8 @@
 .follow-list__since {
   color: var(--mat-sys-on-surface-variant);
 }
+
+// The rows bring their own inset; keep the list as wide as before.
+.follow-list-content.mat-mdc-dialog-content {
+  padding-inline: 0;
+}

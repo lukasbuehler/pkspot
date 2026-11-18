@@ -1,0 +1,13 @@
+
+// The preview identifies the photo; on short phone screens it shrinks so the
+// reasons, not the picture, fill the dialog.
+.media-report-preview {
+  position: relative;
+  width: 200px;
+  height: 200px;
+
+  @media (max-height: 900px) {
+    width: 160px;
+    height: 120px;
+  }
+}

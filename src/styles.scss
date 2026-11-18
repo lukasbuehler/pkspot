@@ -686,3 +686,56 @@ app-notification-settings {
   margin: 1.25rem 0 0;
   color: var(--mat-sys-on-surface-variant);
 }
+
+// Scroll fades: dialog content fades out at an edge only while there is more
+// to scroll that way, so a cut-off option reads as "scroll for more" instead
+// of a layout bug. Driven by the content's own scroll position; browsers
+// without scroll-driven animations simply show no fade, and content that
+// does not scroll has no active timeline and stays unfaded.
+@property --dialog-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --dialog-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes dialog-fade-top {
+  from {
+    --dialog-fade-top: 0px;
+  }
+  8%,
+  to {
+    --dialog-fade-top: 28px;
+  }
+}
+
+@keyframes dialog-fade-bottom {
+  from,
+  92% {
+    --dialog-fade-bottom: 28px;
+  }
+  to {
+    --dialog-fade-bottom: 0px;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .mat-mdc-dialog-content {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--dialog-fade-top),
+      #000 calc(100% - var(--dialog-fade-bottom)),
+      transparent 100%
+    );
+    animation:
+      dialog-fade-top linear both,
+      dialog-fade-bottom linear both;
+    animation-timeline: scroll(self), scroll(self);
+  }
+}

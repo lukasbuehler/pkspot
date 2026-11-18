@@ -4,11 +4,12 @@
     Your edits have not been saved. If you leave now, they are lost.
   </p>
 </mat-dialog-content>
+<!-- Keeping the edits is the safe default; discarding is the red text action. -->
 <mat-dialog-actions align="end">
-  <button mat-button [mat-dialog-close]="false" i18n="@@discard_changes.keep">
-    Keep editing
-  </button>
-  <button mat-flat-button [mat-dialog-close]="true" i18n="@@discard_changes.discard">
+  <button mat-button color="warn" [mat-dialog-close]="true" i18n="@@discard_changes.discard">
     Discard
+  </button>
+  <button mat-flat-button cdkFocusInitial [mat-dialog-close]="false" i18n="@@discard_changes.keep">
+    Keep editing
   </button>
 </mat-dialog-actions>

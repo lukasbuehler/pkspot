@@ -118,7 +118,6 @@ export class CustomFilterDialogComponent {
   readonly amenitiesSectionLabel = $localize`:@@filter_section_amenities:Amenities`;
   readonly clearLabel = $localize`:@@filter_clear:Clear`;
   readonly applyLabel = $localize`:@@filter_apply:Apply`;
-  readonly cancelLabel = $localize`:@@filter_cancel:Cancel`;
   readonly anyLabel = $localize`:@@filter_any:Any`;
   readonly yesLabel = $localize`:@@filter_yes:Yes`;
   readonly noLabel = $localize`:@@filter_no:No`;
@@ -234,10 +233,6 @@ export class CustomFilterDialogComponent {
     };
 
     this.dialogRef.close(result);
-  }
-
-  cancel(): void {
-    this.dialogRef.close(null);
   }
 
   private _snapshotParams(): CustomFilterParams {

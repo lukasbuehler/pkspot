@@ -6,6 +6,8 @@
   }
 </h2>
 
+<!-- Only the list scrolls, so Close stays in reach on phones. -->
+<mat-dialog-content class="follow-list-content">
 <div class="p-2">
   <!-- One tappable row per person: avatar, name, since when, chevron. -->
   @if (hasFollowUsers()) {
@@ -88,6 +90,7 @@
     </button>
   }
 </div>
+</mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button mat-button type="button" mat-dialog-close i18n="@@follow_list.close">Close</button>

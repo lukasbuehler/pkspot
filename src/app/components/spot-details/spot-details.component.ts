@@ -544,6 +544,17 @@ export class SpotDetailsComponent
   bookmarked = signal<boolean>(false);
   isBookmarkUpdating = signal<boolean>(false);
   isVisitedUpdating = signal<boolean>(false);
+  /** Tooltips say what a tap does now, so a saved Spot is not unsaved by surprise. */
+  readonly bookmarkTooltip = computed(() =>
+    this.bookmarked()
+      ? $localize`:@@spot.bookmark.tooltip_saved:Saved – tap to remove`
+      : $localize`:@@bookmark_spot_tooltip:Bookmark this spot`,
+  );
+  readonly visitedTooltip = computed(() =>
+    this.visited()
+      ? $localize`:@@spot.visited.tooltip_visited:Visited – tap to undo`
+      : $localize`:@@mark_this_spot_as_visited_tooltip:Mark this spot as visited`,
+  );
   isDeletingSpot = signal<boolean>(false);
 
   spotTypeNames = SpotTypesNames;
@@ -967,6 +978,7 @@ export class SpotDetailsComponent
         spot_id: spot.id,
         enabled: shouldBookmark,
       });
+      this._confirmBookmark(shouldBookmark);
     } catch (error) {
       this.bookmarked.set(!shouldBookmark);
       console.error("Failed to update saved spot", error);
@@ -986,6 +998,17 @@ export class SpotDetailsComponent
     } finally {
       this.isBookmarkUpdating.set(false);
     }
+  }
+
+  /** Confirms a save or removal and lets people undo an accidental tap. */
+  private _confirmBookmark(saved: boolean): void {
+    const message = saved
+      ? $localize`:@@spot.bookmark.saved:Saved to your Spots`
+      : $localize`:@@spot.bookmark.removed:Removed from your saved Spots`;
+    this._snackbar
+      .open(message, $localize`:@@spot.bookmark.undo:Undo`, { duration: 4000 })
+      .onAction()
+      .subscribe(() => void this.bookmarkClick());
   }
 
   async visitedClick(event?: Event) {

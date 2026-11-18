@@ -74,11 +74,9 @@
   </section>
 </mat-dialog-content>
 
+<!-- Like the event filters: Escape or a tap outside closes without
+     applying, so the footer keeps only Reset and Apply on one row. -->
 <mat-dialog-actions class="dialog-actions">
-  <button mat-button (click)="cancel()">
-    {{ cancelLabel }}
-  </button>
-  <span class="actions-spacer"></span>
   <button mat-button (click)="clearAll()" [disabled]="!hasAnySelection">
     {{ clearLabel }}
   </button>

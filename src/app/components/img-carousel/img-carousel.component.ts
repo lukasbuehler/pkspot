@@ -716,6 +716,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     const dialogRef = this.dialog.open(SwiperDialogComponent, {
       data: {
         media: this.media(),
+        imageAlts: this.imageAlts(),
         index: index,
         spotId: this.spotId(),
         reportContext: this.reportContext(),
@@ -1025,6 +1026,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
 
 interface SwiperDialogData {
   media?: AnyMedia[];
+  /** Alt text per item of `media`, in the same order. */
+  imageAlts?: string[];
   index?: number;
   spotId?: string;
   reportContext?: "spot" | "event" | "media";
@@ -1081,6 +1084,7 @@ interface SwiperDialogResult {
                   } @else {
                     <img
                       ngSrc="{{ getSrc(mediaObj) }}"
+                      [alt]="dialogAlts()[$index]"
                       fill
                       [attr.referrerpolicy]="
                         getReferrerPolicyForMedia(mediaObj)
@@ -1139,6 +1143,8 @@ interface SwiperDialogResult {
       <button
         mat-icon-button
         style="display: flex; position: absolute; top: 10px; right: 10px; z-index: 1; background-color: #00000080;"
+        aria-label="Close"
+        i18n-aria-label="@@img_carousel.close_viewer"
         (click)="onNoClick()"
       >
         <mat-icon>close</mat-icon>
@@ -1580,6 +1586,14 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   readonly dialogMedia = computed(() => this.data.media?.filter((media) => this.isDialogMedia(media)) ?? []);
+  /** Alt text for each shown item, matched back to its place in `data.media`. */
+  readonly dialogAlts = computed(() => {
+    const alts = this.data.imageAlts ?? [];
+    const media = this.data.media ?? [];
+    return this.dialogMedia().map(
+      (item) => alts[media.indexOf(item)] ?? $localize`:@@img_carousel.photo_alt_fallback:Photo`,
+    );
+  });
   readonly youtubeVideoIds = computed(() => this.dialogMedia().map((media) => media instanceof ExternalVideo ? media.youtubeId : null));
 
   private isBlockedExternalDialogMedia(mediaObj: AnyMedia): boolean {
