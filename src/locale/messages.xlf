@@ -415,10 +415,6 @@
       </segment>
     </unit>
     <unit id="mark_this_spot_as_visited_tooltip">
-      <notes>
-        <note category="description">The tooltip of the mark this spot as visited icon button</note>
-        <note category="meaning">Mark this spot as visited tooltip</note>
-      </notes>
       <segment>
         <source>Mark this spot as visited</source>
       </segment>
@@ -2196,10 +2192,6 @@
       </segment>
     </unit>
     <unit id="bookmark_spot_tooltip">
-      <notes>
-        <note category="description">The tooltip of the bookmark spot icon button</note>
-        <note category="meaning">Bookmark spot tooltip</note>
-      </notes>
       <segment>
         <source>Bookmark this spot</source>
       </segment>
@@ -3125,11 +3117,6 @@
     <unit id="filter_section_amenities">
       <segment>
         <source>Amenities</source>
-      </segment>
-    </unit>
-    <unit id="filter_cancel">
-      <segment>
-        <source>Cancel</source>
       </segment>
     </unit>
     <unit id="filter_chip_deselect_hint">
@@ -7183,6 +7170,11 @@
         <source> Always allow <ph id="0" equiv="INTERPOLATION" disp="{{ domain }}"/> </source>
       </segment>
     </unit>
+    <unit id="img_carousel.close_viewer">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
     <unit id="img_carousel.external_media">
       <segment>
         <source>External media</source>
@@ -7203,6 +7195,11 @@
         <source>Open <ph id="0" equiv="photo" disp="alt"/> full screen</source>
       </segment>
     </unit>
+    <unit id="img_carousel.photo_alt_fallback">
+      <segment>
+        <source>Photo</source>
+      </segment>
+    </unit>
     <unit id="img_carousel.report_photo">
       <segment>
         <source>Report photo</source>
@@ -7221,6 +7218,11 @@
     <unit id="leaderboard.blocked_user">
       <segment>
         <source>Blocked user</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.count_heading">
+      <segment>
+        <source>Count</source>
       </segment>
     </unit>
     <unit id="leaderboard.empty">
@@ -11820,6 +11822,26 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;spot-activity-summary__count&quot;&gt;" dispEnd="&lt;/span&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/></pc> trained here recently</source>
       </segment>
     </unit>
+    <unit id="spot.bookmark.removed">
+      <segment>
+        <source>Removed from your saved Spots</source>
+      </segment>
+    </unit>
+    <unit id="spot.bookmark.saved">
+      <segment>
+        <source>Saved to your Spots</source>
+      </segment>
+    </unit>
+    <unit id="spot.bookmark.tooltip_saved">
+      <segment>
+        <source>Saved – tap to remove</source>
+      </segment>
+    </unit>
+    <unit id="spot.bookmark.undo">
+      <segment>
+        <source>Undo</source>
+      </segment>
+    </unit>
     <unit id="spot.close.aria_label">
       <segment>
         <source>Close Spot</source>
@@ -12288,6 +12310,11 @@
     <unit id="spot.verified.tooltip">
       <segment>
         <source>Verified by <ph id="0" equiv="INTERPOLATION" disp="{{ steward.organization.name }}"/></source>
+      </segment>
+    </unit>
+    <unit id="spot.visited.tooltip_visited">
+      <segment>
+        <source>Visited – tap to undo</source>
       </segment>
     </unit>
     <unit id="spot.no_reviews.message">
@@ -13223,6 +13250,11 @@
         <source>live event underway</source>
       </segment>
     </unit>
+    <unit id="navigation_progress.loading">
+      <segment>
+        <source>Loading page</source>
+      </segment>
+    </unit>
     <unit id="no_spots_text">
       <notes>
         <note category="description">The text in the spot list panel if no spots are found/displayed</note>
@@ -13708,7 +13740,7 @@
     </unit>
     <unit id="notification_prompt.event.inline">
       <segment>
-        <source>Saved. Get a reminder two hours before it starts?</source>
+        <source>Added to your events. Get a reminder two hours before it starts?</source>
       </segment>
     </unit>
     <unit id="notification_prompt.event.inline_action">

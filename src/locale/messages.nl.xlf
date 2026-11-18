@@ -2360,10 +2360,6 @@
       </segment>
     </unit>
     <unit id="mark_this_spot_as_visited_tooltip">
-      <notes>
-        <note category="description">The tooltip of the mark this spot as visited icon button</note>
-        <note category="meaning">Mark this spot as visited tooltip</note>
-      </notes>
       <segment state="initial">
         <source>Mark this spot as visited</source>
         <target>Markeer deze Spot als bezocht</target>
@@ -6173,6 +6169,12 @@
         <target>live-evenement bezig</target>
       </segment>
     </unit>
+    <unit id="navigation_progress.loading">
+      <segment state="translated">
+        <source>Loading page</source>
+        <target>Pagina wordt geladen</target>
+      </segment>
+    </unit>
     <unit id="no_spots_text">
       <notes>
         <note category="description">The text in the spot list panel if no spots are found/displayed</note>
@@ -6754,8 +6756,8 @@
     </unit>
     <unit id="notification_prompt.event.inline">
       <segment state="translated">
-        <source>Saved. Get a reminder two hours before it starts?</source>
-        <target>Opgeslagen. Een herinnering twee uur voor de start krijgen?</target>
+        <source>Added to your events. Get a reminder two hours before it starts?</source>
+        <target>Toegevoegd aan je events. Een herinnering twee uur voor de start krijgen?</target>
       </segment>
     </unit>
     <unit id="notification_prompt.event.inline_action">
@@ -7583,6 +7585,12 @@
       <segment state="initial">
         <source>Verified by <ph id="0" equiv="INTERPOLATION" disp="{{ steward.organization.name }}"/></source>
         <target>Geverifieerd door <ph id="0" equiv="INTERPOLATION" disp="{{ steward.organization.name }}"/></target>
+      </segment>
+    </unit>
+    <unit id="spot.visited.tooltip_visited">
+      <segment state="translated">
+        <source>Visited – tap to undo</source>
+        <target>Bezocht – tik om ongedaan te maken</target>
       </segment>
     </unit>
     <unit id="address_title">
@@ -11824,6 +11832,30 @@
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;spot-activity-summary__count&quot;&gt;" dispEnd="&lt;/span&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/></pc> mensen hebben hier onlangs getraind</target>
       </segment>
     </unit>
+    <unit id="spot.bookmark.removed">
+      <segment state="translated">
+        <source>Removed from your saved Spots</source>
+        <target>Verwijderd uit je opgeslagen Spots</target>
+      </segment>
+    </unit>
+    <unit id="spot.bookmark.saved">
+      <segment state="translated">
+        <source>Saved to your Spots</source>
+        <target>Opgeslagen bij je Spots</target>
+      </segment>
+    </unit>
+    <unit id="spot.bookmark.tooltip_saved">
+      <segment state="translated">
+        <source>Saved – tap to remove</source>
+        <target>Opgeslagen – tik om te verwijderen</target>
+      </segment>
+    </unit>
+    <unit id="spot.bookmark.undo">
+      <segment state="translated">
+        <source>Undo</source>
+        <target>Ongedaan maken</target>
+      </segment>
+    </unit>
     <unit id="spot.close.aria_label">
       <segment state="initial">
         <source>Close Spot</source>
@@ -11912,12 +11944,6 @@
       <segment state="initial">
         <source>Apply</source>
         <target>Toepassen</target>
-      </segment>
-    </unit>
-    <unit id="filter_cancel">
-      <segment state="initial">
-        <source>Cancel</source>
-        <target>Annuleren</target>
       </segment>
     </unit>
     <unit id="filter_chip_deselect_hint">
@@ -12139,6 +12165,12 @@
         <target> <ph id="0" equiv="INTERPOLATION" disp="{{ domain }}"/> altijd toestaan </target>
       </segment>
     </unit>
+    <unit id="img_carousel.close_viewer">
+      <segment state="translated">
+        <source>Close</source>
+        <target>Sluiten</target>
+      </segment>
+    </unit>
     <unit id="img_carousel.external_media">
       <segment state="initial">
         <source>External media</source>
@@ -12161,6 +12193,12 @@
       <segment state="translated">
         <source>Open <ph id="0" equiv="photo" disp="alt"/> full screen</source>
         <target><ph id="0" equiv="photo" disp="alt"/> op volledig scherm openen</target>
+      </segment>
+    </unit>
+    <unit id="img_carousel.photo_alt_fallback">
+      <segment state="translated">
+        <source>Photo</source>
+        <target>Foto</target>
       </segment>
     </unit>
     <unit id="img_carousel.report_photo">
@@ -12735,6 +12773,12 @@
       <segment state="translated">
         <source>Blocked user</source>
         <target>Geblokkeerde gebruiker</target>
+      </segment>
+    </unit>
+    <unit id="leaderboard.count_heading">
+      <segment state="translated">
+        <source>Count</source>
+        <target>Aantal</target>
       </segment>
     </unit>
     <unit id="leaderboard.empty">
@@ -18093,10 +18137,6 @@
       </segment>
     </unit>
     <unit id="bookmark_spot_tooltip">
-      <notes>
-        <note category="description">The tooltip of the bookmark spot icon button</note>
-        <note category="meaning">Bookmark spot tooltip</note>
-      </notes>
       <segment state="initial">
         <source>Bookmark this spot</source>
         <target>Deze Spot opslaan als bladwijzer</target>
