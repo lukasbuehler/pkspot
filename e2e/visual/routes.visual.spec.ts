@@ -1303,7 +1303,7 @@ test.describe("Route visual regression @visual", () => {
     await expect.poll(async () => Number(await sectionTitles.first().evaluate(el => getComputedStyle(el).opacity)))
       .toBeLessThan(0.9);
     await sheet.evaluate(async el => {
-      await Promise.all(el.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => undefined)));
+      await Promise.all(el.getAnimations({ subtree: true }).filter((animation) => animation.timeline instanceof DocumentTimeline).map(animation => animation.finished.catch(() => undefined)));
     });
     const areaOpacity = Number(await areaTitle.evaluate(el => getComputedStyle(el).opacity));
     expect(areaOpacity).toBeGreaterThan(0.2);
@@ -2529,6 +2529,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       await Promise.all(
         container
           .getAnimations({ subtree: true })
+          .filter((animation) => animation.timeline instanceof DocumentTimeline)
           .map((animation) => animation.finished.catch(() => undefined)),
       );
     });
@@ -2700,7 +2701,7 @@ for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
     const dialog = page.locator("app-my-events-dialog");
     await expect(dialog).toBeVisible();
     await page.locator(".my-events-safe-dialog").evaluate(async el => {
-      await Promise.all(el.getAnimations({subtree: true}).map(animation => animation.finished.catch(() => undefined)));
+      await Promise.all(el.getAnimations({subtree: true}).filter((animation) => animation.timeline instanceof DocumentTimeline).map(animation => animation.finished.catch(() => undefined)));
     });
     const surface = page.locator(".my-events-safe-dialog .mat-mdc-dialog-surface");
     const bounds = (await surface.boundingBox())!;

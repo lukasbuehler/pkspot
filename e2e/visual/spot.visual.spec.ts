@@ -239,7 +239,7 @@ test.describe("Spot Details Visual Regression @visual", () => {
     // settle. Screenshot animation disabling happens too late for a precomputed clip.
     await page.evaluate(() => document.fonts.ready);
     await sheet.evaluate(async element => {
-      await Promise.all(element.getAnimations({subtree: true}).map(animation => animation.finished.catch(() => undefined)));
+      await Promise.all(element.getAnimations({subtree: true}).filter((animation) => animation.timeline instanceof DocumentTimeline).map(animation => animation.finished.catch(() => undefined)));
     });
     const box = await sheet.boundingBox();
     expect(box).not.toBeNull();
