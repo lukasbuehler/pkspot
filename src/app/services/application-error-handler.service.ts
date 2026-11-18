@@ -162,9 +162,17 @@ export class ApplicationErrorHandler implements ErrorHandler {
     if (waiting) return;
 
     const startedOn = view.location.href;
+    // Tapping another link (even the current page's) means the person has
+    // chosen somewhere else to go; drop the pending page.
+    const cancelOnLinkTap = (event: Event) => {
+      const target = event.target as Element | null;
+      if (target?.closest?.("a[href]")) this.pendingOnlineTarget = null;
+    };
+    view.document?.addEventListener("click", cancelOnLinkTap, true);
     view.addEventListener(
       "online",
       () => {
+        view.document?.removeEventListener("click", cancelOnLinkTap, true);
         const pending = this.pendingOnlineTarget;
         this.pendingOnlineTarget = null;
         if (pending && view.location.href === startedOn) {
