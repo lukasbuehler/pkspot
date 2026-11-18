@@ -2049,11 +2049,22 @@ export class MapPageComponent
   private _editingPath: string | null = null;
 
   /**
+   * Name and description fields write to the Spot on `change`, i.e. when they
+   * lose focus. Blur the focused field first so text typed just before
+   * leaving counts as an unsaved change.
+   */
+  private _commitFocusedField(): void {
+    const active = this._document.activeElement;
+    if (active instanceof HTMLElement && active !== this._document.body) active.blur();
+  }
+
+  /**
    * Browser Back while editing. Unchanged edits just close the editor and
    * the navigation continues. Changed ones put the Spot's address back and
    * ask whether to discard them; returns true when Back was held back.
    */
   private _handleBackWhileEditing(): boolean {
+    this._commitFocusedField();
     if (!this.spotMap?.hasUnsavedEdit() || !this._editingPath) {
       this.spotMap?.discardEdit();
       return false;
@@ -2071,6 +2082,7 @@ export class MapPageComponent
 
   private readonly _confirmLeaveSpotEdit = async (): Promise<boolean> => {
     if (!this.isEditing()) return true;
+    this._commitFocusedField();
     if (this.spotMap?.hasUnsavedEdit() && !(await confirmDiscardChanges(this._dialog))) {
       return false;
     }

@@ -2,6 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
+  afterNextRender,
   LOCALE_ID,
   PLATFORM_ID,
   computed,
@@ -819,7 +821,16 @@ export class SpotEditorComponent {
     }
   }
 
+  private readonly _host = inject<ElementRef<HTMLElement>>(ElementRef);
+
   constructor() {
+    // Editing starts wherever the Spot was scrolled to; bring the top
+    // Save/Discard row into view so there is a visible way out.
+    afterNextRender(() => {
+      this._host.nativeElement
+        .querySelector(".editor-actions")
+        ?.scrollIntoView({ block: "nearest" });
+    });
     void this._loadOrganizationsForAdmin();
 
     this._placeQueries

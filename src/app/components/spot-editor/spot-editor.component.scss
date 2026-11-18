@@ -43,3 +43,13 @@ form {
     color: color-mix(in srgb, var(--mat-sys-error) 80%, transparent);
   }
 }
+
+// Discard and Save share a row while both labels fit and stack when they
+// do not, so neither label is cut (e.g. in a narrow tablet panel).
+.editor-actions {
+  flex-wrap: wrap;
+
+  > button {
+    min-width: max-content;
+  }
+}
