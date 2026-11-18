@@ -18494,12 +18494,6 @@
         <target> Les médias sont en cours de traitement et apparaîtront ici dès qu’ils seront prêts. </target>
       </segment>
     </unit>
-    <unit id="5753174679285423997">
-      <segment state="initial">
-        <source>Smart Scorecard</source>
-        <target>Carte de Score Intelligente</target>
-      </segment>
-    </unit>
     <unit id="576032629082435529">
       <segment state="initial">
         <source>Publish live update</source>

@@ -4113,12 +4113,6 @@
         <target>Die Maps-link bevatte geen locatie.</target>
       </segment>
     </unit>
-    <unit id="5753174679285423997">
-      <segment state="initial">
-        <source>Smart Scorecard</source>
-        <target>Slimme Scorekaart</target>
-      </segment>
-    </unit>
     <unit id="576032629082435529">
       <segment state="initial">
         <source>Publish live update</source>

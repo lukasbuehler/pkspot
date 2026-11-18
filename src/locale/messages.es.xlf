@@ -18494,12 +18494,6 @@
         <target> Los archivos multimedia se están procesando y aparecerán aquí cuando estén listos. </target>
       </segment>
     </unit>
-    <unit id="5753174679285423997">
-      <segment state="initial">
-        <source>Smart Scorecard</source>
-        <target>Tarjeta de Puntuación Inteligente</target>
-      </segment>
-    </unit>
     <unit id="576032629082435529">
       <segment state="initial">
         <source>Publish live update</source>

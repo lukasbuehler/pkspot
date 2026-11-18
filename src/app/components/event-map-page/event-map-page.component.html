@@ -100,15 +100,6 @@
     </div>
 
     <mat-menu #menu="matMenu">
-      @if (event()?.id === "swissjam25") {
-        <a
-          href="https://results.vertical-life.info/event/288/"
-          target="_blank"
-          mat-menu-item
-        >
-          <mat-icon>checklist</mat-icon><span i18n>Smart Scorecard</span></a
-        >
-      }
       @if (eventLocationMarker(); as marker) {
         <button
           mat-menu-item
