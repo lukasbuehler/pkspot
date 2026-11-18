@@ -48,14 +48,6 @@
   }
 
   <mat-form-field class="w-100 pt-3" appearance="outline">
-    <mat-label i18n>Language</mat-label>
-    <mat-select [value]="commentLocale()" [disabled]="isSubmitting()" (selectionChange)="commentLocale.set($event.value)">
-      @for (language of languages; track language.code) {
-        <mat-option [value]="language.code">{{ language.name }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field class="w-100 pt-3" appearance="outline">
     <mat-label i18n>Private details (optional)</mat-label>
     <textarea
       matInput

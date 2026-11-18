@@ -20,8 +20,6 @@ import {
 import { FormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSelectModule } from "@angular/material/select";
-import { languageCodes } from "../../../scripts/Languages";
 import { MatInputModule } from "@angular/material/input";
 import type { SpotReportReason } from "../../../db/schemas/SpotReportSchema";
 import type { OwnReportSummary } from "../../../db/schemas/ReportLifecycleSchema";
@@ -60,7 +58,6 @@ export interface SpotReportDialogResult {
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatProgressSpinnerModule,
     EntityReferenceAutocompleteComponent,
   ],
@@ -78,10 +75,12 @@ export class SpotReportDialogComponent {
   readonly report = signal(this.data.report ?? null);
   readonly loading = signal(true);
   readonly loadError = signal(false);
+  /**
+   * Language of the optional comment, for moderators. It is the app's
+   * language rather than a field to fill in; an edited report keeps the
+   * language it was written in.
+   */
   readonly commentLocale = signal(inject(LOCALE_ID).split("-")[0]);
-  readonly languages = Object.entries(languageCodes).map(([code, language]) => ({
-    code, name: language.name_native ?? language.name_english,
-  }));
   readonly isSubmitting = signal(false);
   readonly submissionError = signal(false);
   readonly selectedReasons = signal<string[]>(this.data.report?.reasons ?? []);
