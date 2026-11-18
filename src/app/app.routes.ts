@@ -4,6 +4,7 @@ import { communityLandingResolver } from "./resolvers/community-landing.resolver
 import { environment } from "../environments/environment.default";
 import { trainingFeatureEnabled } from "./features/training-feature";
 import { financesFeatureEnabled } from "./features/finances-feature";
+import { releaseExistsGuard } from "./releases/release-exists.guard";
 import { supportShopFeatureEnabled } from "./features/support-shop-feature";
 
 export { ACCEPTANCE_FREE_PREFIXES } from "./startup/welcome-policy";
@@ -692,6 +693,23 @@ export const routes: Routes = [
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Support", acceptanceFree: true },
+  },
+  {
+    path: "releases",
+    loadComponent: () =>
+      import("./components/releases-page/releases-page.component").then(
+        (m) => m.ReleasesPageComponent,
+      ),
+    data: { routeName: "Releases", acceptanceFree: true },
+  },
+  {
+    path: "releases/:version",
+    canMatch: [releaseExistsGuard],
+    loadComponent: () =>
+      import("./components/release-page/release-page.component").then(
+        (m) => m.ReleasePageComponent,
+      ),
+    data: { routeName: "Release", acceptanceFree: true },
   },
   {
     path: "contact",

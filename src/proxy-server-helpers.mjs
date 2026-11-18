@@ -32,7 +32,10 @@ const STATIC_SSR_PATHS = new Set([
   "/privacy-policy",
   "/pp",
   "/impressum",
+  "/releases",
 ]);
+// Release notes only change with a deploy, so every release page is static.
+const STATIC_SSR_PREFIXES = ["/releases/"];
 
 export { isSensitiveProbePath } from "./request-path-policy.mjs";
 
@@ -228,8 +231,10 @@ function stripLocalePrefix(pathname, supportedLanguageCodes = []) {
 }
 
 export function isStaticSsrPath(pathname, supportedLanguageCodes = []) {
-  return STATIC_SSR_PATHS.has(
-    stripLocalePrefix(pathname, supportedLanguageCodes)
+  const path = stripLocalePrefix(pathname, supportedLanguageCodes);
+  return (
+    STATIC_SSR_PATHS.has(path) ||
+    STATIC_SSR_PREFIXES.some((prefix) => path.startsWith(prefix))
   );
 }
 

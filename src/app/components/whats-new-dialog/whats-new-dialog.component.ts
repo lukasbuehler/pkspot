@@ -8,6 +8,10 @@ import { AnalyticsService } from "../../services/analytics.service";
 import { ConsentService } from "../../services/consent.service";
 import { PlatformService } from "../../services/platform.service";
 import { WHATS_NEW_RELEASE, WHATS_NEW_STORAGE_KEY } from "../../services/whats-new";
+import { findRelease } from "../../releases/release-notes";
+import { releaseHighlights } from "../../releases/release-highlights";
+import { ReleaseHeroComponent } from "../release-hero/release-hero.component";
+import { ReleaseHighlightsComponent } from "../release-highlights/release-highlights.component";
 
 export interface WhatsNewDialogData {
   /** Set when the user still has to agree to these terms; null for highlights only. */
@@ -21,7 +25,7 @@ export interface WhatsNewDialogData {
  */
 @Component({
   selector: "app-whats-new-dialog",
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, RouterLink],
+  imports: [MatDialogModule, MatButtonModule, MatIconModule, RouterLink, ReleaseHeroComponent, ReleaseHighlightsComponent],
   templateUrl: "./whats-new-dialog.component.html",
   styleUrl: "./whats-new-dialog.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +37,9 @@ export class WhatsNewDialogComponent {
   readonly data = inject<WhatsNewDialogData>(MAT_DIALOG_DATA);
 
   readonly needsConsent = this.data.consentVersion !== null;
+  readonly releaseVersion = WHATS_NEW_RELEASE;
+  readonly release = findRelease(WHATS_NEW_RELEASE);
+  readonly highlights = releaseHighlights(WHATS_NEW_RELEASE);
   private readonly platform = inject(PlatformService).getPlatform();
   /** Store reviews only make sense inside the installed app. */
   readonly review =
@@ -66,6 +73,16 @@ export class WhatsNewDialogComponent {
    * closes the dialog and it returns after leaving that page.
    */
   sendFeedback(): void {
+    if (!this.needsConsent) this.continue();
+  }
+
+  /**
+   * Like feedback, reading the release notes never counts as agreeing: the
+   * dialog only finishes when the terms are current, and otherwise returns
+   * after leaving the release notes (which need no agreement).
+   */
+  openReleaseNotes(): void {
+    this.analytics.trackEvent("Whats New Release Notes Clicked", { release: WHATS_NEW_RELEASE });
     if (!this.needsConsent) this.continue();
   }
 

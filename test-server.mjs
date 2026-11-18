@@ -11,7 +11,8 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
-const PORT = 4000;
+// Override to run tests from several worktrees at once.
+const PORT = Number(process.env.PKSPOT_TEST_PORT ?? 4000);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 

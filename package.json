@@ -13,6 +13,7 @@
     "serve:ios": "npx cap run ios",
     "dev": "ng serve --watch --configuration=dev",
     "build": "node scripts/run-default-build.mjs",
+    "releases:readme": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-readme-releases.mjs",
     "build:local": "node scripts/run-angular-build.mjs --configuration=dev && node copy-proxy-server.js",
     "build:ci": "node scripts/prepare-ci-environment.mjs && node scripts/run-angular-build.mjs --configuration=ci && node copy-proxy-server.js",
     "build:dev": "node scripts/run-angular-build.mjs --configuration=dev && node copy-proxy-server.js",

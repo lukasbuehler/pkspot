@@ -1,0 +1,110 @@
+:host {
+  display: block;
+}
+
+.releases-page {
+  display: grid;
+  gap: 24px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 5rem 16px 3rem;
+}
+
+// Alain Mode: the floating menu FAB sits top-left on short viewports.
+@media (max-width: 767px) and (max-height: 699px), (max-height: 499px) {
+  .releases-page {
+    padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))));
+  }
+}
+
+.releases-page__header {
+  text-align: center;
+
+  h1 { margin: 0 0 8px; }
+
+  p {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.releases-page__latest {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.releases-page__hero-link {
+  display: block;
+  --release-hero-height: 168px;
+
+  app-release-hero { border-radius: 0; }
+}
+
+.releases-page__latest-body {
+  display: grid;
+  gap: 12px;
+  padding-block-start: 16px;
+
+  h2 { margin: 0; }
+}
+
+.releases-page__eyebrow {
+  margin: 0;
+  color: var(--mat-sys-primary);
+}
+
+.releases-page__meta {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+h2 a,
+h3 a {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible { text-decoration: underline; }
+}
+
+.releases-page__history {
+  display: grid;
+  gap: 12px;
+
+  > h2 { margin: 16px 0 0; }
+}
+
+.releases-page__release {
+  border-radius: 18px;
+}
+
+.releases-page__release-body {
+  display: grid;
+  gap: 12px;
+  padding-block-start: 16px;
+}
+
+.releases-page__release-head {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+
+  h3 { margin: 0; }
+}
+
+.releases-page__tile {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+
+  mat-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
+  }
+}

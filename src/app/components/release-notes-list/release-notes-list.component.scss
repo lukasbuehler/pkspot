@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+.release-notes {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+
+  ul {
+    display: grid;
+    gap: 4px;
+    margin-block-start: 6px;
+    padding-inline-start: 1.25rem;
+  }
+
+  li::marker {
+    color: var(--mat-sys-primary);
+  }
+}

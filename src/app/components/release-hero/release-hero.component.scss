@@ -1,0 +1,111 @@
+// Moved from the 1.2 what's-new dialog so every release can have one.
+// Set `--release-hero-height` on the host to resize it.
+:host {
+  position: relative;
+  display: block;
+  height: var(--release-hero-height, 136px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: radial-gradient(
+    circle at 50% 62%,
+    var(--mat-sys-primary-container),
+    var(--mat-sys-surface-container-high) 72%
+  );
+}
+
+.release-hero__float {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+  color: var(--mat-sys-on-primary-container);
+  opacity: 0;
+  animation:
+    release-hero-float-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay) forwards,
+    release-hero-drift 6s ease-in-out calc(var(--delay) + 700ms) infinite;
+
+  // Green marks live presence (check-ins) only.
+  &.is-live { color: var(--mat-sys-secondary); }
+  &.is-gold { color: var(--app-rank-gold, #e9b82c); }
+
+  &:nth-child(1) { --x: 9%; --y: 56%; --delay: 0ms; }
+  &:nth-child(2) { --x: 22%; --y: 18%; --delay: 120ms; }
+  &:nth-child(3) { --x: 33%; --y: 62%; --delay: 240ms; }
+  &:nth-child(4) { --x: 63%; --y: 60%; --delay: 360ms; }
+  &:nth-child(5) { --x: 74%; --y: 16%; --delay: 480ms; }
+  &:nth-child(6) { --x: 86%; --y: 54%; --delay: 600ms; }
+}
+
+.release-hero__centerpiece {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-highest);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+  animation: release-hero-centerpiece-in 600ms cubic-bezier(0.3, 1.4, 0.5, 1) 900ms forwards;
+
+  mat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    color: var(--mat-sys-primary);
+  }
+
+  &.is-gold mat-icon { color: var(--app-rank-gold, #e9b82c); }
+  &.is-live mat-icon { color: var(--mat-sys-secondary); }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 45%) 50%, transparent 65%);
+    transform: translateX(-120%);
+    animation: release-hero-shine 900ms ease-out 1500ms forwards;
+    content: "";
+  }
+}
+
+@keyframes release-hero-float-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.6); }
+  to { opacity: 0.85; transform: none; }
+}
+
+@keyframes release-hero-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes release-hero-centerpiece-in {
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes release-hero-shine {
+  to { transform: translateX(120%); }
+}
+
+@mixin static-hero {
+  .release-hero__float,
+  .release-hero__centerpiece,
+  .release-hero__centerpiece::after {
+    animation: none;
+  }
+
+  .release-hero__float { opacity: 0.85; }
+  .release-hero__centerpiece { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+:host(.is-static) {
+  @include static-hero;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @include static-hero;
+}

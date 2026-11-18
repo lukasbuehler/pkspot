@@ -6300,6 +6300,84 @@
         <target>Évaluer ce spot</target>
       </segment>
     </unit>
+    <unit id="release.allChanges">
+      <segment state="translated">
+        <source>All changes</source>
+        <target>Toutes les modifications</target>
+      </segment>
+    </unit>
+    <unit id="release.allReleases">
+      <segment state="translated">
+        <source>All releases</source>
+        <target>Toutes les versions</target>
+      </segment>
+    </unit>
+    <unit id="release.highlights">
+      <segment state="translated">
+        <source>Highlights</source>
+        <target>Points forts</target>
+      </segment>
+    </unit>
+    <unit id="release.meta.title">
+      <segment state="translated">
+        <source>Version <ph id="0" equiv="version" disp="view.label"/></source>
+        <target>Version <ph id="0" equiv="version" disp="view.label"/></target>
+      </segment>
+    </unit>
+    <unit id="release.pager">
+      <segment state="translated">
+        <source>Releases</source>
+        <target>Versions</target>
+      </segment>
+    </unit>
+    <unit id="releases.earlier">
+      <segment state="translated">
+        <source>Earlier releases</source>
+        <target>Versions précédentes</target>
+      </segment>
+    </unit>
+    <unit id="releases.latest">
+      <segment state="translated">
+        <source>Latest release</source>
+        <target>Dernière version</target>
+      </segment>
+    </unit>
+    <unit id="releases.meta.description">
+      <segment state="translated">
+        <source>Release notes for every PK Spot update: new features, improvements and bug fixes on the web, iOS and Android.</source>
+        <target>Les notes de version de chaque mise à jour de PK Spot : nouvelles fonctionnalités, améliorations et corrections sur le web, iOS et Android.</target>
+      </segment>
+    </unit>
+    <unit id="releases.meta.title">
+      <segment state="translated">
+        <source>What&apos;s new</source>
+        <target>Nouveautés</target>
+      </segment>
+    </unit>
+    <unit id="releases.platformsOnly">
+      <segment state="translated">
+        <source>Only on <ph id="0" equiv="platforms" disp="platforms"/></source>
+        <target>Uniquement sur <ph id="0" equiv="platforms" disp="platforms"/></target>
+      </segment>
+    </unit>
+    <unit id="releases.readMore">
+      <segment state="translated">
+        <source>Read the release notes</source>
+        <target>Lire les notes de version</target>
+      </segment>
+    </unit>
+    <unit id="releases.subtitle">
+      <segment state="translated">
+        <source>Every update, newest first. Full release notes are in English.</source>
+        <target>Chaque mise à jour, de la plus récente à la plus ancienne. Les notes complètes sont en anglais.</target>
+      </segment>
+    </unit>
+    <unit id="releases.title">
+      <segment state="translated">
+        <source>What&apos;s new in PK Spot</source>
+        <target>Nouveautés de PK Spot</target>
+      </segment>
+    </unit>
     <unit id="report_outcome.action_body">
       <segment state="initial">
         <source> We reviewed the report and took appropriate action. </source>
@@ -7363,6 +7441,12 @@
       <segment state="initial">
         <source>Welcome to PK Spot! 👋</source>
         <target>Bienvenue sur PK Spot !</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.allChanges">
+      <segment state="translated">
+        <source>See everything that&apos;s new</source>
+        <target>Voir toutes les nouveautés</target>
       </segment>
     </unit>
     <unit id="whatsNew.checkIn.body">
@@ -15728,6 +15812,12 @@
       <segment state="initial">
         <source>Support</source>
         <target>Assistance</target>
+      </segment>
+    </unit>
+    <unit id="support.releaseNotes.link">
+      <segment state="translated">
+        <source>What&apos;s new</source>
+        <target>Nouveautés</target>
       </segment>
     </unit>
     <unit id="support.status.link">

@@ -1,0 +1,50 @@
+@if (view(); as view) {
+  <article class="release-page">
+    <a class="release-page__back" matButton routerLink="/releases">
+      <mat-icon>arrow_back</mat-icon>
+      <span i18n="@@release.allReleases">All releases</span>
+    </a>
+
+    <app-release-hero class="release-page__hero" [hero]="view.release.hero" />
+
+    <header class="release-page__header">
+      <h1 class="mat-headline-large">PK Spot {{ view.label }}</h1>
+      @if (view.release.name) {
+        <p class="mat-title-large release-page__name" lang="en">{{ view.release.name }}</p>
+      }
+      <p class="mat-body-medium release-page__meta">
+        <time [attr.datetime]="view.release.date">{{ view.release.date | date: "longDate" }}</time>
+        @if (view.platformsText) {
+          · {{ view.platformsText }}
+        }
+      </p>
+    </header>
+
+    @if (view.highlights.length) {
+      <section class="release-page__section" aria-labelledby="release-highlights-title">
+        <h2 id="release-highlights-title" class="mat-title-large" i18n="@@release.highlights">Highlights</h2>
+        <app-release-highlights [highlights]="view.highlights" />
+      </section>
+    }
+
+    <section class="release-page__section" aria-labelledby="release-changes-title">
+      <h2 id="release-changes-title" class="mat-title-large" i18n="@@release.allChanges">All changes</h2>
+      <app-release-notes-list [notes]="view.notes" />
+    </section>
+
+    <nav class="release-page__pager" aria-label="Releases" i18n-aria-label="@@release.pager">
+      @if (older(); as older) {
+        <a matButton="outlined" [routerLink]="['/releases', older.release.version]">
+          <mat-icon>chevron_left</mat-icon>
+          <span>PK Spot {{ older.label }}</span>
+        </a>
+      }
+      @if (newer(); as newer) {
+        <a class="release-page__newer" matButton="outlined" [routerLink]="['/releases', newer.release.version]">
+          <span>PK Spot {{ newer.label }}</span>
+          <mat-icon iconPositionEnd>chevron_right</mat-icon>
+        </a>
+      }
+    </nav>
+  </article>
+}

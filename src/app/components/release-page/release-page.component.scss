@@ -1,0 +1,63 @@
+:host {
+  display: block;
+}
+
+.release-page {
+  display: grid;
+  gap: 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 5rem 16px 3rem;
+}
+
+// Alain Mode: the floating menu FAB sits top-left on short viewports.
+@media (max-width: 767px) and (max-height: 699px), (max-height: 499px) {
+  .release-page {
+    padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))));
+  }
+}
+
+.release-page__back {
+  justify-self: start;
+}
+
+.release-page__hero {
+  --release-hero-height: 184px;
+}
+
+.release-page__header {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+
+  h1,
+  p { margin: 0; }
+}
+
+.release-page__name {
+  color: var(--mat-sys-on-surface);
+}
+
+.release-page__meta {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.release-page__section {
+  display: grid;
+  gap: 12px;
+
+  h2 { margin: 0; }
+}
+
+.release-page__pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--mat-sys-outline-variant);
+}
+
+.release-page__newer {
+  margin-inline-start: auto;
+}

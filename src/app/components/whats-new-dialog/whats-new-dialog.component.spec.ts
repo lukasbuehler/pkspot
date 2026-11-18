@@ -53,6 +53,22 @@ describe("WhatsNewDialogComponent", () => {
     expect(localStorage.getItem("acceptedVersion")).toBeNull();
   });
 
+  it("links to the release notes without agreeing to pending terms", () => {
+    const { element, fixture, close, grantConsent } = render("7", "web");
+    expect(element.querySelector(".whats-new__all")?.getAttribute("href")).toBe(`/releases/${WHATS_NEW_RELEASE}`);
+    expect(element.querySelector("app-release-hero")).not.toBeNull();
+    fixture.componentInstance.openReleaseNotes();
+    expect(grantConsent).not.toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it("finishes the screen when opening the release notes on current terms", () => {
+    const { fixture, close } = render(null, "web");
+    fixture.componentInstance.openReleaseNotes();
+    expect(close).toHaveBeenCalledWith(true);
+    expect(localStorage.getItem(WHATS_NEW_STORAGE_KEY)).toBe(WHATS_NEW_RELEASE);
+  });
+
   it("shows only the highlights when the terms are current", () => {
     const { element } = render(null, "ios");
     expect(element.textContent).not.toContain("We updated our Privacy Policy");

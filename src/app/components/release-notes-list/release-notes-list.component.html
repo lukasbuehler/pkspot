@@ -1,0 +1,14 @@
+<ul class="release-notes" lang="en">
+  @for (note of notes(); track note.text) {
+    <li>
+      {{ note.text }}
+      @if (note.items.length) {
+        <ul>
+          @for (item of note.items; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      }
+    </li>
+  }
+</ul>

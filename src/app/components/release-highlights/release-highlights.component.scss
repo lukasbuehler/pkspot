@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.release-highlights {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+
+  // Separate 40px tonal icon tiles, as on the other information cards.
+  mat-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 22px;
+    color: var(--mat-sys-on-surface-variant);
+    background: var(--mat-sys-surface-container-highest);
+
+    &.is-gold { color: var(--app-rank-gold, #e9b82c); }
+
+    &.is-primary {
+      color: var(--mat-sys-on-primary-container);
+      background: var(--mat-sys-primary-container);
+    }
+
+    // Green marks live presence, which is what a check-in is.
+    &.is-live {
+      color: var(--mat-sys-on-secondary-container);
+      background: var(--mat-sys-secondary-container);
+    }
+  }
+
+  strong {
+    display: block;
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-title-small);
+  }
+
+  span > span {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-medium);
+  }
+}
