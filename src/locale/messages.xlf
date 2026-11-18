@@ -13735,7 +13735,7 @@
     </unit>
     <unit id="notification_prompt.event.inline">
       <segment>
-        <source>Added to your events. Get a reminder two hours before it starts?</source>
+        <source>Added to your events. Get a reminder before it starts?</source>
       </segment>
     </unit>
     <unit id="notification_prompt.event.inline_action">

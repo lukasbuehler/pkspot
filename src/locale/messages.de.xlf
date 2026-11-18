@@ -6582,8 +6582,8 @@
     </unit>
     <unit id="notification_prompt.event.inline">
       <segment state="translated">
-        <source>Added to your events. Get a reminder two hours before it starts?</source>
-        <target>Zu deinen Events hinzugefügt. Erinnerung zwei Stunden vor Beginn erhalten?</target>
+        <source>Added to your events. Get a reminder before it starts?</source>
+        <target>Zu deinen Events hinzugefügt. Vor Beginn erinnert werden?</target>
       </segment>
     </unit>
     <unit id="notification_prompt.event.inline_action">

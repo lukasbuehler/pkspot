@@ -6750,8 +6750,8 @@
     </unit>
     <unit id="notification_prompt.event.inline">
       <segment state="translated">
-        <source>Added to your events. Get a reminder two hours before it starts?</source>
-        <target>Toegevoegd aan je events. Een herinnering twee uur voor de start krijgen?</target>
+        <source>Added to your events. Get a reminder before it starts?</source>
+        <target>Toegevoegd aan je events. Een herinnering voor de start krijgen?</target>
       </segment>
     </unit>
     <unit id="notification_prompt.event.inline_action">

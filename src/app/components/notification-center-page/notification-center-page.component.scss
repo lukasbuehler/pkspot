@@ -1,7 +1,7 @@
 :host {
+  // The app background, like other pages; a page-only surface stopped where
+  // the content did and left a seam on short pages.
   display: block;
-  min-height: 100%;
-  background: var(--mat-sys-surface);
 }
 
 .notification-center {
@@ -58,7 +58,7 @@
   grid-template-columns: minmax(0, 1fr) 48px;
   min-height: 96px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface);
+  background: transparent;
 }
 
 .notification-row--unread {

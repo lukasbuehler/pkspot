@@ -194,14 +194,31 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
+  /**
+   * Countries matching the typed text, those whose name starts with it first
+   * ("De" lists Deutschland before Bangladesch), otherwise alphabetical.
+   */
   private _filterCountries(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return this.countryCodes.filter(
-      (code) =>
-        this.countryNames[code].toLowerCase().includes(filterValue) ||
-        this.countries[code].name.toLowerCase().includes(filterValue) ||
+    const rank = (code: string): number => {
+      const localName = this.countryNames[code].toLowerCase();
+      const englishName = this.countries[code].name.toLowerCase();
+      if (localName.startsWith(filterValue)) return 0;
+      if (englishName.startsWith(filterValue) || code.toLowerCase() === filterValue) return 1;
+      if (
+        localName.includes(filterValue) ||
+        englishName.includes(filterValue) ||
         code.toLowerCase().includes(filterValue)
-    );
+      ) {
+        return 2;
+      }
+      return -1;
+    };
+    return this.countryCodes
+      .map((code) => ({ code, rank: rank(code) }))
+      .filter((entry) => entry.rank >= 0)
+      .sort((a, b) => a.rank - b.rank)
+      .map((entry) => entry.code);
   }
 
   private _updateInfoOnView() {

@@ -13,18 +13,18 @@
 
   <form [formGroup]="form" (ngSubmit)="save()" id="recovery-pause-form">
     <div class="recovery-dialog__dates">
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label i18n="@@recoveryPause.startDate">Start date</mat-label>
         <input matInput type="date" formControlName="startedOn" [max]="today" />
       </mat-form-field>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label i18n="@@recoveryPause.endDate">End date</mat-label>
         <input matInput type="date" formControlName="endedOn" [min]="form.controls.startedOn.value" [max]="today" />
         <mat-hint i18n="@@recoveryPause.endDateHint">Leave empty while recovery is ongoing.</mat-hint>
       </mat-form-field>
     </div>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label i18n="@@recoveryPause.reason">Reason</mat-label>
       <mat-select formControlName="reason">
         @for (reason of reasons; track reason) {
@@ -33,7 +33,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label i18n="@@recoveryPause.note">Private note (optional)</mat-label>
       <textarea matInput formControlName="note" rows="4" [maxlength]="noteMaxLength"></textarea>
       <mat-hint i18n="@@recoveryPause.noteHint">Keep this short and personal. Do not include anyone else's medical information.</mat-hint>

@@ -114,3 +114,14 @@ mat-icon.typeOrAccesIcon {
   overflow: hidden;
   width: 100%;
 }
+
+// Long placeholders (large text, longer languages) end in an ellipsis with a
+// little room before the search icon instead of being cut against it.
+#mapSearchInput {
+  text-overflow: ellipsis;
+  padding-inline-end: 4px;
+
+  &::placeholder {
+    text-overflow: ellipsis;
+  }
+}
