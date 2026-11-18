@@ -104,7 +104,7 @@ export class NotificationOptInService {
     switch (context) {
       case "event_reminders":
         return {
-          message: $localize`:@@notification_prompt.event.inline:Saved. Get a reminder two hours before it starts?`,
+          message: $localize`:@@notification_prompt.event.inline:Added to your events. Get a reminder two hours before it starts?`,
           action: $localize`:@@notification_prompt.event.inline_action:Remind me`,
         };
       case "follow_activity":

@@ -24,7 +24,8 @@
 }
 
 // Phones use the short column labels from the toggle.
-.label-short {
+.label-short,
+.label-count {
   display: none;
 }
 
@@ -176,11 +177,10 @@
       text-align: end;
     }
 
-    // Long German labels ("Bearbeitungen") wrap small instead of taking
-    // width from the names.
+    // The toggle above already names the count, so the heading just says
+    // "Count" on one line; screen readers still hear the specific label.
     .mat-mdc-header-cell:nth-of-type(3) {
-      font: var(--mat-sys-label-small);
-      overflow-wrap: anywhere;
+      white-space: nowrap;
     }
 
     .label-full {
@@ -188,6 +188,15 @@
     }
 
     .label-short {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .label-count {
       display: inline;
     }
   }

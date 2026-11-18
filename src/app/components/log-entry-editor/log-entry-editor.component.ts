@@ -1,6 +1,6 @@
 import { Location } from "@angular/common";
 import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, signal } from "@angular/core";
-import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
@@ -109,7 +109,10 @@ export class LogEntryEditorComponent {
     note: new FormControl("", { nonNullable: true }),
   });
   readonly detailsForm = new FormGroup({
-    date: new FormControl(localDateKey(Date.now(), this.timeZone), { nonNullable: true }),
+    date: new FormControl(localDateKey(Date.now(), this.timeZone), {
+      nonNullable: true,
+      validators: Validators.required,
+    }),
     time: new FormControl(currentTime(), { nonNullable: true }),
     customMinutes: new FormControl<number | null>(45),
   });
@@ -230,6 +233,8 @@ export class LogEntryEditorComponent {
     const { date, time } = this.detailsForm.getRawValue();
     const startedAt = new Date(`${date}T${time || "00:00"}`);
     if (!Number.isFinite(startedAt.getTime())) {
+      // Mark the field so its own error shows where the problem is.
+      this.detailsForm.controls.date.markAsTouched();
       throw new LogEntryInputError($localize`:@@logEditor.invalidDate:Choose when you trained.`);
     }
     if (startedAt.getTime() > Date.now() + 60_000) {

@@ -1,6 +1,9 @@
 :host {
   display: block;
   min-width: 0;
+  // Queried in em below, so the query reacts to the text size, not only the
+  // screen width.
+  container: events-toolbar / inline-size;
 }
 
 .discovery-toolbar {
@@ -23,8 +26,8 @@
   min-width: 0;
 }
 
-// With enlarged text the Upcoming/Past labels wrap and hyphenate instead of
-// being cut off. The 20px line plus 10px padding keeps the normal 40px height.
+// With enlarged text the Upcoming/Past labels wrap instead of being cut off.
+// The 20px line plus 10px padding keeps the normal 40px height.
 .mat-button-toggle-group {
   max-width: 100%;
 }
@@ -38,5 +41,19 @@
   line-height: 1.25rem;
   white-space: normal;
   overflow-wrap: break-word;
-  hyphens: auto;
+}
+
+// At large text sizes (about 150 % and up on a phone) the two periods no
+// longer fit side by side as whole words, so they stack instead of
+// splitting words. At normal sizes a phone toolbar is about 22em wide.
+@container events-toolbar (max-width: 15em) {
+  .mat-button-toggle-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .mat-button-toggle + .mat-button-toggle {
+    border-left: none;
+    border-top: solid 1px var(--mat-button-toggle-divider-color, var(--mat-sys-outline));
+  }
 }

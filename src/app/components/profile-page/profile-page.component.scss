@@ -475,3 +475,20 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+// Counts that open a list carry a chevron, like other rows that open a view;
+// the visited count stays plain text.
+.clickable-stat {
+  position: relative;
+}
+
+.profile-stat__chevron {
+  position: absolute;
+  inset-inline-end: 2px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  transform: translateY(-50%);
+  color: var(--mat-sys-on-surface-variant);
+}

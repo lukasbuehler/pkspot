@@ -76,7 +76,7 @@
           <!-- Spots Created Column -->
           <ng-container matColumnDef="spot_creates_count">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
-              <span class="label-full" i18n>Spots Created</span><span class="label-short" i18n="@@leaderboard.sort_spots">Spots</span>
+              <span class="label-full" i18n>Spots Created</span><span class="label-short" i18n="@@leaderboard.sort_spots">Spots</span><span class="label-count" aria-hidden="true" i18n="@@leaderboard.count_heading">Count</span>
             </th>
             <td mat-cell *matCellDef="let entry">
               {{ entry.spot_creates_count }}
@@ -86,7 +86,7 @@
           <!-- Edits Made Column -->
           <ng-container matColumnDef="spot_edits_count">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
-              <span class="label-full" i18n>Edits Made</span><span class="label-short" i18n="@@leaderboard.sort_edits">Edits</span>
+              <span class="label-full" i18n>Edits Made</span><span class="label-short" i18n="@@leaderboard.sort_edits">Edits</span><span class="label-count" aria-hidden="true" i18n="@@leaderboard.count_heading">Count</span>
             </th>
             <td mat-cell *matCellDef="let entry">
               {{ entry.spot_edits_count }}
@@ -96,7 +96,7 @@
           <!-- Media Added Column -->
           <ng-container matColumnDef="media_added_count">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
-              <span class="label-full" i18n>Media Added</span><span class="label-short" i18n="@@leaderboard.sort_media">Media</span>
+              <span class="label-full" i18n>Media Added</span><span class="label-short" i18n="@@leaderboard.sort_media">Media</span><span class="label-count" aria-hidden="true" i18n="@@leaderboard.count_heading">Count</span>
             </th>
             <td mat-cell *matCellDef="let entry">
               {{ entry.media_added_count }}

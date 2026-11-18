@@ -222,6 +222,9 @@
                               other {Followers}
                             }</span
                           >
+                          @if (isMyProfile) {
+                            <mat-icon class="profile-stat__chevron" aria-hidden="true">chevron_right</mat-icon>
+                          }
                         </button>
                         <button
                           type="button"
@@ -240,6 +243,9 @@
                             i18n="@@profile.stats.following"
                             >Following</span
                           >
+                          @if (isMyProfile) {
+                            <mat-icon class="profile-stat__chevron" aria-hidden="true">chevron_right</mat-icon>
+                          }
                         </button>
                         <div class="profile-stat">
                           <span class="profile-stat__value mat-headline-small">

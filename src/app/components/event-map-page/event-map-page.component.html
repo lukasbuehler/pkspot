@@ -26,16 +26,6 @@
           class="flex-grow-1 d-flex justify-content-start align-items-center gap-5 min-w-0"
         >
           <h2 class="mat-heading-large m-0 text-truncate">{{ name() }}</h2>
-          @if (responsive.isDesktop()) {
-            <p
-              class="mat-body-medium m-0 flex-grow-1 event-map-description"
-              style="flex-basis: 0"
-              i18n="@@event_map_page.description"
-            >
-              This is an interactive map of the event area. Click on blue spots
-              or other pins to see more information.
-            </p>
-          }
         </div>
         @if (!isEmbedded) {
           <div class="d-flex flex-row gap-2 flex-shrink-0">
@@ -83,6 +73,17 @@
         [event]="event()!"
         [showVenue]="false"
       ></app-event-summary-meta>
+      <!-- A hint under the event's details, not beside the title, so it reads
+           as help rather than as part of the heading. -->
+      @if (responsive.isDesktop()) {
+        <p
+          class="mat-body-medium m-0 event-map-description"
+          i18n="@@event_map_page.description"
+        >
+          This is an interactive map of the event area. Click on blue spots
+          or other pins to see more information.
+        </p>
+      }
       @if (event()?.lifecycleStatus === "cancelled") {
         <aside class="event-map-cancellation" role="status">
           <span class="event-map-cancellation__icon" aria-hidden="true">

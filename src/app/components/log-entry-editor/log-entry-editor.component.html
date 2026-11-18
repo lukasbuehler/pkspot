@@ -37,7 +37,8 @@
           <div [formGroup]="detailsForm" class="time-grid">
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label i18n="@@logEditor.date">Date</mat-label>
-              <input matInput type="date" formControlName="date" (change)="onDateChange()" />
+              <input matInput type="date" formControlName="date" required (change)="onDateChange()" />
+              <mat-error i18n="@@logEditor.invalidDate">Choose when you trained.</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label i18n="@@logEditor.startTime">Start time</mat-label>

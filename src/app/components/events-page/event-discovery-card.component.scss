@@ -60,10 +60,12 @@
   object-fit: contain;
 }
 
+// Top right: the date tile owns the bottom-left corner and grows with large
+// text, so the two never meet.
 .series-badges {
   position: absolute;
   top: 0.65rem;
-  left: 0.65rem;
+  right: 0.65rem;
   z-index: 1;
   display: flex;
   gap: 0.4rem;
@@ -71,8 +73,9 @@
 
 .series-badge {
   display: grid;
-  width: 34px;
-  height: 34px;
+  // In rem so the circle grows with the initials at large text sizes.
+  width: 2.125rem;
+  height: 2.125rem;
   place-items: center;
   overflow: hidden;
   border: 1px solid var(--mat-sys-outline);
