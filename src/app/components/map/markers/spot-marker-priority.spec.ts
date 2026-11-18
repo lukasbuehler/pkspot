@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { SpotAccess } from "../../../../db/schemas/SpotTypeAndAccess";
-import { getSpotMarkerPriority } from "./spot-marker-priority";
+import {
+  compareSpotPreviewsByPriority,
+  getSpotMarkerPriority,
+} from "./spot-marker-priority";
+import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
 
 describe("getSpotMarkerPriority", () => {
   it("uses rating times 100 and treats unrated spots as 150", () => {
@@ -63,5 +67,23 @@ describe("getSpotMarkerPriority", () => {
         isReported: true,
       }),
     ).toBe(190);
+  });
+});
+
+describe("compareSpotPreviewsByPriority", () => {
+  const preview = (id: string, extra: Partial<SpotPreviewData>) =>
+    ({ id, name: id, imageSrc: "photo.jpg", ...extra }) as SpotPreviewData;
+
+  it("puts a public Spot ahead of a slightly better-rated private one", () => {
+    const privateSpot = preview("private", { rating: 2, access: SpotAccess.Private });
+    const publicSpot = preview("public", { rating: 1.5, access: SpotAccess.Public });
+    expect([privateSpot, publicSpot].sort(compareSpotPreviewsByPriority).map((s) => s.id))
+      .toEqual(["public", "private"]);
+  });
+
+  it("breaks ties in favour of Spots with a photo", () => {
+    const withPhoto = preview("photo", { rating: 3 });
+    const withoutPhoto = preview("none", { rating: 3, imageSrc: undefined });
+    expect([withoutPhoto, withPhoto].sort(compareSpotPreviewsByPriority)[0].id).toBe("photo");
   });
 });

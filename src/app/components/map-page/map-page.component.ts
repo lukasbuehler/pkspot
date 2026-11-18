@@ -42,6 +42,7 @@ import {
 } from "@angular/core";
 import { DOCUMENT, Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { compareSpotPreviewsByPriority } from "../map/markers/spot-marker-priority";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotLoadError } from "../../../db/models/SpotLoadError";
 import { handleSpotResolutionError } from "../../resolvers/spot-resolution-error";
@@ -3987,9 +3988,12 @@ export class MapPageComponent
     hits?: unknown[];
     found?: number;
   }): FilteredSpotSearchResult {
+    // Typesense sorts by rating only; rank like the unfiltered list so
+    // private and off-limits Spots do not lead the filtered results.
     const previews: SpotPreviewData[] = (result.hits || [])
       .filter((h: any) => !!h)
-      .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+      .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit))
+      .sort(compareSpotPreviewsByPriority);
     return { previews, found: result.found ?? previews.length };
   }
 

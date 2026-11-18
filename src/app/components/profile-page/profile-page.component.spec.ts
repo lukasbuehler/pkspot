@@ -42,6 +42,12 @@ describe("ProfilePageComponent", () => {
     const conditions = [...beforeLists.matchAll(/@if \(([^{]*)\) \{/g)].map((match) => match[1].trim());
     expect(conditions.at(-1)).toBe("isMyProfile");
   });
+  it("shows the visited Spot count only on the owner's profile", () => {
+    const template = readFileSync(join(process.cwd(), "src/app/components/profile-page/profile-page.component.html"), "utf8");
+    const beforeCount = template.slice(0, template.indexOf("user.visitedSpotsCount"));
+    const conditions = [...beforeCount.matchAll(/@if \(([^{]*)\) \{/g)].map((match) => match[1].trim());
+    expect(conditions.at(-1)).toBe("isMyProfile");
+  });
   const authState = new BehaviorSubject<{ uid: string } | null>({
     uid: "profile-user",
   });

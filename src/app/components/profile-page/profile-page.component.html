@@ -247,21 +247,24 @@
                             <mat-icon class="profile-stat__chevron" aria-hidden="true">chevron_right</mat-icon>
                           }
                         </button>
-                        <div class="profile-stat">
-                          <span class="profile-stat__value mat-headline-small">
-                            <app-fancy-counter
-                              [number]="user.visitedSpotsCount || 0"
-                            ></app-fancy-counter>
-                          </span>
-                          <span
-                            class="profile-stat__label mat-body-small"
-                            i18n="@@profile.stats.visited"
-                            >{user.visitedSpotsCount, plural,
-                              =1 {Spot visited}
-                              other {Spots visited}
-                            }</span
-                          >
-                        </div>
+                        <!-- Check-ins are private: only the owner sees how many Spots they visited. -->
+                        @if (isMyProfile) {
+                          <div class="profile-stat">
+                            <span class="profile-stat__value mat-headline-small">
+                              <app-fancy-counter
+                                [number]="user.visitedSpotsCount || 0"
+                              ></app-fancy-counter>
+                            </span>
+                            <span
+                              class="profile-stat__label mat-body-small"
+                              i18n="@@profile.stats.visited"
+                              >{user.visitedSpotsCount, plural,
+                                =1 {Spot visited}
+                                other {Spots visited}
+                              }</span
+                            >
+                          </div>
+                        }
                       </div>
                     }
 

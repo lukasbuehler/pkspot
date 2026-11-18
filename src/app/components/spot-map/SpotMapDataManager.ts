@@ -24,7 +24,10 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { getBestLocale } from "../../../scripts/LanguageHelpers";
 import { SpotFilterMode } from "./spot-filter-config";
-import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
+import {
+  compareSpotPreviewsByPriority,
+  getSpotMarkerPriority,
+} from "../map/markers/spot-marker-priority";
 
 // Re-export SpotFilterMode for backward compatibility with existing imports
 export { SpotFilterMode } from "./spot-filter-config";
@@ -155,40 +158,6 @@ export class SpotMapDataManager {
       });
 
     return priorityDifference;
-  }
-
-  private _sortPreviewsByPriority(
-    a: SpotPreviewData,
-    b: SpotPreviewData
-  ): number {
-    const priorityDifference =
-      getSpotMarkerPriority({
-        recent_activity_min_30d: b.recent_activity_min_30d,
-        rating: b.rating,
-        access: b.access,
-        isIconic: b.isIconic,
-        isReported: b.isReported,
-        hasMedia: !!b.imageSrc,
-      }) -
-      getSpotMarkerPriority({
-        recent_activity_min_30d: a.recent_activity_min_30d,
-        rating: a.rating,
-        access: a.access,
-        isIconic: a.isIconic,
-        isReported: a.isReported,
-        hasMedia: !!a.imageSrc,
-      });
-
-    if (priorityDifference !== 0) {
-      return priorityDifference;
-    }
-
-    const aHasImage = !!a.imageSrc;
-    const bHasImage = !!b.imageSrc;
-    if (aHasImage === bHasImage) {
-      return 0;
-    }
-    return aHasImage ? -1 : 1;
   }
 
   private _getSpotPreviewSearchOptions(zoom: number): SpotPreviewSearchOptions {
@@ -1210,7 +1179,7 @@ export class SpotMapDataManager {
 
         const previews = Array.from(uniqueHits.values())
           .map((hit) => this._getOrCreateSpotPreviewFromHit(hit))
-          .sort((a, b) => this._sortPreviewsByPriority(a, b))
+          .sort(compareSpotPreviewsByPriority)
           .slice(0, options.limit);
 
         this._spotPreviewsLoaded.set(true);
