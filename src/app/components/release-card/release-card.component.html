@@ -1,0 +1,30 @@
+@let item = view();
+<mat-card appearance="outlined" class="release-card">
+  <a class="release-card__banner" [routerLink]="['/releases', item.release.version]" tabindex="-1" aria-hidden="true">
+    <app-release-hero [hero]="item.release.hero" [playWhenVisible]="true" />
+  </a>
+  <mat-card-content class="release-card__body">
+    @if (latest()) {
+      <p class="release-card__eyebrow mat-label-large" i18n="@@releases.latest">Latest release</p>
+    }
+    <h2 class="mat-headline-small">
+      <a [routerLink]="['/releases', item.release.version]">PK Spot {{ item.label }}</a>
+    </h2>
+    <p class="release-card__meta mat-body-medium">
+      @if (item.release.name) {
+        <span lang="en">{{ item.release.name }}</span> ·
+      }
+      <time [attr.datetime]="item.release.date">{{ item.release.date | date: "longDate" }}</time>
+      @if (item.platformsText) {
+        · {{ item.platformsText }}
+      }
+    </p>
+    <app-release-highlights [highlights]="item.highlights" />
+  </mat-card-content>
+  <mat-card-actions>
+    <a [matButton]="latest() ? 'filled' : 'outlined'" [routerLink]="['/releases', item.release.version]">
+      <span i18n="@@releases.readMore">Read the release notes</span>
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </a>
+  </mat-card-actions>
+</mat-card>

@@ -1,4 +1,4 @@
-// Moved from the 1.2 what's-new dialog so every release can have one.
+// Moved from the 1.2 what's-new dialog so every release has one.
 // Set `--release-hero-height` on the host to resize it.
 :host {
   position: relative;
@@ -91,7 +91,16 @@
   to { transform: translateX(120%); }
 }
 
-@mixin static-hero {
+// Waiting to scroll into view: hold every animation at its first frame.
+:host(.is-waiting) {
+  .release-hero__float,
+  .release-hero__centerpiece,
+  .release-hero__centerpiece::after {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .release-hero__float,
   .release-hero__centerpiece,
   .release-hero__centerpiece::after {
@@ -100,12 +109,4 @@
 
   .release-hero__float { opacity: 0.85; }
   .release-hero__centerpiece { opacity: 1; transform: translate(-50%, -50%); }
-}
-
-:host(.is-static) {
-  @include static-hero;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  @include static-hero;
 }

@@ -6474,6 +6474,402 @@
         <target>Evalueer deze spot</target>
       </segment>
     </unit>
+    <unit id="release.1_0_11.lists.body">
+      <segment state="translated">
+        <source>Keep track of the Spots you want to visit and the ones you have.</source>
+        <target>Houd bij welke Spots je wilt bezoeken en welke je al hebt bezocht.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.lists.title">
+      <segment state="translated">
+        <source>Saved and visited lists</source>
+        <target>Lijsten met bewaard en bezocht</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.body">
+      <segment state="translated">
+        <source>Clearer sources and verification for Spots.</source>
+        <target>Duidelijkere bronnen en verificatie voor Spots.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.title">
+      <segment state="translated">
+        <source>Verification</source>
+        <target>Verificatie</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.body">
+      <segment state="translated">
+        <source>Google sign-in, profile pictures and language fixes.</source>
+        <target>Fixes voor inloggen met Google, profielfoto&apos;s en taal.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.title">
+      <segment state="translated">
+        <source>Sign-in fixes</source>
+        <target>Inlogfixes</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.body">
+      <segment state="translated">
+        <source>A faster map and clearer location handling.</source>
+        <target>Een snellere kaart en duidelijkere omgang met je locatie.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.title">
+      <segment state="translated">
+        <source>Better location</source>
+        <target>Betere locatie</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.body">
+      <segment state="translated">
+        <source>Improved previews, highlights and clusters.</source>
+        <target>Verbeterde voorbeelden, uitgelichte Spots en clusters.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.title">
+      <segment state="translated">
+        <source>Spot previews</source>
+        <target>Spotvoorbeelden</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.body">
+      <segment state="translated">
+        <source>Performance and image-loading improvements.</source>
+        <target>Betere prestaties en snellere afbeeldingen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.title">
+      <segment state="translated">
+        <source>Faster images</source>
+        <target>Snellere afbeeldingen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.body">
+      <segment state="translated">
+        <source>Splash screens and animated Spot previews.</source>
+        <target>Startschermen en geanimeerde Spotvoorbeelden.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.title">
+      <segment state="translated">
+        <source>Animated previews</source>
+        <target>Geanimeerde voorbeelden</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.body">
+      <segment state="translated">
+        <source>A hybrid satellite map with location labels.</source>
+        <target>Een hybride satellietkaart met plaatsnamen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.title">
+      <segment state="translated">
+        <source>Satellite map</source>
+        <target>Satellietkaart</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.body">
+      <segment state="translated">
+        <source>Find your local community and what is happening.</source>
+        <target>Vind je lokale community en wat er gebeurt.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.title">
+      <segment state="translated">
+        <source>Communities and Events</source>
+        <target>Communities en Events</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.body">
+      <segment state="translated">
+        <source>Save Spots and mark the ones you have visited.</source>
+        <target>Bewaar Spots en markeer de Spots die je hebt bezocht.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.title">
+      <segment state="translated">
+        <source>Save Spots</source>
+        <target>Spots bewaren</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.body">
+      <segment state="translated">
+        <source>Search the map and browse community pages.</source>
+        <target>Zoek op de kaart en bekijk communitypagina&apos;s.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.title">
+      <segment state="translated">
+        <source>Map search</source>
+        <target>Zoeken op de kaart</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.body">
+      <segment state="translated">
+        <source>Info cards for local communities.</source>
+        <target>Infokaarten voor lokale communities.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.title">
+      <segment state="translated">
+        <source>Community cards</source>
+        <target>Communitykaarten</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.body">
+      <segment state="translated">
+        <source>Every Event gets its own info page, with RSVPs.</source>
+        <target>Elk Event krijgt een eigen infopagina, met aanmeldingen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.title">
+      <segment state="translated">
+        <source>Event pages</source>
+        <target>Eventpagina&apos;s</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.body">
+      <segment state="translated">
+        <source>Map performance and design improvements.</source>
+        <target>Verbeteringen aan de prestaties en het ontwerp van de kaart.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.title">
+      <segment state="translated">
+        <source>A faster map</source>
+        <target>Een snellere kaart</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.body">
+      <segment state="translated">
+        <source>Organizations can verify Spots.</source>
+        <target>Organisaties kunnen Spots verifiëren.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.title">
+      <segment state="translated">
+        <source>Verified Spots</source>
+        <target>Geverifieerde Spots</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.body">
+      <segment state="translated">
+        <source>Admins review community and Spot votes in one place.</source>
+        <target>Beheerders beoordelen stemmen over communities en Spots in één overzicht.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.title">
+      <segment state="translated">
+        <source>Moderation queue</source>
+        <target>Moderatiewachtrij</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.body">
+      <segment state="translated">
+        <source>Updated profile pages and following.</source>
+        <target>Vernieuwde profielpagina&apos;s en volgen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.title">
+      <segment state="translated">
+        <source>New profiles</source>
+        <target>Nieuwe profielen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.body">
+      <segment state="translated">
+        <source>Suggest changes to community cards.</source>
+        <target>Stel wijzigingen aan communitykaarten voor.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.title">
+      <segment state="translated">
+        <source>Community suggestions</source>
+        <target>Communitysuggesties</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.body">
+      <segment state="translated">
+        <source>Save an Event and get its reminders.</source>
+        <target>Bewaar een Event en ontvang de herinneringen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.title">
+      <segment state="translated">
+        <source>Add to My Events</source>
+        <target>Toevoegen aan Mijn Events</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.body">
+      <segment state="translated">
+        <source>Community digests, Event reminders and Spot edit updates on iOS, Android and the web.</source>
+        <target>Communityoverzichten, Eventherinneringen en updates over Spot-bewerkingen op iOS, Android en het web.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.title">
+      <segment state="translated">
+        <source>Notifications</source>
+        <target>Meldingen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.body">
+      <segment state="translated">
+        <source>Google Weather for Spots, the map area you are viewing and Events.</source>
+        <target>Google Weather voor Spots, het kaartgebied dat je bekijkt en Events.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.title">
+      <segment state="translated">
+        <source>Weather</source>
+        <target>Weer</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.body">
+      <segment state="translated">
+        <source>Changing your response works, and finished Events move to Past.</source>
+        <target>Je antwoord wijzigen werkt, en afgelopen Events gaan naar Voorbij.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.title">
+      <segment state="translated">
+        <source>Event fixes</source>
+        <target>Eventfixes</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.body">
+      <segment state="translated">
+        <source>Paste a Google Maps or Apple Maps link into the map search.</source>
+        <target>Plak een Google Maps- of Apple Maps-link in de kaartzoekfunctie.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.title">
+      <segment state="translated">
+        <source>Paste map links</source>
+        <target>Kaartlinks plakken</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.body">
+      <segment state="translated">
+        <source>Links and actions open the right page.</source>
+        <target>Links en acties openen de juiste pagina.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.title">
+      <segment state="translated">
+        <source>Notifications that land right</source>
+        <target>Meldingen die goed aankomen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.body">
+      <segment state="translated">
+        <source>Clearer crop controls with larger handles on mobile.</source>
+        <target>Duidelijkere bijsnijdbediening met grotere grepen op mobiel.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.title">
+      <segment state="translated">
+        <source>Better uploads</source>
+        <target>Beter uploaden</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.body">
+      <segment state="translated">
+        <source>The map stays in place when the layout changes.</source>
+        <target>De kaart blijft op zijn plek als de indeling verandert.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.title">
+      <segment state="translated">
+        <source>A steadier map</source>
+        <target>Een stabielere kaart</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.body">
+      <segment state="translated">
+        <source>The closest name matches come first.</source>
+        <target>De best passende namen staan bovenaan.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.title">
+      <segment state="translated">
+        <source>Better search</source>
+        <target>Beter zoeken</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.body">
+      <segment state="translated">
+        <source>Clearer share cards, and sharing and following communities.</source>
+        <target>Duidelijkere deelkaarten, en communities delen en volgen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.title">
+      <segment state="translated">
+        <source>Clearer sharing</source>
+        <target>Duidelijker delen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.body">
+      <segment state="translated">
+        <source>Navigation that feels at home on iOS.</source>
+        <target>Navigatie die aanvoelt als iOS.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.title">
+      <segment state="translated">
+        <source>Native tab bar on iPhone</source>
+        <target>Native tabbalk op iPhone</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.body">
+      <segment state="translated">
+        <source>Spots show their recent activity on the map again.</source>
+        <target>Spots tonen hun recente activiteit weer op de kaart.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.title">
+      <segment state="translated">
+        <source>Activity on the map</source>
+        <target>Activiteit op de kaart</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.body">
+      <segment state="translated">
+        <source>Pages load from a cache close to you.</source>
+        <target>Pagina&apos;s laden vanuit een cache dicht bij jou.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.title">
+      <segment state="translated">
+        <source>Faster pages</source>
+        <target>Snellere pagina&apos;s</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.body">
+      <segment state="translated">
+        <source>Spot and Event pages link to their communities.</source>
+        <target>Spot- en Eventpagina&apos;s linken naar hun communities.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.title">
+      <segment state="translated">
+        <source>Community links</source>
+        <target>Communitylinks</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.body">
+      <segment state="translated">
+        <source>Analytics only store anything on your device if you opt in, and photo locations are removed before upload.</source>
+        <target>Analytics slaan alleen iets op je apparaat op als je daarmee instemt, en fotolocaties worden vóór het uploaden verwijderd.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.title">
+      <segment state="translated">
+        <source>Private by default</source>
+        <target>Standaard privé</target>
+      </segment>
+    </unit>
     <unit id="release.allChanges">
       <segment state="translated">
         <source>All changes</source>
@@ -6502,12 +6898,6 @@
       <segment state="translated">
         <source>Releases</source>
         <target>Versies</target>
-      </segment>
-    </unit>
-    <unit id="releases.earlier">
-      <segment state="translated">
-        <source>Earlier releases</source>
-        <target>Eerdere versies</target>
       </segment>
     </unit>
     <unit id="releases.latest">

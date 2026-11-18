@@ -6300,6 +6300,402 @@
         <target>Évaluer ce spot</target>
       </segment>
     </unit>
+    <unit id="release.1_0_11.lists.body">
+      <segment state="translated">
+        <source>Keep track of the Spots you want to visit and the ones you have.</source>
+        <target>Garde une trace des Spots que tu veux visiter et de ceux que tu as visités.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.lists.title">
+      <segment state="translated">
+        <source>Saved and visited lists</source>
+        <target>Listes des Spots enregistrés et visités</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.body">
+      <segment state="translated">
+        <source>Clearer sources and verification for Spots.</source>
+        <target>Des sources et une vérification plus claires pour les Spots.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.title">
+      <segment state="translated">
+        <source>Verification</source>
+        <target>Vérification</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.body">
+      <segment state="translated">
+        <source>Google sign-in, profile pictures and language fixes.</source>
+        <target>Corrections de la connexion Google, des photos de profil et de la langue.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.title">
+      <segment state="translated">
+        <source>Sign-in fixes</source>
+        <target>Corrections de connexion</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.body">
+      <segment state="translated">
+        <source>A faster map and clearer location handling.</source>
+        <target>Une carte plus rapide et une gestion plus claire de ta position.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.title">
+      <segment state="translated">
+        <source>Better location</source>
+        <target>Une meilleure localisation</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.body">
+      <segment state="translated">
+        <source>Improved previews, highlights and clusters.</source>
+        <target>Des aperçus, des mises en avant et des regroupements améliorés.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.title">
+      <segment state="translated">
+        <source>Spot previews</source>
+        <target>Aperçus des Spots</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.body">
+      <segment state="translated">
+        <source>Performance and image-loading improvements.</source>
+        <target>De meilleures performances et un chargement des images plus rapide.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.title">
+      <segment state="translated">
+        <source>Faster images</source>
+        <target>Des images plus rapides</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.body">
+      <segment state="translated">
+        <source>Splash screens and animated Spot previews.</source>
+        <target>Des écrans de démarrage et des aperçus animés des Spots.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.title">
+      <segment state="translated">
+        <source>Animated previews</source>
+        <target>Aperçus animés</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.body">
+      <segment state="translated">
+        <source>A hybrid satellite map with location labels.</source>
+        <target>Une carte satellite hybride avec les noms de lieux.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.title">
+      <segment state="translated">
+        <source>Satellite map</source>
+        <target>Carte satellite</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.body">
+      <segment state="translated">
+        <source>Find your local community and what is happening.</source>
+        <target>Trouve ta communauté locale et ce qui se passe.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.title">
+      <segment state="translated">
+        <source>Communities and Events</source>
+        <target>Communautés et Events</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.body">
+      <segment state="translated">
+        <source>Save Spots and mark the ones you have visited.</source>
+        <target>Enregistre des Spots et marque ceux que tu as visités.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.title">
+      <segment state="translated">
+        <source>Save Spots</source>
+        <target>Enregistrer des Spots</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.body">
+      <segment state="translated">
+        <source>Search the map and browse community pages.</source>
+        <target>Cherche sur la carte et parcours les pages des communautés.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.title">
+      <segment state="translated">
+        <source>Map search</source>
+        <target>Recherche sur la carte</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.body">
+      <segment state="translated">
+        <source>Info cards for local communities.</source>
+        <target>Des cartes d&apos;infos pour les communautés locales.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.title">
+      <segment state="translated">
+        <source>Community cards</source>
+        <target>Cartes des communautés</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.body">
+      <segment state="translated">
+        <source>Every Event gets its own info page, with RSVPs.</source>
+        <target>Chaque Event a sa propre page d&apos;infos, avec les participations.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.title">
+      <segment state="translated">
+        <source>Event pages</source>
+        <target>Pages des Events</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.body">
+      <segment state="translated">
+        <source>Map performance and design improvements.</source>
+        <target>Des améliorations de performance et de design de la carte.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.title">
+      <segment state="translated">
+        <source>A faster map</source>
+        <target>Une carte plus rapide</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.body">
+      <segment state="translated">
+        <source>Organizations can verify Spots.</source>
+        <target>Les organisations peuvent vérifier des Spots.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.title">
+      <segment state="translated">
+        <source>Verified Spots</source>
+        <target>Spots vérifiés</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.body">
+      <segment state="translated">
+        <source>Admins review community and Spot votes in one place.</source>
+        <target>Les admins examinent ensemble les votes des communautés et des Spots.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.title">
+      <segment state="translated">
+        <source>Moderation queue</source>
+        <target>File de modération</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.body">
+      <segment state="translated">
+        <source>Updated profile pages and following.</source>
+        <target>Des pages de profil et un suivi revus.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.title">
+      <segment state="translated">
+        <source>New profiles</source>
+        <target>Nouveaux profils</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.body">
+      <segment state="translated">
+        <source>Suggest changes to community cards.</source>
+        <target>Propose des modifications aux cartes des communautés.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.title">
+      <segment state="translated">
+        <source>Community suggestions</source>
+        <target>Suggestions pour les communautés</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.body">
+      <segment state="translated">
+        <source>Save an Event and get its reminders.</source>
+        <target>Enregistre un Event et reçois ses rappels.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.title">
+      <segment state="translated">
+        <source>Add to My Events</source>
+        <target>Ajouter à Mes Events</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.body">
+      <segment state="translated">
+        <source>Community digests, Event reminders and Spot edit updates on iOS, Android and the web.</source>
+        <target>Résumés des communautés, rappels d&apos;Events et suivi des modifications de Spots sur iOS, Android et le web.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.title">
+      <segment state="translated">
+        <source>Notifications</source>
+        <target>Notifications</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.body">
+      <segment state="translated">
+        <source>Google Weather for Spots, the map area you are viewing and Events.</source>
+        <target>Google Weather pour les Spots, la zone de la carte que tu regardes et les Events.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.title">
+      <segment state="translated">
+        <source>Weather</source>
+        <target>Météo</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.body">
+      <segment state="translated">
+        <source>Changing your response works, and finished Events move to Past.</source>
+        <target>Modifier ta réponse fonctionne, et les Events terminés passent dans Passés.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.title">
+      <segment state="translated">
+        <source>Event fixes</source>
+        <target>Corrections des Events</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.body">
+      <segment state="translated">
+        <source>Paste a Google Maps or Apple Maps link into the map search.</source>
+        <target>Colle un lien Google Maps ou Apple Maps dans la recherche de la carte.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.title">
+      <segment state="translated">
+        <source>Paste map links</source>
+        <target>Coller des liens de carte</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.body">
+      <segment state="translated">
+        <source>Links and actions open the right page.</source>
+        <target>Les liens et les actions ouvrent la bonne page.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.title">
+      <segment state="translated">
+        <source>Notifications that land right</source>
+        <target>Des notifications qui mènent au bon endroit</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.body">
+      <segment state="translated">
+        <source>Clearer crop controls with larger handles on mobile.</source>
+        <target>Des outils de recadrage plus clairs avec de plus grandes poignées sur mobile.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.title">
+      <segment state="translated">
+        <source>Better uploads</source>
+        <target>De meilleurs envois</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.body">
+      <segment state="translated">
+        <source>The map stays in place when the layout changes.</source>
+        <target>La carte reste en place quand la mise en page change.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.title">
+      <segment state="translated">
+        <source>A steadier map</source>
+        <target>Une carte plus stable</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.body">
+      <segment state="translated">
+        <source>The closest name matches come first.</source>
+        <target>Les noms les plus proches apparaissent en premier.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.title">
+      <segment state="translated">
+        <source>Better search</source>
+        <target>Une meilleure recherche</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.body">
+      <segment state="translated">
+        <source>Clearer share cards, and sharing and following communities.</source>
+        <target>Des cartes de partage plus claires, et le partage et le suivi des communautés.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.title">
+      <segment state="translated">
+        <source>Clearer sharing</source>
+        <target>Un partage plus clair</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.body">
+      <segment state="translated">
+        <source>Navigation that feels at home on iOS.</source>
+        <target>Une navigation qui se sent chez elle sur iOS.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.title">
+      <segment state="translated">
+        <source>Native tab bar on iPhone</source>
+        <target>Barre d&apos;onglets native sur iPhone</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.body">
+      <segment state="translated">
+        <source>Spots show their recent activity on the map again.</source>
+        <target>Les Spots affichent à nouveau leur activité récente sur la carte.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.title">
+      <segment state="translated">
+        <source>Activity on the map</source>
+        <target>L&apos;activité sur la carte</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.body">
+      <segment state="translated">
+        <source>Pages load from a cache close to you.</source>
+        <target>Les pages se chargent depuis un cache proche de toi.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.title">
+      <segment state="translated">
+        <source>Faster pages</source>
+        <target>Des pages plus rapides</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.body">
+      <segment state="translated">
+        <source>Spot and Event pages link to their communities.</source>
+        <target>Les pages des Spots et des Events renvoient vers leurs communautés.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.title">
+      <segment state="translated">
+        <source>Community links</source>
+        <target>Liens vers les communautés</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.body">
+      <segment state="translated">
+        <source>Analytics only store anything on your device if you opt in, and photo locations are removed before upload.</source>
+        <target>Les statistiques n&apos;enregistrent rien sur ton appareil sans ton accord, et la position des photos est supprimée avant l&apos;envoi.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.title">
+      <segment state="translated">
+        <source>Private by default</source>
+        <target>Privé par défaut</target>
+      </segment>
+    </unit>
     <unit id="release.allChanges">
       <segment state="translated">
         <source>All changes</source>
@@ -6328,12 +6724,6 @@
       <segment state="translated">
         <source>Releases</source>
         <target>Versions</target>
-      </segment>
-    </unit>
-    <unit id="releases.earlier">
-      <segment state="translated">
-        <source>Earlier releases</source>
-        <target>Versions précédentes</target>
       </segment>
     </unit>
     <unit id="releases.latest">

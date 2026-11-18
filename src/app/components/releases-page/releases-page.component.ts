@@ -1,39 +1,22 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { DatePipe } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatCardModule } from "@angular/material/card";
-import { MatIconModule } from "@angular/material/icon";
-import { RouterLink } from "@angular/router";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { RELEASES } from "../../releases/release-notes";
 import { releaseView } from "../../releases/release-view";
-import { ReleaseHeroComponent } from "../release-hero/release-hero.component";
-import { ReleaseHighlightsComponent } from "../release-highlights/release-highlights.component";
-import { ReleaseNotesListComponent } from "../release-notes-list/release-notes-list.component";
+import { ReleaseCardComponent } from "../release-card/release-card.component";
 
 /**
- * `/releases`: every PK Spot release, newest first. The latest one is
- * featured with its animated hero; older ones show their notes in full.
+ * `/releases`: every PK Spot release, newest first, as cards with the
+ * release's banner and highlights. The full notes are on each release page.
  */
 @Component({
   selector: "app-releases-page",
-  imports: [
-    DatePipe,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    RouterLink,
-    ReleaseHeroComponent,
-    ReleaseHighlightsComponent,
-    ReleaseNotesListComponent,
-  ],
+  imports: [ReleaseCardComponent],
   templateUrl: "./releases-page.component.html",
   styleUrl: "./releases-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReleasesPageComponent {
-  protected readonly latest = releaseView(RELEASES[0]);
-  protected readonly older = RELEASES.slice(1).map(releaseView);
+  protected readonly releases = RELEASES.map(releaseView);
 
   constructor() {
     inject(MetaTagService).setStaticPageMetaTags(

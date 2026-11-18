@@ -1,0 +1,41 @@
+:host {
+  display: block;
+}
+
+.release-card {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.release-card__banner {
+  display: block;
+  --release-hero-height: 168px;
+
+  app-release-hero { border-radius: 0; }
+}
+
+.release-card__body {
+  display: grid;
+  gap: 12px;
+  padding-block-start: 16px;
+
+  h2 { margin: 0; }
+
+  h2 a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible { text-decoration: underline; }
+  }
+}
+
+.release-card__eyebrow {
+  margin: 0;
+  color: var(--mat-sys-primary);
+}
+
+.release-card__meta {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}

@@ -46,8 +46,7 @@ describe("ReleasePageComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(element.querySelector("h1")?.textContent).toContain("PK Spot 1.1.0 and 1.1.1");
-    // Releases without highlights show only their notes.
-    expect(element.textContent).not.toContain("Highlights");
+    expect(element.textContent).toContain("Save Spots");
   });
 
   it("marks web-only releases", () => {

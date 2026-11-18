@@ -4,65 +4,7 @@
     <p class="mat-title-medium" i18n="@@releases.subtitle">Every update, newest first. Full release notes are in English.</p>
   </header>
 
-  <mat-card appearance="outlined" class="releases-page__latest">
-    <a class="releases-page__hero-link" [routerLink]="['/releases', latest.release.version]" tabindex="-1">
-      <app-release-hero [hero]="latest.release.hero" />
-    </a>
-    <mat-card-content class="releases-page__latest-body">
-      <p class="releases-page__eyebrow mat-label-large" i18n="@@releases.latest">Latest release</p>
-      <h2 class="mat-headline-small">
-        <a [routerLink]="['/releases', latest.release.version]">PK Spot {{ latest.label }}</a>
-      </h2>
-      <p class="releases-page__meta mat-body-medium">
-        @if (latest.release.name) {
-          <span lang="en">{{ latest.release.name }}</span> ·
-        }
-        <time [attr.datetime]="latest.release.date">{{ latest.release.date | date: "longDate" }}</time>
-        @if (latest.platformsText) {
-          · {{ latest.platformsText }}
-        }
-      </p>
-      @if (latest.highlights.length) {
-        <app-release-highlights [highlights]="latest.highlights" />
-      } @else {
-        <app-release-notes-list [notes]="latest.notes" />
-      }
-    </mat-card-content>
-    <mat-card-actions>
-      <a matButton="filled" [routerLink]="['/releases', latest.release.version]">
-        <span i18n="@@releases.readMore">Read the release notes</span>
-        <mat-icon iconPositionEnd>arrow_forward</mat-icon>
-      </a>
-    </mat-card-actions>
-  </mat-card>
-
-  <section class="releases-page__history" aria-labelledby="releases-history-title">
-    <h2 id="releases-history-title" class="mat-title-large" i18n="@@releases.earlier">Earlier releases</h2>
-    @for (item of older; track item.release.version) {
-      <mat-card appearance="outlined" class="releases-page__release">
-        <mat-card-content class="releases-page__release-body">
-          <div class="releases-page__release-head">
-            <span class="releases-page__tile" aria-hidden="true">
-              <mat-icon>{{ item.release.hero.centerpiece.icon }}</mat-icon>
-            </span>
-            <div>
-              <h3 class="mat-title-medium">
-                <a [routerLink]="['/releases', item.release.version]">PK Spot {{ item.label }}</a>
-              </h3>
-              <p class="releases-page__meta mat-body-small">
-                @if (item.release.name) {
-                  <span lang="en">{{ item.release.name }}</span> ·
-                }
-                <time [attr.datetime]="item.release.date">{{ item.release.date | date: "longDate" }}</time>
-                @if (item.platformsText) {
-                  · {{ item.platformsText }}
-                }
-              </p>
-            </div>
-          </div>
-          <app-release-notes-list [notes]="item.notes" />
-        </mat-card-content>
-      </mat-card>
-    }
-  </section>
+  @for (item of releases; track item.release.version; let first = $first) {
+    <app-release-card [view]="item" [latest]="first" />
+  }
 </div>

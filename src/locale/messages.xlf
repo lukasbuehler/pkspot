@@ -11721,6 +11721,336 @@
         <source>Review this spot</source>
       </segment>
     </unit>
+    <unit id="release.1_0_11.lists.body">
+      <segment>
+        <source>Keep track of the Spots you want to visit and the ones you have.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.lists.title">
+      <segment>
+        <source>Saved and visited lists</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.body">
+      <segment>
+        <source>Clearer sources and verification for Spots.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.title">
+      <segment>
+        <source>Verification</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.body">
+      <segment>
+        <source>Google sign-in, profile pictures and language fixes.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.title">
+      <segment>
+        <source>Sign-in fixes</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.body">
+      <segment>
+        <source>A faster map and clearer location handling.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.title">
+      <segment>
+        <source>Better location</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.body">
+      <segment>
+        <source>Improved previews, highlights and clusters.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.title">
+      <segment>
+        <source>Spot previews</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.body">
+      <segment>
+        <source>Performance and image-loading improvements.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.title">
+      <segment>
+        <source>Faster images</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.body">
+      <segment>
+        <source>Splash screens and animated Spot previews.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.title">
+      <segment>
+        <source>Animated previews</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.body">
+      <segment>
+        <source>A hybrid satellite map with location labels.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.title">
+      <segment>
+        <source>Satellite map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.body">
+      <segment>
+        <source>Find your local community and what is happening.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.title">
+      <segment>
+        <source>Communities and Events</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.body">
+      <segment>
+        <source>Save Spots and mark the ones you have visited.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.title">
+      <segment>
+        <source>Save Spots</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.body">
+      <segment>
+        <source>Search the map and browse community pages.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.title">
+      <segment>
+        <source>Map search</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.body">
+      <segment>
+        <source>Info cards for local communities.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.title">
+      <segment>
+        <source>Community cards</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.body">
+      <segment>
+        <source>Every Event gets its own info page, with RSVPs.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.title">
+      <segment>
+        <source>Event pages</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.body">
+      <segment>
+        <source>Map performance and design improvements.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.title">
+      <segment>
+        <source>A faster map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.body">
+      <segment>
+        <source>Organizations can verify Spots.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.title">
+      <segment>
+        <source>Verified Spots</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.body">
+      <segment>
+        <source>Admins review community and Spot votes in one place.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.title">
+      <segment>
+        <source>Moderation queue</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.body">
+      <segment>
+        <source>Updated profile pages and following.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.title">
+      <segment>
+        <source>New profiles</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.body">
+      <segment>
+        <source>Suggest changes to community cards.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.title">
+      <segment>
+        <source>Community suggestions</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.body">
+      <segment>
+        <source>Save an Event and get its reminders.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.title">
+      <segment>
+        <source>Add to My Events</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.body">
+      <segment>
+        <source>Community digests, Event reminders and Spot edit updates on iOS, Android and the web.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.title">
+      <segment>
+        <source>Notifications</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.body">
+      <segment>
+        <source>Google Weather for Spots, the map area you are viewing and Events.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.title">
+      <segment>
+        <source>Weather</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.body">
+      <segment>
+        <source>Changing your response works, and finished Events move to Past.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.title">
+      <segment>
+        <source>Event fixes</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.body">
+      <segment>
+        <source>Paste a Google Maps or Apple Maps link into the map search.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.title">
+      <segment>
+        <source>Paste map links</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.body">
+      <segment>
+        <source>Links and actions open the right page.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.title">
+      <segment>
+        <source>Notifications that land right</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.body">
+      <segment>
+        <source>Clearer crop controls with larger handles on mobile.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.title">
+      <segment>
+        <source>Better uploads</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.body">
+      <segment>
+        <source>The map stays in place when the layout changes.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.title">
+      <segment>
+        <source>A steadier map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.body">
+      <segment>
+        <source>The closest name matches come first.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.title">
+      <segment>
+        <source>Better search</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.body">
+      <segment>
+        <source>Clearer share cards, and sharing and following communities.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.title">
+      <segment>
+        <source>Clearer sharing</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.body">
+      <segment>
+        <source>Navigation that feels at home on iOS.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.title">
+      <segment>
+        <source>Native tab bar on iPhone</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.body">
+      <segment>
+        <source>Spots show their recent activity on the map again.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.title">
+      <segment>
+        <source>Activity on the map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.body">
+      <segment>
+        <source>Pages load from a cache close to you.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.title">
+      <segment>
+        <source>Faster pages</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.body">
+      <segment>
+        <source>Spot and Event pages link to their communities.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.title">
+      <segment>
+        <source>Community links</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.body">
+      <segment>
+        <source>Analytics only store anything on your device if you opt in, and photo locations are removed before upload.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.title">
+      <segment>
+        <source>Private by default</source>
+      </segment>
+    </unit>
     <unit id="release.allChanges">
       <segment>
         <source>All changes</source>
@@ -11744,11 +12074,6 @@
     <unit id="release.pager">
       <segment>
         <source>Releases</source>
-      </segment>
-    </unit>
-    <unit id="releases.earlier">
-      <segment>
-        <source>Earlier releases</source>
       </segment>
     </unit>
     <unit id="releases.latest">
