@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { UrlSegment } from "@angular/router";
-import { RELEASES, renderReleaseNotesMarkdown, replaceReadmeReleaseNotes } from "./release-notes";
+import { RELEASES, Release, releaseTier, renderReleaseNotesMarkdown, replaceReadmeReleaseNotes, visibleHeroIcons } from "./release-notes";
 import { RELEASE_HIGHLIGHTS } from "./release-highlights";
 import { releaseExistsGuard } from "./release-exists.guard";
 
@@ -36,9 +36,9 @@ describe("release notes", () => {
     for (const release of RELEASES) expect(RELEASE_HIGHLIGHTS[release.version].length).toBeGreaterThan(0);
   });
 
-  it("draws each highlight's icon from its banner, in the same live or gold colour", () => {
+  it("draws each highlight's icon from what its banner shows, in the same live or gold colour", () => {
     const mismatches = RELEASES.flatMap((release) => {
-      const banner = [...release.hero.icons, release.hero.centerpiece];
+      const banner = [...visibleHeroIcons(release), release.hero.centerpiece];
       return RELEASE_HIGHLIGHTS[release.version]
         .filter((highlight) => {
           const match = banner.find((item) => item.icon === highlight.icon);
@@ -49,6 +49,28 @@ describe("release notes", () => {
         .map((highlight) => `${release.version}: ${highlight.icon}`);
     });
     expect(mismatches).toEqual([]);
+  });
+
+  it("sizes releases by tier: new minor versions are major, web-only patches the smallest", () => {
+    const release = (version: string, extra: Partial<Release> = {}): Release => ({
+      version,
+      date: "2027-01-01",
+      hero: { icons: [], centerpiece: { icon: "map" } },
+      notes: ["x"],
+      ...extra,
+    });
+    expect(releaseTier(release("1.3"))).toBe("major");
+    expect(releaseTier(release("1.3.0"))).toBe("major");
+    expect(releaseTier(release("1.3.1"))).toBe("update");
+    expect(releaseTier(release("1.3.2", { platforms: ["web"] }))).toBe("web");
+    expect(releaseTier(release("1.3.2", { platforms: ["ios", "android"] }))).toBe("update");
+    expect(releaseTier(release("1.1.1", { tier: "major" }))).toBe("major");
+    expect(Object.fromEntries(RELEASES.map((item) => [item.version, releaseTier(item)]))).toMatchObject({
+      "1.2.2": "web",
+      "1.2.1": "update",
+      "1.2": "major",
+      "1.1.1": "major",
+    });
   });
 
   it("keeps the README in sync (run `npm run releases:readme`)", () => {

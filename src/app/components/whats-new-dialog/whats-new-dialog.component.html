@@ -2,7 +2,7 @@
 
 <mat-dialog-content class="whats-new__content">
   @if (release; as release) {
-    <app-release-hero class="whats-new__hero" [hero]="release.hero" />
+    <app-release-hero class="whats-new__hero" [hero]="release.hero" [tier]="release.tier" />
   }
 
   <app-release-highlights [highlights]="highlights" />

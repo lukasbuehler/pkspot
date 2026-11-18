@@ -5,11 +5,13 @@
 .release-card {
   overflow: hidden;
   border-radius: 18px;
+
+  // Major releases get a primary outline, as a highlight.
+  &.is-major { --mat-card-outlined-outline-color: var(--mat-sys-primary); }
 }
 
 .release-card__banner {
   display: block;
-  --release-hero-height: 168px;
 
   app-release-hero { border-radius: 0; }
 }

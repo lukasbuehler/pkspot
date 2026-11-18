@@ -10,7 +10,7 @@ import {
   signal,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
-import { ReleaseHero } from "../../releases/release-notes";
+import { RELEASE_TIER_ICON_COUNT, ReleaseHero, ReleaseTier } from "../../releases/release-notes";
 
 /**
  * Animated release banner: the icons float up one after another, then the
@@ -19,8 +19,8 @@ import { ReleaseHero } from "../../releases/release-notes";
  * release card, the release page and the what's-new dialog.
  *
  * With `playWhenVisible`, the animation waits until the banner scrolls into
- * view, so a list of cards plays each one as it appears. Static with
- * reduced motion.
+ * view, so a list of cards plays each one as it appears. The tier sets how
+ * big it feels and how many icons it shows. Static with reduced motion.
  */
 @Component({
   selector: "app-release-hero",
@@ -31,17 +31,19 @@ import { ReleaseHero } from "../../releases/release-notes";
   host: {
     "aria-hidden": "true",
     "[class.is-waiting]": "playWhenVisible() && !visible()",
+    "[class]": "'tier-' + tier()",
   },
 })
 export class ReleaseHeroComponent {
   readonly hero = input.required<ReleaseHero>();
+  readonly tier = input<ReleaseTier>("major");
   readonly playWhenVisible = input(false);
 
   protected readonly visible = signal(false);
 
-  /** The six floating slots are laid out in the stylesheet. */
+  /** Each tier's floating slots are laid out in the stylesheet. */
   protected readonly icons = computed(() =>
-    this.hero().icons.slice(0, 6).map((item) => ({ icon: item.icon, toneClass: `is-${item.tone ?? "primary"}` })),
+    this.hero().icons.slice(0, RELEASE_TIER_ICON_COUNT[this.tier()]).map((item) => ({ icon: item.icon, toneClass: `is-${item.tone ?? "primary"}` })),
   );
   protected readonly centerpieceToneClass = computed(() => `is-${this.hero().centerpiece.tone ?? "primary"}`);
 

@@ -11,6 +11,8 @@
 }
 
 // The animated hero is the shared release hero; only its size changes here.
+.whats-new__hero { --release-hero-height: 136px; }
+
 @media (max-height: 760px) {
   .whats-new__hero { --release-hero-height: 104px; }
 }

@@ -37,6 +37,15 @@ describe("ReleasesPageComponent", () => {
     expect(cards[0].textContent).toContain("Latest release");
     expect(cards[1].textContent).not.toContain("Latest release");
     expect(element.querySelector('app-release-card h2 a[href="/releases/1.2"]')).not.toBeNull();
+    // Web-only patches are the quietest banners; major releases show every icon.
+    const heroOf = (version: string) =>
+      element.querySelector(`app-release-card:has(a[href="/releases/${version}"]) app-release-hero`)!;
+    expect(heroOf("1.2.2").classList).toContain("tier-web");
+    expect(heroOf("1.2.2").querySelectorAll(".release-hero__float").length).toBe(3);
+    expect(heroOf("1.2.1").querySelectorAll(".release-hero__float").length).toBe(4);
+    expect(heroOf("1.2").classList).toContain("tier-major");
+    expect(heroOf("1.2").querySelectorAll(".release-hero__float").length).toBe(6);
+
     // Each banner waits to play until it scrolls into view.
     const hero = element.querySelector("app-release-hero")!;
     expect(hero.classList).toContain("is-waiting");

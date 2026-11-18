@@ -9,6 +9,7 @@ import { ConsentService } from "../../services/consent.service";
 import { PlatformService } from "../../services/platform.service";
 import { WHATS_NEW_RELEASE, WHATS_NEW_STORAGE_KEY } from "../../services/whats-new";
 import { findRelease } from "../../releases/release-notes";
+import { releaseView } from "../../releases/release-view";
 import { releaseHighlights } from "../../releases/release-highlights";
 import { ReleaseHeroComponent } from "../release-hero/release-hero.component";
 import { ReleaseHighlightsComponent } from "../release-highlights/release-highlights.component";
@@ -38,7 +39,8 @@ export class WhatsNewDialogComponent {
 
   readonly needsConsent = this.data.consentVersion !== null;
   readonly releaseVersion = WHATS_NEW_RELEASE;
-  readonly release = findRelease(WHATS_NEW_RELEASE);
+  private readonly whatsNewRelease = findRelease(WHATS_NEW_RELEASE);
+  readonly release = this.whatsNewRelease ? releaseView(this.whatsNewRelease) : null;
   readonly highlights = releaseHighlights(WHATS_NEW_RELEASE);
   private readonly platform = inject(PlatformService).getPlatform();
   /** Store reviews only make sense inside the installed app. */

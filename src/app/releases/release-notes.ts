@@ -23,7 +23,23 @@ export interface ReleaseIcon {
   tone?: ReleaseIconTone;
 }
 
-/** Up to six icons float in one after another, then the centerpiece pops in. */
+/**
+ * How big a release feels. `major` is a new 1.x minor version (1.2, 1.1),
+ * `update` a patch on every platform, `web` a web-only patch.
+ */
+export type ReleaseTier = "major" | "update" | "web";
+
+/** How many of the hero's icons each tier shows; the rest are left out. */
+export const RELEASE_TIER_ICON_COUNT: Readonly<Record<ReleaseTier, number>> = {
+  major: 6,
+  update: 4,
+  web: 3,
+};
+
+/**
+ * Icons float in one after another, then the centerpiece pops in. List the
+ * icons by importance: smaller tiers show only the first few.
+ */
 export interface ReleaseHero {
   icons: readonly ReleaseIcon[];
   centerpiece: ReleaseIcon;
@@ -44,6 +60,8 @@ export interface Release {
   platforms?: readonly ReleasePlatform[];
   hero: ReleaseHero;
   notes: readonly ReleaseNote[];
+  /** Overrides the tier derived from the version, for a release covering a new minor version. */
+  tier?: ReleaseTier;
 }
 
 /** Newest first. */
@@ -54,14 +72,14 @@ export const RELEASES: readonly Release[] = [
     platforms: ["web"],
     hero: {
       icons: [
-        { icon: "public" },
         { icon: "privacy_tip" },
         { icon: "location_on" },
         { icon: "groups" },
         { icon: "photo_camera" },
         { icon: "share" },
+        { icon: "check_circle" },
       ],
-      centerpiece: { icon: "check_circle" },
+      centerpiece: { icon: "public" },
     },
     notes: [
       "Faster page loads: pages are served from a cache close to you",
@@ -133,11 +151,11 @@ export const RELEASES: readonly Release[] = [
     date: "2026-08-27",
     hero: {
       icons: [
-        { icon: "map" },
+        { icon: "search" },
         { icon: "notifications" },
         { icon: "event" },
-        { icon: "search" },
         { icon: "photo_camera" },
+        { icon: "map" },
         { icon: "check_circle" },
       ],
       centerpiece: { icon: "shield" },
@@ -168,10 +186,10 @@ export const RELEASES: readonly Release[] = [
     hero: {
       icons: [
         { icon: "sunny" },
-        { icon: "event" },
         { icon: "rainy" },
-        { icon: "cloud" },
         { icon: "calendar_month" },
+        { icon: "cloud" },
+        { icon: "event" },
         { icon: "location_on" },
       ],
       centerpiece: { icon: "notifications" },
@@ -231,6 +249,7 @@ export const RELEASES: readonly Release[] = [
   {
     version: "1.1.1",
     label: "1.1.0 and 1.1.1",
+    tier: "major",
     name: "Communities and more",
     date: "2026-05-21",
     hero: {
@@ -277,10 +296,10 @@ export const RELEASES: readonly Release[] = [
     hero: {
       icons: [
         { icon: "image" },
+        { icon: "star" },
         { icon: "photo_camera" },
         { icon: "location_on" },
         { icon: "public" },
-        { icon: "star" },
         { icon: "search" },
       ],
       centerpiece: { icon: "map" },
@@ -315,6 +334,19 @@ export const RELEASES: readonly Release[] = [
     ],
   },
 ];
+
+/** A new minor version (1.2 or 1.2.0) is major; otherwise web-only or a regular update. */
+export function releaseTier(release: Release): ReleaseTier {
+  if (release.tier) return release.tier;
+  const [, , patch] = release.version.split(".");
+  if (!patch || patch === "0") return "major";
+  return release.platforms?.length === 1 && release.platforms[0] === "web" ? "web" : "update";
+}
+
+/** The banner icons a release's tier actually shows. */
+export function visibleHeroIcons(release: Release): readonly ReleaseIcon[] {
+  return release.hero.icons.slice(0, RELEASE_TIER_ICON_COUNT[releaseTier(release)]);
+}
 
 export function findRelease(version: string): Release | undefined {
   return RELEASES.find((release) => release.version === version);

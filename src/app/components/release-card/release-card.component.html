@@ -1,13 +1,13 @@
 @let item = view();
-<mat-card appearance="outlined" class="release-card">
+<mat-card appearance="outlined" class="release-card" [class.is-major]="item.tier === 'major'">
   <a class="release-card__banner" [routerLink]="['/releases', item.release.version]" tabindex="-1" aria-hidden="true">
-    <app-release-hero [hero]="item.release.hero" [playWhenVisible]="true" />
+    <app-release-hero [hero]="item.hero" [tier]="item.tier" [playWhenVisible]="true" />
   </a>
   <mat-card-content class="release-card__body">
     @if (latest()) {
       <p class="release-card__eyebrow mat-label-large" i18n="@@releases.latest">Latest release</p>
     }
-    <h2 class="mat-headline-small">
+    <h2 [class]="item.tier === 'major' ? 'mat-headline-medium' : 'mat-headline-small'">
       <a [routerLink]="['/releases', item.release.version]">PK Spot {{ item.label }}</a>
     </h2>
     <p class="release-card__meta mat-body-medium">
