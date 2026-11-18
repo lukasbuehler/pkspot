@@ -3,6 +3,10 @@ import { expect, test, type CDPSession, type Locator, type Page } from "@playwri
 import { CURRENT_TERMS_VERSION } from "../../src/app/services/consent-version";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { guardProductionWrites, type BlockedProductionRequest } from "../fixtures/production-write-guard";
+
+/** Production writes each page tried and the guard blocked. */
+const blockedProductionRequests = new WeakMap<Page, BlockedProductionRequest[]>();
 
 interface RouteVisualCase {
   name: string;
@@ -1414,6 +1418,7 @@ async function hideFloatingUi(page: Page): Promise<() => Promise<void>> {
 
 async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.setViewportSize(route.viewport ?? desktopViewport);
+  blockedProductionRequests.set(page, await guardProductionWrites(page));
   if (route.trainFixture) {
     // Keep locality labels deterministic and never geocode real locations in visual tests.
     await page.route("https://maps.googleapis.com/maps/api/js?**", route => route.fulfill({
@@ -3374,7 +3379,15 @@ test.describe("UI review session", () => {
     });
     const writeLog = () => writeFileSync(
       `${session.out}/log.json`,
-      JSON.stringify({ fixture: session.fixture, viewport: session.viewport ?? "desktop", steps: log, consoleErrors }, null, 2),
+      JSON.stringify({
+        fixture: session.fixture,
+        viewport: session.viewport ?? "desktop",
+        steps: log,
+        consoleErrors,
+        // Writes to the live backend are blocked so a review never files real
+        // reports or messages; they fail as if the network were down.
+        blockedWrites: blockedProductionRequests.get(page) ?? [],
+      }, null, 2),
     );
 
     const route = routeVisualCases.find(candidate => candidate.name === session.fixture);

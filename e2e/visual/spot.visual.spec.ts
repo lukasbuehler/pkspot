@@ -1,7 +1,10 @@
 import { test, expect, type Page } from "@playwright/test";
 import { acceptCurrentTerms } from "../fixtures/consent";
+import { guardProductionWrites } from "../fixtures/production-write-guard";
 
 test.beforeEach(async ({ page }) => {
+  // Never let a scripted click report, upload or save against production.
+  await guardProductionWrites(page);
   // Visual fixtures must not depend on the external App Check challenge.
   await page.addInitScript(() => {
     (globalThis as typeof globalThis & { __PKSPOT_STORE_SCREENSHOT__?: boolean })
