@@ -3196,7 +3196,7 @@ function uiReviewExtraSections(): UiReviewSection[] {
     overlay("dialog-spot-report", "map", [...openFirstSpot, button("Melden", true)], { signedIn: true }),
     overlay("dialog-media-upload", "map", [...openFirstSpot, button("Medien hinzufügen")], { signedIn: true }),
     overlay("dialog-map-filters", "map", [button("Filter", true)]),
-    overlay("dialog-location", "map", [button("Standort ist ausgeschaltet")]),
+    overlay("dialog-location", "map", [button("Standort einschalten")]),
     overlay("dialog-language", "map", [button("Sprache", true)], { only: ["desktop"] }),
     overlay("dialog-event-filters", "events", [button("Filter", true)]),
     overlay("dialog-event-report", "events-alain", [...goto("/events/visual-city-jam"), button("Event melden")]),

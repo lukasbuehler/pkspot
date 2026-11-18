@@ -17533,12 +17533,6 @@
         <target>Mapa del evento</target>
       </segment>
     </unit>
-    <unit id="5693332593672944029">
-      <segment state="initial">
-        <source> No pending follow requests. </source>
-        <target> No hay solicitudes de seguimiento pendientes. </target>
-      </segment>
-    </unit>
     <unit id="569492211620333799">
       <segment state="initial">
         <source>Safety incident</source>

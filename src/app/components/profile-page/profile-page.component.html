@@ -512,17 +512,14 @@
                         </div>
                       }
                     </div>
-                  } @else {
-                    <p
-                      class="profile-section__placeholder mat-body-medium"
-                      i18n
-                    >
-                      No pending follow requests.
-                    </p>
                   }
                 </mat-card-content>
               </mat-card>
+            }
 
+            <!-- Saved and visited Spots: private lists, always on your own
+                 profile. -->
+            @if (isMyProfile) {
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
                   <mat-card-title role="heading" aria-level="2" class="mat-title-small" i18n>
