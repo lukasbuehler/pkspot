@@ -60,7 +60,7 @@ function getGeoPointValue(
   return point && isFiniteLatLng(point) ? point : null;
 }
 
-function getSpotPoint(spot: CommunityBoundsSpot): CommunityPoint | null {
+export function getSpotPoint(spot: CommunityBoundsSpot): CommunityPoint | null {
   if (
     spot.location_raw &&
     typeof spot.location_raw.lat === "number" &&

@@ -229,6 +229,18 @@
   min-height: 56px;
 }
 
+.community-region-override-controls {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) auto auto;
+  gap: 10px;
+  align-items: start;
+  justify-content: start;
+}
+
+.community-region-override-controls > button {
+  min-height: 56px;
+}
+
 .community-locality-merge-loading {
   display: flex;
   align-items: center;
@@ -348,6 +360,7 @@
     grid-template-columns: 1fr;
   }
 
+  .community-region-override-controls,
   .community-locality-merge-controls {
     grid-template-columns: 1fr;
   }

@@ -82,6 +82,8 @@ describe("CommunityLandingPageComponent", () => {
   let getCommunityMergeAdminState: ReturnType<typeof vi.fn>;
   let mergeUnpublishedLocality: ReturnType<typeof vi.fn>;
   let unmergeUnpublishedLocality: ReturnType<typeof vi.fn>;
+  let setCommunityRegionOverride: ReturnType<typeof vi.fn>;
+  let removeCommunityRegionOverride: ReturnType<typeof vi.fn>;
   let getCommunityPage: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
@@ -101,6 +103,16 @@ describe("CommunityLandingPageComponent", () => {
     });
     mergeUnpublishedLocality = vi.fn().mockResolvedValue(undefined);
     unmergeUnpublishedLocality = vi.fn().mockResolvedValue(undefined);
+    setCommunityRegionOverride = vi.fn().mockResolvedValue({
+      ok: true,
+      addedLocalityCount: 2,
+      removedLocalityCount: 0,
+    });
+    removeCommunityRegionOverride = vi.fn().mockResolvedValue({
+      ok: true,
+      addedLocalityCount: 0,
+      removedLocalityCount: 2,
+    });
     getCommunityPage = vi.fn().mockResolvedValue(null);
     await TestBed.configureTestingModule({
       imports: [CommunityLandingPageComponent],
@@ -142,6 +154,8 @@ describe("CommunityLandingPageComponent", () => {
             getCommunityMergeAdminState,
             mergeUnpublishedLocality,
             unmergeUnpublishedLocality,
+            setCommunityRegionOverride,
+            removeCommunityRegionOverride,
             getCommunityPage,
           },
         },
@@ -911,6 +925,122 @@ describe("CommunityLandingPageComponent", () => {
         document.body.querySelector(".community-locality-merge-error"),
       ).toBeNull();
     });
+  });
+
+  it("previews and saves a region radius for a suburb-split city", async () => {
+    const localityData: CommunityLandingPageData = {
+      ...communityData,
+      communityKey: "locality:au:nsw:sydney",
+      scope: "locality",
+      displayName: "Sydney",
+      preferredSlug: "sydney",
+      requestedSlug: "sydney",
+      canonicalPath: "/map/communities/sydney",
+      country: { code: "AU", name: "Australia", slug: "australia" },
+      locality: { name: "Sydney", slug: "sydney" },
+      childCommunities: [],
+    };
+    const locality = (
+      name: string,
+      distanceKm: number,
+      spotCount: number,
+      status: "available" | "already_merged" | "has_page",
+    ) => ({
+      communityKey: `locality:au:nsw:${name.toLowerCase()}`,
+      displayName: name,
+      geography: { countryCode: "AU", regionCode: "NSW" },
+      spotCount,
+      distanceKm,
+      status,
+    });
+    getCommunityMergeAdminState.mockResolvedValue({
+      candidates: [],
+      mergedLocalities: [],
+      regionOverride: {
+        regionName: "New South Wales",
+        center: { lat: -33.87, lng: 151.21 },
+        radiusKm: null,
+        minRadiusKm: 1,
+        maxRadiusKm: 200,
+        localities: [
+          locality("Parramatta", 19, 7, "already_merged"),
+          locality("Cronulla", 25, 4, "available"),
+          locality("Penrith", 48, 1, "available"),
+          locality("Katoomba", 90, 5, "has_page"),
+          locality("Newcastle", 117, 1, "available"),
+        ],
+      },
+    });
+    fixture.componentRef.setInput("communityDataInput", localityData);
+    isAdmin.set(true);
+    // The knowledge dialog template is a view child, so render once first.
+    fixture.detectChanges();
+
+    fixture.componentInstance.startKnowledgeEdit();
+    await vi.waitFor(() =>
+      expect(fixture.componentInstance.regionOverride()).not.toBeNull(),
+    );
+    expect(fixture.componentInstance.regionOverridePreview()).toEqual(
+      expect.objectContaining({
+        radiusKm: 30,
+        joiningLocalityCount: 1,
+        joiningSpotCount: 4,
+        outsideSpotCount: 2,
+        keepPageNames: "",
+      }),
+    );
+
+    fixture.componentInstance.regionOverrideRadiusKm.set(100);
+    expect(fixture.componentInstance.regionOverridePreview()).toEqual(
+      expect.objectContaining({
+        joiningLocalityCount: 2,
+        joiningSpotCount: 5,
+        keepPageNames: "Katoomba",
+      }),
+    );
+    fixture.detectChanges();
+    await vi.waitFor(() =>
+      expect(document.body.textContent).toContain(
+        "Include nearby localities from New South Wales",
+      ),
+    );
+    expect(document.body.textContent).toContain("Keep their own page: Katoomba");
+
+    fixture.componentInstance.regionOverrideRadiusKm.set(60);
+    await fixture.componentInstance.saveRegionOverride();
+    expect(setCommunityRegionOverride).toHaveBeenCalledWith(
+      localityData.communityKey,
+      60,
+    );
+  });
+
+  it("does not save an out-of-range region radius", async () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      communityKey: "locality:au:nsw:sydney",
+      scope: "locality",
+      displayName: "Sydney",
+    });
+    isAdmin.set(true);
+    fixture.componentInstance.regionOverride.set({
+      regionName: "New South Wales",
+      center: { lat: -33.87, lng: 151.21 },
+      radiusKm: 60,
+      minRadiusKm: 1,
+      maxRadiusKm: 200,
+      localities: [],
+    });
+    for (const radiusKm of [0, 500, 60, null]) {
+      fixture.componentInstance.regionOverrideRadiusKm.set(radiusKm);
+      expect(fixture.componentInstance.canSaveRegionOverride()).toBe(false);
+      await fixture.componentInstance.saveRegionOverride();
+    }
+    expect(setCommunityRegionOverride).not.toHaveBeenCalled();
+
+    await fixture.componentInstance.removeRegionOverride();
+    expect(removeCommunityRegionOverride).toHaveBeenCalledWith(
+      "locality:au:nsw:sydney",
+    );
   });
 
   it("confirms and saves a target-side locality merge", async () => {

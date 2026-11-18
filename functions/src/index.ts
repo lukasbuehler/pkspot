@@ -31,6 +31,8 @@ export {
   rebuildAllCommunityPages,
   rebuildCommunityEventPreviewsOnEventWrite,
   getCommunityMergeAdminState,
+  setCommunityRegionOverride,
+  removeCommunityRegionOverride,
   mergeUnpublishedLocality,
   unmergeUnpublishedLocality,
 } from "./communityFunctions";
