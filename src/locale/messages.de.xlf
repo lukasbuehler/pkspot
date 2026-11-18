@@ -12792,7 +12792,7 @@
     <unit id="login.nav_label">
       <segment state="initial">
         <source>Account</source>
-        <target>Anmelden</target>
+        <target>Konto</target>
       </segment>
     </unit>
     <unit id="common.cancel">

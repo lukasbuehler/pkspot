@@ -12802,7 +12802,7 @@
     <unit id="login.nav_label">
       <segment state="initial">
         <source>Account</source>
-        <target>Iniciar sesión</target>
+        <target>Cuenta</target>
       </segment>
     </unit>
     <unit id="common.cancel">

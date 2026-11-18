@@ -12970,7 +12970,7 @@
     <unit id="login.nav_label">
       <segment state="initial">
         <source>Account</source>
-        <target>Inloggen</target>
+        <target>Account</target>
       </segment>
     </unit>
     <unit id="common.cancel">

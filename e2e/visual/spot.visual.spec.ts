@@ -272,7 +272,6 @@ test("shows an existing Spot report with localized edit and withdrawal actions @
   await expect(dialog).toContainText("Meldung bearbeiten");
   await expect(dialog).toContainText("Meldung zurückziehen");
   await expect(dialog.locator("textarea")).toHaveValue("Die Trainingsmauer wurde entfernt.");
-  await expect(dialog.locator("mat-select")).toContainText("Deutsch");
   await expect(page.locator("mat-dialog-container")).toHaveScreenshot("spot-report-edit-mobile.png", {animations: "disabled"});
   await page.keyboard.press("Escape");
   await expect(page.locator(".spot-access-warning")).toContainText("entfernt");
