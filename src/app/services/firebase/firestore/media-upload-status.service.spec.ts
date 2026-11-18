@@ -69,6 +69,24 @@ describe("MediaUploadStatusService", () => {
     ).toEqual([]);
   });
 
+  it("keeps uploads held by the safety scanner visible as waiting for review", () => {
+    const statuses = new BehaviorSubject<unknown[]>([]);
+    collectionSnapshots.mockReturnValue(statuses);
+    service.trackLocalUpload({ uploadId: "held", targetKind: "spot", targetId: "spot-1", type: MediaType.Image, publicUrl: "held-url" });
+    service.watchTarget("spot", "spot-1");
+    statuses.next([
+      { id: "held", upload_id: "held", status: "failed", held_for_review: true },
+      { id: "remote-held", upload_id: "remote-held", status: "failed", held_for_review: true },
+      { id: "broken", upload_id: "broken", status: "failed" },
+    ]);
+
+    const processing = service.processingMediaForTarget("spot", "spot-1");
+    expect(processing.map((upload) => [upload.uploadId, upload.heldForReview])).toEqual([
+      ["held", true],
+      ["remote-held", true],
+    ]);
+  });
+
   it("waits for the server to publish an upload before returning its URL", async () => {
     collectionSnapshots.mockReturnValue(
       of(

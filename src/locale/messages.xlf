@@ -7184,6 +7184,11 @@
         <source>Review PK Spot</source>
       </segment>
     </unit>
+    <unit id="1695333184022147349">
+      <segment>
+        <source>Duplicate of an earlier upload</source>
+      </segment>
+    </unit>
     <unit id="1697308124827757255">
       <segment>
         <source> This account limits expanded profile details to its approved audience. </source>
@@ -7990,6 +7995,11 @@
     <unit id="7708270344948043036">
       <segment>
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ member.background }}"/> </source>
+      </segment>
+    </unit>
+    <unit id="media.processing.held_for_review">
+      <segment>
+        <source>Waiting for review</source>
       </segment>
     </unit>
     <unit id="media.processing.status">
@@ -9184,6 +9194,11 @@
     <unit id="4074207137823057482">
       <segment>
         <source> Are you sure? You will need to sign in with <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> again to confirm deletion. </source>
+      </segment>
+    </unit>
+    <unit id="4075586413193088330">
+      <segment>
+        <source>Closed as duplicate</source>
       </segment>
     </unit>
     <unit id="3736030085204656589">

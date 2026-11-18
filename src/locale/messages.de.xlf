@@ -2039,6 +2039,12 @@
         <target>Diesen Spot als besucht markieren</target>
       </segment>
     </unit>
+    <unit id="media.processing.held_for_review">
+      <segment state="initial">
+        <source>Waiting for review</source>
+        <target>Wartet auf Prüfung</target>
+      </segment>
+    </unit>
     <unit id="media.processing.status">
       <segment state="initial">
         <source>Processing</source>
@@ -15246,6 +15252,12 @@
         <target> Bist du sicher? Du musst dich erneut mit <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> anmelden, um das Löschen zu bestätigen. </target>
       </segment>
     </unit>
+    <unit id="4075586413193088330">
+      <segment state="initial">
+        <source>Closed as duplicate</source>
+        <target>Als Duplikat geschlossen</target>
+      </segment>
+    </unit>
     <unit id="4077520913910941990">
       <segment state="initial">
         <source>Label</source>
@@ -17568,6 +17580,12 @@
       <segment state="initial">
         <source>Review PK Spot</source>
         <target>PK Spot bewerten</target>
+      </segment>
+    </unit>
+    <unit id="1695333184022147349">
+      <segment state="initial">
+        <source>Duplicate of an earlier upload</source>
+        <target>Duplikat eines früheren Uploads</target>
       </segment>
     </unit>
     <unit id="1697308124827757255">

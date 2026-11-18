@@ -17,9 +17,16 @@ export interface PendingMediaPreview {
   publicUrl: string;
   previewSrc?: string;
   status: MediaUploadStatusSchema["status"];
+  /** Held by the safety scanner until a moderator decides. */
+  heldForReview?: boolean;
 }
 
 type MediaUploadStatusDocument = MediaUploadStatusSchema & { id: string };
+
+/** Older backends never set the flag, so those failures stay hidden as before. */
+const isHeldForReview = (
+  status: Pick<MediaUploadStatusSchema, "status" | "held_for_review"> | undefined,
+): boolean => status?.status === "failed" && status.held_for_review === true;
 
 @Injectable({
   providedIn: "root",
@@ -161,14 +168,15 @@ export class MediaUploadStatusService implements OnDestroy {
         localUploadIds.add(upload.uploadId);
         const remote = remoteByUploadId.get(upload.uploadId);
         const status = remote?.status ?? upload.status;
+        const heldForReview = isHeldForReview(remote);
         if (
           status === "published" ||
-          status === "failed" ||
+          (status === "failed" && !heldForReview) ||
           isAlreadyPublished(upload.publicUrl)
         ) {
           return [];
         }
-        return [{ ...upload, status }];
+        return [{ ...upload, status, ...(heldForReview ? { heldForReview } : {}) }];
       });
 
     const remoteProcessing = (this.remoteStatuses()[key] ?? []).flatMap(
@@ -176,7 +184,7 @@ export class MediaUploadStatusService implements OnDestroy {
         if (
           localUploadIds.has(status.upload_id) ||
           status.status === "published" ||
-          status.status === "failed" ||
+          (status.status === "failed" && !isHeldForReview(status)) ||
           isAlreadyPublished(status.public_url)
         ) {
           return [];
@@ -190,6 +198,7 @@ export class MediaUploadStatusService implements OnDestroy {
               status.media_type === "video" ? MediaType.Video : MediaType.Image,
             publicUrl: status.public_url ?? "",
             status: status.status,
+            ...(isHeldForReview(status) ? { heldForReview: true } : {}),
           },
         ];
       },

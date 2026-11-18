@@ -1060,16 +1060,6 @@ service cloud.firestore {
         && request.resource.data.createdAt is timestamp;
     }
 
-    function guestMediaReportReason(reason) {
-      return reason in [
-        'illegal or unsafe content',
-        'copyright infringement',
-        'person did not consent',
-        'tos violation',
-        'other'
-      ];
-    }
-
     function validMediaReport() {
       return request.resource.data.keys().hasAll([
           'media',
@@ -1094,8 +1084,10 @@ service cloud.firestore {
         && request.resource.data.reason is string
         && request.resource.data.reason.size() >= 1
         && request.resource.data.reason.size() <= 120
-        && (request.auth != null ||
-          guestMediaReportReason(request.resource.data.reason))
+        // Guests must use the submitMediaReport callable, which applies the
+        // server-side abuse controls. Direct writes remain for signed-in
+        // pre-1.2 clients only.
+        && request.auth != null
         && request.resource.data.comment is string
         && request.resource.data.comment.size() <= 2000
         && (!('kind' in request.resource.data) || request.resource.data.kind == 'media')
@@ -1957,9 +1949,8 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Safety, legal, privacy, and other serious reports may be submitted by
-    // affected people without accounts. Quality reports require authentication.
-    // Current clients use the callable endpoint for server-side abuse controls.
+    // Legacy media report intake for signed-in pre-1.2 clients. Guests and
+    // current clients use the callable endpoint for server-side abuse controls.
     match /media_reports/{reportId} {
       allow create: if validMediaReport();
       allow read, update, delete: if isAdmin();

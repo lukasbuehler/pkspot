@@ -256,6 +256,16 @@ export const submitMediaReport = onCall(
       );
     }
 
+    // Guests have no account to rate-limit or suspend, so they must come from
+    // a genuine app instance (reCAPTCHA Enterprise on web, App Attest / Play
+    // Integrity on native). Released clients already attach this token.
+    if (!uid && !request.app) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Guest reports require a verified app. Please sign in or reload the app.",
+      );
+    }
+
     const media = cleanMedia(input["media"]);
     const duplicateMedia = cleanDuplicateMedia(
       input["duplicateMedia"],

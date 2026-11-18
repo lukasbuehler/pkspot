@@ -46,13 +46,21 @@
       </div>
     }
     @for (upload of processingMedia(); track upload.uploadId) {
-      <div class="drag-element processing-tile" aria-busy="true">
+      <div
+        class="drag-element processing-tile"
+        [attr.aria-busy]="!upload.heldForReview"
+      >
         @if (upload.previewSrc && upload.type === 'image') {
           <img class="pending-preview" [src]="upload.previewSrc" alt="" />
         }
         <div class="processing-overlay">
-          <mat-spinner diameter="34" />
-          <span i18n="@@media.processing.status">Processing</span>
+          @if (upload.heldForReview) {
+            <mat-icon>hourglass_top</mat-icon>
+            <span i18n="@@media.processing.held_for_review">Waiting for review</span>
+          } @else {
+            <mat-spinner diameter="34" />
+            <span i18n="@@media.processing.status">Processing</span>
+          }
         </div>
       </div>
     }

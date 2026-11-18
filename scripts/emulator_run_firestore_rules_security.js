@@ -2448,8 +2448,18 @@ async function testReportPrivacy(anon, owner, other, adminUser) {
       },
     })
   );
-  await assertAllowed("affected guest can create a serious media report", () =>
+  // Guests must use the submitMediaReport callable and its App Check gate.
+  await assertDenied("guest cannot write a serious media report directly", () =>
     setDoc(doc(anon.db, "reports/anonymous-media-report"), {
+      ...mediaReport,
+      reason: "person did not consent",
+      user: {
+        email: "reporter@example.com",
+      },
+    })
+  );
+  await assertDenied("guest cannot write a legacy media report directly", () =>
+    setDoc(doc(anon.db, "media_reports/anonymous-legacy-report"), {
       ...mediaReport,
       reason: "person did not consent",
       user: {

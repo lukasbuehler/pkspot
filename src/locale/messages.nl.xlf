@@ -2141,6 +2141,12 @@
         <target>Markeer deze Spot als bezocht</target>
       </segment>
     </unit>
+    <unit id="media.processing.held_for_review">
+      <segment state="initial">
+        <source>Waiting for review</source>
+        <target>Wacht op beoordeling</target>
+      </segment>
+    </unit>
     <unit id="media.processing.status">
       <segment state="initial">
         <source>Processing</source>
@@ -15514,6 +15520,12 @@
         <target> Weet je het zeker? Je moet opnieuw inloggen met <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> om de verwijdering te bevestigen. </target>
       </segment>
     </unit>
+    <unit id="4075586413193088330">
+      <segment state="initial">
+        <source>Closed as duplicate</source>
+        <target>Gesloten als duplicaat</target>
+      </segment>
+    </unit>
     <unit id="4077520913910941990">
       <segment state="initial">
         <source>Label</source>
@@ -17866,6 +17878,12 @@
       <segment state="initial">
         <source>Review PK Spot</source>
         <target>Beoordeel PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="1695333184022147349">
+      <segment state="initial">
+        <source>Duplicate of an earlier upload</source>
+        <target>Duplicaat van een eerdere upload</target>
       </segment>
     </unit>
     <unit id="1697308124827757255">

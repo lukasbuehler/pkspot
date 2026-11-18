@@ -1,4 +1,5 @@
 import { deleteApp, initializeApp, type FirebaseApp } from "firebase/app";
+import { CustomProvider, initializeAppCheck } from "firebase/app-check";
 import {
   connectAuthEmulator,
   getAuth,
@@ -33,6 +34,22 @@ function adminDb(): admin.firestore.Firestore {
     `media-report-admin-${Date.now()}`,
   );
   return admin.firestore(adminApp);
+}
+
+/** The Functions emulator decodes App Check tokens without verifying them. */
+function emulatorAppCheckToken(projectId: string): string {
+  const now = Math.floor(Date.now() / 1_000);
+  const encode = (value: Record<string, unknown>): string =>
+    Buffer.from(JSON.stringify(value)).toString("base64url");
+  return (
+    `${encode({ alg: "none", typ: "JWT" })}.` +
+    `${encode({
+      sub: "media-report-emulator-app",
+      aud: [projectId],
+      iat: now,
+      exp: now + 3_600,
+    })}.`
+  );
 }
 
 function parseHostPort(value: string): [string, number] {
@@ -76,6 +93,15 @@ runWithEmulator("media report submission callable", () => {
       },
       `media-report-client-${Date.now()}-${Math.random()}`,
     );
+    initializeAppCheck(app, {
+      provider: new CustomProvider({
+        getToken: async () => ({
+          token: emulatorAppCheckToken(projectId),
+          expireTimeMillis: Date.now() + 60 * 60 * 1_000,
+        }),
+      }),
+      isTokenAutoRefreshEnabled: false,
+    });
     auth = getAuth(app);
     connectAuthEmulator(
       auth,
@@ -133,11 +159,37 @@ runWithEmulator("media report submission callable", () => {
       expect.objectContaining({
         channel: "callable",
         authenticated: false,
-        app_check: false,
+        app_check: true,
         ip_hash: expect.any(String),
         metadata_expires_at: expect.anything(),
       }),
     );
+  }, timeoutMs);
+
+  it("rejects guest reports without App Check", async () => {
+    const projectId = process.env["GCLOUD_PROJECT"] || "demo-pkspot";
+    const [functionsEmulatorHost, functionsPort] = parseHostPort(functionsHost);
+    const unattested = initializeApp(
+      { apiKey: "demo-api-key", projectId },
+      `media-report-unattested-${Date.now()}-${Math.random()}`,
+    );
+    try {
+      const unattestedFunctions = getFunctions(unattested, "europe-west1");
+      connectFunctionsEmulator(unattestedFunctions, functionsEmulatorHost, functionsPort);
+      const submit = httpsCallable<
+        SubmitMediaReportRequest,
+        SubmitMediaReportResponse
+      >(unattestedFunctions, "submitMediaReport");
+      await expect(
+        submit({
+          media: { type: "image", src: "https://example.test/scripted.jpg" },
+          reason: "illegal or unsafe content",
+          comment: "",
+        }),
+      ).rejects.toThrow(/verified app/i);
+    } finally {
+      await deleteApp(unattested);
+    }
   }, timeoutMs);
 
   it("rejects guest quality reports", async () => {

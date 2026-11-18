@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { assertMediaReviewAvailable } from "./mediaReviewState";
+import { closeDuplicateReviews } from "./mediaReviewDuplicates";
 
 /** Separate callable so an older release backend cannot ignore a no-publish flag. */
 export const markMediaUploadFalsePositive = onCall<{ review_id: string }>(
@@ -18,13 +19,13 @@ export const markMediaUploadFalsePositive = onCall<{ review_id: string }>(
     }
     const ref = db.doc(`media_upload_reviews/${reviewId}`);
     const reportRef = db.doc(`reports/scanner_${reviewId}`);
-    return db.runTransaction(async (transaction) => {
+    const result = await db.runTransaction(async (transaction) => {
       const review = await transaction.get(ref);
       const report = await transaction.get(reportRef);
       if (!review.exists) throw new HttpsError("not-found", "Media review not found.");
       const data = review.data() ?? {};
       if (data["status"] === "dismissed" && data["manual_review"]?.decision === "false_positive") {
-        return { ok: true, already_dismissed: true };
+        return { ok: true, already_dismissed: true, data };
       }
       assertMediaReviewAvailable(data, report.data());
       const scan = data["scan_result"];
@@ -47,8 +48,23 @@ export const markMediaUploadFalsePositive = onCall<{ review_id: string }>(
         source_path: ref.path, source_snapshot: data, target_type: "media",
         created_at: timestamp, created_by: { uid },
       });
-      // Intentionally no Storage, profile, target, or published-status writes.
-      return { ok: true };
+      // The uploader's photo is no longer "waiting for review".
+      if (data["source"] !== "audit") {
+        transaction.set(db.doc(`media_upload_status/${reviewId}`), {
+          held_for_review: false, updated_at: timestamp,
+        }, { merge: true });
+      }
+      // Intentionally no Storage, profile, target, or published writes.
+      return { ok: true, data };
     });
+    await closeDuplicateReviews({
+      original: ref,
+      originalData: result.data,
+      decision: "false_positive",
+      moderatorUid: uid,
+    });
+    return result.already_dismissed ?
+      { ok: true, already_dismissed: true } :
+      { ok: true };
   },
 );

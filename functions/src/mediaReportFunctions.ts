@@ -91,8 +91,15 @@ const handleMediaReportCreate = async (
       // Get Discord webhook URL from params secret
       const webhookUrl = discordWebhookUrl.value();
 
+      // Guest reports stay private until a moderator acts, so an anonymous
+      // submission cannot put a public warning on someone else's media.
+      const mayFlagPublicly = Boolean(reportData.user.uid);
+      if (!mayFlagPublicly) {
+        logger.info("Not flagging media publicly for a guest report", {reportId});
+      }
+
       // Update Spot if spotId is present
-      if (reportData.spotId && reportData.media?.src) {
+      if (mayFlagPublicly && reportData.spotId && reportData.media?.src) {
         try {
           const spotRef = admin.firestore().doc(`spots/${reportData.spotId}`);
           await admin.firestore().runTransaction(async (transaction) => {
@@ -139,6 +146,7 @@ const handleMediaReportCreate = async (
       }
 
       if (
+        mayFlagPublicly &&
         reportData.context === "event" &&
         reportData.targetId &&
         reportData.media?.src

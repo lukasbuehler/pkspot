@@ -1289,6 +1289,7 @@ variables, retry/idempotency behavior, compatibility impact, and repair trail.
 | Export | Boundary | Data flow |
 | --- | --- | --- |
 | `onContactMessageEmailCreate` | contact creation trigger | Sends support email through Resend; records delivery state in `contact_email_delivery`. Support delivery deployed; sender receipt deploy tracked separately. |
+| `onRootReportStaffEmailCreate`, `onLegacyMediaReportStaffEmailCreate`, `onSpotReportStaffEmailWrite`, `onUserReportStaffEmailCreate` | report creation triggers | Send one support email per new canonical report (media, scanner, Spot, profile) through Resend, alongside Discord; restricted scanner matches carry no media link. Delivery state lives in `report_email_delivery`. |
 | `beginAppleAgeAssurance` | authenticated iOS App Check callable | Creates a short-lived age challenge and checks registered App Attest key state. Disabled pending device validation. |
 | `finishAppleAgeAssurance` | authenticated iOS App Check callable | Verifies the bound App Attest response, consumes the challenge, and stores only key/counter and derived policy/evidence. Disabled pending device validation. |
 

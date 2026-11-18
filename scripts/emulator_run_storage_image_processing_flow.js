@@ -622,6 +622,56 @@ async function main() {
   assert.equal(resolvedReport.data().status, "resolved");
   assert.equal(resolvedReport.data().moderation_resolution, "manual_safe");
 
+  console.log("Checking exact re-uploads fold into one moderation decision...");
+  const duplicateTarget = `dup-target-${suffix}`;
+  const uploadHeld = async (uploadId) => {
+    await bucket.upload(ORIGINAL_IMAGE, {
+      destination: `media_intake/${uid}/${uploadId}/${uploadId}.jpg`,
+      resumable: false,
+      metadata: {
+        contentType: "image/jpeg",
+        metadata: {
+          uid,
+          upload_id: uploadId,
+          destination_folder: "spot_pictures",
+          destination_filename: uploadId,
+          target_kind: "post",
+          target_id: duplicateTarget,
+          emulator_safety_result: "block",
+        },
+      },
+    });
+    return waitForReviewStatus(uploadId, "needs_review");
+  };
+  const originalHeldId = `held-original-${suffix}`;
+  const duplicateHeldId = `held-duplicate-${suffix}`;
+  await uploadHeld(originalHeldId);
+  await waitForMediaReport(`media_upload_reviews/${originalHeldId}`);
+  const duplicateHeld = await uploadHeld(duplicateHeldId);
+  assert.equal(
+    duplicateHeld.data().duplicate_of,
+    `media_upload_reviews/${originalHeldId}`
+  );
+  assert.equal(
+    (await db.doc(`reports/scanner_${duplicateHeldId}`).get()).exists,
+    false,
+    "an exact re-upload must not open a second scanner report"
+  );
+  const heldStatus = await db.doc(`media_upload_status/${duplicateHeldId}`).get();
+  assert.equal(heldStatus.data().status, "failed");
+  assert.equal(heldStatus.data().held_for_review, true);
+
+  await callables.markSafe({ review_id: originalHeldId });
+  await waitForReviewStatus(originalHeldId, "approved");
+  const closedDuplicate = await waitForReviewStatus(duplicateHeldId, "dismissed");
+  assert.equal(closedDuplicate.data().manual_review.decision, "duplicate");
+  const closedStatus = await db.doc(`media_upload_status/${duplicateHeldId}`).get();
+  assert.equal(closedStatus.data().status, "failed");
+  assert.equal(closedStatus.data().held_for_review, false);
+  const originalStatus = await db.doc(`media_upload_status/${originalHeldId}`).get();
+  assert.equal(originalStatus.data().status, "published");
+  assert.equal(originalStatus.data().held_for_review, false);
+
   console.log("Checking reconciliation of legacy false scan failures...");
   const staleUploadId = `stale-approved-${suffix}`;
   const staleDestinationFilename = `released-${suffix}`;

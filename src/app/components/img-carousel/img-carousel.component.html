@@ -166,8 +166,13 @@
           }
         </div>
         <div class="processing-overlay processing-overlay-with-label">
-          <mat-spinner diameter="34"></mat-spinner>
-          <span i18n="@@media.processing.status">Processing</span>
+          @if (upload.heldForReview) {
+            <mat-icon>hourglass_top</mat-icon>
+            <span i18n="@@media.processing.held_for_review">Waiting for review</span>
+          } @else {
+            <mat-spinner diameter="34"></mat-spinner>
+            <span i18n="@@media.processing.status">Processing</span>
+          }
         </div>
       </div>
     }

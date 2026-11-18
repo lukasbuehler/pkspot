@@ -190,6 +190,12 @@ export {
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";
 export { onContactMessageEmailCreate } from "./contactEmailFunctions";
+export {
+  onRootReportStaffEmailCreate,
+  onLegacyMediaReportStaffEmailCreate,
+  onSpotReportStaffEmailWrite,
+  onUserReportStaffEmailCreate,
+} from "./reportStaffEmailFunctions";
 export { onContactMessageReceiptCreate } from "./contactReceiptFunctions";
 
 // spot report functions

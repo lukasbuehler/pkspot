@@ -69,9 +69,11 @@ export interface MediaUploadReviewSchema {
   completed_at?: unknown;
   failure_reason?: string;
   incident_path?: string;
+  /** Earlier review of the exact same bytes, uploader, and target. */
+  duplicate_of?: string;
   release_in_progress?: boolean;
   manual_review?: {
-    decision: "safe" | "false_positive";
+    decision: "safe" | "false_positive" | "duplicate";
     reviewed_by: string;
     reviewed_at?: unknown;
   };
@@ -87,6 +89,8 @@ export interface MediaUploadStatusSchema {
   target_id?: string;
   media_type?: "image" | "video";
   public_url?: string;
+  /** Additive: a "failed" status that is really waiting for a moderator. */
+  held_for_review?: boolean;
   created_at: unknown;
   updated_at: unknown;
 }

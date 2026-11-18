@@ -149,13 +149,19 @@ export class ModerationMediaService {
     const contentType = review.content_type;
     const safety = mediaSafetyPresentation(scan);
     const isRestricted = scan?.decision === "reportable_match" || scan?.severity === "known_csam_match";
-    const isFalsePositive = review.status === "dismissed";
+    const isFalsePositive = review.status === "dismissed" && !review.duplicate_of;
     const isPending = ["needs_review", "blocked", "scan_failed", "audit_flagged"].includes(review.status);
     const canReview = isPending && !review.incident_path && !review.release_in_progress;
     return {
       id: review.id,
       status: review.status,
-      statusLabel: review.incident_path ? $localize`Escalated to incident` : mediaReviewStatusLabels[review.status] ?? $localize`Needs review`,
+      statusLabel: review.incident_path
+        ? $localize`Escalated to incident`
+        : review.duplicate_of
+          ? review.status === "dismissed"
+            ? $localize`Closed as duplicate`
+            : $localize`Duplicate of an earlier upload`
+          : mediaReviewStatusLabels[review.status] ?? $localize`Needs review`,
       safetyLabel: safety.label,
       incidentPath: review.incident_path,
       isFalsePositive,

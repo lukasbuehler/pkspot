@@ -22,11 +22,13 @@ export interface MediaUploadReviewSchema {
   scan_result?: MediaSafetyScanSchema;
   failure_reason?: string;
   incident_path?: string;
+  /** Earlier review of the exact same bytes, uploader, and target. */
+  duplicate_of?: string;
   release_in_progress?: boolean;
   reconciliation_reason?: "legacy_undefined_scan_reason_after_publish";
   reconciled_at?: unknown;
   manual_review?: {
-    decision: "safe" | "false_positive";
+    decision: "safe" | "false_positive" | "duplicate";
     reviewed_by: string;
     reviewed_at?: unknown;
   };

@@ -14,6 +14,7 @@ import nodeModule = require("module");
 import { googleAPIKey } from "./secrets";
 import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
 import { withMediaReleaseLock } from "./mediaReviewState";
+import { closeDuplicateReviews, findPendingOriginal } from "./mediaReviewDuplicates";
 import { removePrivateImageMetadata } from "./publishedImageMetadata";
 import { classifySafeSearch } from "../../src/db/utils/media-safety";
 import type { MediaSafetySeverity } from "../../src/db/schemas/MediaModerationSchema";
@@ -541,6 +542,8 @@ const writeUploadStatus = async (
     targetId?: string;
     mediaType?: "image" | "video";
     publicUrl?: string;
+    /** Additive flag: a "failed" upload that is actually waiting for a moderator. */
+    heldForReview?: boolean;
   } = {}
 ): Promise<void> => {
   const timestamp = now();
@@ -554,6 +557,7 @@ const writeUploadStatus = async (
       ...(data.targetId ? { target_id: data.targetId } : {}),
       ...(data.mediaType ? { media_type: data.mediaType } : {}),
       ...(data.publicUrl ? { public_url: data.publicUrl } : {}),
+      held_for_review: data.heldForReview === true,
       ...(isInitialStatus ? { created_at: timestamp } : {}),
       updated_at: timestamp,
     },
@@ -867,6 +871,12 @@ export const markMediaUploadSafe = onCall<MarkMediaUploadSafeRequest>(
         });
         await resolveScannerReport(reviewId, adminUid);
         await recordManualApproval(review, adminUid, auditedPath);
+        await closeDuplicateReviews({
+          original: reviewRefForAction,
+          originalData: reviewData,
+          decision: "approved",
+          moderatorUid: adminUid,
+        });
         return { ok: true, approved_url: approvedUrl };
       }
 
@@ -975,6 +985,12 @@ export const markMediaUploadSafe = onCall<MarkMediaUploadSafeRequest>(
       await resolveScannerReport(reviewId, adminUid);
       await recordManualApproval(review, adminUid, approvedPath);
       await sourceFile.delete().catch(() => undefined);
+      await closeDuplicateReviews({
+        original: reviewRefForAction,
+        originalData: { ...reviewData, sha256: reviewData["sha256"] ?? sha256(bytes) },
+        decision: "approved",
+        moderatorUid: adminUid,
+      });
 
       return { ok: true, approved_url: approvedUrl };
     });
@@ -1114,6 +1130,17 @@ const processIntakeObject = async (params: {
       scanResult
     );
 
+    const duplicateOf =
+      scanResult.decision !== "allow" &&
+      scanResult.decision !== "reportable_match" &&
+      !incidentPath &&
+      intake.targetId ?
+        await findPendingOriginal(
+          { sha256: hash, uid: intake.uid, targetId: intake.targetId },
+          review.id
+        ) :
+        undefined;
+
     if (scanResult.decision !== "allow") {
       const status =
         scanResult.decision === "reportable_match" ? "blocked" : "needs_review";
@@ -1123,11 +1150,14 @@ const processIntakeObject = async (params: {
           sha256: hash,
           scan_result: scanResult,
           ...(incidentPath ? { incident_path: incidentPath } : {}),
+          ...(duplicateOf ? { duplicate_of: duplicateOf.ref.path } : {}),
           completed_at: now(),
         },
         { merge: true }
       );
-      await writeScannerMediaReport({
+      // A pending exact duplicate joins the original's decision instead of
+      // opening a second moderation item.
+      if (!duplicateOf) await writeScannerMediaReport({
         review,
         source: "upload",
         uid: intake.uid,
@@ -1145,6 +1175,8 @@ const processIntakeObject = async (params: {
         targetKind: intake.targetKind,
         targetId: intake.targetId,
         mediaType: kind,
+        // Never tell an uploader a restricted match is "in review".
+        heldForReview: status === "needs_review",
       });
       return {
         outcome: status,
