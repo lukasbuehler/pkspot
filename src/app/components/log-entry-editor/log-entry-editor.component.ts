@@ -1,3 +1,4 @@
+import { Location } from "@angular/common";
 import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -34,6 +35,9 @@ export type DurationChoice = number | "other" | null;
 const MIN_MINUTES = 5;
 const MAX_MINUTES = 12 * 60;
 
+/** A problem with what was entered, shown as is so the person can fix it. */
+class LogEntryInputError extends Error {}
+
 /**
  * Logs a training session without asking the person to pick database records.
  * Check-ins on the chosen day are linked automatically and can be unlinked;
@@ -66,6 +70,7 @@ export class LogEntryEditorComponent {
   private readonly featureTelemetry = inject(FeatureTelemetryService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly reviews = inject(StoreReviewService);
   private readonly logs = inject(LogEntriesService);
   private readonly spotData = inject(SpotSelectionDataService);
@@ -166,6 +171,15 @@ export class LogEntryEditorComponent {
     this.people.update((people) => people.filter((person) => person.uid !== uid));
   }
 
+  /** Back to where the person came from (Training or the log), else the log. */
+  cancel(): void {
+    if (this.router.lastSuccessfulNavigation()?.previousNavigation) {
+      this.location.back();
+    } else {
+      void this.router.navigateByUrl("/train/log");
+    }
+  }
+
   async save(): Promise<void> {
     if (this.form.invalid || this.saving()) return;
     this.saving.set(true);
@@ -189,10 +203,12 @@ export class LogEntryEditorComponent {
     } catch (error) {
       this.featureTelemetry.failure("log-entry-editor", "save", error);
       console.error("[Training log] save failed", error);
+      // Input problems name the field to fix; anything else is a failed
+      // save, and the entry stays filled in so it can be sent again.
       this.error.set(
-        error instanceof Error
+        error instanceof LogEntryInputError
           ? error.message
-          : $localize`:@@logEditor.saveError:Could not save this log entry.`,
+          : $localize`:@@logEditor.saveFailedRetry:Your entry couldn't be saved. Check your connection and save again; nothing you entered is lost.`,
       );
     } finally {
       this.saving.set(false);
@@ -205,7 +221,7 @@ export class LogEntryEditorComponent {
     if (choice === null) return null;
     const minutes = choice === "other" ? Number(this.detailsForm.controls.customMinutes.value) : choice;
     if (!Number.isInteger(minutes) || minutes < MIN_MINUTES || minutes > MAX_MINUTES) {
-      throw new Error($localize`:@@logEditor.invalidDuration:Enter a duration between 5 minutes and 12 hours.`);
+      throw new LogEntryInputError($localize`:@@logEditor.invalidDuration:Enter a duration between 5 minutes and 12 hours.`);
     }
     return minutes;
   }
@@ -214,10 +230,10 @@ export class LogEntryEditorComponent {
     const { date, time } = this.detailsForm.getRawValue();
     const startedAt = new Date(`${date}T${time || "00:00"}`);
     if (!Number.isFinite(startedAt.getTime())) {
-      throw new Error($localize`:@@logEditor.invalidDate:Choose when you trained.`);
+      throw new LogEntryInputError($localize`:@@logEditor.invalidDate:Choose when you trained.`);
     }
     if (startedAt.getTime() > Date.now() + 60_000) {
-      throw new Error($localize`:@@logEditor.futureDate:A training session can't start in the future.`);
+      throw new LogEntryInputError($localize`:@@logEditor.futureDate:A training session can't start in the future.`);
     }
     const input = {
       startedAt,
@@ -230,7 +246,7 @@ export class LogEntryEditorComponent {
     const id = editing ?? (await this.sessionRecords.createManual(input));
     if (editing) await this.sessionRecords.update(editing, input);
     const saved = await this.sessionRecords.getMine(id);
-    if (!saved) throw new Error($localize`:@@logEditor.saveError:Could not save this log entry.`);
+    if (!saved) throw new Error("The saved session could not be read back.");
     return saved;
   }
 

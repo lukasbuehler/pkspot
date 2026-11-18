@@ -37,6 +37,8 @@ interface RouteVisualCase {
   unloggedCheckIn?: boolean;
   assertContributionGraph?: boolean;
   fixedTime?: string;
+  /** Start the clock at `fixedTime` but let it run (interactive review sessions). */
+  flowingTime?: boolean;
   scrollToSelector?: string;
   assertCenteredProfile?: boolean;
   assertAlainClearance?: {
@@ -837,7 +839,7 @@ test.describe("Route visual regression @visual", () => {
       }
 
       if (route.assertContributionGraph) {
-        await page.locator(".activity-details > summary").click();
+        await page.locator(".activity-details mat-expansion-panel-header").click();
         const graph = page.locator("app-training-activity-contribution-graph");
         const logFab = page.locator("app-fab-menu.app-page-fab .fab-menu__launcher");
         const weekdayLabels = graph.locator(".weekday-labels");
@@ -1430,7 +1432,12 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       accuracy: 20,
     });
   }
-  if (route.fixedTime) {
+  if (route.fixedTime && route.flowingTime) {
+    // Start at the fixture's date but let time run, so debounced input
+    // (search fields) and timers behave as they do for people.
+    await page.clock.install({ time: new Date(route.fixedTime) });
+    await page.clock.resume();
+  } else if (route.fixedTime) {
     await page.clock.setFixedTime(new Date(route.fixedTime));
   }
   await page.addInitScript(
@@ -3378,7 +3385,7 @@ test.describe("UI review session", () => {
     }
     const { assertAlainClearance: _alain, clip: _clip, ...rest } = route;
     if (session.geolocation) await setReviewGeolocation(page, session.geolocation);
-    await prepareRoute(page, { ...rest, viewport: sessionViewport, ...(session.signedIn !== undefined ? { signedIn: session.signedIn } : {}) });
+    await prepareRoute(page, { ...rest, flowingTime: true, viewport: sessionViewport, ...(session.signedIn !== undefined ? { signedIn: session.signedIn } : {}) });
     await page.addStyleTag({ content: hideAppCheckStatus });
     await page.waitForTimeout(1_000);
     log.push({ step: -1, action: "fixture", ok: true, url: page.url(), overlays: await openOverlays(page) });

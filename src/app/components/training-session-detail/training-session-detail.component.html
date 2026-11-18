@@ -90,15 +90,17 @@
         <div><mat-icon>groups</mat-icon><strong>{{ summary().partnerCount }}</strong><span i18n="@@trainingSessionDetail.partners">training partners</span></div>
       </div>
     @if (sessions().length) {
-      <details class="session-records">
-        <summary i18n="@@logEditor.trainingDetails">Training details</summary>
+      <mat-expansion-panel class="session-records">
+        <mat-expansion-panel-header>
+          <mat-panel-title i18n="@@logEditor.trainingDetails">Training details</mat-panel-title>
+        </mat-expansion-panel-header>
         @for (session of sessions(); track session.id) {
           <div>
             <span>{{ session.started_at_raw_ms | systemDate: "mediumDate" }} · {{ session.started_at_raw_ms | systemDate: "shortTime" }}</span>
             <span>{{ sessionDuration(session) }} · {{ sessionSourceLabel(session) }}</span>
           </div>
         }
-      </details>
+      </mat-expansion-panel>
     }
   } @else {
     <section class="state-card">

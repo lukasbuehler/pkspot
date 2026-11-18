@@ -105,13 +105,17 @@
     background: var(--mat-sys-surface-container-low);
   }
 
+  // The phone list has room to wrap a summary onto a second line.
   .settings-nav-summary {
     display: block;
+    white-space: normal;
   }
 
   .settings-nav-item.mat-mdc-button-base,
   .settings-nav-item.mat-mdc-button-base.selected {
-    height: 64px;
+    height: auto;
+    min-height: 64px;
+    padding-block: 10px;
     border-radius: 0;
     color: var(--mat-sys-on-surface);
     background: transparent;

@@ -357,32 +357,41 @@
                     </span>
                   </button>
                 }
+                <!-- Blocking and reporting are rare and protective, so
+                     they sit in a menu instead of next to Follow. -->
                 <button
-                  mat-stroked-button
-                  color="warn"
-                  class="profile-overview__action"
-                  (click)="toggleBlockUser()"
+                  mat-icon-button
+                  class="profile-overview__more"
+                  [matMenuTriggerFor]="otherProfileMenu"
+                  aria-label="More actions for this profile"
+                  i18n-aria-label="@@profile.actions.more"
                 >
-                  @if (isBlocked) {
-                    <span i18n="@@profile.actions.unblock">Unblock</span>
-                  } @else {
-                    <span i18n="@@profile.actions.block">Block</span>
-                  }
+                  <mat-icon>more_vert</mat-icon>
                 </button>
-                <button
-                  mat-stroked-button
-                  color="warn"
-                  class="profile-overview__action"
-                  (click)="openProfileReportDialog()"
-                >
-                  <mat-icon>report</mat-icon>
-                  <span i18n="@@profile.actions.report">Report</span>
-                </button>
+                <mat-menu #otherProfileMenu="matMenu" xPosition="before">
+                  <button mat-menu-item (click)="toggleBlockUser()">
+                    <mat-icon>block</mat-icon>
+                    @if (isBlocked) {
+                      <span i18n="@@profile.actions.unblock">Unblock</span>
+                    } @else {
+                      <span i18n="@@profile.actions.block">Block</span>
+                    }
+                  </button>
+                  <button mat-menu-item (click)="openProfileReportDialog()">
+                    <mat-icon>flag</mat-icon>
+                    <span i18n="@@profile.actions.report">Report</span>
+                  </button>
+                </mat-menu>
               </div>
             }
 
-            <!-- saved and visited spots -->
-            @if (isMyProfile) {
+            <!-- Follow requests: shown only while there is something to
+                 decide, or loading it failed; an empty card only pushed the
+                 saved Spot lists down. -->
+            @if (
+              isMyProfile &&
+              (followRequestsLoadFailed || followRequests.length > 0)
+            ) {
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
                   <mat-card-title role="heading" aria-level="2" class="mat-title-small" i18n>

@@ -7,64 +7,44 @@
 </h2>
 
 <div class="p-2">
-  <table
-    mat-table
-    [dataSource]="followUsers()"
-    class="w-100 rounded overflow-scroll"
-    [class.d-none]="!hasFollowUsers()"
-  >
-    <ng-container matColumnDef="user">
-      <th mat-header-cell *matHeaderCellDef i18n="@@follow_list.column_user">User</th>
-      <td mat-cell *matCellDef="let followUser">
-        <div class="d-flex align-items-center gap-2">
-          <!-- Avatar container -->
-          <div class="avatar-container">
-            @if (followUser._profileSrc && !followUser._imgError) {
-            <img
-              class="profilePicture"
-              [src]="followUser._profileSrc"
-              height="40"
-              width="40"
-              alt=""
-              (error)="followUser._imgError = true"
-            />
-            } @else {
-            <div class="profile-avatar-placeholder mat-elevation-z1">
-              {{ getInitials(followUser.display_name) }}
-            </div>
-            }
-          </div>
-          <span>{{ followUser.display_name }}</span>
-        </div>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="duration">
-      <th mat-header-cell *matHeaderCellDef i18n="@@follow_list.column_since">Since</th>
-      <td mat-cell *matCellDef="let followUser">
-        {{ followUser | followDuration }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="open">
-      <th mat-header-cell *matHeaderCellDef i18n="@@follow_list.column_actions">Actions</th>
-      <td mat-cell *matCellDef="let followUser">
-        <a
-          [routerLink]="['/u', followUser.uid]"
-          (click)="closeDialog()"
-          mat-icon-button
-          color="primary"
-          i18n-aria-label="@@follow_list.open_profile"
-          aria-label="Open profile"
-        >
-          <mat-icon>open_in_new</mat-icon>
-        </a>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
+  <!-- One tappable row per person: avatar, name, since when, chevron. -->
+  @if (hasFollowUsers()) {
+    <ul class="follow-list">
+      @for (followUser of followUsers(); track followUser.uid) {
+        <li>
+          <a
+            class="follow-list__row"
+            [routerLink]="['/u', followUser.uid]"
+            (click)="closeDialog()"
+          >
+            <span class="avatar-container" aria-hidden="true">
+              @if (followUser._profileSrc && !followUser._imgError) {
+                <img
+                  class="profilePicture"
+                  [src]="followUser._profileSrc"
+                  height="40"
+                  width="40"
+                  alt=""
+                  (error)="followUser._imgError = true"
+                />
+              } @else {
+                <span class="profile-avatar-placeholder mat-elevation-z1">
+                  {{ getInitials(followUser.display_name) }}
+                </span>
+              }
+            </span>
+            <span class="follow-list__text">
+              <span class="follow-list__name mat-body-large">{{ followUser.display_name }}</span>
+              <span class="follow-list__since mat-body-small">
+                <span i18n="@@follow_list.since">Since</span> {{ followUser | followDuration }}
+              </span>
+            </span>
+            <mat-icon aria-hidden="true">chevron_right</mat-icon>
+          </a>
+        </li>
+      }
+    </ul>
+  }
 
   @if (showEmptyState()) {
     <p class="text-center mat-body-medium text-muted mt-3">

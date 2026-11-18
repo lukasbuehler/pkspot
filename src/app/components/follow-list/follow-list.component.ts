@@ -25,19 +25,7 @@ import {
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatIcon } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
-import { MatIconButton, MatButton } from "@angular/material/button";
-import {
-  MatTable,
-  MatColumnDef,
-  MatHeaderCellDef,
-  MatHeaderCell,
-  MatCellDef,
-  MatCell,
-  MatHeaderRowDef,
-  MatHeaderRow,
-  MatRowDef,
-  MatRow,
-} from "@angular/material/table";
+import { MatButton } from "@angular/material/button";
 import {
   FollowingService,
   FollowPageCursor,
@@ -93,26 +81,14 @@ export class FollowDurationPipe implements PipeTransform {
     MatDialogTitle,
     MatDialogActions,
     MatDialogClose,
-    MatTable,
-    MatColumnDef,
-    MatHeaderCellDef,
-    MatHeaderCell,
-    MatCellDef,
-    MatCell,
-    MatIconButton,
     RouterLink,
     MatIcon,
-    MatHeaderRowDef,
-    MatHeaderRow,
-    MatRowDef,
-    MatRow,
     MatProgressSpinner,
     MatButton,
     FollowDurationPipe,
   ],
 })
 export class FollowListComponent implements OnInit {
-  readonly displayedColumns = ["user", "duration", "open"];
   readonly followUsers = signal<FollowListUser[]>([]);
   readonly isLoading = signal(false);
   readonly hasLoadedAll = signal(false);

@@ -25,24 +25,31 @@ export class NotificationOptInService {
   private readonly push = inject(PushNotificationsService);
   private readonly activePrompts = new Set<NotificationPromptContext>();
 
+  /**
+   * Offers notifications for `context` once. `inline` asks with a short
+   * snackbar instead of a dialog, for prompts that follow a quick action
+   * (going to an event, following someone) so the action is not interrupted.
+   */
   async maybePrompt(
     context: NotificationPromptContext,
-    data: { upcomingEventCount?: number } = {},
+    data: { upcomingEventCount?: number; inline?: boolean } = {},
   ): Promise<NotificationOptInDialogResult | null> {
     if (!this._shouldPrompt(context)) return null;
 
     this.activePrompts.add(context);
     this.analytics.trackEvent("notification_prompt_shown", { context });
     try {
-      const result =
-        (await firstValueFrom(
+      const inlineCopy = data.inline ? this._inlineCopy(context) : null;
+      const result = inlineCopy
+        ? await this._askInline(inlineCopy)
+        : (await firstValueFrom(
           this.dialog
             .open<
               NotificationOptInDialogComponent,
               { context: NotificationPromptContext; upcomingEventCount?: number },
               NotificationOptInDialogResult
             >(NotificationOptInDialogComponent, {
-              data: { context, ...data },
+              data: { context, upcomingEventCount: data.upcomingEventCount },
               width: "min(480px, calc(100vw - 32px))",
               maxWidth: "100vw",
               autoFocus: false,
@@ -80,6 +87,39 @@ export class NotificationOptInService {
     } finally {
       this.activePrompts.delete(context);
     }
+  }
+
+  private async _askInline(copy: {
+    message: string;
+    action: string;
+  }): Promise<NotificationOptInDialogResult> {
+    const ref = this.snackbar.open(copy.message, copy.action, { duration: 10000 });
+    const { dismissedByAction } = await firstValueFrom(ref.afterDismissed());
+    return dismissedByAction ? "context" : "dismissed";
+  }
+
+  private _inlineCopy(
+    context: NotificationPromptContext,
+  ): { message: string; action: string } | null {
+    switch (context) {
+      case "event_reminders":
+        return {
+          message: $localize`:@@notification_prompt.event.inline:Saved. Get a reminder two hours before it starts?`,
+          action: $localize`:@@notification_prompt.event.inline_action:Remind me`,
+        };
+      case "follow_activity":
+        return {
+          message: $localize`:@@notification_prompt.follow.inline:Get notified when someone follows you or accepts your request?`,
+          action: $localize`:@@notification_prompt.follow.inline_action:Notify me`,
+        };
+      default:
+        return null;
+    }
+  }
+
+  /** Whether `maybePrompt(context)` would ask now. */
+  wouldPrompt(context: NotificationPromptContext): boolean {
+    return this._shouldPrompt(context);
   }
 
   private _shouldPrompt(context: NotificationPromptContext): boolean {

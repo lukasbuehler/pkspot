@@ -29,15 +29,20 @@
       </section>
     }
     <app-training-stats class="stats" [reloadKey]="statsReload()" />
-    <details class="activity-details">
-      <summary><mat-icon aria-hidden="true">calendar_month</mat-icon><span i18n="@@train.history.title">Training history</span><mat-icon class="disclosure-arrow" aria-hidden="true">expand_more</mat-icon></summary>
-    <app-training-activity-contribution-graph
-      [days]="activityDays()"
-      [recoveryPauses]="recoveryPauses()"
-      [selected]="selection()"
-      (selectionChange)="selection.set($event)"
-    />
-    </details>
+    <mat-expansion-panel class="activity-details">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon aria-hidden="true">calendar_month</mat-icon>
+          <span i18n="@@trainingLog.activityCalendar">Activity calendar</span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <app-training-activity-contribution-graph
+        [days]="activityDays()"
+        [recoveryPauses]="recoveryPauses()"
+        [selected]="selection()"
+        (selectionChange)="selection.set($event)"
+      />
+    </mat-expansion-panel>
     <app-check-in-log-prompt [sessions]="sessions()" [logs]="logs()" />
     <section class="check-in-history">
       <div class="check-in-history__header">
@@ -45,13 +50,24 @@
           <h2 i18n="@@trainingLog.checkIns.title">Private check-ins</h2>
           <p i18n="@@trainingLog.checkIns.description">Only you can see this archive. It never shares your precise location.</p>
         </div>
-        <details class="archive-actions">
-          <summary aria-label="Private check-ins" i18n-aria-label="@@trainingLog.checkIns.title"><mat-icon aria-hidden="true">more_horiz</mat-icon></summary>
-          <div class="actions">
-          <button matButton="outlined" type="button" (click)="exportCheckIns()" [disabled]="!checkIns().length"><mat-icon>download</mat-icon><span i18n="@@trainingLog.checkIns.export">Export</span></button>
-          <button matButton="outlined" type="button" (click)="clearCheckIns()" [disabled]="!checkIns().length"><mat-icon>delete_sweep</mat-icon><span i18n="@@trainingLog.checkIns.clear">Clear all</span></button>
-          </div>
-        </details>
+        <button
+          matIconButton
+          type="button"
+          class="archive-actions"
+          [matMenuTriggerFor]="archiveMenu"
+          aria-label="Check-in archive actions"
+          i18n-aria-label="@@trainingLog.checkIns.actions"
+        >
+          <mat-icon>more_horiz</mat-icon>
+        </button>
+        <mat-menu #archiveMenu="matMenu" xPosition="before">
+          <button mat-menu-item type="button" (click)="exportCheckIns()" [disabled]="!checkIns().length">
+            <mat-icon>download</mat-icon><span i18n="@@trainingLog.checkIns.export">Export</span>
+          </button>
+          <button mat-menu-item type="button" (click)="clearCheckIns()" [disabled]="!checkIns().length">
+            <mat-icon>delete_sweep</mat-icon><span i18n="@@trainingLog.checkIns.clear">Clear all</span>
+          </button>
+        </mat-menu>
       </div>
       @if (checkIns().length) {
         <div class="check-in-history__list">

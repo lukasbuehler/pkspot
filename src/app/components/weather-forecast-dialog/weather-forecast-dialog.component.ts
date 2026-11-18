@@ -1,3 +1,4 @@
+import { MatExpansionModule } from "@angular/material/expansion";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -82,6 +83,7 @@ interface WeatherAlertView extends WeatherAlert {
   selector: "app-weather-forecast-dialog",
   imports: [
     MatButton,
+    MatExpansionModule,
     MatDialogClose,
     MatDialogContent,
     MatDialogTitle,

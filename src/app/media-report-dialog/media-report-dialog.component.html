@@ -10,7 +10,7 @@
   <div class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3">
     <div class="rounded bg-black" style="width: 200px; height: 200px; position: relative">
       @if (getPreviewSrc(dialogData.media)) {
-        <img [ngSrc]="getPreviewSrc(dialogData.media)!" alt="Image to report" style="object-fit: contain" priority fill />
+        <img [ngSrc]="getPreviewSrc(dialogData.media)!" alt="Image to report" i18n-alt="@@media_report.preview_alt" style="object-fit: contain" priority fill />
       } @else if (getVideoPreviewSrc(dialogData.media)) {
         <video [src]="getVideoPreviewSrc(dialogData.media)!" muted playsinline style="width: 100%; height: 100%; object-fit: contain"></video>
       }

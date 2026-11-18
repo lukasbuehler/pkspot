@@ -13,6 +13,7 @@
       type="button"
       color="primary"
       class="fab-menu__launcher"
+      [extended]="!!launcherText() && !isOpen()"
       [class.fab-menu__launcher--open]="isOpen()"
       [disabled]="directAction()?.disabled ?? false"
       [attr.aria-expanded]="isMenu() ? isOpen() : null"
@@ -37,6 +38,9 @@
             : (directAction()?.icon ?? launcherIcon())
         }}
       </mat-icon>
+      @if (launcherText() && !isOpen()) {
+        <span class="fab-menu__launcher-text">{{ launcherText() }}</span>
+      }
     </button>
 
     @if (isOpen()) {

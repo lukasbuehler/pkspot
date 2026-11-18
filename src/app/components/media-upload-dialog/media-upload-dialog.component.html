@@ -13,6 +13,8 @@
     (isUploading)="onUploadingChange($event)"
   ></app-media-upload>
 </div>
+<!-- Nothing chosen yet: a single Cancel. Once media is picked, the
+     primary Upload appears beside Discard. -->
 <div mat-dialog-actions class="d-flex justify-content-between">
   <button
     mat-button
@@ -27,18 +29,18 @@
     }
   </button>
 
-  <button
-    mat-flat-button
-    (click)="confirm()"
-    [disabled]="uploading() || hasIncompleteRequiredCrop()"
-  >
-    <mat-icon>{{ hasPendingMedia() ? "upload" : "check" }}</mat-icon>
-    @if (uploading()) {
-      <span i18n>Uploading…</span>
-    } @else if (hasPendingMedia()) {
-      <span i18n>Upload</span>
-    } @else {
-      <span i18n>Close</span>
-    }
-  </button>
+  @if (hasPendingMedia() || uploading()) {
+    <button
+      mat-flat-button
+      (click)="confirm()"
+      [disabled]="uploading() || hasIncompleteRequiredCrop()"
+    >
+      <mat-icon>upload</mat-icon>
+      @if (uploading()) {
+        <span i18n>Uploading…</span>
+      } @else {
+        <span i18n>Upload</span>
+      }
+    </button>
+  }
 </div>

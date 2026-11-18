@@ -8,6 +8,7 @@ import {
   signal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import {
   MAT_DIALOG_DATA,
@@ -35,18 +36,23 @@ export interface SpotReportDialogData {
   spotId: string;
   spotName: string;
   report?: OwnReportSummary | null;
+  /** The Spot has photos that can be reported one by one in the viewer. */
+  hasPhotos?: boolean;
 }
 
 export interface SpotReportDialogResult {
   reportId?: string;
   created?: boolean;
   withdrawn?: boolean;
+  /** The person wants to report a photo instead: open the photo viewer. */
+  reportPhoto?: boolean;
 }
 
 @Component({
   selector: "app-spot-report-dialog",
   imports: [
     MatButtonModule,
+    MatIconModule,
     MatCheckboxModule,
     MatDialogTitle,
     MatDialogContent,
@@ -115,6 +121,11 @@ export class SpotReportDialogComponent {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Photos are reported individually from the viewer, with media reasons. */
+  reportPhotoInstead(): void {
+    if (!this.isSubmitting()) this.dialogRef.close({ reportPhoto: true });
   }
 
   onNoClick(): void {

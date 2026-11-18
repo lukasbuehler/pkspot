@@ -152,10 +152,12 @@
   }
 }
 
+// Follow fills the row; the overflow menu for block and report sits beside it.
 .profile-overview__actions {
   display: grid;
   gap: 10px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
 }
 
 .profile-overview__socials {
@@ -188,7 +190,7 @@
 
 @media (min-width: 560px) {
   .profile-overview__actions {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }
 

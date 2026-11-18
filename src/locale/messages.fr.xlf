@@ -2012,6 +2012,18 @@
         <target>Villes</target>
       </segment>
     </unit>
+    <unit id="events.empty.clear_filters">
+      <segment state="translated">
+        <source> Clear filters </source>
+        <target>Effacer les filtres</target>
+      </segment>
+    </unit>
+    <unit id="events.empty.list_hint">
+      <segment state="translated">
+        <source> Clear the active filters, or switch between upcoming and past events. </source>
+        <target>Effacez les filtres actifs ou basculez entre les événements à venir et passés.</target>
+      </segment>
+    </unit>
     <unit id="events.filters_dialog.apply">
       <segment state="translated">
         <source>Apply</source>
@@ -2463,6 +2475,12 @@
       <segment state="initial">
         <source>View all</source>
         <target>Tout afficher</target>
+      </segment>
+    </unit>
+    <unit id="my_reports.back">
+      <segment state="translated">
+        <source>Profile</source>
+        <target>Profil</target>
       </segment>
     </unit>
     <unit id="3502015908968636245">
@@ -4025,6 +4043,12 @@
       <segment state="initial">
         <source>Incorrect password. Please try again.</source>
         <target>Mot de passe incorrect. Réessaie.</target>
+      </segment>
+    </unit>
+    <unit id="media_report.preview_alt">
+      <segment state="translated">
+        <source>Image to report</source>
+        <target>Image à signaler</target>
       </segment>
     </unit>
     <unit id="mediaReportSignInRequired">
@@ -6554,6 +6578,18 @@
         <target> PK Spot peut t’envoyer un rappel deux heures avant les événements auxquels tu participes ou qui t’intéressent. </target>
       </segment>
     </unit>
+    <unit id="notification_prompt.event.inline">
+      <segment state="translated">
+        <source>Saved. Get a reminder two hours before it starts?</source>
+        <target>Enregistré. Recevoir un rappel deux heures avant le début ?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.inline_action">
+      <segment state="translated">
+        <source>Remind me</source>
+        <target>Me rappeler</target>
+      </segment>
+    </unit>
     <unit id="notification_prompt.event.title">
       <segment state="initial">
         <source>Get an event reminder?</source>
@@ -6594,6 +6630,18 @@
       <segment state="initial">
         <source> Know when someone follows you, sends a follow request, or accepts yours. </source>
         <target> Sois informé·e quand quelqu’un s’abonne à toi, t’envoie une demande ou accepte la tienne. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.inline">
+      <segment state="translated">
+        <source>Get notified when someone follows you or accepts your request?</source>
+        <target>Être notifié quand quelqu’un vous suit ou accepte votre demande ?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.inline_action">
+      <segment state="translated">
+        <source>Notify me</source>
+        <target>M’avertir</target>
       </segment>
     </unit>
     <unit id="notification_prompt.follow.title">
@@ -11785,22 +11833,10 @@
         <target>Fermer</target>
       </segment>
     </unit>
-    <unit id="follow_list.column_actions">
-      <segment state="translated">
-        <source>Actions</source>
-        <target>Actions</target>
-      </segment>
-    </unit>
-    <unit id="follow_list.column_since">
+    <unit id="follow_list.since">
       <segment state="translated">
         <source>Since</source>
         <target>Depuis</target>
-      </segment>
-    </unit>
-    <unit id="follow_list.column_user">
-      <segment state="translated">
-        <source>User</source>
-        <target>Personne</target>
       </segment>
     </unit>
     <unit id="follow_list.empty_followers_other">
@@ -11837,12 +11873,6 @@
       <segment state="translated">
         <source>Load more</source>
         <target>Charger plus</target>
-      </segment>
-    </unit>
-    <unit id="follow_list.open_profile">
-      <segment state="translated">
-        <source>Open profile</source>
-        <target>Ouvrir le profil</target>
       </segment>
     </unit>
     <unit id="follow_list.other_user_fallback">
@@ -11951,6 +11981,18 @@
       <segment state="initial">
         <source> Load external media from </source>
         <target> Charger les médias externes depuis </target>
+      </segment>
+    </unit>
+    <unit id="img_carousel.open_photo">
+      <segment state="translated">
+        <source>Open <ph id="0" equiv="photo" disp="alt"/> full screen</source>
+        <target>Ouvrir <ph id="0" equiv="photo" disp="alt"/> en plein écran</target>
+      </segment>
+    </unit>
+    <unit id="img_carousel.report_photo">
+      <segment state="translated">
+        <source>Report photo</source>
+        <target>Signaler la photo</target>
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
@@ -12683,10 +12725,10 @@
         <target>Enregistrer</target>
       </segment>
     </unit>
-    <unit id="logEditor.saveError">
+    <unit id="logEditor.saveFailedRetry">
       <segment state="translated">
-        <source>Could not save this log entry.</source>
-        <target>Impossible d&apos;enregistrer cette entrée.</target>
+        <source>Your entry couldn&apos;t be saved. Check your connection and save again; nothing you entered is lost.</source>
+        <target>Votre entrée n’a pas pu être enregistrée. Vérifiez votre connexion et enregistrez à nouveau ; rien de ce que vous avez saisi n’est perdu.</target>
       </segment>
     </unit>
     <unit id="logEditor.spotsOptional">
@@ -14507,6 +14549,12 @@
         <target>Prévisualiser les comptes concernés</target>
       </segment>
     </unit>
+    <unit id="profile.actions.more">
+      <segment state="translated">
+        <source>More actions for this profile</source>
+        <target>Plus d’actions pour ce profil</target>
+      </segment>
+    </unit>
     <unit id="profile.actions.report">
       <segment state="initial">
         <source>Report</source>
@@ -14785,6 +14833,12 @@
         <target> Accès et type </target>
       </segment>
     </unit>
+    <unit id="spot.edit.description.field_label">
+      <segment state="translated">
+        <source>Description</source>
+        <target>Description</target>
+      </segment>
+    </unit>
     <unit id="8902169607450414056">
       <notes>
         <note category="description">Label of the button to edit the spot</note>
@@ -14955,6 +15009,12 @@
       <segment state="initial">
         <source> You can re-order the spot media below using drag-and-drop. </source>
         <target> Tu peux réorganiser les médias du spot ci-dessous par glisser-déposer. </target>
+      </segment>
+    </unit>
+    <unit id="spot.edit.name.field_label">
+      <segment state="translated">
+        <source>Spot name</source>
+        <target>Nom du Spot</target>
       </segment>
     </unit>
     <unit id="spot.edit.name.header">
@@ -16190,6 +16250,30 @@
         <target> Jusqu’à <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </target>
       </segment>
     </unit>
+    <unit id="spot_picker.remove">
+      <segment state="translated">
+        <source>Remove</source>
+        <target>Retirer</target>
+      </segment>
+    </unit>
+    <unit id="spot_picker.remove_spot">
+      <segment state="translated">
+        <source>Remove spot</source>
+        <target>Retirer le Spot</target>
+      </segment>
+    </unit>
+    <unit id="spot_report.photo_action">
+      <segment state="translated">
+        <source>Choose photo to report</source>
+        <target>Choisir la photo à signaler</target>
+      </segment>
+    </unit>
+    <unit id="spot_report.photo_note">
+      <segment state="translated">
+        <source>Is a photo the problem? Report that photo on its own, so only it is reviewed.</source>
+        <target>Le problème vient d’une photo ? Signalez cette photo seule, pour qu’elle seule soit examinée.</target>
+      </segment>
+    </unit>
     <unit id="spot_review.star_many">
       <segment state="translated">
         <source><ph id="0" equiv="count" disp="count"/> stars</source>
@@ -16708,16 +16792,16 @@
         <target><ph id="0" equiv="count" disp="going"/> y vont</target>
       </segment>
     </unit>
+    <unit id="train.fab.text">
+      <segment state="translated">
+        <source>Log training</source>
+        <target>Noter l’entraînement</target>
+      </segment>
+    </unit>
     <unit id="train.history.allLogs">
       <segment state="translated">
         <source>View all logs</source>
         <target>Voir tous les journaux</target>
-      </segment>
-    </unit>
-    <unit id="train.history.title">
-      <segment state="translated">
-        <source>Training history</source>
-        <target>Historique d’entraînement</target>
       </segment>
     </unit>
     <unit id="train.teaser.body">
@@ -20876,6 +20960,12 @@
         <target><ph id="0" equiv="count" disp="pauseDays"/> jours de récupération</target>
       </segment>
     </unit>
+    <unit id="trainingLog.checkIns.actions">
+      <segment state="translated">
+        <source>Check-in archive actions</source>
+        <target>Actions de l’archive des check-ins</target>
+      </segment>
+    </unit>
     <unit id="trainingLog.checkIns.clear">
       <segment state="initial">
         <source>Clear all</source>
@@ -20894,16 +20984,16 @@
         <target>Tes check-ins confirmés à proximité apparaîtront ici.</target>
       </segment>
     </unit>
+    <unit id="map.geolocation.enable.tooltip">
+      <segment state="translated">
+        <source>Turn on location</source>
+        <target>Activer la localisation</target>
+      </segment>
+    </unit>
     <unit id="map.geolocation.tooltip">
       <segment state="initial">
         <source>Go to your location</source>
         <target>Aller à ta position</target>
-      </segment>
-    </unit>
-    <unit id="map.geolocation.disabled.tooltip">
-      <segment state="initial">
-        <source>Location is off</source>
-        <target>La position est désactivée</target>
       </segment>
     </unit>
     <unit id="locationAccess.title">
@@ -21540,6 +21630,12 @@
       <segment state="initial">
         <source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source>
         <target>Commencée le <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · en cours</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.activityCalendar">
+      <segment state="translated">
+        <source>Activity calendar</source>
+        <target>Calendrier d’activité</target>
       </segment>
     </unit>
     <unit id="trainingLog.add">

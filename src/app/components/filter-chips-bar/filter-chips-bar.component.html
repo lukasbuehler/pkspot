@@ -37,6 +37,31 @@
         [value]="selectedFilters() ?? renderedSelectedFilter()"
         [attr.aria-label]="ariaLabel() ?? quickFiltersLabel"
       >
+        @for (filter of visiblePresetFilters(); track filter.urlParam) {
+          <mat-chip-option
+            [class.glass]="appearance() === 'glass'"
+            [class.solid-chip]="appearance() === 'solid'"
+            [value]="filter.urlParam"
+            [selected]="selectedFilters()?.includes(filter.urlParam) ?? (renderedSelectedFilter() === filter.urlParam)"
+            [aria-description]="showDeselectIcon() && allowDeselect() && renderedSelectedFilter() === filter.urlParam ? deselectHint : null"
+            (click)="onPresetChipClick(filter.urlParam, $event)"
+          >
+            @if (showDeselectIcon() && allowDeselect() && renderedSelectedFilter() === filter.urlParam) {
+              <mat-icon matChipAvatar>close</mat-icon>
+            } @else if (filter.imageSrc) {
+              <img matChipAvatar class="preset-image" [src]="filter.imageSrc" [style.background]="filter.imageBackground" alt="" />
+            } @else if (filter.icon) {
+              <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
+            }
+            @if (filter.count !== undefined) {
+              <span class="chip-count"><app-fancy-counter [number]="filter.count" /> {{ filter.label }}</span>
+            } @else {
+              <span>{{ filter.label }}</span>
+            }
+          </mat-chip-option>
+        }
+        <!-- Personal lists come after the condition filters (dry, indoor…)
+             that people reach for outdoors, so those stay in view. -->
         @if (showSavedChip()) {
           <mat-chip-option
             [class.glass]="appearance() === 'glass'"
@@ -60,30 +85,6 @@
           >
             <mat-icon matChipAvatar>beenhere</mat-icon>
             <span>{{ visitedLabel }}</span>
-          </mat-chip-option>
-        }
-
-        @for (filter of visiblePresetFilters(); track filter.urlParam) {
-          <mat-chip-option
-            [class.glass]="appearance() === 'glass'"
-            [class.solid-chip]="appearance() === 'solid'"
-            [value]="filter.urlParam"
-            [selected]="selectedFilters()?.includes(filter.urlParam) ?? (renderedSelectedFilter() === filter.urlParam)"
-            [aria-description]="showDeselectIcon() && allowDeselect() && renderedSelectedFilter() === filter.urlParam ? deselectHint : null"
-            (click)="onPresetChipClick(filter.urlParam, $event)"
-          >
-            @if (showDeselectIcon() && allowDeselect() && renderedSelectedFilter() === filter.urlParam) {
-              <mat-icon matChipAvatar>close</mat-icon>
-            } @else if (filter.imageSrc) {
-              <img matChipAvatar class="preset-image" [src]="filter.imageSrc" [style.background]="filter.imageBackground" alt="" />
-            } @else if (filter.icon) {
-              <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
-            }
-            @if (filter.count !== undefined) {
-              <span class="chip-count"><app-fancy-counter [number]="filter.count" /> {{ filter.label }}</span>
-            } @else {
-              <span>{{ filter.label }}</span>
-            }
           </mat-chip-option>
         }
       </mat-chip-listbox>

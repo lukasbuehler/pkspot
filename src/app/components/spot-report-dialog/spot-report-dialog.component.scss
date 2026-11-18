@@ -12,3 +12,39 @@ mat-dialog-actions { flex-shrink: 0; min-height: 96px; }
   padding: 24px;
   text-align: center;
 }
+
+// Tonal information card: photos have their own report flow.
+.photo-report-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+
+  > mat-icon {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    margin-inline-start: -12px;
+    color: inherit;
+  }
+}
+
+.photo-report-note__text {
+  min-width: 0;
+}

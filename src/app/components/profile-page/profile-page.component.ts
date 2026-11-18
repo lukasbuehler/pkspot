@@ -620,7 +620,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             }
             this._completeFollowAction();
             if (!wasPendingFollowRequest) {
-              void this._notificationOptIn.maybePrompt("follow_activity");
+              void this._notificationOptIn.maybePrompt("follow_activity", {
+                inline: true,
+              });
             }
           })
           .catch((err) => {

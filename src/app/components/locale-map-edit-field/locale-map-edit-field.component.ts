@@ -75,6 +75,11 @@ export class LocaleMapEditFieldComponent {
   >({});
   isTextArea: InputSignal<boolean> = input(false);
   placeholder: InputSignal<string> = input("");
+  /**
+   * What the field holds, e.g. "Description". The visible label shows only
+   * the language, so screen readers get "Description (Deutsch)".
+   */
+  fieldLabel: InputSignal<string> = input("");
   canRemoveLastTranslation: InputSignal<boolean> = input(true);
 
   languages = languageCodes;

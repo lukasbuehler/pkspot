@@ -14,6 +14,7 @@
         matInput
         [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
         [placeholder]="placeholder()"
+        [attr.aria-label]="fieldLabel() ? fieldLabel() + ' (' + localeLabel(locale) + ')' : null"
         (change)="valueChanged($event, locale)"
         rows="3"
       ></textarea>
@@ -23,6 +24,7 @@
         matInput
         [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
         [placeholder]="placeholder()"
+        [attr.aria-label]="fieldLabel() ? fieldLabel() + ' (' + localeLabel(locale) + ')' : null"
         (change)="valueChanged($event, locale)"
       />}
     </mat-form-field>

@@ -1151,6 +1151,7 @@ html.pkspot-roboto-loaded body {
           this.userId = "";
         }
         this.isSignedIn.set(isAuthenticated);
+        this._ownUserId.set(user?.uid ?? "");
 
         if (user && user.uid) {
           this.shortUserDisplayName.set(
@@ -1541,6 +1542,8 @@ html.pkspot-roboto-loaded body {
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
   isSignedIn = signal(false);
+  /** The signed-in person's id, so only their own /u/ page marks Profile active. */
+  private readonly _ownUserId = signal("");
   // Subscribe during construction. Analytics initialization can outlive the
   // initial navigation; missing that event leaves the map shell at zero height.
   readonly currentNavUrl = toSignal(
@@ -1587,6 +1590,7 @@ html.pkspot-roboto-loaded body {
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
     const currentNavUrl = this.currentNavUrl();
+    const ownUserId = this._ownUserId();
     const isCompact = !this.usesNavigationRail();
     const isOnMobileWeb = this.isMobileAppStoreBrowser();
 
@@ -1683,9 +1687,13 @@ html.pkspot-roboto-loaded body {
             overflowPriority: 8,
             alwaysVisible: true,
             image: userPhoto || "",
+            // Another athlete's profile is not "your" Profile tab.
             active:
               currentNavUrl.startsWith("/profile") ||
-              currentNavUrl.startsWith("/u/"),
+              (!!ownUserId &&
+                (currentNavUrl === `/u/${ownUserId}` ||
+                  currentNavUrl.startsWith(`/u/${ownUserId}/`) ||
+                  currentNavUrl.startsWith(`/u/${ownUserId}?`))),
           }
         : {
             function: () => this.navigateToAccount(),

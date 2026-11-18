@@ -268,3 +268,21 @@
   // optionally force a square aspect ratio
   aspect-ratio: 1;
 }
+
+// Invisible until focused with the keyboard; pointer taps pass through to the
+// scroll layer so swiping the row keeps working.
+.photo-open-button {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--carousel-shape, 20px);
+  background: transparent;
+  pointer-events: none;
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: -3px;
+  }
+}

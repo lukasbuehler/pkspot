@@ -153,15 +153,14 @@ export class EventRsvpComponent {
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
     let notificationLevel = this.defaultNotificationLevel();
-    if (
+    // Save the response first; reminders are offered afterwards without
+    // blocking it. Until the person answers, the event gets no notifications.
+    const offerReminders =
       (next === "going" || next === "interested") &&
       previousLoaded !== "going" &&
-      previousLoaded !== "interested"
-    ) {
-      const prompt = await this._notificationOptIn().maybePrompt("event_reminders");
-      if (prompt === "dismissed") notificationLevel = "none";
-      if (prompt === "context") notificationLevel = "reminders";
-    }
+      previousLoaded !== "interested" &&
+      this._notificationOptIn().wouldPrompt("event_reminders");
+    if (offerReminders) notificationLevel = "none";
     this._analytics.trackEvent("event_rsvp_selected", {
       event_id: eventId,
       rsvp: next,
@@ -185,6 +184,7 @@ export class EventRsvpComponent {
         event_id: eventId,
         rsvp: next,
       });
+      if (offerReminders) void this._offerReminders(eventId, next);
     } catch (err) {
       this.featureTelemetry.failure("event-rsvp", "selectRsvp", err);
       console.error("Failed to save event RSVP", err);
@@ -200,6 +200,24 @@ export class EventRsvpComponent {
       });
     } finally {
       this.isSaving.set(false);
+    }
+  }
+
+  /** Asks once, without blocking, whether to remind; applies the answer. */
+  private async _offerReminders(
+    eventId: string,
+    rsvp: EventRSVPOption,
+  ): Promise<void> {
+    const prompt = await this._notificationOptIn().maybePrompt("event_reminders", {
+      inline: true,
+    });
+    const level: EventNotificationLevel | null =
+      prompt === "context" ? "reminders" : prompt === "all" ? this.defaultNotificationLevel() : null;
+    if (!level || this.loadedRsvp() !== rsvp) return;
+    try {
+      await this._myEvents().setRsvp(eventId, rsvp, level);
+    } catch (err) {
+      this.featureTelemetry.failure("event-rsvp", "offerReminders", err);
     }
   }
 

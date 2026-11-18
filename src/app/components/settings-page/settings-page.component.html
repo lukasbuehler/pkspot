@@ -470,46 +470,7 @@
             General settings to tune your experience on PK Spot.
           </p>
 
-          <h3 class="mat-title-large mt-4" i18n="@@settings.group.privacy">Privacy and permissions</h3>
-          <app-local-legend-settings class="my-4" />
-          <section class="my-4 p-3 settings-box border">
-            <h3 class="mat-title-medium m-0" i18n="@@external_media.settings.title">External media</h3>
-            <p class="mat-body mt-2" i18n="@@external_media.settings.description">These choices are saved on this device. Loading third-party content connects to its provider and may share device and playback data.</p>
-            <div class="d-flex flex-column gap-3">
-              <p class="mat-body-small">
-                <span i18n="@@youtube.settings_agreement">By allowing YouTube, you agree to its Terms of Service.</span>&ngsp;<a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" i18n="@@youtube.terms">YouTube Terms</a>
-                · <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" i18n="@@youtube.privacy">Google Privacy Policy</a>
-              </p>
-              <mat-slide-toggle [checked]="externalMedia.youtubeAllowed()" (change)="externalMedia.setYoutubeAllowed($event.checked)" i18n="@@external_media.settings.youtube">Always allow YouTube</mat-slide-toggle>
-              <mat-slide-toggle [checked]="externalMedia.external().allowAll" (change)="externalMedia.setOtherAllowed($event.checked)" i18n="@@external_media.settings.other">Always allow other external images and videos</mat-slide-toggle>
-              <p class="mat-body-small" i18n="@@external_media.settings.separate">YouTube is controlled separately. Individual website permissions can also be granted in the media carousel. Resetting clears all saved and temporary permissions.</p>
-              <button mat-stroked-button class="wrap-label" type="button" (click)="externalMedia.reset()" i18n="@@external_media.settings.reset">Reset external media permissions</button>
-            </div>
-          </section>
-
-
-          <section class="my-4 p-3 settings-box border">
-            <h3 class="mat-title-medium m-0" i18n="@@analytics.settings.title">Analytics</h3>
-            <p class="mat-body mt-2" i18n="@@analytics.settings.description">PK Spot counts visits anonymously and stores nothing on your device for it, so a visit cannot be linked to earlier ones. Optionally, you can let analytics remember this device and link it to your account. This helps us understand how people come back to PK Spot. It is off unless you turn it on, and you can turn it off at any time.</p>
-            <mat-slide-toggle [checked]="persistentAnalytics()" (change)="setPersistentAnalytics($event.checked)" i18n="@@analytics.settings.persistent">Remember this device for analytics</mat-slide-toggle>
-          </section>
-
-          <div class="my-4 p-3 settings-box border">
-            <h3 class="mat-title-medium m-0" i18n="@@locationAccess.settings.title">Location</h3>
-            <p class="mat-body mt-2 mb-3" i18n="@@locationAccess.settings.description">
-              Use location for the map position and nearby check-ins. It is off until you choose otherwise.
-            </p>
-            <p class="mat-body-small mt-0" i18n="@@locationAccess.settings.current">
-              Current setting: {{ locationAccessLabel() }}
-            </p>
-            <div class="d-flex gap-2 flex-wrap">
-              <button matButton="outlined" type="button" (click)="manageLocationAccess()" i18n="@@locationAccess.settings.manage">Manage location</button>
-              @if (locationAccess.enabled()) {
-                <button matButton="outlined" type="button" (click)="disableLocationAccess()" i18n="@@locationAccess.settings.off">Turn off</button>
-              }
-            </div>
-          </div>
-
+          <!-- Everyday preferences first; privacy choices follow. -->
           <h3 class="mat-title-large mt-4" i18n="@@settings.group.regional">Language and regional preferences</h3>
           <div class="my-4 p-3 settings-box border">
             <h3 class="mat-title-medium m-0" i18n>Language</h3>
@@ -626,6 +587,46 @@
                 24-hour
               </mat-button-toggle>
             </mat-button-toggle-group>
+          </div>
+
+          <h3 class="mat-title-large mt-4" i18n="@@settings.group.privacy">Privacy and permissions</h3>
+          <app-local-legend-settings class="my-4" />
+          <section class="my-4 p-3 settings-box border">
+            <h3 class="mat-title-medium m-0" i18n="@@external_media.settings.title">External media</h3>
+            <p class="mat-body mt-2" i18n="@@external_media.settings.description">These choices are saved on this device. Loading third-party content connects to its provider and may share device and playback data.</p>
+            <div class="d-flex flex-column gap-3">
+              <p class="mat-body-small">
+                <span i18n="@@youtube.settings_agreement">By allowing YouTube, you agree to its Terms of Service.</span>&ngsp;<a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" i18n="@@youtube.terms">YouTube Terms</a>
+                · <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" i18n="@@youtube.privacy">Google Privacy Policy</a>
+              </p>
+              <mat-slide-toggle [checked]="externalMedia.youtubeAllowed()" (change)="externalMedia.setYoutubeAllowed($event.checked)" i18n="@@external_media.settings.youtube">Always allow YouTube</mat-slide-toggle>
+              <mat-slide-toggle [checked]="externalMedia.external().allowAll" (change)="externalMedia.setOtherAllowed($event.checked)" i18n="@@external_media.settings.other">Always allow other external images and videos</mat-slide-toggle>
+              <p class="mat-body-small" i18n="@@external_media.settings.separate">YouTube is controlled separately. Individual website permissions can also be granted in the media carousel. Resetting clears all saved and temporary permissions.</p>
+              <button mat-stroked-button class="wrap-label" type="button" (click)="externalMedia.reset()" i18n="@@external_media.settings.reset">Reset external media permissions</button>
+            </div>
+          </section>
+
+
+          <section class="my-4 p-3 settings-box border">
+            <h3 class="mat-title-medium m-0" i18n="@@analytics.settings.title">Analytics</h3>
+            <p class="mat-body mt-2" i18n="@@analytics.settings.description">PK Spot counts visits anonymously and stores nothing on your device for it, so a visit cannot be linked to earlier ones. Optionally, you can let analytics remember this device and link it to your account. This helps us understand how people come back to PK Spot. It is off unless you turn it on, and you can turn it off at any time.</p>
+            <mat-slide-toggle [checked]="persistentAnalytics()" (change)="setPersistentAnalytics($event.checked)" i18n="@@analytics.settings.persistent">Remember this device for analytics</mat-slide-toggle>
+          </section>
+
+          <div class="my-4 p-3 settings-box border">
+            <h3 class="mat-title-medium m-0" i18n="@@locationAccess.settings.title">Location</h3>
+            <p class="mat-body mt-2 mb-3" i18n="@@locationAccess.settings.description">
+              Use location for the map position and nearby check-ins. It is off until you choose otherwise.
+            </p>
+            <p class="mat-body-small mt-0" i18n="@@locationAccess.settings.current">
+              Current setting: {{ locationAccessLabel() }}
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+              <button matButton="outlined" type="button" (click)="manageLocationAccess()" i18n="@@locationAccess.settings.manage">Manage location</button>
+              @if (locationAccess.enabled()) {
+                <button matButton="outlined" type="button" (click)="disableLocationAccess()" i18n="@@locationAccess.settings.off">Turn off</button>
+              }
+            </div>
           </div>
 
           <mat-expansion-panel class="my-4">

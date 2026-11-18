@@ -172,8 +172,15 @@
     // The toggle above names the count, so its heading may wrap small.
     .mat-mdc-header-cell:nth-of-type(3),
     .mat-mdc-cell:nth-of-type(3) {
-      width: 7.5rem;
+      width: 5.25rem;
       text-align: end;
+    }
+
+    // Long German labels ("Bearbeitungen") wrap small instead of taking
+    // width from the names.
+    .mat-mdc-header-cell:nth-of-type(3) {
+      font: var(--mat-sys-label-small);
+      overflow-wrap: anywhere;
     }
 
     .label-full {

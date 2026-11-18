@@ -125,6 +125,27 @@ h3,
   overflow-wrap: break-word;
 }
 
+// With enlarged text, big titles grow at most to a size where a long German
+// word still fits a phone line (about 15 letters across the screen). At
+// normal text size these caps sit above the theme sizes and change nothing.
+// The rem values are the Material 3 type scale (the --mat-sys typography
+// tokens are not declared globally).
+h1.mat-headline-large,
+.mat-headline-large {
+  font-size: min(2rem, 10.5vw);
+  line-height: min(2.5rem, 13vw);
+}
+
+.mat-headline-medium {
+  font-size: min(1.75rem, 9.5vw);
+  line-height: min(2.25rem, 12vw);
+}
+
+.mat-display-small {
+  font-size: min(2.25rem, 11vw);
+  line-height: min(2.75rem, 13.5vw);
+}
+
 html.map-glass-blur-enabled {
   --map-glass-surface: color-mix(
     in srgb,

@@ -136,6 +136,8 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MatDialog } from "@angular/material/dialog";
+import { SpotEditLeaveService } from "../../guards/spot-edit-leave.guard";
+import { confirmDiscardChanges } from "../discard-changes-dialog/discard-changes-dialog.component";
 import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
@@ -488,6 +490,7 @@ export class MapPageComponent
 
   onSpotPanelEditingChange(isEditing: boolean) {
     if (isEditing) {
+      this._editingPath = this._location.path();
       this.spotMap?.startEdit();
     } else {
       this.spotMap?.discardEdit();
@@ -2036,6 +2039,44 @@ export class MapPageComponent
 
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
+  private readonly _spotEditLeave = inject(SpotEditLeaveService);
+
+  /**
+   * Back or a link while editing a Spot: unchanged edits just close the
+   * editor; changed ones are discarded only after the person confirms.
+   */
+  /** The address of the Spot being edited, to return to when Back is undone. */
+  private _editingPath: string | null = null;
+
+  /**
+   * Browser Back while editing. Unchanged edits just close the editor and
+   * the navigation continues. Changed ones put the Spot's address back and
+   * ask whether to discard them; returns true when Back was held back.
+   */
+  private _handleBackWhileEditing(): boolean {
+    if (!this.spotMap?.hasUnsavedEdit() || !this._editingPath) {
+      this.spotMap?.discardEdit();
+      return false;
+    }
+    // Restore the address once the router has handled the same popstate,
+    // which would otherwise write /map back over it.
+    const editingPath = this._editingPath;
+    setTimeout(() => this._location.go(editingPath));
+    // Discarding closes the editor and stays on the Spot; Back again leaves.
+    void confirmDiscardChanges(this._dialog).then((discard) => {
+      if (discard) this.spotMap?.discardEdit();
+    });
+    return true;
+  }
+
+  private readonly _confirmLeaveSpotEdit = async (): Promise<boolean> => {
+    if (!this.isEditing()) return true;
+    if (this.spotMap?.hasUnsavedEdit() && !(await confirmDiscardChanges(this._dialog))) {
+      return false;
+    }
+    this.spotMap?.discardEdit();
+    return true;
+  };
   private _weatherService = inject(WeatherService);
   private _searchPreviewRequestVersion = 0;
 
@@ -2954,6 +2995,7 @@ export class MapPageComponent
 
   ngOnInit() {
     console.debug("map page init");
+    this._spotEditLeave.register(this._confirmLeaveSpotEdit);
 
     // Trigger Google Maps API loading since this page needs it
     // this.tryLoadMapsApi(); // TODO wtf
@@ -3128,6 +3170,12 @@ export class MapPageComponent
       this._locationSubscription = this._location.subscribe((event) => {
         const url = event.url || "";
         if (!url.startsWith("/map")) {
+          return;
+        }
+
+        // Spot panels change the address with Location.go(), so browser Back
+        // arrives here rather than through the router's leave guard.
+        if (this.isEditing() && this._handleBackWhileEditing()) {
           return;
         }
 
@@ -5857,6 +5905,7 @@ export class MapPageComponent
 
   ngOnDestroy() {
     console.debug("destroying map page");
+    this._spotEditLeave.unregister(this._confirmLeaveSpotEdit);
     clearTimeout(this._panelLayoutSwitchTimer);
     if (this.checkInEnabled) {
       this.checkInService.showGlobalChip.set(true);

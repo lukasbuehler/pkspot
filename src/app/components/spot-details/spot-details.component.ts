@@ -1233,12 +1233,17 @@ export class SpotDetailsComponent
         spotId: spot.id,
         spotName: spot.name(),
         report: this.ownReport(),
+        hasPhotos: spot.media().length > 0 && !!this.mediaCarousel(),
       },
     });
     dialogRef
       .afterClosed()
       .subscribe(
         (result?: SpotReportDialogResult) => {
+          if (result?.reportPhoto) {
+            this.mediaCarousel()?.openImageViewer(0);
+            return;
+          }
           if (!result?.reportId && !result?.withdrawn) {
             return;
           }
@@ -1273,6 +1278,8 @@ export class SpotDetailsComponent
 
   private readonly _ratingsSection =
     viewChild<ElementRef<HTMLElement>>("ratingsSection");
+  /** The Spot's photo carousel; its viewer reports single photos. */
+  private readonly mediaCarousel = viewChild(ImgCarouselComponent);
 
   /** Names the header rating button with the value, e.g. "4.0 stars, see reviews". */
   readonly ratingJumpLabel = computed(() => {

@@ -49,6 +49,8 @@
       form
     "
     placeholder="Spot name"
+    fieldLabel="Spot name"
+    i18n-fieldLabel="@@spot.edit.name.field_label"
     [(localeMap)]="spotNameLocaleMap"
   >
   </app-locale-map-edit-field>
@@ -150,6 +152,8 @@
   "
   [isTextArea]="true"
   placeholder="Description of the spot, its features and more..."
+  fieldLabel="Description"
+  i18n-fieldLabel="@@spot.edit.description.field_label"
   [(localeMap)]="spotDescriptionLocaleMap"
 >
 </app-locale-map-edit-field>

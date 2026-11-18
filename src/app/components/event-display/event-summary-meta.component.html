@@ -6,11 +6,13 @@
 }
 
 @if (statusLabel()) {
-  <p class="event-meta mat-title-medium m-0 d-flex flex-wrap gap-1">
+  <!-- Status and date on their own lines: a long date in parentheses
+       wrapped awkwardly on phones. -->
+  <p class="event-meta mat-title-medium m-0 d-flex flex-column">
     <span class="event-status" [attr.data-status]="status()">{{
       statusLabel()
     }}</span>
-    <span class="event-date-range">({{ dateRange() }})</span>
+    <span class="event-date-range">{{ dateRange() }}</span>
   </p>
 }
 

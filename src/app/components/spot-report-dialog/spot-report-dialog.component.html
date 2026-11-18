@@ -11,6 +11,15 @@
     </div>
   }
   <div class="report-fields" [class.concealed]="loading() || loadError()" [attr.inert]="loading() || loadError() ? '' : null">
+  @if (data.hasPhotos && !isEditing) {
+    <div class="photo-report-note">
+      <mat-icon aria-hidden="true">image</mat-icon>
+      <div class="photo-report-note__text">
+        <p class="mat-body-medium" i18n="@@spot_report.photo_note">Is a photo the problem? Report that photo on its own, so only it is reviewed.</p>
+        <button matButton="text" type="button" (click)="reportPhotoInstead()" i18n="@@spot_report.photo_action">Choose photo to report</button>
+      </div>
+    </div>
+  }
   <p i18n>Select every reason that applies. Your report and identity are visible only to moderators.</p>
   <div class="d-flex flex-column gap-2">
     @for (reason of reasons; track reason.value) {

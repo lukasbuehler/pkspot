@@ -58,7 +58,7 @@ describe("MapFloatingControlsComponent", () => {
     );
     expect(locationButton.classes["map-location-control--disabled"]).toBe(true);
     expect(locationButton.nativeElement.disabled).toBe(false);
-    expect(fixture.componentInstance.geolocationTooltip()).toBe("Location is off");
+    expect(fixture.componentInstance.geolocationTooltip()).toBe("Turn on location");
   });
 
   it("keeps the plus menu stable when opening the sheet removes the Spot action", async () => {

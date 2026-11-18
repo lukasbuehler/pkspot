@@ -69,7 +69,9 @@ export class MapFloatingControlsComponent {
   readonly geolocationTooltip = computed(() =>
     this.locationEnabled()
       ? $localize`:@@map.geolocation.tooltip:Go to your location`
-      : $localize`:@@map.geolocation.disabled.tooltip:Location is off`,
+      // Name the action, not the state: the browser may already allow
+      // location while PK Spot's own location setting is still off.
+      : $localize`:@@map.geolocation.enable.tooltip:Turn on location`,
   );
   readonly resetNorthLabel = $localize`:@@map.reset_north.tooltip:Reset map orientation to north`;
   readonly mapStyleLabel = computed(() =>

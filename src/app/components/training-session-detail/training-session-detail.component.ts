@@ -1,3 +1,4 @@
+import { MatExpansionModule } from "@angular/material/expansion";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -50,6 +51,7 @@ interface SessionDetailSummary {
     SystemDatePipe,
     RouterLink,
     MatButtonModule,
+    MatExpansionModule,
     MatIconModule,
     MatProgressSpinnerModule,
   ],

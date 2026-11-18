@@ -2114,6 +2114,18 @@
         <target>Steden</target>
       </segment>
     </unit>
+    <unit id="events.empty.clear_filters">
+      <segment state="translated">
+        <source> Clear filters </source>
+        <target>Filters wissen</target>
+      </segment>
+    </unit>
+    <unit id="events.empty.list_hint">
+      <segment state="translated">
+        <source> Clear the active filters, or switch between upcoming and past events. </source>
+        <target>Wis de actieve filters of wissel tussen komende en afgelopen events.</target>
+      </segment>
+    </unit>
     <unit id="events.filters_dialog.apply">
       <segment state="translated">
         <source>Apply</source>
@@ -2565,6 +2577,12 @@
       <segment state="initial">
         <source>View all</source>
         <target>Alles bekijken</target>
+      </segment>
+    </unit>
+    <unit id="my_reports.back">
+      <segment state="translated">
+        <source>Profile</source>
+        <target>Profiel</target>
       </segment>
     </unit>
     <unit id="3502015908968636245">
@@ -4199,6 +4217,12 @@
       <segment state="initial">
         <source>Incorrect password. Please try again.</source>
         <target>Onjuist wachtwoord. Probeer het opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="media_report.preview_alt">
+      <segment state="translated">
+        <source>Image to report</source>
+        <target>Te melden afbeelding</target>
       </segment>
     </unit>
     <unit id="mediaReportSignInRequired">
@@ -6728,6 +6752,18 @@
         <target> PK Spot kan je twee uur vooraf herinneren aan evenementen waar je naartoe gaat of interesse in hebt. </target>
       </segment>
     </unit>
+    <unit id="notification_prompt.event.inline">
+      <segment state="translated">
+        <source>Saved. Get a reminder two hours before it starts?</source>
+        <target>Opgeslagen. Een herinnering twee uur voor de start krijgen?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.inline_action">
+      <segment state="translated">
+        <source>Remind me</source>
+        <target>Herinner me</target>
+      </segment>
+    </unit>
     <unit id="notification_prompt.event.title">
       <segment state="initial">
         <source>Get an event reminder?</source>
@@ -6768,6 +6804,18 @@
       <segment state="initial">
         <source> Know when someone follows you, sends a follow request, or accepts yours. </source>
         <target> Ontvang een melding wanneer iemand je volgt, een volgverzoek stuurt of jouw verzoek accepteert. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.inline">
+      <segment state="translated">
+        <source>Get notified when someone follows you or accepts your request?</source>
+        <target>Een melding krijgen als iemand je volgt of je verzoek accepteert?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.inline_action">
+      <segment state="translated">
+        <source>Notify me</source>
+        <target>Meld het me</target>
       </segment>
     </unit>
     <unit id="notification_prompt.follow.title">
@@ -11959,22 +12007,10 @@
         <target>Sluiten</target>
       </segment>
     </unit>
-    <unit id="follow_list.column_actions">
-      <segment state="translated">
-        <source>Actions</source>
-        <target>Acties</target>
-      </segment>
-    </unit>
-    <unit id="follow_list.column_since">
+    <unit id="follow_list.since">
       <segment state="translated">
         <source>Since</source>
         <target>Sinds</target>
-      </segment>
-    </unit>
-    <unit id="follow_list.column_user">
-      <segment state="translated">
-        <source>User</source>
-        <target>Persoon</target>
       </segment>
     </unit>
     <unit id="follow_list.empty_followers_other">
@@ -12011,12 +12047,6 @@
       <segment state="translated">
         <source>Load more</source>
         <target>Meer laden</target>
-      </segment>
-    </unit>
-    <unit id="follow_list.open_profile">
-      <segment state="translated">
-        <source>Open profile</source>
-        <target>Profiel openen</target>
       </segment>
     </unit>
     <unit id="follow_list.other_user_fallback">
@@ -12125,6 +12155,18 @@
       <segment state="initial">
         <source> Load external media from </source>
         <target> Externe media laden van </target>
+      </segment>
+    </unit>
+    <unit id="img_carousel.open_photo">
+      <segment state="translated">
+        <source>Open <ph id="0" equiv="photo" disp="alt"/> full screen</source>
+        <target><ph id="0" equiv="photo" disp="alt"/> op volledig scherm openen</target>
+      </segment>
+    </unit>
+    <unit id="img_carousel.report_photo">
+      <segment state="translated">
+        <source>Report photo</source>
+        <target>Foto melden</target>
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
@@ -12857,10 +12899,10 @@
         <target>Notitie opslaan</target>
       </segment>
     </unit>
-    <unit id="logEditor.saveError">
+    <unit id="logEditor.saveFailedRetry">
       <segment state="translated">
-        <source>Could not save this log entry.</source>
-        <target>Dit logboekitem kon niet worden opgeslagen.</target>
+        <source>Your entry couldn&apos;t be saved. Check your connection and save again; nothing you entered is lost.</source>
+        <target>Je invoer kon niet worden opgeslagen. Controleer je verbinding en sla opnieuw op; niets van wat je hebt ingevuld gaat verloren.</target>
       </segment>
     </unit>
     <unit id="logEditor.spotsOptional">
@@ -14735,6 +14777,12 @@
         <target>Getroffen accounts bekijken</target>
       </segment>
     </unit>
+    <unit id="profile.actions.more">
+      <segment state="translated">
+        <source>More actions for this profile</source>
+        <target>Meer acties voor dit profiel</target>
+      </segment>
+    </unit>
     <unit id="profile.actions.report">
       <segment state="initial">
         <source>Report</source>
@@ -15013,6 +15061,12 @@
         <target> Toegang en type </target>
       </segment>
     </unit>
+    <unit id="spot.edit.description.field_label">
+      <segment state="translated">
+        <source>Description</source>
+        <target>Beschrijving</target>
+      </segment>
+    </unit>
     <unit id="8902169607450414056">
       <notes>
         <note category="description">Label of the button to edit the spot</note>
@@ -15183,6 +15237,12 @@
       <segment state="initial">
         <source> You can re-order the spot media below using drag-and-drop. </source>
         <target> Je kunt de spotmedia hieronder herschikken met drag-and-drop. </target>
+      </segment>
+    </unit>
+    <unit id="spot.edit.name.field_label">
+      <segment state="translated">
+        <source>Spot name</source>
+        <target>Spotnaam</target>
       </segment>
     </unit>
     <unit id="spot.edit.name.header">
@@ -16448,6 +16508,30 @@
         <target> Tot <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </target>
       </segment>
     </unit>
+    <unit id="spot_picker.remove">
+      <segment state="translated">
+        <source>Remove</source>
+        <target>Verwijderen</target>
+      </segment>
+    </unit>
+    <unit id="spot_picker.remove_spot">
+      <segment state="translated">
+        <source>Remove spot</source>
+        <target>Spot verwijderen</target>
+      </segment>
+    </unit>
+    <unit id="spot_report.photo_action">
+      <segment state="translated">
+        <source>Choose photo to report</source>
+        <target>Foto kiezen om te melden</target>
+      </segment>
+    </unit>
+    <unit id="spot_report.photo_note">
+      <segment state="translated">
+        <source>Is a photo the problem? Report that photo on its own, so only it is reviewed.</source>
+        <target>Is een foto het probleem? Meld die foto apart, zodat alleen die wordt beoordeeld.</target>
+      </segment>
+    </unit>
     <unit id="spot_review.star_many">
       <segment state="translated">
         <source><ph id="0" equiv="count" disp="count"/> stars</source>
@@ -16966,16 +17050,16 @@
         <target><ph id="0" equiv="count" disp="going"/> gaan</target>
       </segment>
     </unit>
+    <unit id="train.fab.text">
+      <segment state="translated">
+        <source>Log training</source>
+        <target>Training vastleggen</target>
+      </segment>
+    </unit>
     <unit id="train.history.allLogs">
       <segment state="translated">
         <source>View all logs</source>
         <target>Alle logs bekijken</target>
-      </segment>
-    </unit>
-    <unit id="train.history.title">
-      <segment state="translated">
-        <source>Training history</source>
-        <target>Trainingsgeschiedenis</target>
       </segment>
     </unit>
     <unit id="train.teaser.body">
@@ -20876,6 +20960,12 @@
         <target><ph id="0" equiv="count" disp="pauseDays"/> hersteldagen</target>
       </segment>
     </unit>
+    <unit id="trainingLog.checkIns.actions">
+      <segment state="translated">
+        <source>Check-in archive actions</source>
+        <target>Acties voor het check-in-archief</target>
+      </segment>
+    </unit>
     <unit id="trainingLog.checkIns.clear">
       <segment state="initial">
         <source>Clear all</source>
@@ -20894,16 +20984,16 @@
         <target>Je bevestigde check-ins in de buurt verschijnen hier.</target>
       </segment>
     </unit>
+    <unit id="map.geolocation.enable.tooltip">
+      <segment state="translated">
+        <source>Turn on location</source>
+        <target>Locatie inschakelen</target>
+      </segment>
+    </unit>
     <unit id="map.geolocation.tooltip">
       <segment state="initial">
         <source>Go to your location</source>
         <target>Ga naar je locatie</target>
-      </segment>
-    </unit>
-    <unit id="map.geolocation.disabled.tooltip">
-      <segment state="initial">
-        <source>Location is off</source>
-        <target>Locatie staat uit</target>
       </segment>
     </unit>
     <unit id="locationAccess.title">
@@ -21540,6 +21630,12 @@
       <segment state="initial">
         <source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source>
         <target>Gestart op <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · bezig</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.activityCalendar">
+      <segment state="translated">
+        <source>Activity calendar</source>
+        <target>Activiteitenkalender</target>
       </segment>
     </unit>
     <unit id="trainingLog.add">

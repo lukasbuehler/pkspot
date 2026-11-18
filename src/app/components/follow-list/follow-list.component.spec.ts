@@ -101,9 +101,9 @@ describe("FollowListComponent", () => {
     expect(fixture.nativeElement.querySelector("mat-spinner")).toBeNull();
     expect(fixture.nativeElement.textContent).toContain("Blake");
     expect(fixture.nativeElement.textContent).toContain("Casey");
-    expect(fixture.nativeElement.querySelector("table")?.className).not.toContain(
-      "d-none"
-    );
+    const rows = fixture.nativeElement.querySelectorAll(".follow-list__row");
+    expect(rows.length).toBe(2);
+    expect(rows[0].getAttribute("href")).toContain("/u/follower-1");
     expect(data.followUsers).toEqual([]);
   });
 

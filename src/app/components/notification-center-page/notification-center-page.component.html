@@ -91,9 +91,12 @@
               <span class="notification-row__title mat-title-medium">
                 {{ notification.title }}
               </span>
-              <span class="notification-row__body mat-body-medium">
-                {{ notification.body }}
-              </span>
+              <!-- Some notifications repeat their title as body text. -->
+              @if (notification.body && notification.body !== notification.title) {
+                <span class="notification-row__body mat-body-medium">
+                  {{ notification.body }}
+                </span>
+              }
               <span class="notification-row__time mat-label-medium">
                 {{ notification.time }}
                 @if (thread.history.length > 0) {
@@ -163,7 +166,9 @@
                 <span class="notification-row__icon" aria-hidden="true"><mat-icon>{{ history.icon }}</mat-icon></span>
                 <span class="notification-row__copy">
                   <span class="notification-row__title mat-title-small">{{ history.title }}</span>
-                  <span class="notification-row__body mat-body-small">{{ history.body }}</span>
+                  @if (history.body && history.body !== history.title) {
+                    <span class="notification-row__body mat-body-small">{{ history.body }}</span>
+                  }
                   <span class="notification-row__time mat-label-small">{{ history.time }}</span>
                 </span>
               </button>

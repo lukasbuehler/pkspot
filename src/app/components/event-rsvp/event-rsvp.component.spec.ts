@@ -46,6 +46,7 @@ describe("EventRsvpComponent", () => {
   };
   const notificationOptIn = {
     maybePrompt: vi.fn(() => Promise.resolve(null)),
+    wouldPrompt: vi.fn(() => false),
   };
   const relationship = signal<"going" | "saved" | null>(null);
   const myEvents = {
@@ -104,6 +105,7 @@ describe("EventRsvpComponent", () => {
       event_updates: true,
     });
     notificationOptIn.maybePrompt.mockResolvedValue(null);
+    notificationOptIn.wouldPrompt.mockReturnValue(false);
     await TestBed.configureTestingModule({
       imports: [EventRsvpComponent],
       providers: [
@@ -183,6 +185,32 @@ describe("EventRsvpComponent", () => {
     expect(
       pushNotifications.requestPermissionFromUserAction,
     ).toHaveBeenCalledOnce();
+  });
+
+  it("saves going first and only then offers reminders without blocking", async () => {
+    notificationOptIn.wouldPrompt.mockReturnValue(true);
+    let answer: (value: "context") => void = () => undefined;
+    notificationOptIn.maybePrompt.mockReturnValue(
+      new Promise((resolve) => (answer = resolve)) as never,
+    );
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.selectRsvp("going");
+
+    expect(component.loadedRsvp()).toBe("going");
+    expect(notificationOptIn.maybePrompt).toHaveBeenCalledWith("event_reminders", {
+      inline: true,
+    });
+    expect(liveUpdatesService.ensureDefaultNotificationLevel).not.toHaveBeenCalled();
+
+    answer("context");
+    await vi.waitFor(() =>
+      expect(
+        liveUpdatesService.ensureDefaultNotificationLevel,
+      ).toHaveBeenCalledWith("event-1", "reminders"),
+    );
   });
 
   it("does not enable notifications for not going", async () => {

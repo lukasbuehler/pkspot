@@ -116,9 +116,9 @@
         <source>Save entry</source>
       </segment>
     </unit>
-    <unit id="logEditor.saveError">
+    <unit id="logEditor.saveFailedRetry">
       <segment>
-        <source>Could not save this log entry.</source>
+        <source>Your entry couldn&apos;t be saved. Check your connection and save again; nothing you entered is lost.</source>
       </segment>
     </unit>
     <unit id="logEditor.spotsOptional">
@@ -204,6 +204,16 @@
     <unit id="map_community_filter.locality">
       <segment>
         <source>Cities</source>
+      </segment>
+    </unit>
+    <unit id="events.empty.clear_filters">
+      <segment>
+        <source> Clear filters </source>
+      </segment>
+    </unit>
+    <unit id="events.empty.list_hint">
+      <segment>
+        <source> Clear the active filters, or switch between upcoming and past events. </source>
       </segment>
     </unit>
     <unit id="events.filters_dialog.apply">
@@ -1403,6 +1413,11 @@
     <unit id="3742557968359744247">
       <segment>
         <source>Password Reset Failed</source>
+      </segment>
+    </unit>
+    <unit id="profile.actions.more">
+      <segment>
+        <source>More actions for this profile</source>
       </segment>
     </unit>
     <unit id="profile.actions.report">
@@ -7093,19 +7108,9 @@
         <source>Close</source>
       </segment>
     </unit>
-    <unit id="follow_list.column_actions">
-      <segment>
-        <source>Actions</source>
-      </segment>
-    </unit>
-    <unit id="follow_list.column_since">
+    <unit id="follow_list.since">
       <segment>
         <source>Since</source>
-      </segment>
-    </unit>
-    <unit id="follow_list.column_user">
-      <segment>
-        <source>User</source>
       </segment>
     </unit>
     <unit id="follow_list.empty_followers_other">
@@ -7136,11 +7141,6 @@
     <unit id="follow_list.load_more">
       <segment>
         <source>Load more</source>
-      </segment>
-    </unit>
-    <unit id="follow_list.open_profile">
-      <segment>
-        <source>Open profile</source>
       </segment>
     </unit>
     <unit id="follow_list.other_user_fallback">
@@ -7201,6 +7201,16 @@
     <unit id="img_carousel.load_external_media_from">
       <segment>
         <source> Load external media from </source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.open_photo">
+      <segment>
+        <source>Open <ph id="0" equiv="photo" disp="alt"/> full screen</source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.report_photo">
+      <segment>
+        <source>Report photo</source>
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
@@ -8482,6 +8492,11 @@
     <unit id="my_events.view_all">
       <segment>
         <source>View all</source>
+      </segment>
+    </unit>
+    <unit id="my_reports.back">
+      <segment>
+        <source>Profile</source>
       </segment>
     </unit>
     <unit id="7010151693196670017">
@@ -10867,11 +10882,6 @@
         <source>View all logs</source>
       </segment>
     </unit>
-    <unit id="train.history.title">
-      <segment>
-        <source>Training history</source>
-      </segment>
-    </unit>
     <unit id="train.nav">
       <notes>
         <note category="description">A very short label for training planning</note>
@@ -11124,6 +11134,11 @@
     <unit id="train.event.goingCount">
       <segment>
         <source><ph id="0" equiv="count" disp="going"/> going</source>
+      </segment>
+    </unit>
+    <unit id="train.fab.text">
+      <segment>
+        <source>Log training</source>
       </segment>
     </unit>
     <unit id="train.teaser.body">
@@ -12370,6 +12385,11 @@
         <source> Access and Type </source>
       </segment>
     </unit>
+    <unit id="spot.edit.description.field_label">
+      <segment>
+        <source>Description</source>
+      </segment>
+    </unit>
     <unit id="8902169607450414056">
       <notes>
         <note category="description">Label of the button to edit the spot</note>
@@ -12482,6 +12502,11 @@
     <unit id="4493161543971750886">
       <segment>
         <source>Privacy or data use</source>
+      </segment>
+    </unit>
+    <unit id="spot.edit.name.field_label">
+      <segment>
+        <source>Spot name</source>
       </segment>
     </unit>
     <unit id="spot.edit.name.header">
@@ -12693,6 +12718,26 @@
     <unit id="spot_picker.limit_hint">
       <segment>
         <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </source>
+      </segment>
+    </unit>
+    <unit id="spot_picker.remove">
+      <segment>
+        <source>Remove</source>
+      </segment>
+    </unit>
+    <unit id="spot_picker.remove_spot">
+      <segment>
+        <source>Remove spot</source>
+      </segment>
+    </unit>
+    <unit id="spot_report.photo_action">
+      <segment>
+        <source>Choose photo to report</source>
+      </segment>
+    </unit>
+    <unit id="spot_report.photo_note">
+      <segment>
+        <source>Is a photo the problem? Report that photo on its own, so only it is reviewed.</source>
       </segment>
     </unit>
     <unit id="spot_review.star_many">
@@ -13666,6 +13711,16 @@
         <source> PK Spot can remind you two hours before events you are going to or interested in. </source>
       </segment>
     </unit>
+    <unit id="notification_prompt.event.inline">
+      <segment>
+        <source>Saved. Get a reminder two hours before it starts?</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.inline_action">
+      <segment>
+        <source>Remind me</source>
+      </segment>
+    </unit>
     <unit id="notification_prompt.event.title">
       <segment>
         <source>Get an event reminder?</source>
@@ -13699,6 +13754,16 @@
     <unit id="notification_prompt.follow.body">
       <segment>
         <source> Know when someone follows you, sends a follow request, or accepts yours. </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.inline">
+      <segment>
+        <source>Get notified when someone follows you or accepts your request?</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.inline_action">
+      <segment>
+        <source>Notify me</source>
       </segment>
     </unit>
     <unit id="notification_prompt.follow.title">
@@ -14868,6 +14933,11 @@
     <unit id="agreeAndContinueLabel">
       <segment>
         <source>Agree and Continue</source>
+      </segment>
+    </unit>
+    <unit id="media_report.preview_alt">
+      <segment>
+        <source>Image to report</source>
       </segment>
     </unit>
     <unit id="mediaReportSignInRequired">
@@ -17472,6 +17542,11 @@
         <source><ph id="0" equiv="count" disp="pauseDays"/> recovery days</source>
       </segment>
     </unit>
+    <unit id="trainingLog.checkIns.actions">
+      <segment>
+        <source>Check-in archive actions</source>
+      </segment>
+    </unit>
     <unit id="trainingLog.checkIns.clear">
       <segment>
         <source>Clear all</source>
@@ -17487,14 +17562,14 @@
         <source>Your confirmed nearby check-ins will appear here.</source>
       </segment>
     </unit>
+    <unit id="map.geolocation.enable.tooltip">
+      <segment>
+        <source>Turn on location</source>
+      </segment>
+    </unit>
     <unit id="map.geolocation.tooltip">
       <segment>
         <source>Go to your location</source>
-      </segment>
-    </unit>
-    <unit id="map.geolocation.disabled.tooltip">
-      <segment>
-        <source>Location is off</source>
       </segment>
     </unit>
     <unit id="locationAccess.title">
@@ -18025,6 +18100,11 @@
     <unit id="recoveryPause.timeline.ongoing">
       <segment>
         <source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.activityCalendar">
+      <segment>
+        <source>Activity calendar</source>
       </segment>
     </unit>
     <unit id="trainingLog.add">

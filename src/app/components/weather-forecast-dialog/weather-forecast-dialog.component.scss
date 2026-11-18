@@ -141,12 +141,8 @@ mat-dialog-content {
   min-width: 0;
   gap: 2px;
 
-  details {
+  .alert-details {
     margin-top: 6px;
-  }
-
-  summary {
-    cursor: pointer;
   }
 
   p {

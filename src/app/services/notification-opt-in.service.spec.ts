@@ -67,6 +67,48 @@ describe("NotificationOptInService", () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
+  it("asks inline with a snackbar after quick actions and treats its action as yes", async () => {
+    const snackbar = TestBed.inject(MatSnackBar) as unknown as { open: ReturnType<typeof vi.fn> };
+    snackbar.open.mockReturnValueOnce({
+      afterDismissed: () => of({ dismissedByAction: true }),
+    });
+    const service = TestBed.inject(NotificationOptInService);
+
+    const result = await service.maybePrompt("follow_activity", { inline: true });
+
+    expect(result).toBe("context");
+    expect(dialog.open).not.toHaveBeenCalled();
+    expect(snackbar.open).toHaveBeenCalledWith(
+      "Get notified when someone follows you or accepts your request?",
+      "Notify me",
+      { duration: 10000 },
+    );
+    expect(preferences.applyPromptDecision).toHaveBeenCalledWith(
+      "follow_activity",
+      "accepted",
+      false,
+    );
+  });
+
+  it("records an ignored inline prompt as not now", async () => {
+    const snackbar = TestBed.inject(MatSnackBar) as unknown as { open: ReturnType<typeof vi.fn> };
+    snackbar.open.mockReturnValueOnce({
+      afterDismissed: () => of({ dismissedByAction: false }),
+    });
+
+    const result = await TestBed.inject(NotificationOptInService).maybePrompt(
+      "event_reminders",
+      { inline: true },
+    );
+
+    expect(result).toBe("dismissed");
+    expect(preferences.applyPromptDecision).toHaveBeenCalledWith(
+      "event_reminders",
+      "dismissed",
+      false,
+    );
+  });
+
   it("requests system permission before persisting the contextual choice", async () => {
     const service = TestBed.inject(NotificationOptInService);
 

@@ -89,6 +89,12 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
         $localize`:@@media.image_alt_numbered:${name}:name:, photo ${i + 1}:index: of ${total}:total:`,
     );
   });
+  /** Names the keyboard button over each photo, e.g. "Open Lindenhof, photo 1 of 3". */
+  readonly openPhotoLabels = computed(() =>
+    this.imageAlts().map(
+      (alt) => $localize`:@@img_carousel.open_photo:Open ${alt}:photo: full screen`,
+    ),
+  );
   readonly trailingPhotoAlt = computed(
     () =>
       $localize`:@@media.google_photo_alt:${this.imageDescription()}:name: on Google Maps`,
@@ -1112,11 +1118,13 @@ interface SwiperDialogResult {
         }
         @if (canReportCurrentMedia()) {
           <button
-            mat-icon-button
-            class="swiper-report-button d-flex"
+            mat-stroked-button
+            type="button"
+            class="swiper-report-button"
             (click)="onReportClick()"
           >
-            <mat-icon>report</mat-icon>
+            <mat-icon>flag</mat-icon>
+            <span i18n="@@img_carousel.report_photo">Report photo</span>
           </button>
         }
       </div>

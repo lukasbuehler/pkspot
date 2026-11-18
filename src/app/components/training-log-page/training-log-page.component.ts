@@ -1,3 +1,5 @@
+import { MatExpansionModule } from "@angular/material/expansion";
+import { MatMenuModule } from "@angular/material/menu";
 import { LocalLegendService } from "../../services/local-legend.service";
 import { LOCALE_ID } from "@angular/core";
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
@@ -78,7 +80,9 @@ interface TrainingTimelineGroup {
     SystemDatePipe,
     RouterLink,
     MatButtonModule,
+    MatExpansionModule,
     MatIconModule,
+    MatMenuModule,
     FabMenuComponent,
     MatProgressSpinnerModule,
     TrainingActivityContributionGraphComponent,

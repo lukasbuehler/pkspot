@@ -71,6 +71,14 @@
           }
 
           }
+          <!-- Keyboard and screen-reader way into the viewer. Pointer taps
+               reach the scroll layer underneath, which keeps swiping smooth. -->
+          <button
+            type="button"
+            class="photo-open-button"
+            [attr.aria-label]="openPhotoLabels()[$index] ?? openPhotoLabels()[0]"
+            (click)="imageClick($index)"
+          ></button>
           @if (isImageProcessing($index, mediaObj)) {
             <!-- Show processing placeholder while resized image isn't ready -->
             <div class="processing-overlay">
