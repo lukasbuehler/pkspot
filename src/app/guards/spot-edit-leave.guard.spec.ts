@@ -35,4 +35,16 @@ describe("spotEditLeaveGuard", () => {
     service.unregister(async () => true);
     expect(await run()).toBe(false);
   });
+
+  it("stays guarded when another map page instance goes away", async () => {
+    const service = TestBed.inject(SpotEditLeaveService);
+    const editingPage = async () => false;
+    const historyPage = () => true;
+    service.register(editingPage);
+    service.register(historyPage);
+    // Closing the history view destroys its map page instance.
+    service.unregister(historyPage);
+    expect(await run()).toBe(false);
+    service.unregister(editingPage);
+  });
 });

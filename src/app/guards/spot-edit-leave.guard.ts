@@ -7,21 +7,34 @@ type LeaveCheck = () => Promise<boolean> | boolean;
  * Lets the map page answer whether its open Spot editor may be left. Spot
  * routes are reused map page instances, so the route guard cannot reach the
  * editor through its component argument.
+ *
+ * Nested Spot routes (`/map`, `/map/spots/:spot`, `/map/spots/:spot/edits`)
+ * can each hold a live map page, so every instance registers its own check.
+ * One instance going away (for example closing the history view) must not
+ * leave the others unguarded.
  */
 @Injectable({ providedIn: "root" })
 export class SpotEditLeaveService {
-  private _check: LeaveCheck | null = null;
+  private readonly _checks = new Set<LeaveCheck>();
 
   register(check: LeaveCheck): void {
-    this._check = check;
+    this._checks.add(check);
   }
 
   unregister(check: LeaveCheck): void {
-    if (this._check === check) this._check = null;
+    this._checks.delete(check);
   }
 
+  /** Leaving is allowed only when every open map page agrees. */
   confirmLeave(): Promise<boolean> | boolean {
-    return this._check?.() ?? true;
+    const checks = [...this._checks];
+    if (checks.length === 0) return true;
+    return (async () => {
+      for (const check of checks) {
+        if (!(await check())) return false;
+      }
+      return true;
+    })();
   }
 }
 
