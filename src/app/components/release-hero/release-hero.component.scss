@@ -1,0 +1,179 @@
+// Moved from the 1.2 what's-new dialog so every release has one. The tier
+// sets the size, glow, icon layout and centerpiece: major releases feel big,
+// updates calmer and web-only patches quiet. Set `--release-hero-height` on
+// the host to override the tier's height.
+:host {
+  --hero-height: 184px;
+  --hero-glow: radial-gradient(
+    circle at 50% 62%,
+    color-mix(in srgb, var(--mat-sys-primary) 38%, var(--mat-sys-primary-container)),
+    var(--mat-sys-primary-container) 30%,
+    var(--mat-sys-surface-container-high) 74%
+  );
+  --float-size: 30px;
+  --float-opacity: 0.9;
+  --centerpiece-size: 76px;
+  --centerpiece-icon-size: 46px;
+
+  position: relative;
+  display: block;
+  height: var(--release-hero-height, var(--hero-height));
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--hero-glow);
+}
+
+:host(.tier-update) {
+  --hero-height: 144px;
+  --hero-glow: radial-gradient(
+    circle at 50% 62%,
+    color-mix(in srgb, var(--mat-sys-primary-container) 75%, var(--mat-sys-surface-container-high)),
+    var(--mat-sys-surface-container-high) 58%
+  );
+  --float-size: 26px;
+  --float-opacity: 0.8;
+  --centerpiece-size: 60px;
+  --centerpiece-icon-size: 36px;
+}
+
+:host(.tier-web) {
+  --hero-height: 112px;
+  --hero-glow: radial-gradient(
+    circle at 50% 62%,
+    color-mix(in srgb, var(--mat-sys-primary-container) 38%, var(--mat-sys-surface-container-high)),
+    var(--mat-sys-surface-container-high) 46%
+  );
+  --float-size: 24px;
+  --float-opacity: 0.7;
+  --centerpiece-size: 52px;
+  --centerpiece-icon-size: 30px;
+}
+
+.release-hero__float {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: var(--float-size);
+  height: var(--float-size);
+  font-size: var(--float-size);
+  color: var(--mat-sys-on-primary-container);
+  opacity: 0;
+  animation:
+    release-hero-float-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay) forwards,
+    release-hero-drift 6s ease-in-out calc(var(--delay) + 700ms) infinite;
+
+  // Green marks live presence (check-ins) only.
+  &.is-live { color: var(--mat-sys-secondary); }
+  &.is-gold { color: var(--app-rank-gold, #e9b82c); }
+}
+
+// Major: six icons scattered around the centerpiece.
+:host(.tier-major) .release-hero__float {
+  &:nth-child(1) { --x: 9%; --y: 56%; --delay: 0ms; }
+  &:nth-child(2) { --x: 22%; --y: 18%; --delay: 120ms; }
+  &:nth-child(3) { --x: 33%; --y: 62%; --delay: 240ms; }
+  &:nth-child(4) { --x: 63%; --y: 60%; --delay: 360ms; }
+  &:nth-child(5) { --x: 74%; --y: 16%; --delay: 480ms; }
+  &:nth-child(6) { --x: 86%; --y: 54%; --delay: 600ms; }
+}
+
+// Update: four icons in two calm pairs.
+:host(.tier-update) .release-hero__float {
+  &:nth-child(1) { --x: 14%; --y: 26%; --delay: 0ms; }
+  &:nth-child(2) { --x: 27%; --y: 60%; --delay: 120ms; }
+  &:nth-child(3) { --x: 69%; --y: 24%; --delay: 240ms; }
+  &:nth-child(4) { --x: 82%; --y: 58%; --delay: 360ms; }
+}
+
+// Web-only patch: three icons, kept close to the centerpiece.
+:host(.tier-web) .release-hero__float {
+  &:nth-child(1) { --x: 28%; --y: 52%; --delay: 0ms; }
+  &:nth-child(2) { --x: 37%; --y: 18%; --delay: 120ms; }
+  &:nth-child(3) { --x: 66%; --y: 40%; --delay: 240ms; }
+}
+
+.release-hero__centerpiece {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: var(--centerpiece-size);
+  height: var(--centerpiece-size);
+  place-items: center;
+  overflow: hidden;
+  border-radius: calc(var(--centerpiece-size) * 0.31);
+  background: var(--mat-sys-surface-container-highest);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+  animation: release-hero-centerpiece-in 600ms cubic-bezier(0.3, 1.4, 0.5, 1) 900ms forwards;
+
+  mat-icon {
+    width: var(--centerpiece-icon-size);
+    height: var(--centerpiece-icon-size);
+    font-size: var(--centerpiece-icon-size);
+    color: var(--mat-sys-primary);
+  }
+
+  &.is-gold mat-icon { color: var(--app-rank-gold, #e9b82c); }
+  &.is-live mat-icon { color: var(--mat-sys-secondary); }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 45%) 50%, transparent 65%);
+    transform: translateX(-120%);
+    animation: release-hero-shine 900ms ease-out 1500ms forwards;
+    content: "";
+  }
+}
+
+// Smaller releases settle sooner, and only major ones glow and shine.
+:host(.tier-major) .release-hero__centerpiece {
+  box-shadow: 0 0 32px color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
+}
+
+:host(.tier-update) .release-hero__centerpiece { animation-delay: 650ms; }
+
+:host(.tier-web) .release-hero__centerpiece {
+  animation-delay: 450ms;
+
+  &::after { display: none; }
+}
+
+@keyframes release-hero-float-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.6); }
+  to { opacity: var(--float-opacity); transform: none; }
+}
+
+@keyframes release-hero-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes release-hero-centerpiece-in {
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes release-hero-shine {
+  to { transform: translateX(120%); }
+}
+
+// Waiting to scroll into view: hold every animation at its first frame.
+:host(.is-waiting) {
+  .release-hero__float,
+  .release-hero__centerpiece,
+  .release-hero__centerpiece::after {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .release-hero__float,
+  .release-hero__centerpiece,
+  .release-hero__centerpiece::after {
+    animation: none;
+  }
+
+  .release-hero__float { opacity: var(--float-opacity); }
+  .release-hero__centerpiece { opacity: 1; transform: translate(-50%, -50%); }
+}

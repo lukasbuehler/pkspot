@@ -1,0 +1,6 @@
+@for (item of icons(); track $index) {
+  <mat-icon class="release-hero__float" [class]="item.toneClass">{{ item.icon }}</mat-icon>
+}
+<span class="release-hero__centerpiece" [class]="centerpieceToneClass()">
+  <mat-icon>{{ hero().centerpiece.icon }}</mat-icon>
+</span>

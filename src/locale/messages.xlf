@@ -2774,6 +2774,231 @@
         <source>Original language: <ph id="0" equiv="LANGUAGE" disp="language"/></source>
       </segment>
     </unit>
+    <unit id="contribute.bugs.action">
+      <segment>
+        <source>Open an issue</source>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.body">
+      <segment>
+        <source>Tell us what happened and on which device. A screenshot helps a lot.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.title">
+      <segment>
+        <source>Report a bug</source>
+      </segment>
+    </unit>
+    <unit id="contribute.build.intro">
+      <segment>
+        <source>PK Spot is open source. Everything is on GitHub.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.build.title">
+      <segment>
+        <source>Languages and code</source>
+      </segment>
+    </unit>
+    <unit id="contribute.code.action">
+      <segment>
+        <source>See open issues</source>
+      </segment>
+    </unit>
+    <unit id="contribute.code.body">
+      <segment>
+        <source>Built with Angular and Firebase. Pick an open issue or fix something that bugs you.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.code.title">
+      <segment>
+        <source>Write code</source>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.body">
+      <segment>
+        <source>Test new versions, review Spots, design, write or help your local community.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.title">
+      <segment>
+        <source>Join the crew</source>
+      </segment>
+    </unit>
+    <unit id="contribute.events.action">
+      <segment>
+        <source>Suggest an Event</source>
+      </segment>
+    </unit>
+    <unit id="contribute.events.body">
+      <segment>
+        <source>Tell us about jams, workshops and competitions near you.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.events.title">
+      <segment>
+        <source>Suggest Events</source>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.intro">
+      <segment>
+        <source>Most features started as a message from someone who trains.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.title">
+      <segment>
+        <source>Ideas and bugs</source>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.action">
+      <segment>
+        <source>Join Discord</source>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.body">
+      <segment>
+        <source>Missing something? Talk to us and the community on Discord.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.title">
+      <segment>
+        <source>Share an idea</source>
+      </segment>
+    </unit>
+    <unit id="contribute.import.action">
+      <segment>
+        <source>Send a Spot map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.import.body">
+      <segment>
+        <source>Does your community keep a list or map of Spots? Send it to us and we help bring it into PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.import.title">
+      <segment>
+        <source>Share your Spot map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.map.intro">
+      <segment>
+        <source>No setup needed. All you need is an account.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.map.title">
+      <segment>
+        <source>On the map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.description">
+      <segment>
+        <source>Help build PK Spot: add Spots, suggest Events, report bugs, translate or write code. PK Spot is free, open source and built by the Parkour community.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.title">
+      <segment>
+        <source>How to help</source>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.action">
+      <segment>
+        <source>Get in touch</source>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.body">
+      <segment>
+        <source>Associations, gyms and brands help keep PK Spot free.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.title">
+      <segment>
+        <source>Partner with us</source>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.action">
+      <segment>
+        <source>Open the map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.body">
+      <segment>
+        <source>Know a Spot that is missing? Add it. Good photos, a short description and the right Spot type help others decide where to train.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.title">
+      <segment>
+        <source>Add and improve Spots</source>
+      </segment>
+    </unit>
+    <unit id="contribute.subtitle">
+      <segment>
+        <source> PK Spot is free, open source and made by the Parkour community. Every Spot, idea and fix makes it better for everyone. </source>
+      </segment>
+    </unit>
+    <unit id="contribute.team.intro">
+      <segment>
+        <source>PK Spot is built by volunteers from the Parkour community.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.team.title">
+      <segment>
+        <source>Join the team</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.body">
+      <segment>
+        <source> To everyone who adds Spots, sends feedback, tests new versions, translates and writes code: PK Spot exists because of you. </source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.contributors">
+      <segment>
+        <source>Code contributors</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.crew">
+      <segment>
+        <source>Meet the crew</source>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.listIntro">
+      <segment>
+        <source>The volunteers who build, test and map PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.listTitle">
+      <segment>
+        <source>The crew</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.releases">
+      <segment>
+        <source>See what&apos;s new</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.title">
+      <segment>
+        <source>Thank you</source>
+      </segment>
+    </unit>
+    <unit id="contribute.title">
+      <segment>
+        <source>Help build PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.action">
+      <segment>
+        <source>Translation guide</source>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.body">
+      <segment>
+        <source>Fix a translation in your language, or help us add a new one.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.title">
+      <segment>
+        <source>Translate PK Spot</source>
+      </segment>
+    </unit>
     <unit id="crop.cancel">
       <notes>
         <note category="description">Cancel action</note>
@@ -11721,6 +11946,396 @@
         <source>Review this spot</source>
       </segment>
     </unit>
+    <unit id="release.1_0_11.lists.body">
+      <segment>
+        <source>Keep track of the Spots you want to visit and the ones you have.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.lists.title">
+      <segment>
+        <source>Saved and visited lists</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.body">
+      <segment>
+        <source>Clearer sources and verification for Spots.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.title">
+      <segment>
+        <source>Verification</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.body">
+      <segment>
+        <source>Google sign-in, profile pictures and language fixes.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.title">
+      <segment>
+        <source>Sign-in fixes</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.body">
+      <segment>
+        <source>A faster map and clearer location handling.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.title">
+      <segment>
+        <source>Better location</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.body">
+      <segment>
+        <source>Improved previews, highlights and clusters.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.title">
+      <segment>
+        <source>Spot previews</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.body">
+      <segment>
+        <source>Performance and image-loading improvements.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.title">
+      <segment>
+        <source>Faster images</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.body">
+      <segment>
+        <source>Splash screens and animated Spot previews.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.title">
+      <segment>
+        <source>Animated previews</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.body">
+      <segment>
+        <source>A hybrid satellite map with location labels.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.title">
+      <segment>
+        <source>Satellite map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.body">
+      <segment>
+        <source>Find your local community and what is happening.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.title">
+      <segment>
+        <source>Communities and Events</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.body">
+      <segment>
+        <source>Save Spots and mark the ones you have visited.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.title">
+      <segment>
+        <source>Save Spots</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.body">
+      <segment>
+        <source>Search the map and browse community pages.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.title">
+      <segment>
+        <source>Map search</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.body">
+      <segment>
+        <source>Info cards for local communities.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.title">
+      <segment>
+        <source>Community cards</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.body">
+      <segment>
+        <source>Every Event gets its own info page, with RSVPs.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.title">
+      <segment>
+        <source>Event pages</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.body">
+      <segment>
+        <source>Map performance and design improvements.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.title">
+      <segment>
+        <source>A faster map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.body">
+      <segment>
+        <source>Organizations can verify Spots.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.title">
+      <segment>
+        <source>Verified Spots</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.body">
+      <segment>
+        <source>Admins review community and Spot votes in one place.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.title">
+      <segment>
+        <source>Moderation queue</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.body">
+      <segment>
+        <source>Updated profile pages and following.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.title">
+      <segment>
+        <source>New profiles</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.body">
+      <segment>
+        <source>Suggest changes to community cards.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.title">
+      <segment>
+        <source>Community suggestions</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.body">
+      <segment>
+        <source>Save an Event and get its reminders.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.title">
+      <segment>
+        <source>Add to My Events</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.body">
+      <segment>
+        <source>Community digests, Event reminders and Spot edit updates on iOS, Android and the web.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.title">
+      <segment>
+        <source>Notifications</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.body">
+      <segment>
+        <source>Google Weather for Spots, the map area you are viewing and Events.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.title">
+      <segment>
+        <source>Weather</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.body">
+      <segment>
+        <source>Changing your response works, and finished Events move to Past.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.title">
+      <segment>
+        <source>Event fixes</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.body">
+      <segment>
+        <source>Paste a Google Maps or Apple Maps link into the map search.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.title">
+      <segment>
+        <source>Paste map links</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.body">
+      <segment>
+        <source>Links and actions open the right page.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.title">
+      <segment>
+        <source>Notifications that land right</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.body">
+      <segment>
+        <source>Clearer crop controls with larger handles on mobile.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.title">
+      <segment>
+        <source>Better uploads</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.body">
+      <segment>
+        <source>The map stays in place when the layout changes.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.title">
+      <segment>
+        <source>A steadier map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.body">
+      <segment>
+        <source>The closest name matches come first.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.title">
+      <segment>
+        <source>Better search</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.body">
+      <segment>
+        <source>Clearer share cards, and sharing and following communities.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.title">
+      <segment>
+        <source>Clearer sharing</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.body">
+      <segment>
+        <source>Navigation that feels at home on iOS.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.title">
+      <segment>
+        <source>Native tab bar on iPhone</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.body">
+      <segment>
+        <source>Spots show their recent activity on the map again.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.title">
+      <segment>
+        <source>Activity on the map</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.body">
+      <segment>
+        <source>Pages load from a cache close to you.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.title">
+      <segment>
+        <source>Faster pages</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.body">
+      <segment>
+        <source>Spot and Event pages link to their communities.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.title">
+      <segment>
+        <source>Community links</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.body">
+      <segment>
+        <source>Analytics only store anything on your device if you opt in, and photo locations are removed before upload.</source>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.title">
+      <segment>
+        <source>Private by default</source>
+      </segment>
+    </unit>
+    <unit id="release.allChanges">
+      <segment>
+        <source>All changes</source>
+      </segment>
+    </unit>
+    <unit id="release.allReleases">
+      <segment>
+        <source>All releases</source>
+      </segment>
+    </unit>
+    <unit id="release.highlights">
+      <segment>
+        <source>Highlights</source>
+      </segment>
+    </unit>
+    <unit id="release.meta.title">
+      <segment>
+        <source>Version <ph id="0" equiv="version" disp="view.label"/></source>
+      </segment>
+    </unit>
+    <unit id="release.pager">
+      <segment>
+        <source>Releases</source>
+      </segment>
+    </unit>
+    <unit id="releases.latest">
+      <segment>
+        <source>Latest release</source>
+      </segment>
+    </unit>
+    <unit id="releases.meta.description">
+      <segment>
+        <source>Release notes for every PK Spot update: new features, improvements and bug fixes on the web, iOS and Android.</source>
+      </segment>
+    </unit>
+    <unit id="releases.meta.title">
+      <segment>
+        <source>What&apos;s new</source>
+      </segment>
+    </unit>
+    <unit id="releases.platformsOnly">
+      <segment>
+        <source>Only on <ph id="0" equiv="platforms" disp="platforms"/></source>
+      </segment>
+    </unit>
+    <unit id="releases.readMore">
+      <segment>
+        <source>Read the release notes</source>
+      </segment>
+    </unit>
+    <unit id="releases.subtitle">
+      <segment>
+        <source>Every update, newest first. Full release notes are in English.</source>
+      </segment>
+    </unit>
+    <unit id="releases.title">
+      <segment>
+        <source>What&apos;s new in PK Spot</source>
+      </segment>
+    </unit>
     <unit id="report_outcome.action_body">
       <segment>
         <source> We reviewed the report and took appropriate action. </source>
@@ -12265,6 +12880,11 @@
         <source>visits</source>
       </segment>
     </unit>
+    <unit id="support.contribute.link">
+      <segment>
+        <source>How to help</source>
+      </segment>
+    </unit>
     <unit id="support.meta.description">
       <segment>
         <source>Get help with PK Spot — answers to common questions about parkour spots, accounts, and the community.</source>
@@ -12273,6 +12893,11 @@
     <unit id="support.meta.title">
       <segment>
         <source>Support</source>
+      </segment>
+    </unit>
+    <unit id="support.releaseNotes.link">
+      <segment>
+        <source>What&apos;s new</source>
       </segment>
     </unit>
     <unit id="support.status.link">
@@ -13783,6 +14408,11 @@
     <unit id="welcomeDialogTitle">
       <segment>
         <source>Welcome to PK Spot! 👋</source>
+      </segment>
+    </unit>
+    <unit id="whatsNew.allChanges">
+      <segment>
+        <source>See everything that&apos;s new</source>
       </segment>
     </unit>
     <unit id="whatsNew.checkIn.body">
@@ -15459,6 +16089,91 @@
       </notes>
       <segment>
         <source>Get App</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comment">
+      <segment>
+        <source>1 comment</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comments">
+      <segment>
+        <source><ph id="0" equiv="count" disp="issue.comments"/> comments</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.empty">
+      <segment>
+        <source> No open issues right now. Found something? Tell us. </source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.error">
+      <segment>
+        <source> The issues could not be loaded right now. You can still see them on GitHub. </source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.all">
+      <segment>
+        <source>All</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.bugs">
+      <segment>
+        <source>Bugs</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.features">
+      <segment>
+        <source>Feature requests</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.goodFirst">
+      <segment>
+        <source>Good first issues</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.label">
+      <segment>
+        <source>Filter issues</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.goodFirst">
+      <segment>
+        <source>Good first issue</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.intro">
+      <segment>
+        <source> What people reported and asked for. Add your thoughts in a comment, or pick one up. </source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.bug">
+      <segment>
+        <source>Bug</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.feature">
+      <segment>
+        <source>Feature request</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.loading">
+      <segment>
+        <source>Loading issues</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeAll">
+      <segment>
+        <source>See all on GitHub</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeMore">
+      <segment>
+        <source>See <ph id="0" equiv="INTERPOLATION" disp="{{ hiddenCount() }}"/> more on GitHub</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.title">
+      <segment>
+        <source>Open on GitHub</source>
       </segment>
     </unit>
     <unit id="question.covered">

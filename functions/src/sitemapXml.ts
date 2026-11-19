@@ -19,6 +19,8 @@ const STATIC_PAGES = [
   { path: "/events/swissjam25", priority: "0.7", changefreq: "weekly" },
   { path: "/about", priority: "0.7", changefreq: "monthly" },
   { path: "/support", priority: "0.5", changefreq: "monthly" },
+  { path: "/releases", priority: "0.4", changefreq: "monthly" },
+  { path: "/contribute", priority: "0.4", changefreq: "monthly" },
   { path: "/terms-of-service", priority: "0.3", changefreq: "yearly" },
   { path: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
   { path: "/impressum", priority: "0.3", changefreq: "yearly" },

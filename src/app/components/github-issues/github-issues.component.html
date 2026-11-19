@@ -1,0 +1,76 @@
+<div class="github-issues">
+  <div class="github-issues__heading">
+    <h3 class="mat-title-large" i18n="@@githubIssues.title">Open on GitHub</h3>
+    <p class="mat-body-medium" i18n="@@githubIssues.intro">
+      What people reported and asked for. Add your thoughts in a comment, or pick one up.
+    </p>
+  </div>
+
+  @if (issues.isLoading()) {
+    <mat-progress-bar mode="indeterminate" i18n-aria-label="@@githubIssues.loading" aria-label="Loading issues" />
+  } @else if (issues.error()) {
+    <p class="github-issues__message mat-body-medium" i18n="@@githubIssues.error">
+      The issues could not be loaded right now. You can still see them on GitHub.
+    </p>
+  } @else if (issues.hasValue()) {
+    @if (rows().length === 0 && filter() === "all") {
+      <p class="github-issues__message mat-body-medium" i18n="@@githubIssues.empty">
+        No open issues right now. Found something? Tell us.
+      </p>
+    } @else {
+      <mat-chip-listbox
+        class="github-issues__filters"
+        i18n-aria-label="@@githubIssues.filter.label"
+        aria-label="Filter issues"
+        [value]="filter()"
+        (change)="selectFilter($event.value)"
+      >
+        @for (item of filters(); track item.id) {
+          <mat-chip-option [value]="item.id" [selectable]="filter() !== item.id">
+            {{ item.label }} ({{ item.count }})
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+
+      <ul class="github-issues__list">
+        @for (issue of rows(); track issue.number) {
+          <li>
+            <a
+              class="github-issues__issue"
+              [href]="issue.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="track('github_issue_item', issue.url, issue.title)"
+            >
+              <mat-icon class="github-issues__tile" [class]="'is-' + issue.kind" aria-hidden="true">{{
+                issue.icon
+              }}</mat-icon>
+              <span class="github-issues__text">
+                <span class="github-issues__title mat-title-small" lang="en">{{ issue.title }}</span>
+                <span class="github-issues__meta mat-body-small">{{ issue.meta }}</span>
+              </span>
+              <mat-icon class="github-issues__open" aria-hidden="true">open_in_new</mat-icon>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  <div class="github-issues__actions">
+    <a
+      matButton="outlined"
+      [href]="issuesUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      (click)="track('github_issues', issuesUrl, 'See all issues')"
+    >
+      @if (hiddenCount() > 0) {
+        <span i18n="@@githubIssues.seeMore">See {{ hiddenCount() }} more on GitHub</span>
+      } @else {
+        <span i18n="@@githubIssues.seeAll">See all on GitHub</span>
+      }
+      <mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon>
+    </a>
+  </div>
+</div>

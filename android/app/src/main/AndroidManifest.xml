@@ -82,6 +82,8 @@
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/privacy-policy" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/pp" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/impressum" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/releases" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/contribute" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/leaderboard" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/__/auth/action" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/oauth/callback" />

@@ -1,0 +1,225 @@
+:host {
+  display: block;
+}
+
+.contribute-page {
+  display: grid;
+  gap: 40px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 5rem 16px 3rem;
+}
+
+// Alain Mode: the floating menu FAB sits top-left on short viewports.
+@media (max-width: 767px) and (max-height: 699px), (max-height: 499px) {
+  .contribute-page {
+    padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))));
+  }
+}
+
+.contribute-page__header {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+
+  app-release-hero { margin-block-end: 16px; }
+
+  h1,
+  p { margin: 0; }
+
+  p {
+    max-width: 56ch;
+    margin-inline: auto;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.contribute-section {
+  display: grid;
+  gap: 16px;
+}
+
+.contribute-section__heading {
+  display: grid;
+  gap: 4px;
+
+  h2,
+  p { margin: 0; }
+
+  p { color: var(--mat-sys-on-surface-variant); }
+}
+
+.contribute-section__ways {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 599px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// Each way to help: a 40px tonal icon tile, a short text and its action.
+.contribute-way {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  // Cards rise in one after another; static with reduced motion or in tests.
+  animation: contribute-way-in 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  &:nth-child(2) { animation-delay: 80ms; }
+  &:nth-child(3) { animation-delay: 160ms; }
+}
+
+.contribute-way__tile {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  font-size: 22px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-highest);
+}
+
+.contribute-way__text {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+
+  h3,
+  p { margin: 0; }
+
+  h3 { color: var(--mat-sys-on-surface); }
+  p { color: var(--mat-sys-on-surface-variant); }
+}
+
+.contribute-way__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// The featured way spans the row and uses the primary tonal card style.
+.contribute-way.is-featured {
+  grid-column: 1 / -1;
+  grid-template-columns: 40px 1fr auto;
+  grid-template-rows: auto;
+  align-items: center;
+  gap: 16px;
+  --mat-card-outlined-container-color: var(--mat-sys-primary-container);
+  --mat-card-outlined-outline-color: var(--mat-sys-primary);
+
+  .contribute-way__tile {
+    color: var(--mat-sys-on-primary);
+    background: var(--mat-sys-primary);
+  }
+
+  .contribute-way__text h3,
+  .contribute-way__text p { color: var(--mat-sys-on-primary-container); }
+
+  @media (max-width: 599px) {
+    grid-template-columns: 40px 1fr;
+    align-items: start;
+
+    .contribute-way__actions { grid-column: 1 / -1; }
+  }
+}
+
+.contribute-thanks {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px 24px;
+  border-radius: 18px;
+  text-align: center;
+  background: radial-gradient(
+    circle at 50% 0%,
+    var(--mat-sys-primary-container),
+    var(--mat-sys-surface-container-high) 70%
+  );
+
+  h2,
+  p { margin: 0; }
+
+  p {
+    max-width: 52ch;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.contribute-thanks__icon {
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
+  color: var(--mat-sys-primary);
+}
+
+// The crew from crew.json, as on the About page and in Settings.
+.contribute-crew {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.contribute-crew__more {
+  justify-self: start;
+}
+
+.contribute-crew__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 13px;
+    background: var(--mat-sys-surface-container-high);
+  }
+}
+
+.contribute-crew__avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.contribute-crew__person {
+  display: grid;
+  min-width: 0;
+
+  strong { color: var(--mat-sys-on-surface); }
+
+  span { color: var(--mat-sys-on-surface-variant); }
+}
+
+.contribute-thanks__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  padding-block-start: 8px;
+}
+
+@keyframes contribute-way-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contribute-way { animation: none; }
+}

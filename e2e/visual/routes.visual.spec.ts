@@ -631,6 +631,15 @@ const routeVisualCases: RouteVisualCase[] = [
   },
   { name: "about", path: "/about", fullPage: true, maxDiffPixels: 2_000 },
   { name: "support", path: "/support", fullPage: true, maxDiffPixels: 2_000 },
+  { name: "releases", path: "/releases", fullPage: true, maxDiffPixels: 2_000 },
+  { name: "releases-alain", path: "/releases", viewport: alainMobileViewport,
+    assertAlainClearance: { axis: "block", target: ".releases-page__header h1" } },
+  { name: "release", path: "/releases/1.2", fullPage: true, maxDiffPixels: 2_000 },
+  { name: "release-alain", path: "/releases/1.2", viewport: alainMobileViewport,
+    assertAlainClearance: { axis: "block", target: ".release-page__back" } },
+  { name: "contribute", path: "/contribute", fullPage: true, maxDiffPixels: 2_000 },
+  { name: "contribute-alain", path: "/contribute", viewport: alainMobileViewport,
+    assertAlainClearance: { axis: "block", target: ".contribute-page__header app-release-hero" } },
   { name: "contact", path: "/contact", fullPage: true, maxDiffPixels: 1_000 },
   { name: "contact-alain", path: "/contact", viewport: alainMobileViewport,
     assertAlainClearance: { axis: "block", target: ".contact-page .back-link" } },
@@ -1394,8 +1403,20 @@ test.describe("Route visual regression @visual", () => {
   });
 });
 
+/** Fixed open issues, so the contribute page never calls the real GitHub API. */
+const githubIssuesFixture = [
+  { number: 52, title: "Show opening hours for indoor Spots", html_url: "https://github.com/lukasbuehler/pkspot/issues/52",
+    comments: 4, labels: [{ name: "enhancement" }] },
+  { number: 51, title: "Nav button icons jiggle in Safari on hover", html_url: "https://github.com/lukasbuehler/pkspot/issues/51",
+    comments: 0, labels: [{ name: "enhancement" }, { name: "good first issue" }] },
+  { number: 49, title: "Map search loses focus after pasting a link", html_url: "https://github.com/lukasbuehler/pkspot/issues/49",
+    comments: 1, labels: [{ name: "bug" }] },
+];
+
 async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.setViewportSize(route.viewport ?? desktopViewport);
+  await page.route("https://api.github.com/repos/lukasbuehler/pkspot/issues?**", (request) =>
+    request.fulfill({ contentType: "application/json", body: JSON.stringify(githubIssuesFixture) }));
   if (route.trainFixture) {
     // Keep locality labels deterministic and never geocode real locations in visual tests.
     await page.route("https://maps.googleapis.com/maps/api/js?**", route => route.fulfill({

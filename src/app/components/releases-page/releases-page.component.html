@@ -1,0 +1,10 @@
+<div class="releases-page">
+  <header class="releases-page__header">
+    <h1 class="mat-headline-large" i18n="@@releases.title">What's new in PK Spot</h1>
+    <p class="mat-title-medium" i18n="@@releases.subtitle">Every update, newest first. Full release notes are in English.</p>
+  </header>
+
+  @for (item of releases; track item.release.version; let first = $first) {
+    <app-release-card [view]="item" [latest]="first" />
+  }
+</div>

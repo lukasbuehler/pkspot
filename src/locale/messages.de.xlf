@@ -6300,6 +6300,474 @@
         <target>Diesen Spot bewerten</target>
       </segment>
     </unit>
+    <unit id="release.1_0_11.lists.body">
+      <segment state="translated">
+        <source>Keep track of the Spots you want to visit and the ones you have.</source>
+        <target>Behalte den Überblick über Spots, die du besuchen willst, und die, die du schon kennst.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.lists.title">
+      <segment state="translated">
+        <source>Saved and visited lists</source>
+        <target>Gespeichert und besucht</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.body">
+      <segment state="translated">
+        <source>Clearer sources and verification for Spots.</source>
+        <target>Klarere Quellen und Verifizierung für Spots.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_11.verification.title">
+      <segment state="translated">
+        <source>Verification</source>
+        <target>Verifizierung</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.body">
+      <segment state="translated">
+        <source>Google sign-in, profile pictures and language fixes.</source>
+        <target>Korrekturen bei Google-Anmeldung, Profilbildern und Sprache.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.fixes.title">
+      <segment state="translated">
+        <source>Sign-in fixes</source>
+        <target>Anmelde-Korrekturen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.body">
+      <segment state="translated">
+        <source>A faster map and clearer location handling.</source>
+        <target>Eine schnellere Karte und ein klarerer Umgang mit deinem Standort.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.location.title">
+      <segment state="translated">
+        <source>Better location</source>
+        <target>Besserer Standort</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.body">
+      <segment state="translated">
+        <source>Improved previews, highlights and clusters.</source>
+        <target>Verbesserte Vorschauen, Highlights und Cluster.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_8.previews.title">
+      <segment state="translated">
+        <source>Spot previews</source>
+        <target>Spot-Vorschauen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.body">
+      <segment state="translated">
+        <source>Performance and image-loading improvements.</source>
+        <target>Bessere Leistung und schnelleres Laden von Bildern.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.images.title">
+      <segment state="translated">
+        <source>Faster images</source>
+        <target>Schnellere Bilder</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.body">
+      <segment state="translated">
+        <source>Splash screens and animated Spot previews.</source>
+        <target>Startbildschirme und animierte Spot-Vorschauen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.previews.title">
+      <segment state="translated">
+        <source>Animated previews</source>
+        <target>Animierte Vorschauen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.body">
+      <segment state="translated">
+        <source>A hybrid satellite map with location labels.</source>
+        <target>Eine hybride Satellitenkarte mit Ortsnamen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_0_9.satellite.title">
+      <segment state="translated">
+        <source>Satellite map</source>
+        <target>Satellitenkarte</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.body">
+      <segment state="translated">
+        <source>Find your local community and what is happening.</source>
+        <target>Finde deine lokale Community und was gerade läuft.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.communities.title">
+      <segment state="translated">
+        <source>Communities and Events</source>
+        <target>Communities und Events</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.body">
+      <segment state="translated">
+        <source>Save Spots and mark the ones you have visited.</source>
+        <target>Speichere Spots und markiere die, die du besucht hast.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.saved.title">
+      <segment state="translated">
+        <source>Save Spots</source>
+        <target>Spots speichern</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.body">
+      <segment state="translated">
+        <source>Search the map and browse community pages.</source>
+        <target>Durchsuche die Karte und entdecke Community-Seiten.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_1.search.title">
+      <segment state="translated">
+        <source>Map search</source>
+        <target>Kartensuche</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.body">
+      <segment state="translated">
+        <source>Info cards for local communities.</source>
+        <target>Infokarten für lokale Communities.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.communities.title">
+      <segment state="translated">
+        <source>Community cards</source>
+        <target>Community-Karten</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.body">
+      <segment state="translated">
+        <source>Every Event gets its own info page, with RSVPs.</source>
+        <target>Jedes Event bekommt eine eigene Infoseite, mit Zusagen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.events.title">
+      <segment state="translated">
+        <source>Event pages</source>
+        <target>Event-Seiten</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.body">
+      <segment state="translated">
+        <source>Map performance and design improvements.</source>
+        <target>Verbesserte Leistung und Gestaltung der Karte.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.map.title">
+      <segment state="translated">
+        <source>A faster map</source>
+        <target>Eine schnellere Karte</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.body">
+      <segment state="translated">
+        <source>Organizations can verify Spots.</source>
+        <target>Organisationen können Spots verifizieren.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_2.verified.title">
+      <segment state="translated">
+        <source>Verified Spots</source>
+        <target>Verifizierte Spots</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.body">
+      <segment state="translated">
+        <source>Admins review community and Spot votes in one place.</source>
+        <target>Admins prüfen Community- und Spot-Abstimmungen an einem Ort.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.moderation.title">
+      <segment state="translated">
+        <source>Moderation queue</source>
+        <target>Moderations-Warteschlange</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.body">
+      <segment state="translated">
+        <source>Updated profile pages and following.</source>
+        <target>Überarbeitete Profilseiten und Folgen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.profiles.title">
+      <segment state="translated">
+        <source>New profiles</source>
+        <target>Neue Profile</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.body">
+      <segment state="translated">
+        <source>Suggest changes to community cards.</source>
+        <target>Schlage Änderungen an Community-Karten vor.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_3.suggestions.title">
+      <segment state="translated">
+        <source>Community suggestions</source>
+        <target>Community-Vorschläge</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.body">
+      <segment state="translated">
+        <source>Save an Event and get its reminders.</source>
+        <target>Speichere ein Event und erhalte seine Erinnerungen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.myEvents.title">
+      <segment state="translated">
+        <source>Add to My Events</source>
+        <target>Zu meinen Events hinzufügen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.body">
+      <segment state="translated">
+        <source>Community digests, Event reminders and Spot edit updates on iOS, Android and the web.</source>
+        <target>Community-Zusammenfassungen, Event-Erinnerungen und Updates zu Spot-Bearbeitungen auf iOS, Android und im Web.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.notifications.title">
+      <segment state="translated">
+        <source>Notifications</source>
+        <target>Benachrichtigungen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.body">
+      <segment state="translated">
+        <source>Google Weather for Spots, the map area you are viewing and Events.</source>
+        <target>Google Weather für Spots, den Kartenausschnitt und Events.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_4.weather.title">
+      <segment state="translated">
+        <source>Weather</source>
+        <target>Wetter</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.body">
+      <segment state="translated">
+        <source>Changing your response works, and finished Events move to Past.</source>
+        <target>Deine Antwort zu ändern funktioniert, und vergangene Events landen unter Vergangen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.events.title">
+      <segment state="translated">
+        <source>Event fixes</source>
+        <target>Event-Korrekturen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.body">
+      <segment state="translated">
+        <source>Paste a Google Maps or Apple Maps link into the map search.</source>
+        <target>Füge einen Google-Maps- oder Apple-Maps-Link in die Kartensuche ein.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.links.title">
+      <segment state="translated">
+        <source>Paste map links</source>
+        <target>Karten-Links einfügen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.body">
+      <segment state="translated">
+        <source>Links and actions open the right page.</source>
+        <target>Links und Aktionen öffnen die richtige Seite.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.notifications.title">
+      <segment state="translated">
+        <source>Notifications that land right</source>
+        <target>Benachrichtigungen, die richtig ankommen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.body">
+      <segment state="translated">
+        <source>Clearer crop controls with larger handles on mobile.</source>
+        <target>Klarere Zuschneide-Steuerung mit grösseren Griffen auf dem Handy.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_1_5.uploads.title">
+      <segment state="translated">
+        <source>Better uploads</source>
+        <target>Besseres Hochladen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.body">
+      <segment state="translated">
+        <source>The map stays in place when the layout changes.</source>
+        <target>Die Karte bleibt an ihrem Platz, wenn sich das Layout ändert.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.map.title">
+      <segment state="translated">
+        <source>A steadier map</source>
+        <target>Eine ruhigere Karte</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.body">
+      <segment state="translated">
+        <source>The closest name matches come first.</source>
+        <target>Die passendsten Namen stehen zuerst.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.search.title">
+      <segment state="translated">
+        <source>Better search</source>
+        <target>Bessere Suche</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.body">
+      <segment state="translated">
+        <source>Clearer share cards, and sharing and following communities.</source>
+        <target>Klarere Teilen-Karten, und Communities teilen und folgen.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.share.title">
+      <segment state="translated">
+        <source>Clearer sharing</source>
+        <target>Klareres Teilen</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.body">
+      <segment state="translated">
+        <source>Navigation that feels at home on iOS.</source>
+        <target>Eine Navigation, die sich auf iOS zu Hause fühlt.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_1.tabBar.title">
+      <segment state="translated">
+        <source>Native tab bar on iPhone</source>
+        <target>Native Tab-Leiste auf dem iPhone</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.body">
+      <segment state="translated">
+        <source>Spots show their recent activity on the map again.</source>
+        <target>Spots zeigen ihre letzte Aktivität wieder auf der Karte.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.activity.title">
+      <segment state="translated">
+        <source>Activity on the map</source>
+        <target>Aktivität auf der Karte</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.body">
+      <segment state="translated">
+        <source>Pages load from a cache close to you.</source>
+        <target>Seiten laden aus einem Cache in deiner Nähe.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.cache.title">
+      <segment state="translated">
+        <source>Faster pages</source>
+        <target>Schnellere Seiten</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.body">
+      <segment state="translated">
+        <source>Spot and Event pages link to their communities.</source>
+        <target>Spot- und Event-Seiten verlinken ihre Communities.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.communities.title">
+      <segment state="translated">
+        <source>Community links</source>
+        <target>Community-Links</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.body">
+      <segment state="translated">
+        <source>Analytics only store anything on your device if you opt in, and photo locations are removed before upload.</source>
+        <target>Analysen speichern nur etwas auf deinem Gerät, wenn du zustimmst, und Fotostandorte werden vor dem Hochladen entfernt.</target>
+      </segment>
+    </unit>
+    <unit id="release.1_2_2.privacy.title">
+      <segment state="translated">
+        <source>Private by default</source>
+        <target>Privat als Standard</target>
+      </segment>
+    </unit>
+    <unit id="release.allChanges">
+      <segment state="translated">
+        <source>All changes</source>
+        <target>Alle Änderungen</target>
+      </segment>
+    </unit>
+    <unit id="release.allReleases">
+      <segment state="translated">
+        <source>All releases</source>
+        <target>Alle Versionen</target>
+      </segment>
+    </unit>
+    <unit id="release.highlights">
+      <segment state="translated">
+        <source>Highlights</source>
+        <target>Highlights</target>
+      </segment>
+    </unit>
+    <unit id="release.meta.title">
+      <segment state="translated">
+        <source>Version <ph id="0" equiv="version" disp="view.label"/></source>
+        <target>Version <ph id="0" equiv="version" disp="view.label"/></target>
+      </segment>
+    </unit>
+    <unit id="release.pager">
+      <segment state="translated">
+        <source>Releases</source>
+        <target>Versionen</target>
+      </segment>
+    </unit>
+    <unit id="releases.latest">
+      <segment state="translated">
+        <source>Latest release</source>
+        <target>Neueste Version</target>
+      </segment>
+    </unit>
+    <unit id="releases.meta.description">
+      <segment state="translated">
+        <source>Release notes for every PK Spot update: new features, improvements and bug fixes on the web, iOS and Android.</source>
+        <target>Versionshinweise zu jedem PK Spot Update: neue Funktionen, Verbesserungen und Fehlerbehebungen im Web, auf iOS und Android.</target>
+      </segment>
+    </unit>
+    <unit id="releases.meta.title">
+      <segment state="translated">
+        <source>What&apos;s new</source>
+        <target>Neuigkeiten</target>
+      </segment>
+    </unit>
+    <unit id="releases.platformsOnly">
+      <segment state="translated">
+        <source>Only on <ph id="0" equiv="platforms" disp="platforms"/></source>
+        <target>Nur <ph id="0" equiv="platforms" disp="platforms"/></target>
+      </segment>
+    </unit>
+    <unit id="releases.readMore">
+      <segment state="translated">
+        <source>Read the release notes</source>
+        <target>Versionshinweise lesen</target>
+      </segment>
+    </unit>
+    <unit id="releases.subtitle">
+      <segment state="translated">
+        <source>Every update, newest first. Full release notes are in English.</source>
+        <target>Jedes Update, das neueste zuerst. Die vollständigen Versionshinweise sind auf Englisch.</target>
+      </segment>
+    </unit>
+    <unit id="releases.title">
+      <segment state="translated">
+        <source>What&apos;s new in PK Spot</source>
+        <target>Neu in PK Spot</target>
+      </segment>
+    </unit>
     <unit id="report_outcome.action_body">
       <segment state="initial">
         <source> We reviewed the report and took appropriate action. </source>
@@ -7363,6 +7831,12 @@
       <segment state="initial">
         <source>Welcome to PK Spot! 👋</source>
         <target>Willkommen bei PK Spot! 👋</target>
+      </segment>
+    </unit>
+    <unit id="whatsNew.allChanges">
+      <segment state="translated">
+        <source>See everything that&apos;s new</source>
+        <target>Alle Neuigkeiten ansehen</target>
       </segment>
     </unit>
     <unit id="whatsNew.checkIn.body">
@@ -12527,6 +13001,276 @@
         <target>Originalsprache: <ph id="0" equiv="LANGUAGE" disp="language"/></target>
       </segment>
     </unit>
+    <unit id="contribute.bugs.action">
+      <segment state="translated">
+        <source>Open an issue</source>
+        <target>Issue eröffnen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.body">
+      <segment state="translated">
+        <source>Tell us what happened and on which device. A screenshot helps a lot.</source>
+        <target>Erzähl uns, was passiert ist und auf welchem Gerät. Ein Screenshot hilft sehr.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.title">
+      <segment state="translated">
+        <source>Report a bug</source>
+        <target>Fehler melden</target>
+      </segment>
+    </unit>
+    <unit id="contribute.build.intro">
+      <segment state="translated">
+        <source>PK Spot is open source. Everything is on GitHub.</source>
+        <target>PK Spot ist Open Source. Alles ist auf GitHub.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.build.title">
+      <segment state="translated">
+        <source>Languages and code</source>
+        <target>Sprachen und Code</target>
+      </segment>
+    </unit>
+    <unit id="contribute.code.action">
+      <segment state="translated">
+        <source>See open issues</source>
+        <target>Offene Issues ansehen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.code.body">
+      <segment state="translated">
+        <source>Built with Angular and Firebase. Pick an open issue or fix something that bugs you.</source>
+        <target>Gebaut mit Angular und Firebase. Nimm ein offenes Issue oder behebe, was dich stört.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.code.title">
+      <segment state="translated">
+        <source>Write code</source>
+        <target>Code schreiben</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.body">
+      <segment state="translated">
+        <source>Test new versions, review Spots, design, write or help your local community.</source>
+        <target>Teste neue Versionen, prüfe Spots, gestalte, schreibe oder hilf deiner lokalen Community.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.title">
+      <segment state="translated">
+        <source>Join the crew</source>
+        <target>Werde Teil der Crew</target>
+      </segment>
+    </unit>
+    <unit id="contribute.events.action">
+      <segment state="translated">
+        <source>Suggest an Event</source>
+        <target>Event vorschlagen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.events.body">
+      <segment state="translated">
+        <source>Tell us about jams, workshops and competitions near you.</source>
+        <target>Erzähl uns von Jams, Workshops und Wettkämpfen in deiner Nähe.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.events.title">
+      <segment state="translated">
+        <source>Suggest Events</source>
+        <target>Events vorschlagen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.intro">
+      <segment state="translated">
+        <source>Most features started as a message from someone who trains.</source>
+        <target>Die meisten Funktionen begannen als Nachricht von jemandem, der trainiert.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.title">
+      <segment state="translated">
+        <source>Ideas and bugs</source>
+        <target>Ideen und Fehler</target>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.action">
+      <segment state="translated">
+        <source>Join Discord</source>
+        <target>Discord beitreten</target>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.body">
+      <segment state="translated">
+        <source>Missing something? Talk to us and the community on Discord.</source>
+        <target>Fehlt dir etwas? Sprich auf Discord mit uns und der Community.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.title">
+      <segment state="translated">
+        <source>Share an idea</source>
+        <target>Teile eine Idee</target>
+      </segment>
+    </unit>
+    <unit id="contribute.import.action">
+      <segment state="translated">
+        <source>Send a Spot map</source>
+        <target>Spot-Karte senden</target>
+      </segment>
+    </unit>
+    <unit id="contribute.import.body">
+      <segment state="translated">
+        <source>Does your community keep a list or map of Spots? Send it to us and we help bring it into PK Spot.</source>
+        <target>Führt deine Community eine Liste oder Karte mit Spots? Schick sie uns, und wir helfen, sie in PK Spot zu bringen.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.import.title">
+      <segment state="translated">
+        <source>Share your Spot map</source>
+        <target>Teile deine Spot-Karte</target>
+      </segment>
+    </unit>
+    <unit id="contribute.map.intro">
+      <segment state="translated">
+        <source>No setup needed. All you need is an account.</source>
+        <target>Keine Einrichtung nötig. Du brauchst nur ein Konto.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.map.title">
+      <segment state="translated">
+        <source>On the map</source>
+        <target>Auf der Karte</target>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.description">
+      <segment state="translated">
+        <source>Help build PK Spot: add Spots, suggest Events, report bugs, translate or write code. PK Spot is free, open source and built by the Parkour community.</source>
+        <target>Hilf mit, PK Spot zu bauen: Spots hinzufügen, Events vorschlagen, Fehler melden, übersetzen oder Code schreiben. PK Spot ist kostenlos, Open Source und von der Parkour-Community gebaut.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.title">
+      <segment state="translated">
+        <source>How to help</source>
+        <target>Mithelfen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.action">
+      <segment state="translated">
+        <source>Get in touch</source>
+        <target>Kontakt aufnehmen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.body">
+      <segment state="translated">
+        <source>Associations, gyms and brands help keep PK Spot free.</source>
+        <target>Verbände, Hallen und Marken helfen, PK Spot kostenlos zu halten.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.title">
+      <segment state="translated">
+        <source>Partner with us</source>
+        <target>Werde Partner</target>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.action">
+      <segment state="translated">
+        <source>Open the map</source>
+        <target>Karte öffnen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.body">
+      <segment state="translated">
+        <source>Know a Spot that is missing? Add it. Good photos, a short description and the right Spot type help others decide where to train.</source>
+        <target>Kennst du einen Spot, der fehlt? Füg ihn hinzu. Gute Fotos, eine kurze Beschreibung und der richtige Spot-Typ helfen anderen bei der Wahl, wo sie trainieren.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.title">
+      <segment state="translated">
+        <source>Add and improve Spots</source>
+        <target>Spots hinzufügen und verbessern</target>
+      </segment>
+    </unit>
+    <unit id="contribute.subtitle">
+      <segment state="translated">
+        <source> PK Spot is free, open source and made by the Parkour community. Every Spot, idea and fix makes it better for everyone. </source>
+        <target> PK Spot ist kostenlos, Open Source und wird von der Parkour-Community gemacht. Jeder Spot, jede Idee und jeder Fix macht es für alle besser. </target>
+      </segment>
+    </unit>
+    <unit id="contribute.team.intro">
+      <segment state="translated">
+        <source>PK Spot is built by volunteers from the Parkour community.</source>
+        <target>PK Spot wird von Freiwilligen aus der Parkour-Community gebaut.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.team.title">
+      <segment state="translated">
+        <source>Join the team</source>
+        <target>Werde Teil des Teams</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.body">
+      <segment state="translated">
+        <source> To everyone who adds Spots, sends feedback, tests new versions, translates and writes code: PK Spot exists because of you. </source>
+        <target> An alle, die Spots hinzufügen, Feedback senden, neue Versionen testen, übersetzen und Code schreiben: PK Spot gibt es dank euch. </target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.contributors">
+      <segment state="translated">
+        <source>Code contributors</source>
+        <target>Code-Mitwirkende</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.crew">
+      <segment state="translated">
+        <source>Meet the crew</source>
+        <target>Lerne die Crew kennen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.listIntro">
+      <segment state="translated">
+        <source>The volunteers who build, test and map PK Spot.</source>
+        <target>Die Freiwilligen, die PK Spot bauen, testen und kartieren.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.listTitle">
+      <segment state="translated">
+        <source>The crew</source>
+        <target>Die Crew</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.releases">
+      <segment state="translated">
+        <source>See what&apos;s new</source>
+        <target>Neuigkeiten ansehen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.title">
+      <segment state="translated">
+        <source>Thank you</source>
+        <target>Danke</target>
+      </segment>
+    </unit>
+    <unit id="contribute.title">
+      <segment state="translated">
+        <source>Help build PK Spot</source>
+        <target>Hilf mit, PK Spot zu bauen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.action">
+      <segment state="translated">
+        <source>Translation guide</source>
+        <target>Anleitung zum Übersetzen</target>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.body">
+      <segment state="translated">
+        <source>Fix a translation in your language, or help us add a new one.</source>
+        <target>Korrigiere eine Übersetzung in deiner Sprache oder hilf uns, eine neue hinzuzufügen.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.title">
+      <segment state="translated">
+        <source>Translate PK Spot</source>
+        <target>PK Spot übersetzen</target>
+      </segment>
+    </unit>
     <unit id="crop.cancel">
       <notes>
         <note category="description">Cancel action</note>
@@ -15708,6 +16452,12 @@
         <target>Besuche</target>
       </segment>
     </unit>
+    <unit id="support.contribute.link">
+      <segment state="translated">
+        <source>How to help</source>
+        <target>Mithelfen</target>
+      </segment>
+    </unit>
     <unit id="support.meta.description">
       <segment state="initial">
         <source>Get help with PK Spot — answers to common questions about parkour spots, accounts, and the community.</source>
@@ -15718,6 +16468,12 @@
       <segment state="initial">
         <source>Support</source>
         <target>Support</target>
+      </segment>
+    </unit>
+    <unit id="support.releaseNotes.link">
+      <segment state="translated">
+        <source>What&apos;s new</source>
+        <target>Neuigkeiten</target>
       </segment>
     </unit>
     <unit id="support.status.link">
@@ -18146,6 +18902,108 @@
       <segment state="initial">
         <source>Get App</source>
         <target>App holen</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comment">
+      <segment state="translated">
+        <source>1 comment</source>
+        <target>1 Kommentar</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comments">
+      <segment state="translated">
+        <source><ph id="0" equiv="count" disp="issue.comments"/> comments</source>
+        <target><ph id="0" equiv="count" disp="issue.comments"/> Kommentare</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.empty">
+      <segment state="translated">
+        <source> No open issues right now. Found something? Tell us. </source>
+        <target> Gerade keine offenen Issues. Hast du etwas gefunden? Sag es uns. </target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.error">
+      <segment state="translated">
+        <source> The issues could not be loaded right now. You can still see them on GitHub. </source>
+        <target> Die Issues konnten gerade nicht geladen werden. Du findest sie trotzdem auf GitHub. </target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.all">
+      <segment state="translated">
+        <source>All</source>
+        <target>Alle</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.bugs">
+      <segment state="translated">
+        <source>Bugs</source>
+        <target>Fehler</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.features">
+      <segment state="translated">
+        <source>Feature requests</source>
+        <target>Funktionswünsche</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.goodFirst">
+      <segment state="translated">
+        <source>Good first issues</source>
+        <target>Gut für den Einstieg</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.label">
+      <segment state="translated">
+        <source>Filter issues</source>
+        <target>Issues filtern</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.goodFirst">
+      <segment state="translated">
+        <source>Good first issue</source>
+        <target>Gut für den Einstieg</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.intro">
+      <segment state="translated">
+        <source> What people reported and asked for. Add your thoughts in a comment, or pick one up. </source>
+        <target> Was gemeldet und gewünscht wurde. Schreib einen Kommentar oder nimm dir eins vor. </target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.bug">
+      <segment state="translated">
+        <source>Bug</source>
+        <target>Fehler</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.feature">
+      <segment state="translated">
+        <source>Feature request</source>
+        <target>Funktionswunsch</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.loading">
+      <segment state="translated">
+        <source>Loading issues</source>
+        <target>Issues werden geladen</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeAll">
+      <segment state="translated">
+        <source>See all on GitHub</source>
+        <target>Alle auf GitHub ansehen</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeMore">
+      <segment state="translated">
+        <source>See <ph id="0" equiv="INTERPOLATION" disp="{{ hiddenCount() }}"/> more on GitHub</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ hiddenCount() }}"/> weitere auf GitHub ansehen</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.title">
+      <segment state="translated">
+        <source>Open on GitHub</source>
+        <target>Offen auf GitHub</target>
       </segment>
     </unit>
     <unit id="search_field_clear_context">

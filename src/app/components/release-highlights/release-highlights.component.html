@@ -1,0 +1,11 @@
+<ul class="release-highlights">
+  @for (highlight of highlights(); track highlight.title) {
+    <li>
+      <mat-icon aria-hidden="true" [class.is-primary]="highlight.tone === 'primary'" [class.is-live]="highlight.tone === 'live'" [class.is-gold]="highlight.tone === 'gold'">{{ highlight.icon }}</mat-icon>
+      <span>
+        <strong>{{ highlight.title }}</strong>
+        <span>{{ highlight.body }}</span>
+      </span>
+    </li>
+  }
+</ul>

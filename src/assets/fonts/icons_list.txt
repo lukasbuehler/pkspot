@@ -259,3 +259,4 @@ group
 military_tech
 insights
 arrow_forward
+bug_report

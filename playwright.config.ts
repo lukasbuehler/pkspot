@@ -4,6 +4,8 @@ import { dirname } from "node:path";
 const nodeBinDirectory =
   process.env["PKSPOT_HOST_NODE_BIN_DIRECTORY"] ?? dirname(process.execPath);
 const webServerPath = `${nodeBinDirectory}:${process.env["PATH"] ?? ""}`;
+// Matches test-server.mjs; set PKSPOT_TEST_PORT to run beside another worktree's server.
+const testServerUrl = `http://localhost:${process.env["PKSPOT_TEST_PORT"] ?? 4000}`;
 
 /**
  * Playwright configuration for pkspot E2E and visual regression tests.
@@ -42,8 +44,8 @@ export default defineConfig({
 
   /* Shared settings for all projects */
   use: {
-    /* Base URL for navigation - SSR server runs on port 4000 */
-    baseURL: "http://localhost:4000",
+    /* Base URL for navigation - the SSR test server */
+    baseURL: testServerUrl,
 
     /* Collect trace when retrying the failed test */
     trace: "on-first-retry",
@@ -108,7 +110,7 @@ export default defineConfig({
    */
   webServer: {
     command: `export PATH="${webServerPath}"; npm run build:ci && npm run serve:test`,
-    url: "http://localhost:4000",
+    url: testServerUrl,
     reuseExistingServer: !process.env["CI"],
     timeout: 180 * 1000, // 3 minutes for build + server start
   },
