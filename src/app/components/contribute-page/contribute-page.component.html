@@ -64,19 +64,7 @@
       To everyone who adds Spots, sends feedback, tests new versions, translates and writes code: PK Spot exists
       because of you.
     </p>
-    <ul class="contribute-thanks__crew" i18n-aria-label="@@contribute.thanks.crewLabel" aria-label="The crew">
-      @for (member of crew; track member.name) {
-        <li>
-          <span class="contribute-thanks__avatar" aria-hidden="true">{{ member.initial }}</span>
-          <span class="contribute-thanks__person">
-            <strong class="mat-title-small">{{ member.name }}</strong>
-            <span class="mat-body-small" lang="en">{{ member.role }}</span>
-          </span>
-        </li>
-      }
-    </ul>
     <div class="contribute-thanks__actions">
-      <a matButton="text" routerLink="/about" i18n="@@contribute.thanks.crew">Meet the crew</a>
       <a
         matButton="text"
         [href]="contributorsUrl"
@@ -90,4 +78,23 @@
       <a matButton="text" routerLink="/releases" i18n="@@contribute.thanks.releases">See what's new</a>
     </div>
   </section>
+
+  <mat-card appearance="outlined" class="contribute-crew" role="region" aria-labelledby="contribute-crew">
+    <div class="contribute-section__heading">
+      <h2 class="mat-headline-small" id="contribute-crew" i18n="@@contribute.crew.listTitle">The crew</h2>
+      <p class="mat-body-large" i18n="@@contribute.crew.listIntro">The volunteers who build, test and map PK Spot.</p>
+    </div>
+    <ul class="contribute-crew__list">
+      @for (member of crew; track member.name) {
+        <li>
+          <span class="contribute-crew__avatar" aria-hidden="true">{{ member.initial }}</span>
+          <span class="contribute-crew__person">
+            <strong class="mat-title-small">{{ member.name }}</strong>
+            <span class="mat-body-small" lang="en">{{ member.role }}</span>
+          </span>
+        </li>
+      }
+    </ul>
+    <a matButton="text" routerLink="/about" class="contribute-crew__more" i18n="@@contribute.thanks.crew">Meet the crew</a>
+  </mat-card>
 </div>

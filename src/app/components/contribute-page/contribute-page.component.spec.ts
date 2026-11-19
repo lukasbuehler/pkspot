@@ -49,7 +49,7 @@ describe("ContributePageComponent", () => {
   it("thanks the same crew as the About page and Settings, and shows the GitHub issues", () => {
     const { element } = render();
 
-    const people = [...element.querySelectorAll(".contribute-thanks__crew li strong")].map((name) => name.textContent);
+    const people = [...element.querySelectorAll(".contribute-crew__list li strong")].map((name) => name.textContent);
     expect(people).toEqual(crew.map((member) => member.name));
     expect(element.querySelector("#contribute-feedback")?.closest("section")?.querySelector("app-github-issues")).not.toBeNull();
   });

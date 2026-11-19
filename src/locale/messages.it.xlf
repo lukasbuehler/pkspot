@@ -13233,7 +13233,13 @@
         <target>Conosci la crew</target>
       </segment>
     </unit>
-    <unit id="contribute.thanks.crewLabel">
+    <unit id="contribute.crew.listIntro">
+      <segment state="translated">
+        <source>The volunteers who build, test and map PK Spot.</source>
+        <target>I volontari che costruiscono, testano e mappano PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.listTitle">
       <segment state="translated">
         <source>The crew</source>
         <target>La crew</target>

@@ -157,16 +157,25 @@
   color: var(--mat-sys-primary);
 }
 
-// Everyone credited on the About page and in Settings, from crew.json.
-.contribute-thanks__crew {
+// The crew from crew.json, as on the About page and in Settings.
+.contribute-crew {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.contribute-crew__more {
+  justify-self: start;
+}
+
+.contribute-crew__list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 8px;
-  width: 100%;
-  margin: 16px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
-  text-align: start;
 
   li {
     display: grid;
@@ -175,11 +184,11 @@
     align-items: center;
     padding: 10px 12px;
     border-radius: 13px;
-    background: color-mix(in srgb, var(--mat-sys-surface-container-highest) 70%, transparent);
+    background: var(--mat-sys-surface-container-high);
   }
 }
 
-.contribute-thanks__avatar {
+.contribute-crew__avatar {
   display: grid;
   width: 40px;
   height: 40px;
@@ -190,7 +199,7 @@
   background: var(--mat-sys-primary-container);
 }
 
-.contribute-thanks__person {
+.contribute-crew__person {
   display: grid;
   min-width: 0;
 

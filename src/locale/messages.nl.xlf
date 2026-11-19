@@ -13407,7 +13407,13 @@
         <target>Maak kennis met de crew</target>
       </segment>
     </unit>
-    <unit id="contribute.thanks.crewLabel">
+    <unit id="contribute.crew.listIntro">
+      <segment state="translated">
+        <source>The volunteers who build, test and map PK Spot.</source>
+        <target>De vrijwilligers die PK Spot bouwen, testen en in kaart brengen.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.listTitle">
       <segment state="translated">
         <source>The crew</source>
         <target>De crew</target>

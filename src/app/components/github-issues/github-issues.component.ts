@@ -14,7 +14,7 @@ const CACHE_MS = 10 * 60 * 1000;
 /** The page shows a short list; the rest is one click away on GitHub. */
 const VISIBLE_LIMIT = 6;
 
-const KIND_ICON: Record<GitHubIssueKind, string> = { bug: "report", feature: "lightbulb", other: "forum" };
+const KIND_ICON: Record<GitHubIssueKind, string> = { bug: "bug_report", feature: "lightbulb", other: "forum" };
 
 function isCachedIssue(value: unknown): value is GitHubIssue {
   const issue = value as Partial<GitHubIssue> | null;

@@ -123,7 +123,7 @@ export class ContributePageComponent {
       ways: [
         {
           id: "bugs",
-          icon: "report",
+          icon: "bug_report",
           title: $localize`:@@contribute.bugs.title:Report a bug`,
           body: $localize`:@@contribute.bugs.body:Tell us what happened and on which device. A screenshot helps a lot.`,
           actions: [

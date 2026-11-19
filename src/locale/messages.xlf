@@ -2959,7 +2959,12 @@
         <source>Meet the crew</source>
       </segment>
     </unit>
-    <unit id="contribute.thanks.crewLabel">
+    <unit id="contribute.crew.listIntro">
+      <segment>
+        <source>The volunteers who build, test and map PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.listTitle">
       <segment>
         <source>The crew</source>
       </segment>

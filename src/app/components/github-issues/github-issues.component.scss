@@ -71,9 +71,10 @@
   color: var(--mat-sys-on-surface-variant);
   background: var(--mat-sys-surface-container-highest);
 
+  // Tertiary, not error red: an open bug is a known issue, not a failure here.
   &.is-bug {
-    color: var(--mat-sys-on-error-container);
-    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-tertiary-container);
+    background: var(--mat-sys-tertiary-container);
   }
 
   &.is-feature {
