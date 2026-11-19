@@ -1,5 +1,6 @@
 import { EventSchema } from "./EventSchema";
 import { eventIsPublished } from "./EventNormalization";
+import { EVENT_ORGANIZER_SEARCH_FIELD_NAMES } from "./EventOrganizerSearchFields";
 
 export const EVENT_DISCOVERY_COLLECTION = "event_discovery";
 
@@ -75,6 +76,7 @@ export const EVENT_DISCOVERY_FIELDS = [
   "promo_region_center",
   "promo_region_radius_m",
   "has_organization",
+  ...EVENT_ORGANIZER_SEARCH_FIELD_NAMES,
   "has_venue_spot",
   "venue_spot_count",
   "series_roles",

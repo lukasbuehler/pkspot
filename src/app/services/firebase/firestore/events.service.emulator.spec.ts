@@ -871,6 +871,10 @@ runWithEmulator("EventsService emulator integration", () => {
         bounds_radius_m: expect.any(Number),
         promo_region_radius_m: 150_000,
         has_organization: true,
+        organizer_kind: "organization",
+        organizer_display_name: "Organization A",
+        organizer_organization_id: "org-a",
+        organizer_organization_slug: "org-a",
         has_venue_spot: true,
         venue_spot_count: 2,
         time_zone: "Europe/Zurich",
@@ -880,6 +884,40 @@ runWithEmulator("EventsService emulator integration", () => {
         },
       }),
     );
+    expect(data).not.toHaveProperty("organizer_user_id");
+
+    // Replacing the organization with a plain name clears the stale
+    // organization fields on the event and in the discovery projection.
+    await adminDb().doc(`events/${eventId}`).update({
+      organizer: admin.firestore.FieldValue.delete(),
+      organizer_name: "Jam crew",
+    });
+    let replaced: admin.firestore.DocumentData | undefined;
+    let projected: admin.firestore.DocumentData | undefined;
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      replaced = (await adminDb().doc(`events/${eventId}`).get()).data();
+      projected = (
+        await adminDb().doc(`event_discovery/${eventId}`).get()
+      ).data();
+      if (
+        replaced?.["organizer_kind"] === "name" &&
+        projected?.["organizer_kind"] === "name"
+      ) {
+        break;
+      }
+      await sleep(250);
+    }
+    for (const document of [replaced, projected]) {
+      expect(document).toEqual(
+        expect.objectContaining({
+          has_organization: false,
+          organizer_kind: "name",
+          organizer_display_name: "Jam crew",
+        }),
+      );
+      expect(document).not.toHaveProperty("organizer_organization_id");
+      expect(document).not.toHaveProperty("organizer_organization_slug");
+    }
   }, eventTypesenseIntegrationTimeoutMs);
 
   it("materializes only public events into the disposable discovery projection", async () => {

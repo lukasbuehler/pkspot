@@ -1,4 +1,4 @@
-import { GeoPoint, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, GeoPoint, Timestamp } from "firebase-admin/firestore";
 import {
   onDocumentCreated,
   onDocumentWritten,
@@ -16,6 +16,10 @@ import {
   normalizeEventCountryCode,
 } from "../../src/db/schemas/EventGeography";
 import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
+import {
+  EVENT_ORGANIZER_SEARCH_FIELD_NAMES,
+  deriveEventOrganizerSearchFields,
+} from "../../src/db/schemas/EventOrganizerSearchFields";
 import { normalizeEventModel } from "../../src/db/schemas/EventNormalization";
 import {
   eventCompatibilityWindow,
@@ -78,6 +82,7 @@ const TYPESENSE_HELPER_FIELDS = [
   "promo_region_center",
   "promo_region_radius_m",
   "has_organization",
+  ...EVENT_ORGANIZER_SEARCH_FIELD_NAMES,
   "has_venue_spot",
   "venue_spot_count",
   "series_roles",
@@ -695,7 +700,9 @@ const _addTypesenseFields = async (
   }
 
   out.promo_starts_at_seconds = _timestampSeconds(eventData.promo_starts_at);
+  // Kept for older clients; newer cards read the organizer fields below.
   out.has_organization = eventData.organizer?.type === "organization";
+  Object.assign(out, deriveEventOrganizerSearchFields(eventData));
   out.venue_spot_count = _venueSpotCount(eventData);
   out.has_venue_spot = out.venue_spot_count > 0;
   const isPromoted = eventData.is_promoted ?? eventData.is_sponsored;
@@ -846,7 +853,7 @@ const _getChangedFields = (
   for (const field of SERVER_DERIVED_EVENT_FIELDS) {
     if (field in proposed) continue;
     if (current[field] !== undefined) {
-      out[field] = admin.firestore.FieldValue.delete();
+      out[field] = FieldValue.delete();
     }
   }
 
@@ -951,7 +958,7 @@ const _syncSpotUpcomingEventPreviews = async (
 
   await spotRef.update({
     upcoming_events:
-      previews.length > 0 ? previews : admin.firestore.FieldValue.delete(),
+      previews.length > 0 ? previews : FieldValue.delete(),
   });
 };
 
