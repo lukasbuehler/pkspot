@@ -47,4 +47,22 @@ describe("spotEditLeaveGuard", () => {
     expect(await run()).toBe(false);
     service.unregister(editingPage);
   });
+
+  it("asks once when both guarded map routes check the same navigation", async () => {
+    const service = TestBed.inject(SpotEditLeaveService);
+    let asked = 0;
+    let answer!: (value: boolean) => void;
+    const check = () => {
+      asked++;
+      return new Promise<boolean>((resolve) => (answer = resolve));
+    };
+    service.register(check);
+    const first = run() as Promise<boolean>;
+    const second = run() as Promise<boolean>;
+    answer(false);
+    expect(await first).toBe(false);
+    expect(await second).toBe(false);
+    expect(asked).toBe(1);
+    service.unregister(check);
+  });
 });

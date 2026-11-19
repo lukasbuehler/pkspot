@@ -25,16 +25,29 @@ export class SpotEditLeaveService {
     this._checks.delete(check);
   }
 
-  /** Leaving is allowed only when every open map page agrees. */
+  private _pending: Promise<boolean> | null = null;
+
+  /**
+   * Leaving is allowed only when every open map page agrees. The guard sits on
+   * both `/map` and `/map/spots/:spot`, so one navigation can ask twice; the
+   * second ask shares the first one's answer instead of opening a second
+   * dialog.
+   */
   confirmLeave(): Promise<boolean> | boolean {
+    if (this._pending) return this._pending;
     const checks = [...this._checks];
     if (checks.length === 0) return true;
-    return (async () => {
+    const pending = (async () => {
       for (const check of checks) {
         if (!(await check())) return false;
       }
       return true;
     })();
+    this._pending = pending;
+    void pending.finally(() => {
+      if (this._pending === pending) this._pending = null;
+    });
+    return pending;
   }
 }
 

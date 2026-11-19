@@ -33,6 +33,8 @@ export class MapSpotDetailsPanelComponent {
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
 
   isEditingChange = output<boolean>();
+  /** The details view swapped in a newer copy of the same Spot (live update). */
+  spotReplaced = output<Spot | LocalSpot | null>();
   dismiss = output<void>();
   addBoundsClick = output<void>();
   focusClick = output<void>();

@@ -17,6 +17,7 @@
   [openProgress]="openProgress()"
   [liveUpdates]="liveUpdates()"
   (isEditingChange)="isEditingChange.emit($event)"
+  (spotChange)="spotReplaced.emit($event)"
   (dismiss)="dismiss.emit()"
   (addBoundsClick)="addBoundsClick.emit()"
   (focusClick)="focusClick.emit()"

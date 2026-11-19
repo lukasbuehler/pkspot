@@ -35,6 +35,7 @@
           usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         (isEditingChange)="onSpotPanelEditingChange($event)"
+        (spotReplaced)="onSpotPanelSpotReplaced($event)"
         (dismiss)="closeSpot()"
         (addBoundsClick)="onSpotPanelAddBounds()"
         (focusClick)="onSpotPanelFocus()"
@@ -382,6 +383,9 @@
   @if (usesMapDrawer()) {
     <div
       class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
+      #searchOverlay
+      appResizeObserver
+      (resize)="searchOverlayHeight.set(searchOverlay.offsetHeight)"
       [class.map-overlay-drawer]="usesOverlayMapDrawer()"
       [class.search-field-container--over-content]="
         sidenavOpen() && sidebarContentIsScrolling()
@@ -432,6 +436,7 @@
         [mode]="mapSidenavMode()"
         class="info-panel"
         [class.map-overlay-drawer]="usesOverlayMapDrawer()"
+        [style.--map-panel-sticky-top.px]="searchOverlayHeight()"
       >
         <div class="map-panel-toolbar-spacer" [style.--measured-toolbar-height]="chipsSpacerHeight() + 'px'"></div>
         <ng-container

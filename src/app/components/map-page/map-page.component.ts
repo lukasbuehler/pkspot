@@ -492,10 +492,30 @@ export class MapPageComponent
   onSpotPanelEditingChange(isEditing: boolean) {
     if (isEditing) {
       this._editingPath = this._location.path();
+      // The panel edits this page's Spot. The map keeps its own reference,
+      // which can be another copy of the same Spot (for example after the
+      // history view reloaded it). Point the map at the edited object so
+      // unsaved-change checks, Discard and boundary edits all see one Spot.
+      const spot = this.selectedSpot();
+      if (spot && this.spotMap && this.spotMap.selectedSpot() !== spot) {
+        this.spotMap.selectedSpot.set(spot);
+      }
       this.spotMap?.startEdit();
     } else {
       this.spotMap?.discardEdit();
     }
+  }
+
+  /**
+   * The details view follows live updates and swaps in a fresh copy of the
+   * open Spot. Adopt it, so the editor, the map and the unsaved-changes check
+   * all work on the object the person is actually editing.
+   */
+  onSpotPanelSpotReplaced(spot: Spot | LocalSpot | null) {
+    const current = this.selectedSpot();
+    if (!spot || !current || spot === current) return;
+    if (!(spot instanceof Spot) || !(current instanceof Spot) || spot.id !== current.id) return;
+    this.selectedSpot.set(spot);
   }
 
   onSpotPanelAddBounds() {
@@ -557,6 +577,12 @@ export class MapPageComponent
   );
   // CSS resolves navigation and safe-area clearance; the observer keeps the
   // sheet gesture geometry and map controls in the same coordinate space.
+  /**
+   * Height of the search field floating over the side panel. Sticky rows in
+   * the panel (such as the Spot editor's Save bar) stop below it.
+   */
+  readonly searchOverlayHeight = signal(0);
+
   // The server's markup already holds the measuring element, so the sheet can
   // take its real height at once instead of shifting when the observer fires.
   readonly mapSheetClosedHeight = signal(
