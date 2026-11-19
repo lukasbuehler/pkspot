@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 import { Timestamp } from 'firebase/firestore';
-import { LogEntryEditorComponent } from './log-entry-editor.component';
+import { LogEntryEditorComponent, previousDateKey } from './log-entry-editor.component';
 import { PlannedSessionsService } from '../../services/planned-sessions.service';
 import { FeatureTelemetryService } from '../../services/feature-telemetry.service';
 import { StoreReviewService } from '../../reviews/store-review.service';
@@ -113,5 +113,14 @@ describe('private activity handoff', () => {
     const { component } = setup({ sessionRecord: 'missing' }, []);
     await vi.waitFor(() => expect(component.loading()).toBe(false));
     expect(component.selectedIds()).toEqual([]); expect(component.error()).toBeTruthy();
+  });
+});
+
+describe('previousDateKey', () => {
+  it('steps back one calendar day across month, year and DST boundaries', () => {
+    expect(previousDateKey('2026-08-20')).toBe('2026-08-19');
+    expect(previousDateKey('2026-03-01')).toBe('2026-02-28');
+    expect(previousDateKey('2026-01-01')).toBe('2025-12-31');
+    expect(previousDateKey('2026-03-30')).toBe('2026-03-29');
   });
 });

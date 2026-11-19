@@ -1,5 +1,6 @@
 import { Location } from "@angular/common";
 import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, signal } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -117,6 +118,20 @@ export class LogEntryEditorComponent {
     customMinutes: new FormControl<number | null>(45),
   });
 
+  /** Calendar days for the one-tap date shortcuts, in the person's time zone. */
+  readonly todayKey = localDateKey(Date.now(), this.timeZone);
+  readonly yesterdayKey = previousDateKey(this.todayKey);
+  private readonly dateValue = toSignal(this.detailsForm.controls.date.valueChanges, {
+    initialValue: this.detailsForm.controls.date.value,
+  });
+  /** Which shortcut matches the chosen date, if any. */
+  readonly quickDay = computed(() => {
+    const date = this.dateValue();
+    if (date === this.todayKey) return "today";
+    if (date === this.yesterdayKey) return "yesterday";
+    return null;
+  });
+
   readonly selectedSessions = computed(() => {
     const selected = new Set(this.selectedIds());
     return this.sessions().filter((session) => selected.has(session.id));
@@ -139,6 +154,13 @@ export class LogEntryEditorComponent {
 
   setDuration(choice: DurationChoice): void {
     this.durationChoice.set(this.durationChoice() === choice ? null : choice);
+  }
+
+  pickDay(day: "today" | "yesterday"): void {
+    const control = this.detailsForm.controls.date;
+    control.setValue(day === "today" ? this.todayKey : this.yesterdayKey);
+    control.markAsTouched();
+    this.onDateChange();
   }
 
   /** Re-links check-ins whenever the person picks another day. */
@@ -394,4 +416,11 @@ function currentTime(): string {
 function timeOf(timestamp: number): string {
   const date = new Date(timestamp);
   return `${`${date.getHours()}`.padStart(2, "0")}:${`${date.getMinutes()}`.padStart(2, "0")}`;
+}
+
+/** The calendar day before a `YYYY-MM-DD` key, without time-zone or DST drift. */
+export function previousDateKey(dateKey: string): string {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const previous = new Date(Date.UTC(year, month - 1, day - 1));
+  return previous.toISOString().slice(0, 10);
 }

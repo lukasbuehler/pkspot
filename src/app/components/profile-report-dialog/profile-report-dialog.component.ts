@@ -83,7 +83,6 @@ export interface ProfileReportDialogResult {
       <button mat-button type="button" (click)="close()" i18n>Cancel</button>
       <button
         mat-flat-button
-        color="warn"
         type="button"
         [disabled]="reportForm.invalid || isSubmitting()"
         (click)="submit()"

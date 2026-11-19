@@ -34,6 +34,16 @@
             }
           </div>
         } @else {
+          <mat-button-toggle-group
+            class="quick-day"
+            hideSingleSelectionIndicator
+            [value]="quickDay()"
+            aria-label="Training day"
+            i18n-aria-label="@@logEditor.quickDayLabel"
+          >
+            <mat-button-toggle value="today" (click)="pickDay('today')" i18n="@@logEditor.today">Today</mat-button-toggle>
+            <mat-button-toggle value="yesterday" (click)="pickDay('yesterday')" i18n="@@logEditor.yesterday">Yesterday</mat-button-toggle>
+          </mat-button-toggle-group>
           <div [formGroup]="detailsForm" class="time-grid">
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label i18n="@@logEditor.date">Date</mat-label>

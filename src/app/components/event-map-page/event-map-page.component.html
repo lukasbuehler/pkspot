@@ -481,8 +481,9 @@
             <mat-progress-spinner
               mode="indeterminate"
               diameter="40"
-              [attr.aria-label]="mapLoadingLabel"
+              aria-hidden="true"
             ></mat-progress-spinner>
+            <span class="mat-body-medium">{{ mapLoadingLabel }}</span>
           </div>
         }
         @defer {

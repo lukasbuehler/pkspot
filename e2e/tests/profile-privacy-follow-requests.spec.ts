@@ -134,11 +134,12 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Requested|Angefragt/u);
     await expect(followButton).toHaveAttribute("aria-busy", "false");
     await expect(followButton.locator("mat-spinner")).toBeHidden();
-    // Following offers notifications inline, as a snackbar that leaves the
-    // profile usable, rather than interrupting with the full opt-in dialog.
+    // Following confirms the request and offers notifications in one inline
+    // snackbar that leaves the profile usable, rather than interrupting with
+    // the full opt-in dialog.
     await expect(page.locator("app-notification-opt-in-dialog")).toHaveCount(0);
     const notificationPrompt = page.locator("mat-snack-bar-container", {
-      hasText: /Get notified when someone follows you|Benachrichtigt werden, wenn dir jemand folgt/u,
+      hasText: /Follow request sent\. Get notified|Folgeanfrage gesendet\. Über Follows/u,
     });
     await expect(notificationPrompt).toBeVisible();
     await expect(

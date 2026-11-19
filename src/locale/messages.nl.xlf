@@ -6814,6 +6814,12 @@
         <target>Meld het me</target>
       </segment>
     </unit>
+    <unit id="notification_prompt.follow.inline_question">
+      <segment state="translated">
+        <source>Get notified about follows and requests?</source>
+        <target>Meldingen krijgen over volgers en verzoeken?</target>
+      </segment>
+    </unit>
     <unit id="notification_prompt.follow.title">
       <segment state="initial">
         <source>Stay updated on follow activity?</source>
@@ -6968,6 +6974,12 @@
       <segment state="initial">
         <source>Review this spot</source>
         <target>Evalueer deze spot</target>
+      </segment>
+    </unit>
+    <unit id="report.choose_reason_hint">
+      <segment state="translated">
+        <source>Choose at least one reason to send the report.</source>
+        <target>Kies minstens één reden om de melding te versturen.</target>
       </segment>
     </unit>
     <unit id="report_outcome.action_body">
@@ -12931,6 +12943,12 @@
         <target>Alleen jij kunt je trainingslogboek zien.</target>
       </segment>
     </unit>
+    <unit id="logEditor.quickDayLabel">
+      <segment state="translated">
+        <source>Training day</source>
+        <target>Trainingsdag</target>
+      </segment>
+    </unit>
     <unit id="logEditor.save">
       <segment state="translated">
         <source>Save entry</source>
@@ -12955,6 +12973,12 @@
         <target>Starttijd</target>
       </segment>
     </unit>
+    <unit id="logEditor.today">
+      <segment state="translated">
+        <source>Today</source>
+        <target>Vandaag</target>
+      </segment>
+    </unit>
     <unit id="logEditor.trainingDetails">
       <segment state="translated">
         <source>Training details</source>
@@ -12965,6 +12989,12 @@
       <segment state="translated">
         <source>When and where</source>
         <target>Wanneer en waar</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.yesterday">
+      <segment state="translated">
+        <source>Yesterday</source>
+        <target>Gisteren</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -14575,10 +14605,10 @@
         <target>Insignes</target>
       </segment>
     </unit>
-    <unit id="2689184560704057247">
-      <segment state="initial">
-        <source>Follow request sent</source>
-        <target>Volgverzoek verzonden</target>
+    <unit id="profile.follow_request_sent">
+      <segment state="translated">
+        <source>Follow request sent.</source>
+        <target>Volgverzoek verstuurd.</target>
       </segment>
     </unit>
     <unit id="map.create.event">
@@ -15965,6 +15995,18 @@
       <segment state="initial">
         <source>PK Spot user</source>
         <target>PK Spot-gebruiker</target>
+      </segment>
+    </unit>
+    <unit id="profile.now_following">
+      <segment state="translated">
+        <source>You now follow <ph id="0" equiv="name" disp="name"/>.</source>
+        <target>Je volgt nu <ph id="0" equiv="name" disp="name"/>.</target>
+      </segment>
+    </unit>
+    <unit id="profile.now_following_unnamed">
+      <segment state="translated">
+        <source>You are now following.</source>
+        <target>Je volgt deze persoon nu.</target>
       </segment>
     </unit>
     <unit id="2350814362295235670">

@@ -29,17 +29,19 @@ export class NotificationOptInService {
    * Offers notifications for `context` once. `inline` asks with a short
    * snackbar instead of a dialog, for prompts that follow a quick action
    * (going to an event, following someone) so the action is not interrupted.
+   * `outcome` replaces the context's default lead sentence, so the snackbar
+   * first confirms what just happened and only then asks.
    */
   async maybePrompt(
     context: NotificationPromptContext,
-    data: { upcomingEventCount?: number; inline?: boolean } = {},
+    data: { upcomingEventCount?: number; inline?: boolean; outcome?: string } = {},
   ): Promise<NotificationOptInDialogResult | null> {
     if (!this._shouldPrompt(context)) return null;
 
     this.activePrompts.add(context);
     this.analytics.trackEvent("notification_prompt_shown", { context });
     try {
-      const inlineCopy = data.inline ? this._inlineCopy(context) : null;
+      const inlineCopy = data.inline ? this._inlineCopy(context, data.outcome) : null;
       const result = inlineCopy
         ? await this._askInline(inlineCopy)
         : (await firstValueFrom(
@@ -100,6 +102,7 @@ export class NotificationOptInService {
 
   private _inlineCopy(
     context: NotificationPromptContext,
+    outcome?: string,
   ): { message: string; action: string } | null {
     switch (context) {
       case "event_reminders":
@@ -109,7 +112,9 @@ export class NotificationOptInService {
         };
       case "follow_activity":
         return {
-          message: $localize`:@@notification_prompt.follow.inline:Get notified when someone follows you or accepts your request?`,
+          message: outcome
+            ? `${outcome} ${$localize`:@@notification_prompt.follow.inline_question:Get notified about follows and requests?`}`
+            : $localize`:@@notification_prompt.follow.inline:Get notified when someone follows you or accepts your request?`,
           action: $localize`:@@notification_prompt.follow.inline_action:Notify me`,
         };
       default:

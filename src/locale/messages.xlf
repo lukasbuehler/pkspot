@@ -111,6 +111,11 @@
         <source>Only you can see your training log.</source>
       </segment>
     </unit>
+    <unit id="logEditor.quickDayLabel">
+      <segment>
+        <source>Training day</source>
+      </segment>
+    </unit>
     <unit id="logEditor.save">
       <segment>
         <source>Save entry</source>
@@ -131,6 +136,11 @@
         <source>Start time</source>
       </segment>
     </unit>
+    <unit id="logEditor.today">
+      <segment>
+        <source>Today</source>
+      </segment>
+    </unit>
     <unit id="logEditor.trainingDetails">
       <segment>
         <source>Training details</source>
@@ -139,6 +149,11 @@
     <unit id="logEditor.whenWhere">
       <segment>
         <source>When and where</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.yesterday">
+      <segment>
+        <source>Yesterday</source>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -8656,6 +8671,16 @@
         <source>PK Spot user</source>
       </segment>
     </unit>
+    <unit id="profile.now_following">
+      <segment>
+        <source>You now follow <ph id="0" equiv="name" disp="name"/>.</source>
+      </segment>
+    </unit>
+    <unit id="profile.now_following_unnamed">
+      <segment>
+        <source>You are now following.</source>
+      </segment>
+    </unit>
     <unit id="8170263490734712002">
       <segment>
         <source> You have not saved any spots yet. </source>
@@ -8731,9 +8756,9 @@
         <source>Badges</source>
       </segment>
     </unit>
-    <unit id="2689184560704057247">
+    <unit id="profile.follow_request_sent">
       <segment>
-        <source>Follow request sent</source>
+        <source>Follow request sent.</source>
       </segment>
     </unit>
     <unit id="670977948324445637">
@@ -12330,6 +12355,11 @@
         <source>Review this spot</source>
       </segment>
     </unit>
+    <unit id="report.choose_reason_hint">
+      <segment>
+        <source>Choose at least one reason to send the report.</source>
+      </segment>
+    </unit>
     <unit id="report_outcome.action_body">
       <segment>
         <source> We reviewed the report and took appropriate action. </source>
@@ -13786,6 +13816,11 @@
     <unit id="notification_prompt.follow.inline_action">
       <segment>
         <source>Notify me</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.inline_question">
+      <segment>
+        <source>Get notified about follows and requests?</source>
       </segment>
     </unit>
     <unit id="notification_prompt.follow.title">

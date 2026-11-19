@@ -3902,7 +3902,7 @@
     <unit id="6772316127315505952">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
-        <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> Sonstiges</pc></target>
+        <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Anderes</pc></target>
       </segment>
     </unit>
     <unit id="6772922553334264248">
@@ -6646,6 +6646,12 @@
         <target>Benachrichtigen</target>
       </segment>
     </unit>
+    <unit id="notification_prompt.follow.inline_question">
+      <segment state="translated">
+        <source>Get notified about follows and requests?</source>
+        <target>Über Follows und Anfragen benachrichtigt werden?</target>
+      </segment>
+    </unit>
     <unit id="notification_prompt.follow.title">
       <segment state="initial">
         <source>Stay updated on follow activity?</source>
@@ -6800,6 +6806,12 @@
       <segment state="initial">
         <source>Review this spot</source>
         <target>Diesen Spot bewerten</target>
+      </segment>
+    </unit>
+    <unit id="report.choose_reason_hint">
+      <segment state="translated">
+        <source>Choose at least one reason to send the report.</source>
+        <target>Wähle mindestens einen Grund, um die Meldung zu senden.</target>
       </segment>
     </unit>
     <unit id="report_outcome.action_body">
@@ -12753,6 +12765,12 @@
         <target>Nur du kannst dein Trainingslog sehen.</target>
       </segment>
     </unit>
+    <unit id="logEditor.quickDayLabel">
+      <segment state="translated">
+        <source>Training day</source>
+        <target>Trainingstag</target>
+      </segment>
+    </unit>
     <unit id="logEditor.save">
       <segment state="translated">
         <source>Save entry</source>
@@ -12777,6 +12795,12 @@
         <target>Startzeit</target>
       </segment>
     </unit>
+    <unit id="logEditor.today">
+      <segment state="translated">
+        <source>Today</source>
+        <target>Heute</target>
+      </segment>
+    </unit>
     <unit id="logEditor.trainingDetails">
       <segment state="translated">
         <source>Training details</source>
@@ -12787,6 +12811,12 @@
       <segment state="translated">
         <source>When and where</source>
         <target>Wann und wo</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.yesterday">
+      <segment state="translated">
+        <source>Yesterday</source>
+        <target>Gestern</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -14343,10 +14373,10 @@
         <target>Abzeichen</target>
       </segment>
     </unit>
-    <unit id="2689184560704057247">
-      <segment state="initial">
-        <source>Follow request sent</source>
-        <target>Folgeanfrage gesendet</target>
+    <unit id="profile.follow_request_sent">
+      <segment state="translated">
+        <source>Follow request sent.</source>
+        <target>Folgeanfrage gesendet.</target>
       </segment>
     </unit>
     <unit id="map.create.event">
@@ -15703,6 +15733,18 @@
       <segment state="initial">
         <source>PK Spot user</source>
         <target>PK Spot-Nutzer</target>
+      </segment>
+    </unit>
+    <unit id="profile.now_following">
+      <segment state="translated">
+        <source>You now follow <ph id="0" equiv="name" disp="name"/>.</source>
+        <target>Du folgst jetzt <ph id="0" equiv="name" disp="name"/>.</target>
+      </segment>
+    </unit>
+    <unit id="profile.now_following_unnamed">
+      <segment state="translated">
+        <source>You are now following.</source>
+        <target>Du folgst jetzt.</target>
       </segment>
     </unit>
     <unit id="2350814362295235670">

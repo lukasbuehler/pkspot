@@ -166,3 +166,8 @@ mat-card.clickable:hover {
 .country-code {
   font-weight: 500;
 }
+
+.access-label {
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+}

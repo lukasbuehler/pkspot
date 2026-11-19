@@ -605,24 +605,36 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
         followPromise
           .then(() => {
+            let outcome: string | null = null;
             if (wasPendingFollowRequest) {
               this.isPendingFollowRequest = false;
             } else if (wasPrivateAccount) {
               this.isPendingFollowRequest = true;
-              this._snackbar.open($localize`Follow request sent`, "OK", {
-                duration: 3000,
-                verticalPosition: "bottom",
-                horizontalPosition: "center",
-              });
+              outcome = $localize`:@@profile.follow_request_sent:Follow request sent.`;
             } else {
               this.isFollowing = true;
+              const name = this.user?.displayName;
+              outcome = name
+                ? $localize`:@@profile.now_following:You now follow ${name}:name:.`
+                : $localize`:@@profile.now_following_unnamed:You are now following.`;
               this.init();
             }
             this._completeFollowAction();
-            if (!wasPendingFollowRequest) {
-              void this._notificationOptIn.maybePrompt("follow_activity", {
-                inline: true,
-              });
+            if (outcome) {
+              // One snackbar: confirm the follow first, then offer
+              // notifications if they are still worth asking about.
+              if (this._notificationOptIn.wouldPrompt("follow_activity")) {
+                void this._notificationOptIn.maybePrompt("follow_activity", {
+                  inline: true,
+                  outcome,
+                });
+              } else {
+                this._snackbar.open(outcome, "OK", {
+                  duration: 3000,
+                  verticalPosition: "bottom",
+                  horizontalPosition: "center",
+                });
+              }
             }
           })
           .catch((err) => {

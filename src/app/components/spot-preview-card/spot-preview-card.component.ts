@@ -40,6 +40,7 @@ import {
   SpotAccess,
   SpotTypesIcons,
   SpotAccessIcons,
+  SpotAccessNames,
   parseSpotType,
   parseSpotAccess,
 } from "../../../db/schemas/SpotTypeAndAccess";
@@ -83,6 +84,7 @@ export class SpotPreviewCardComponent
   SpotAccess = SpotAccess;
   spotTypesIcons = SpotTypesIcons;
   spotAccessIcons = SpotAccessIcons;
+  spotAccessNames = SpotAccessNames;
 
   hasBorder = input<boolean>(true);
   imgSize = input<200 | 400 | 800>(200);

@@ -47,6 +47,7 @@ h2 { margin: 0; font: var(--mat-sys-title-medium); }
   span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); }
 }
 
+.quick-day { display: flex; width: fit-content; max-width: 100%; margin-block-end: 12px; }
 .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .duration { max-width: 100%; overflow-x: auto; }

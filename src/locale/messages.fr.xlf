@@ -6646,6 +6646,12 @@
         <target>M’avertir</target>
       </segment>
     </unit>
+    <unit id="notification_prompt.follow.inline_question">
+      <segment state="translated">
+        <source>Get notified about follows and requests?</source>
+        <target>Être averti des abonnements et des demandes ?</target>
+      </segment>
+    </unit>
     <unit id="notification_prompt.follow.title">
       <segment state="initial">
         <source>Stay updated on follow activity?</source>
@@ -6800,6 +6806,12 @@
       <segment state="initial">
         <source>Review this spot</source>
         <target>Évaluer ce spot</target>
+      </segment>
+    </unit>
+    <unit id="report.choose_reason_hint">
+      <segment state="translated">
+        <source>Choose at least one reason to send the report.</source>
+        <target>Choisis au moins un motif pour envoyer le signalement.</target>
       </segment>
     </unit>
     <unit id="report_outcome.action_body">
@@ -12763,6 +12775,12 @@
         <target>Toi seul·e peux voir ton journal d&apos;entraînement.</target>
       </segment>
     </unit>
+    <unit id="logEditor.quickDayLabel">
+      <segment state="translated">
+        <source>Training day</source>
+        <target>Jour d'entraînement</target>
+      </segment>
+    </unit>
     <unit id="logEditor.save">
       <segment state="translated">
         <source>Save entry</source>
@@ -12787,6 +12805,12 @@
         <target>Heure de début</target>
       </segment>
     </unit>
+    <unit id="logEditor.today">
+      <segment state="translated">
+        <source>Today</source>
+        <target>Aujourd'hui</target>
+      </segment>
+    </unit>
     <unit id="logEditor.trainingDetails">
       <segment state="translated">
         <source>Training details</source>
@@ -12797,6 +12821,12 @@
       <segment state="translated">
         <source>When and where</source>
         <target>Quand et où</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.yesterday">
+      <segment state="translated">
+        <source>Yesterday</source>
+        <target>Hier</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -14353,10 +14383,10 @@
         <target>Insignes</target>
       </segment>
     </unit>
-    <unit id="2689184560704057247">
-      <segment state="initial">
-        <source>Follow request sent</source>
-        <target>Demande d’abonnement envoyée</target>
+    <unit id="profile.follow_request_sent">
+      <segment state="translated">
+        <source>Follow request sent.</source>
+        <target>Demande d'abonnement envoyée.</target>
       </segment>
     </unit>
     <unit id="map.create.event">
@@ -15713,6 +15743,18 @@
       <segment state="initial">
         <source>PK Spot user</source>
         <target>Utilisateur PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="profile.now_following">
+      <segment state="translated">
+        <source>You now follow <ph id="0" equiv="name" disp="name"/>.</source>
+        <target>Tu suis maintenant <ph id="0" equiv="name" disp="name"/>.</target>
+      </segment>
+    </unit>
+    <unit id="profile.now_following_unnamed">
+      <segment state="translated">
+        <source>You are now following.</source>
+        <target>Tu suis maintenant cette personne.</target>
       </segment>
     </unit>
     <unit id="2350814362295235670">

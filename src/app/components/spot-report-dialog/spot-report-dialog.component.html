@@ -24,7 +24,6 @@
   <div class="d-flex flex-column gap-2">
     @for (reason of reasons; track reason.value) {
       <mat-checkbox
-        color="warn"
         [checked]="isReasonSelected(reason.value)"
         [disabled]="isSubmitting()"
         (change)="toggleReason(reason.value, $event.checked)"
@@ -33,6 +32,9 @@
       </mat-checkbox>
     }
   </div>
+  @if (selectedReasons().length === 0) {
+    <p class="mat-body-small text-secondary" i18n="@@report.choose_reason_hint">Choose at least one reason to send the report.</p>
+  }
 
   @if (isReasonSelected('duplicate')) {
     <div class="pt-3">
@@ -84,7 +86,6 @@
     <button
       [disabled]="!canSubmit() || isSubmitting()"
       matButton="filled"
-      color="warn"
       cdkFocusInitial
       (click)="submitReport()"
     >

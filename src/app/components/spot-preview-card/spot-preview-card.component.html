@@ -66,6 +66,11 @@
               [class.access-private]="spotAccess() === SpotAccess.Private"
               >{{ spotAccessIcons[spotAccess()!] }}</mat-icon
             >
+            <!-- Restricted access is named, not only coloured, so nobody heads
+                 to a private or off-limits Spot by mistake. -->
+            @if (spotAccess() === SpotAccess.Private || spotAccess() === SpotAccess.OffLimits) {
+            <span class="access-label mat-label-medium">{{ spotAccessNames[spotAccess()!] }}</span>
+            }
             }
           </div>
         </div>

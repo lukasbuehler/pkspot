@@ -47,6 +47,9 @@
         <span class="mat-body-large">Other</span>
       </mat-checkbox>
     </div>
+    @if (selectedReasons().length === 0) {
+      <p class="mat-body-small text-secondary" i18n="@@report.choose_reason_hint">Choose at least one reason to send the report.</p>
+    }
 
     @if (isReasonSelected('duplicate')) {
       <mat-form-field class="w-100" appearance="outline">
@@ -88,7 +91,7 @@
   } @else { <span></span> }
   <div class="d-flex gap-2">
     <button matButton="outlined" [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">Cancel</button>
-    <button matButton="filled" color="warn" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim())">
+    <button matButton="filled" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim())">
       @if (isSubmitting()) {
         <span i18n="submitting label">Saving...</span>
       } @else if (ownReport()) {

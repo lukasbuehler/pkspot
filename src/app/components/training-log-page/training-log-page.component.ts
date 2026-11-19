@@ -100,6 +100,7 @@ export class TrainingLogPageComponent {
   readonly spotNames = signal<ReadonlyMap<string, string>>(new Map());
   readonly loadingSpotLabel = $localize`:@@training.loadingSpot:Loading Spot…`;
   readonly addLabel = $localize`:@@trainingLog.add:Add to training log`;
+  readonly addText = $localize`:@@train.fab.text:Log training`;
   readonly addActions: readonly FabMenuAction[] = [
     ...(environment.features.plannedSessions ? [{ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` }] : []),
     { id: "activity", icon: "add", label: $localize`:@@trainingLog.new:New training entry` },
