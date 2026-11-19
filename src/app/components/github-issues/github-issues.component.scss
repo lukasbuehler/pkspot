@@ -1,0 +1,112 @@
+:host {
+  display: block;
+}
+
+.github-issues {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.github-issues__heading {
+  display: grid;
+  gap: 2px;
+
+  h3,
+  p { margin: 0; }
+
+  p { color: var(--mat-sys-on-surface-variant); }
+}
+
+.github-issues__message {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// A selected filter is a highlight, not something live, so blue instead of green.
+.github-issues__filters {
+  --mat-chip-elevated-selected-container-color: var(--mat-sys-primary-container);
+  --mat-chip-selected-hover-state-layer-color: var(--mat-sys-on-primary-container);
+  --mat-chip-selected-focus-state-layer-color: var(--mat-sys-on-primary-container);
+  --mat-chip-selected-label-text-color: var(--mat-sys-on-primary-container);
+  --mat-chip-with-icon-selected-icon-color: var(--mat-sys-on-primary-container);
+  --mat-chip-selected-trailing-icon-color: var(--mat-sys-on-primary-container);
+}
+
+.github-issues__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.github-issues__issue {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 13px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+
+  &:hover,
+  &:focus-visible { background: var(--mat-sys-surface-container-high); }
+
+  &:focus-visible { outline: 2px solid var(--mat-sys-primary); }
+}
+
+.github-issues__tile {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  font-size: 22px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-highest);
+
+  &.is-bug {
+    color: var(--mat-sys-on-error-container);
+    background: var(--mat-sys-error-container);
+  }
+
+  &.is-feature {
+    color: var(--mat-sys-on-primary-container);
+    background: var(--mat-sys-primary-container);
+  }
+}
+
+.github-issues__text {
+  display: grid;
+  min-width: 0;
+}
+
+.github-issues__title {
+  overflow: hidden;
+  color: var(--mat-sys-on-surface);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.github-issues__meta {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.github-issues__open {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.github-issues__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

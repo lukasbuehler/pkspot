@@ -50,6 +50,10 @@
           </mat-card>
         }
       </div>
+
+      @if (section.id === "feedback") {
+        <app-github-issues />
+      }
     </section>
   }
 
@@ -60,6 +64,17 @@
       To everyone who adds Spots, sends feedback, tests new versions, translates and writes code: PK Spot exists
       because of you.
     </p>
+    <ul class="contribute-thanks__crew" i18n-aria-label="@@contribute.thanks.crewLabel" aria-label="The crew">
+      @for (member of crew; track member.name) {
+        <li>
+          <span class="contribute-thanks__avatar" aria-hidden="true">{{ member.initial }}</span>
+          <span class="contribute-thanks__person">
+            <strong class="mat-title-small">{{ member.name }}</strong>
+            <span class="mat-body-small" lang="en">{{ member.role }}</span>
+          </span>
+        </li>
+      }
+    </ul>
     <div class="contribute-thanks__actions">
       <a matButton="text" routerLink="/about" i18n="@@contribute.thanks.crew">Meet the crew</a>
       <a

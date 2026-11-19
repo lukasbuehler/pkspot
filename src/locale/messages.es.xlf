@@ -13233,6 +13233,12 @@
         <target>Conoce a la crew</target>
       </segment>
     </unit>
+    <unit id="contribute.thanks.crewLabel">
+      <segment state="translated">
+        <source>The crew</source>
+        <target>La crew</target>
+      </segment>
+    </unit>
     <unit id="contribute.thanks.releases">
       <segment state="translated">
         <source>See what&apos;s new</source>
@@ -18890,6 +18896,108 @@
       <segment state="initial">
         <source>Get App</source>
         <target>Obtener app</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comment">
+      <segment state="translated">
+        <source>1 comment</source>
+        <target>1 comentario</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comments">
+      <segment state="translated">
+        <source><ph id="0" equiv="count" disp="issue.comments"/> comments</source>
+        <target><ph id="0" equiv="count" disp="issue.comments"/> comentarios</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.empty">
+      <segment state="translated">
+        <source> No open issues right now. Found something? Tell us. </source>
+        <target> No hay issues abiertos ahora. ¿Encontraste algo? Cuéntanos. </target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.error">
+      <segment state="translated">
+        <source> The issues could not be loaded right now. You can still see them on GitHub. </source>
+        <target> No se pudieron cargar los issues ahora. Puedes verlos en GitHub. </target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.all">
+      <segment state="translated">
+        <source>All</source>
+        <target>Todos</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.bugs">
+      <segment state="translated">
+        <source>Bugs</source>
+        <target>Errores</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.features">
+      <segment state="translated">
+        <source>Feature requests</source>
+        <target>Peticiones de funciones</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.goodFirst">
+      <segment state="translated">
+        <source>Good first issues</source>
+        <target>Buenos para empezar</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.label">
+      <segment state="translated">
+        <source>Filter issues</source>
+        <target>Filtrar issues</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.goodFirst">
+      <segment state="translated">
+        <source>Good first issue</source>
+        <target>Bueno para empezar</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.intro">
+      <segment state="translated">
+        <source> What people reported and asked for. Add your thoughts in a comment, or pick one up. </source>
+        <target> Lo que la gente ha informado y pedido. Deja un comentario o encárgate de uno. </target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.bug">
+      <segment state="translated">
+        <source>Bug</source>
+        <target>Error</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.feature">
+      <segment state="translated">
+        <source>Feature request</source>
+        <target>Petición de función</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.loading">
+      <segment state="translated">
+        <source>Loading issues</source>
+        <target>Cargando issues</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeAll">
+      <segment state="translated">
+        <source>See all on GitHub</source>
+        <target>Ver todo en GitHub</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeMore">
+      <segment state="translated">
+        <source>See <ph id="0" equiv="INTERPOLATION" disp="{{ hiddenCount() }}"/> more on GitHub</source>
+        <target>Ver <ph id="0" equiv="INTERPOLATION" disp="{{ hiddenCount() }}"/> más en GitHub</target>
+      </segment>
+    </unit>
+    <unit id="githubIssues.title">
+      <segment state="translated">
+        <source>Open on GitHub</source>
+        <target>Abierto en GitHub</target>
       </segment>
     </unit>
     <unit id="search_field_clear_context">

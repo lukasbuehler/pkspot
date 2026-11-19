@@ -2959,6 +2959,11 @@
         <source>Meet the crew</source>
       </segment>
     </unit>
+    <unit id="contribute.thanks.crewLabel">
+      <segment>
+        <source>The crew</source>
+      </segment>
+    </unit>
     <unit id="contribute.thanks.releases">
       <segment>
         <source>See what&apos;s new</source>
@@ -16079,6 +16084,91 @@
       </notes>
       <segment>
         <source>Get App</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comment">
+      <segment>
+        <source>1 comment</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.comments">
+      <segment>
+        <source><ph id="0" equiv="count" disp="issue.comments"/> comments</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.empty">
+      <segment>
+        <source> No open issues right now. Found something? Tell us. </source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.error">
+      <segment>
+        <source> The issues could not be loaded right now. You can still see them on GitHub. </source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.all">
+      <segment>
+        <source>All</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.bugs">
+      <segment>
+        <source>Bugs</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.features">
+      <segment>
+        <source>Feature requests</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.goodFirst">
+      <segment>
+        <source>Good first issues</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.filter.label">
+      <segment>
+        <source>Filter issues</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.goodFirst">
+      <segment>
+        <source>Good first issue</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.intro">
+      <segment>
+        <source> What people reported and asked for. Add your thoughts in a comment, or pick one up. </source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.bug">
+      <segment>
+        <source>Bug</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.kind.feature">
+      <segment>
+        <source>Feature request</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.loading">
+      <segment>
+        <source>Loading issues</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeAll">
+      <segment>
+        <source>See all on GitHub</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.seeMore">
+      <segment>
+        <source>See <ph id="0" equiv="INTERPOLATION" disp="{{ hiddenCount() }}"/> more on GitHub</source>
+      </segment>
+    </unit>
+    <unit id="githubIssues.title">
+      <segment>
+        <source>Open on GitHub</source>
       </segment>
     </unit>
     <unit id="question.covered">

@@ -1,12 +1,15 @@
 import { readFileSync } from "node:fs";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import crew from "../../../assets/data/crew.json";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ContributePageComponent } from "./contribute-page.component";
 
 function render() {
+  // The issues section would otherwise call the real GitHub API.
+  vi.stubGlobal("fetch", vi.fn(async () => new Response("[]", { status: 200 })));
   const analytics = { trackOutboundLinkClick: vi.fn() };
   const meta = { setStaticPageMetaTags: vi.fn() };
   TestBed.configureTestingModule({
@@ -22,6 +25,8 @@ function render() {
 }
 
 describe("ContributePageComponent", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   it("lists the ways to help with one featured card and links into the app", () => {
     const { element, meta } = render();
 
@@ -39,6 +44,14 @@ describe("ContributePageComponent", () => {
       undefined,
       "/contribute",
     );
+  });
+
+  it("thanks the same crew as the About page and Settings, and shows the GitHub issues", () => {
+    const { element } = render();
+
+    const people = [...element.querySelectorAll(".contribute-thanks__crew li strong")].map((name) => name.textContent);
+    expect(people).toEqual(crew.map((member) => member.name));
+    expect(element.querySelector("#contribute-feedback")?.closest("section")?.querySelector("app-github-issues")).not.toBeNull();
   });
 
   it("opens outside links in a new tab and tracks them", () => {

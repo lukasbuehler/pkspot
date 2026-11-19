@@ -7,8 +7,9 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { AnalyticsService } from "../../services/analytics.service";
 import { ReleaseHero } from "../../releases/release-notes";
 import { ReleaseHeroComponent } from "../release-hero/release-hero.component";
-
-const GITHUB_URL = "https://github.com/lukasbuehler/pkspot";
+import { GitHubIssuesComponent } from "../github-issues/github-issues.component";
+import { GITHUB_REPO_URL as GITHUB_URL } from "../github-issues/github-issues";
+import crew from "../../../assets/data/crew.json";
 const DISCORD_URL = "https://discord.gg/Th5vx4KnQb";
 
 /** A link on a way-to-help card: an app route or an outside page. */
@@ -45,7 +46,7 @@ export interface ContributeSection {
  */
 @Component({
   selector: "app-contribute-page",
-  imports: [MatButtonModule, MatCardModule, MatIconModule, RouterLink, ReleaseHeroComponent],
+  imports: [MatButtonModule, MatCardModule, MatIconModule, RouterLink, ReleaseHeroComponent, GitHubIssuesComponent],
   templateUrl: "./contribute-page.component.html",
   styleUrl: "./contribute-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +67,13 @@ export class ContributePageComponent {
   };
 
   protected readonly contributorsUrl = `${GITHUB_URL}/graphs/contributors`;
+
+  /** The same crew list as the About page and the credits in Settings. */
+  protected readonly crew = crew.map((member) => ({
+    name: member.name,
+    role: member.role,
+    initial: member.name.charAt(0),
+  }));
 
   protected readonly sections: readonly ContributeSection[] = [
     {
@@ -144,7 +152,7 @@ export class ContributePageComponent {
           title: $localize`:@@contribute.translate.title:Translate PK Spot`,
           body: $localize`:@@contribute.translate.body:Fix a translation in your language, or help us add a new one.`,
           actions: [
-            { id: "translation_guide", label: $localize`:@@contribute.translate.action:Translation guide`, href: `${GITHUB_URL}#translation` },
+            { id: "translation_guide", label: $localize`:@@contribute.translate.action:Translation guide`, href: `${GITHUB_URL}/blob/main/CONTRIBUTING.md#translation` },
           ],
         },
         {

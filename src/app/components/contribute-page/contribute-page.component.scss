@@ -157,6 +157,48 @@
   color: var(--mat-sys-primary);
 }
 
+// Everyone credited on the About page and in Settings, from crew.json.
+.contribute-thanks__crew {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+
+  li {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 13px;
+    background: color-mix(in srgb, var(--mat-sys-surface-container-highest) 70%, transparent);
+  }
+}
+
+.contribute-thanks__avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.contribute-thanks__person {
+  display: grid;
+  min-width: 0;
+
+  strong { color: var(--mat-sys-on-surface); }
+
+  span { color: var(--mat-sys-on-surface-variant); }
+}
+
 .contribute-thanks__actions {
   display: flex;
   flex-wrap: wrap;
