@@ -1,7 +1,8 @@
 # Deployment tasks
 
 This maintainer document is the source of truth for work immediately before,
-during, and after a production release. Deploying `main` updates App Hosting, but
+during, and after a production release. Deploying `main` updates the Cloudflare
+production Workers, but
 does not automatically deploy Firebase backend resources, update search schemas,
 run data migrations, or complete third-party service tasks.
 
@@ -75,8 +76,8 @@ run data migrations, or complete third-party service tasks.
 
 ### Deployment
 
-1. Release the web app by updating `main`; App Hosting deploys it automatically.
-   Do not manually create or operate an App Hosting rollout.
+1. Release the web app by updating `main`; Cloudflare Workers Builds deploys it
+   automatically. Do not deploy or roll back the production Workers by hand.
 2. Deploy Functions, rules, extensions, indexes, and other backend resources
    separately, only when explicitly authorized and in the order documented for
    the release.
@@ -86,7 +87,8 @@ run data migrations, or complete third-party service tasks.
 ### Post-deployment
 
 1. Verify the production app and representative changed routes.
-2. Check App Hosting and Cloud Functions logs for new errors.
+2. Check the production Worker logs (`wrangler tail`) and Cloud Functions logs
+   for new errors.
 3. Complete every applicable action in the linked checklists, including search
    backfills, sitemap regeneration, migrations, cleanup, and external-service
    checks.
