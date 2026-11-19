@@ -13011,6 +13011,264 @@
         <target>Lingua originale: <ph id="0" equiv="LANGUAGE" disp="language"/></target>
       </segment>
     </unit>
+    <unit id="contribute.bugs.action">
+      <segment state="translated">
+        <source>Open an issue</source>
+        <target>Apri una issue</target>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.body">
+      <segment state="translated">
+        <source>Tell us what happened and on which device. A screenshot helps a lot.</source>
+        <target>Raccontaci cosa è successo e su quale dispositivo. Uno screenshot aiuta molto.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.title">
+      <segment state="translated">
+        <source>Report a bug</source>
+        <target>Segnala un bug</target>
+      </segment>
+    </unit>
+    <unit id="contribute.build.intro">
+      <segment state="translated">
+        <source>PK Spot is open source. Everything is on GitHub.</source>
+        <target>PK Spot è open source. È tutto su GitHub.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.build.title">
+      <segment state="translated">
+        <source>Languages and code</source>
+        <target>Lingue e codice</target>
+      </segment>
+    </unit>
+    <unit id="contribute.code.action">
+      <segment state="translated">
+        <source>See open issues</source>
+        <target>Vedi le issue aperte</target>
+      </segment>
+    </unit>
+    <unit id="contribute.code.body">
+      <segment state="translated">
+        <source>Built with Angular and Firebase. Pick an open issue or fix something that bugs you.</source>
+        <target>Fatto con Angular e Firebase. Scegli una issue aperta o sistema ciò che ti dà fastidio.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.code.title">
+      <segment state="translated">
+        <source>Write code</source>
+        <target>Scrivi codice</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.body">
+      <segment state="translated">
+        <source>Test new versions, review Spots, design, write or help your local community.</source>
+        <target>Prova le nuove versioni, controlla gli Spot, progetta, scrivi o aiuta la tua community locale.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.title">
+      <segment state="translated">
+        <source>Join the crew</source>
+        <target>Unisciti alla crew</target>
+      </segment>
+    </unit>
+    <unit id="contribute.events.action">
+      <segment state="translated">
+        <source>Suggest an Event</source>
+        <target>Suggerisci un Event</target>
+      </segment>
+    </unit>
+    <unit id="contribute.events.body">
+      <segment state="translated">
+        <source>Tell us about jams, workshops and competitions near you.</source>
+        <target>Raccontaci di jam, workshop e gare vicino a te.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.events.title">
+      <segment state="translated">
+        <source>Suggest Events</source>
+        <target>Suggerisci Event</target>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.intro">
+      <segment state="translated">
+        <source>Most features started as a message from someone who trains.</source>
+        <target>La maggior parte delle funzioni è nata da un messaggio di chi si allena.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.title">
+      <segment state="translated">
+        <source>Ideas and bugs</source>
+        <target>Idee e bug</target>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.action">
+      <segment state="translated">
+        <source>Join Discord</source>
+        <target>Unisciti a Discord</target>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.body">
+      <segment state="translated">
+        <source>Missing something? Talk to us and the community on Discord.</source>
+        <target>Ti manca qualcosa? Parla con noi e con la community su Discord.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.title">
+      <segment state="translated">
+        <source>Share an idea</source>
+        <target>Condividi un’idea</target>
+      </segment>
+    </unit>
+    <unit id="contribute.import.action">
+      <segment state="translated">
+        <source>Send a Spot map</source>
+        <target>Invia una mappa di Spot</target>
+      </segment>
+    </unit>
+    <unit id="contribute.import.body">
+      <segment state="translated">
+        <source>Does your community keep a list or map of Spots? Send it to us and we help bring it into PK Spot.</source>
+        <target>La tua community ha una lista o una mappa di Spot? Mandacela e ti aiutiamo a portarla su PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.import.title">
+      <segment state="translated">
+        <source>Share your Spot map</source>
+        <target>Condividi la tua mappa di Spot</target>
+      </segment>
+    </unit>
+    <unit id="contribute.map.intro">
+      <segment state="translated">
+        <source>No setup needed. All you need is an account.</source>
+        <target>Nessuna configurazione. Ti serve solo un account.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.map.title">
+      <segment state="translated">
+        <source>On the map</source>
+        <target>Sulla mappa</target>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.description">
+      <segment state="translated">
+        <source>Help build PK Spot: add Spots, suggest Events, report bugs, translate or write code. PK Spot is free, open source and built by the Parkour community.</source>
+        <target>Aiuta a costruire PK Spot: aggiungi Spot, suggerisci Event, segnala bug, traduci o scrivi codice. PK Spot è gratuito, open source e costruito dalla community di Parkour.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.title">
+      <segment state="translated">
+        <source>How to help</source>
+        <target>Come aiutare</target>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.action">
+      <segment state="translated">
+        <source>Get in touch</source>
+        <target>Contattaci</target>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.body">
+      <segment state="translated">
+        <source>Associations, gyms and brands help keep PK Spot free.</source>
+        <target>Associazioni, palestre e brand aiutano a mantenere PK Spot gratuito.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.title">
+      <segment state="translated">
+        <source>Partner with us</source>
+        <target>Diventa partner</target>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.action">
+      <segment state="translated">
+        <source>Open the map</source>
+        <target>Apri la mappa</target>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.body">
+      <segment state="translated">
+        <source>Know a Spot that is missing? Add it. Good photos, a short description and the right Spot type help others decide where to train.</source>
+        <target>Conosci uno Spot che manca? Aggiungilo. Belle foto, una breve descrizione e il tipo di Spot giusto aiutano gli altri a scegliere dove allenarsi.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.title">
+      <segment state="translated">
+        <source>Add and improve Spots</source>
+        <target>Aggiungi e migliora gli Spot</target>
+      </segment>
+    </unit>
+    <unit id="contribute.subtitle">
+      <segment state="translated">
+        <source> PK Spot is free, open source and made by the Parkour community. Every Spot, idea and fix makes it better for everyone. </source>
+        <target> PK Spot è gratuito, open source e fatto dalla community di Parkour. Ogni Spot, idea e correzione lo migliora per tutti. </target>
+      </segment>
+    </unit>
+    <unit id="contribute.team.intro">
+      <segment state="translated">
+        <source>PK Spot is built by volunteers from the Parkour community.</source>
+        <target>PK Spot è costruito da volontari della community di Parkour.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.team.title">
+      <segment state="translated">
+        <source>Join the team</source>
+        <target>Unisciti al team</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.body">
+      <segment state="translated">
+        <source> To everyone who adds Spots, sends feedback, tests new versions, translates and writes code: PK Spot exists because of you. </source>
+        <target> A tutti quelli che aggiungono Spot, mandano feedback, provano le nuove versioni, traducono e scrivono codice: PK Spot esiste grazie a voi. </target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.contributors">
+      <segment state="translated">
+        <source>Code contributors</source>
+        <target>Contributori al codice</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.crew">
+      <segment state="translated">
+        <source>Meet the crew</source>
+        <target>Conosci la crew</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.releases">
+      <segment state="translated">
+        <source>See what&apos;s new</source>
+        <target>Vedi le novità</target>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.title">
+      <segment state="translated">
+        <source>Thank you</source>
+        <target>Grazie</target>
+      </segment>
+    </unit>
+    <unit id="contribute.title">
+      <segment state="translated">
+        <source>Help build PK Spot</source>
+        <target>Aiuta a costruire PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.action">
+      <segment state="translated">
+        <source>Translation guide</source>
+        <target>Guida alla traduzione</target>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.body">
+      <segment state="translated">
+        <source>Fix a translation in your language, or help us add a new one.</source>
+        <target>Correggi una traduzione nella tua lingua o aiutaci ad aggiungerne una nuova.</target>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.title">
+      <segment state="translated">
+        <source>Translate PK Spot</source>
+        <target>Traduci PK Spot</target>
+      </segment>
+    </unit>
     <unit id="crop.cancel">
       <notes>
         <note category="description">Cancel action</note>
@@ -16190,6 +16448,12 @@
       <segment state="translated">
         <source>visits</source>
         <target>visite</target>
+      </segment>
+    </unit>
+    <unit id="support.contribute.link">
+      <segment state="translated">
+        <source>How to help</source>
+        <target>Come aiutare</target>
       </segment>
     </unit>
     <unit id="support.meta.description">

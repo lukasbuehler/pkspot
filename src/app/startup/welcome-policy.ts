@@ -2,7 +2,7 @@ import { isKnownUiLocalePrefix } from "../config/ui-locales";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about", "/shop", "/support", "/contact", "/terms-of-service", "/tos",
-  "/privacy-policy", "/pp", "/impressum", "/releases",
+  "/privacy-policy", "/pp", "/impressum", "/releases", "/contribute",
 ];
 
 export function withoutLocalePrefix(pathname: string): string {

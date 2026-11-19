@@ -1,0 +1,78 @@
+<div class="contribute-page">
+  <header class="contribute-page__header">
+    <app-release-hero [hero]="hero" tier="major" />
+    <h1 class="mat-headline-large" i18n="@@contribute.title">Help build PK Spot</h1>
+    <p class="mat-title-medium" i18n="@@contribute.subtitle">
+      PK Spot is free, open source and made by the Parkour community. Every Spot, idea and fix makes it better for
+      everyone.
+    </p>
+  </header>
+
+  @for (section of sections; track section.id) {
+    <section class="contribute-section" [attr.aria-labelledby]="'contribute-' + section.id">
+      <div class="contribute-section__heading">
+        <h2 class="mat-headline-small" [id]="'contribute-' + section.id">{{ section.title }}</h2>
+        <p class="mat-body-large">{{ section.intro }}</p>
+      </div>
+
+      <div class="contribute-section__ways">
+        @for (way of section.ways; track way.id) {
+          <mat-card appearance="outlined" class="contribute-way" [class.is-featured]="way.featured">
+            <mat-icon class="contribute-way__tile" aria-hidden="true">{{ way.icon }}</mat-icon>
+            <div class="contribute-way__text">
+              <h3 class="mat-title-medium">{{ way.title }}</h3>
+              <p class="mat-body-medium">{{ way.body }}</p>
+            </div>
+            <div class="contribute-way__actions">
+              @for (action of way.actions; track action.id) {
+                @if (action.href) {
+                  <a
+                    [matButton]="way.featured ? 'filled' : 'outlined'"
+                    [href]="action.href"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    (click)="trackOutbound(action)"
+                  >
+                    {{ action.label }}
+                    <mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon>
+                  </a>
+                } @else {
+                  <a
+                    [matButton]="way.featured ? 'filled' : 'outlined'"
+                    [routerLink]="action.routerLink"
+                    [queryParams]="action.queryParams"
+                  >
+                    {{ action.label }}
+                  </a>
+                }
+              }
+            </div>
+          </mat-card>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="contribute-thanks" aria-labelledby="contribute-thanks">
+    <mat-icon class="contribute-thanks__icon" aria-hidden="true">volunteer_activism</mat-icon>
+    <h2 class="mat-headline-small" id="contribute-thanks" i18n="@@contribute.thanks.title">Thank you</h2>
+    <p class="mat-body-large" i18n="@@contribute.thanks.body">
+      To everyone who adds Spots, sends feedback, tests new versions, translates and writes code: PK Spot exists
+      because of you.
+    </p>
+    <div class="contribute-thanks__actions">
+      <a matButton="text" routerLink="/about" i18n="@@contribute.thanks.crew">Meet the crew</a>
+      <a
+        matButton="text"
+        [href]="contributorsUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        (click)="trackOutbound({ id: 'github_contributors', label: 'Code contributors', href: contributorsUrl })"
+      >
+        <span i18n="@@contribute.thanks.contributors">Code contributors</span>
+        <mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon>
+      </a>
+      <a matButton="text" routerLink="/releases" i18n="@@contribute.thanks.releases">See what's new</a>
+    </div>
+  </section>
+</div>

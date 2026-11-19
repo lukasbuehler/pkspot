@@ -33,6 +33,7 @@ const STATIC_SSR_PATHS = new Set([
   "/pp",
   "/impressum",
   "/releases",
+  "/contribute",
 ]);
 // Release notes only change with a deploy, so every release page is static.
 const STATIC_SSR_PREFIXES = ["/releases/"];

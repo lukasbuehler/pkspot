@@ -2774,6 +2774,221 @@
         <source>Original language: <ph id="0" equiv="LANGUAGE" disp="language"/></source>
       </segment>
     </unit>
+    <unit id="contribute.bugs.action">
+      <segment>
+        <source>Open an issue</source>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.body">
+      <segment>
+        <source>Tell us what happened and on which device. A screenshot helps a lot.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.bugs.title">
+      <segment>
+        <source>Report a bug</source>
+      </segment>
+    </unit>
+    <unit id="contribute.build.intro">
+      <segment>
+        <source>PK Spot is open source. Everything is on GitHub.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.build.title">
+      <segment>
+        <source>Languages and code</source>
+      </segment>
+    </unit>
+    <unit id="contribute.code.action">
+      <segment>
+        <source>See open issues</source>
+      </segment>
+    </unit>
+    <unit id="contribute.code.body">
+      <segment>
+        <source>Built with Angular and Firebase. Pick an open issue or fix something that bugs you.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.code.title">
+      <segment>
+        <source>Write code</source>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.body">
+      <segment>
+        <source>Test new versions, review Spots, design, write or help your local community.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.crew.title">
+      <segment>
+        <source>Join the crew</source>
+      </segment>
+    </unit>
+    <unit id="contribute.events.action">
+      <segment>
+        <source>Suggest an Event</source>
+      </segment>
+    </unit>
+    <unit id="contribute.events.body">
+      <segment>
+        <source>Tell us about jams, workshops and competitions near you.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.events.title">
+      <segment>
+        <source>Suggest Events</source>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.intro">
+      <segment>
+        <source>Most features started as a message from someone who trains.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.feedback.title">
+      <segment>
+        <source>Ideas and bugs</source>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.action">
+      <segment>
+        <source>Join Discord</source>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.body">
+      <segment>
+        <source>Missing something? Talk to us and the community on Discord.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.ideas.title">
+      <segment>
+        <source>Share an idea</source>
+      </segment>
+    </unit>
+    <unit id="contribute.import.action">
+      <segment>
+        <source>Send a Spot map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.import.body">
+      <segment>
+        <source>Does your community keep a list or map of Spots? Send it to us and we help bring it into PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.import.title">
+      <segment>
+        <source>Share your Spot map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.map.intro">
+      <segment>
+        <source>No setup needed. All you need is an account.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.map.title">
+      <segment>
+        <source>On the map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.description">
+      <segment>
+        <source>Help build PK Spot: add Spots, suggest Events, report bugs, translate or write code. PK Spot is free, open source and built by the Parkour community.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.meta.title">
+      <segment>
+        <source>How to help</source>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.action">
+      <segment>
+        <source>Get in touch</source>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.body">
+      <segment>
+        <source>Associations, gyms and brands help keep PK Spot free.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.partner.title">
+      <segment>
+        <source>Partner with us</source>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.action">
+      <segment>
+        <source>Open the map</source>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.body">
+      <segment>
+        <source>Know a Spot that is missing? Add it. Good photos, a short description and the right Spot type help others decide where to train.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.spots.title">
+      <segment>
+        <source>Add and improve Spots</source>
+      </segment>
+    </unit>
+    <unit id="contribute.subtitle">
+      <segment>
+        <source> PK Spot is free, open source and made by the Parkour community. Every Spot, idea and fix makes it better for everyone. </source>
+      </segment>
+    </unit>
+    <unit id="contribute.team.intro">
+      <segment>
+        <source>PK Spot is built by volunteers from the Parkour community.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.team.title">
+      <segment>
+        <source>Join the team</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.body">
+      <segment>
+        <source> To everyone who adds Spots, sends feedback, tests new versions, translates and writes code: PK Spot exists because of you. </source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.contributors">
+      <segment>
+        <source>Code contributors</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.crew">
+      <segment>
+        <source>Meet the crew</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.releases">
+      <segment>
+        <source>See what&apos;s new</source>
+      </segment>
+    </unit>
+    <unit id="contribute.thanks.title">
+      <segment>
+        <source>Thank you</source>
+      </segment>
+    </unit>
+    <unit id="contribute.title">
+      <segment>
+        <source>Help build PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.action">
+      <segment>
+        <source>Translation guide</source>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.body">
+      <segment>
+        <source>Fix a translation in your language, or help us add a new one.</source>
+      </segment>
+    </unit>
+    <unit id="contribute.translate.title">
+      <segment>
+        <source>Translate PK Spot</source>
+      </segment>
+    </unit>
     <unit id="crop.cancel">
       <notes>
         <note category="description">Cancel action</note>
@@ -12653,6 +12868,11 @@
     <unit id="spotPersonalStats.visits">
       <segment>
         <source>visits</source>
+      </segment>
+    </unit>
+    <unit id="support.contribute.link">
+      <segment>
+        <source>How to help</source>
       </segment>
     </unit>
     <unit id="support.meta.description">

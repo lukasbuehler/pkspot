@@ -695,6 +695,14 @@ export const routes: Routes = [
     data: { routeName: "Support", acceptanceFree: true },
   },
   {
+    path: "contribute",
+    loadComponent: () =>
+      import("./components/contribute-page/contribute-page.component").then(
+        (m) => m.ContributePageComponent,
+      ),
+    data: { routeName: "Contribute", acceptanceFree: true },
+  },
+  {
     path: "releases",
     loadComponent: () =>
       import("./components/releases-page/releases-page.component").then(

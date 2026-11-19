@@ -298,6 +298,7 @@ describe("proxy-server client region helpers", () => {
     expect(isStaticSsrPath("/en/events/swissjam25", languages)).toBe(false);
     expect(isStaticSsrPath("/de/releases", languages)).toBe(true);
     expect(isStaticSsrPath("/releases/1.2", languages)).toBe(true);
+    expect(isStaticSsrPath("/fr/contribute", languages)).toBe(true);
   });
 
   it("should keep build freshness headers for static SSR pages", () => {
