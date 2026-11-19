@@ -365,6 +365,68 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
   });
 }
 
+// Your own record at a Spot comes from your check-ins and logged sessions. It is
+// private: only the signed-in owner sees it, with the monthly rank only when
+// they take part in Local Legend.
+for (const legend of [true, false]) {
+  test(`own visits at a Spot ${legend ? "with rank" : "without rank"} @visual`, async ({page}) => {
+    await page.clock.setFixedTime(new Date("2026-08-20T12:00:00.000Z"));
+    await page.addInitScript((localLegend) => {
+      const august = (day: number, hour: number) => Date.UTC(2026, 7, day, hour);
+      const spot = {spot_id: "visual-riverside-training-walls", spot_name: "Riverside Training Walls"};
+      const session = (id: string, source: string, day: number, hours: number, checkIn?: string) => ({
+        id,
+        owner_id: "visual-spot-user",
+        source,
+        started_at_raw_ms: august(day, 16),
+        ended_at_raw_ms: august(day, 16 + hours),
+        last_activity_raw_ms: august(day, 16 + hours),
+        time_zone: "Europe/Zurich",
+        spot_visits: [{...spot, arrived_at_raw_ms: august(day, 16), ...(checkIn ? {check_in_id: checkIn} : {})}],
+        people_present: [],
+        time_created_raw_ms: august(day, 16 + hours),
+        time_updated_raw_ms: august(day, 16 + hours),
+      });
+      const screenshotWindow = window as typeof window & Record<string, unknown>;
+      screenshotWindow.__PKSPOT_SCREENSHOT_AUTH_USER__ = {
+        uid: "visual-spot-user",
+        email: "visual-spot-user@example.test",
+        emailVerified: true,
+        providerId: "password",
+        data: {display_name: "Visual Spot User", verified_email: true, profile_visibility: "public"},
+      };
+      screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_SESSIONS__ = [
+        session("visual-spot-session-1", "check_in", 18, 2, "visual-spot-check-in-1"),
+        session("visual-spot-session-2", "manual", 11, 1),
+        session("visual-spot-session-3", "manual", 2, 1),
+      ];
+      screenshotWindow.__PKSPOT_SCREENSHOT_LOCAL_LEGEND__ = localLegend;
+      if (localLegend) {
+        screenshotWindow.__PKSPOT_SCREENSHOT_SPOT_RANKS__ = {
+          version: 1,
+          month: "2026-08",
+          final: false,
+          computed_at_raw_ms: august(20, 3),
+          spots: {"visual-riverside-training-walls": {status: "ranked", verified_days: 1, rank: 3, tied_with: 0, legend: false}},
+        };
+      }
+    }, legend);
+    await openSpotFixture(page);
+
+    const stats = page.locator("app-spot-personal-stats");
+    await expect(stats.locator(".spot-visits")).toBeVisible();
+    await expect(stats.locator(".spot-visits__numbers dd").first()).toHaveText("3");
+    await expect(stats).toContainText(/Only you|Nur du/u);
+    await expect(stats.locator(".spot-rank")).toHaveCount(legend ? 1 : 0);
+    await expect(stats).toHaveScreenshot(`spot-own-visits-${legend ? "rank" : "no-rank"}.png`, {animations: "disabled"});
+  });
+}
+
+test("own visits stay hidden when signed out @visual", async ({page}) => {
+  await openSpotFixture(page);
+  await expect(page.locator("app-spot-personal-stats .spot-visits")).toHaveCount(0);
+});
+
 // The server renders before any browser measurement, so compare its layout with
 // the hydrated page instead of trusting either on its own. Geometry, not pixels:
 // the two differ in fonts and images that are still loading.
