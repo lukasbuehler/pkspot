@@ -739,3 +739,21 @@ app-notification-settings {
     animation-timeline: scroll(self), scroll(self);
   }
 }
+
+// Bootstrap's text colours are fixed greys and reds made for light pages and
+// fail contrast on the dark theme. Point the classes the templates still use
+// at the matching Material roles.
+.text-secondary {
+  color: var(--mat-sys-on-surface-variant) !important;
+}
+
+.text-danger {
+  color: var(--mat-sys-error) !important;
+}
+
+// Material's 32 % scrim is made for light pages. On this dark theme it barely
+// dims anything, so floating buttons and navigation still look usable behind
+// a dialog. A stronger scrim makes the dialog the only thing in play.
+.cdk-overlay-dark-backdrop.cdk-overlay-backdrop-showing {
+  background: rgb(0 0 0 / 60%);
+}
