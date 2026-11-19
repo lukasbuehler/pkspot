@@ -188,6 +188,9 @@ html {
   // friends without relying on hardcoded fallbacks. Without this, only the
   // tokens consumed inside Material's own components were getting set —
   // ad-hoc consumers fell through to their `var()` fallback.
+  // Typography emits the type-scale tokens (`--mat-sys-title-large` and so
+  // on) that component stylesheets use as `font: var(--mat-sys-…)`; without
+  // them those font rules are dropped and text falls back to body size.
   @include mat.theme(
     (
       color: (
@@ -195,6 +198,7 @@ html {
         primary: $_primary,
         tertiary: $_tertiary,
       ),
+      typography: Roboto,
       density: (
         scale: -1,
       ),

@@ -128,8 +128,7 @@ h3,
 // With enlarged text, big titles grow at most to a size where a long German
 // word still fits a phone line (about 15 letters across the screen). At
 // normal text size these caps sit above the theme sizes and change nothing.
-// The rem values are the Material 3 type scale (the --mat-sys typography
-// tokens are not declared globally).
+// The rem values are the Material 3 type scale.
 h1.mat-headline-large,
 .mat-headline-large {
   font-size: min(2rem, 10.5vw);
@@ -616,16 +615,6 @@ app-root.event-map-route {
 app-root.event-map-route .embedded-content {
   flex-basis: 0;
   overflow: hidden;
-}
-
-// Scope system typography to these page hosts. Emit it once rather than
-// duplicating the same token set in each lazy component stylesheet.
-app-train-page,
-app-training-log-page,
-app-log-entry-editor,
-app-training-session-detail,
-app-notification-settings {
-  @include mat.theme((typography: Roboto));
 }
 
 // Every dialog uses the usable rectangle, including side cutouts on foldables.
