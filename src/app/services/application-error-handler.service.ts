@@ -186,7 +186,7 @@ export class ApplicationErrorHandler implements ErrorHandler {
   private showOfflineNotice(): void {
     try {
       this.injector.get(MatSnackBar).open(
-        $localize`:@@app.offline.page_unavailable:You're offline. This page opens once you're connected again.`,
+        $localize`:@@app.offline.page_unavailable:You're offline. The page you chose opens once you're connected again.`,
         $localize`:@@app.offline.page_unavailable.dismiss:OK`,
         { duration: 8000 },
       );

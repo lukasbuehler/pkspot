@@ -193,7 +193,7 @@ describe("ApplicationErrorHandler", () => {
     expect(reload).not.toHaveBeenCalled();
     expect(sessionStorage.setItem).not.toHaveBeenCalled();
     expect(snackbar.open).toHaveBeenCalledWith(
-      "You're offline. This page opens once you're connected again.",
+      "You're offline. The page you chose opens once you're connected again.",
       "OK",
       { duration: 8000 },
     );

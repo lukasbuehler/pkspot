@@ -273,6 +273,7 @@ export class SettingsPageComponent implements OnInit, HasUnsavedChanges {
   manageLocationAccess(): void {
     this._dialog.open(LocationAccessDialogComponent, {
       maxWidth: "min(420px, 92vw)",
+      panelClass: "reading-width-dialog",
     });
   }
 

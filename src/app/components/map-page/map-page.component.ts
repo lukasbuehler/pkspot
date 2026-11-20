@@ -2116,6 +2116,12 @@ export class MapPageComponent
     this.spotMap?.discardEdit();
     return true;
   };
+  /** Asks before the editor's Discard button throws away unsaved edits. */
+  private readonly _confirmDiscardSpotEdit = async (): Promise<boolean> => {
+    if (!this.isEditing()) return true;
+    this._commitFocusedField();
+    return !this.spotMap?.hasUnsavedEdit() || (await confirmDiscardChanges(this._dialog));
+  };
   private _weatherService = inject(WeatherService);
   private _searchPreviewRequestVersion = 0;
 
@@ -3035,6 +3041,7 @@ export class MapPageComponent
   ngOnInit() {
     console.debug("map page init");
     this._spotEditLeave.register(this._confirmLeaveSpotEdit);
+    this._spotEditLeave.registerDiscardCheck(this._confirmDiscardSpotEdit);
 
     // Trigger Google Maps API loading since this page needs it
     // this.tryLoadMapsApi(); // TODO wtf
@@ -4848,7 +4855,7 @@ export class MapPageComponent
     });
     if (!this.locationAccess.enabled()) {
       this._dialog
-        .open(LocationAccessDialogComponent, {maxWidth: "min(420px, 92vw)"})
+        .open(LocationAccessDialogComponent, {maxWidth: "min(420px, 92vw)", panelClass: "reading-width-dialog"})
         .afterClosed()
         .subscribe((enabled) => {
           if (enabled) this.spotMap?.focusOnGeolocation();
@@ -5948,6 +5955,7 @@ export class MapPageComponent
   ngOnDestroy() {
     console.debug("destroying map page");
     this._spotEditLeave.unregister(this._confirmLeaveSpotEdit);
+    this._spotEditLeave.unregisterDiscardCheck(this._confirmDiscardSpotEdit);
     clearTimeout(this._panelLayoutSwitchTimer);
     if (this.checkInEnabled) {
       this.checkInService.showGlobalChip.set(true);

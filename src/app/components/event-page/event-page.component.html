@@ -172,11 +172,14 @@
                 } @else if (event.listingTier === "community") {
                   <span class="event-organizer__fallback mat-title-small">
                     <mat-icon aria-hidden="true">groups</mat-icon>
-                    <span>{{ organizerName() }}</span>
-                    <span class="event-organizer__community mat-body-medium">
-                      <span aria-hidden="true">·</span>
-                      <span i18n="@@event_host.community">Community</span>
-                    </span>
+                    <!-- One text run, so name and suffix wrap like a sentence. -->
+                    <span class="event-organizer__text"
+                      >{{ organizerName() }}
+                      <span class="event-organizer__community mat-body-medium"
+                        ><span aria-hidden="true">· </span
+                        ><span i18n="@@event_host.community">Community</span></span
+                      ></span
+                    >
                   </span>
                 } @else {
                   <span class="event-organizer__fallback mat-title-small">{{

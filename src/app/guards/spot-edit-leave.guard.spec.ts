@@ -65,4 +65,21 @@ describe("spotEditLeaveGuard", () => {
     expect(asked).toBe(1);
     service.unregister(check);
   });
+
+  it("lets the editor's Discard ask without discarding through the leave check", async () => {
+    const service = TestBed.inject(SpotEditLeaveService);
+    let left = 0;
+    const leave = () => {
+      left++;
+      return true;
+    };
+    const keepEditing = () => false;
+    service.register(leave);
+    expect(await service.confirmDiscard()).toBe(true);
+    service.registerDiscardCheck(keepEditing);
+    expect(await service.confirmDiscard()).toBe(false);
+    expect(left).toBe(0);
+    service.unregisterDiscardCheck(keepEditing);
+    service.unregister(leave);
+  });
 });

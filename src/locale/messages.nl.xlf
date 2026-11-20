@@ -5324,8 +5324,8 @@
     </unit>
     <unit id="app.offline.page_unavailable">
       <segment state="translated">
-        <source>You&apos;re offline. This page opens once you&apos;re connected again.</source>
-        <target>Je bent offline. Deze pagina opent zodra je weer verbonden bent.</target>
+        <source>You&apos;re offline. The page you chose opens once you&apos;re connected again.</source>
+        <target>Je bent offline. De gekozen pagina opent zodra je weer verbonden bent.</target>
       </segment>
     </unit>
     <unit id="app.offline.page_unavailable.dismiss">
@@ -6176,6 +6176,12 @@
       <segment state="initial">
         <source> There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
         <target> Er zijn geen hoogtepunten voor dit gebied. Zoom in op de punten op de kaart om andere spots te ontdekken. </target>
+      </segment>
+    </unit>
+    <unit id="not_found.to_map">
+      <segment state="translated">
+        <source>Back to the map</source>
+        <target>Terug naar de kaart</target>
       </segment>
     </unit>
     <unit id="notification_center.action.accept">
@@ -7649,6 +7655,24 @@
       <segment state="initial">
         <source>Spot Access</source>
         <target>Toegang tot Spot</target>
+      </segment>
+    </unit>
+    <unit id="spot_edit.votes_no">
+      <segment state="translated">
+        <source>No: <ph id="0" equiv="INTERPOLATION" disp="{{ noVotes() }}"/></source>
+        <target>Nee: <ph id="0" equiv="INTERPOLATION" disp="{{ noVotes() }}"/></target>
+      </segment>
+    </unit>
+    <unit id="spot_edit.votes_total">
+      <segment state="translated">
+        <source>Total: <ph id="0" equiv="INTERPOLATION" disp="{{ totalVotes() }}"/></source>
+        <target>Totaal: <ph id="0" equiv="INTERPOLATION" disp="{{ totalVotes() }}"/></target>
+      </segment>
+    </unit>
+    <unit id="spot_edit.votes_yes">
+      <segment state="translated">
+        <source>Yes: <ph id="0" equiv="INTERPOLATION" disp="{{ yesVotes() }}"/></source>
+        <target>Ja: <ph id="0" equiv="INTERPOLATION" disp="{{ yesVotes() }}"/></target>
       </segment>
     </unit>
     <unit id="5837993987248997726">
@@ -15175,12 +15199,6 @@
         <target>Geen afbeelding</target>
       </segment>
     </unit>
-    <unit id="5306728370945378331">
-      <segment state="initial">
-        <source>Go Home</source>
-        <target>Ga naar Home</target>
-      </segment>
-    </unit>
     <unit id="5307137022448766473">
       <segment state="initial">
         <source>Failed to load communities</source>
@@ -18982,6 +19000,12 @@
       <segment state="initial">
         <source>Find spots and more</source>
         <target>Vind spots en meer</target>
+      </segment>
+    </unit>
+    <unit id="search_field_spot_placeholder">
+      <segment state="translated">
+        <source>Search for a Spot</source>
+        <target>Spot zoeken</target>
       </segment>
     </unit>
     <unit id="events.listing_tier_community">

@@ -581,6 +581,7 @@ export class TrainPageComponent {
       this.dialog
         .open(LocationAccessDialogComponent, {
           maxWidth: "min(420px, 92vw)",
+          panelClass: "reading-width-dialog",
         })
         .afterClosed()
         .subscribe((enabled) => {

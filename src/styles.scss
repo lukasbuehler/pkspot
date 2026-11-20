@@ -350,6 +350,12 @@ body:has(#alainMenuButton) {
   max-width: min(90vw, 100%) !important;
 }
 
+// Short decision dialogs keep a reading width on wide screens. The rule above
+// overrides Material's maxWidth option, so they opt in with this class.
+.cdk-overlay-pane.mat-mdc-dialog-panel.reading-width-dialog {
+  max-width: min(480px, 90vw) !important;
+}
+
 // Shrink the CDK overlay area from the bottom by the keyboard height so
 // centered dialogs (mat-dialog) and bottom-anchored menus reposition above
 // the keyboard. KeyboardService also dispatches a synthetic resize event

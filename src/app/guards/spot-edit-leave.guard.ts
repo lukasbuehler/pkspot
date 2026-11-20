@@ -27,6 +27,28 @@ export class SpotEditLeaveService {
 
   private _pending: Promise<boolean> | null = null;
 
+  private readonly _discardChecks = new Set<LeaveCheck>();
+
+  /**
+   * A check that only asks whether unsaved edits may be thrown away, without
+   * discarding them itself. The editor's own Discard button uses it, then
+   * discards through its usual path.
+   */
+  registerDiscardCheck(check: LeaveCheck): void {
+    this._discardChecks.add(check);
+  }
+
+  unregisterDiscardCheck(check: LeaveCheck): void {
+    this._discardChecks.delete(check);
+  }
+
+  async confirmDiscard(): Promise<boolean> {
+    for (const check of [...this._discardChecks]) {
+      if (!(await check())) return false;
+    }
+    return true;
+  }
+
   /**
    * Leaving is allowed only when every open map page agrees. The guard sits on
    * both `/map` and `/map/spots/:spot`, so one navigation can ask twice; the

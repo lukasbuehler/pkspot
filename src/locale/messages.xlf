@@ -3001,7 +3001,7 @@
     </unit>
     <unit id="app.offline.page_unavailable">
       <segment>
-        <source>You&apos;re offline. This page opens once you&apos;re connected again.</source>
+        <source>You&apos;re offline. The page you chose opens once you&apos;re connected again.</source>
       </segment>
     </unit>
     <unit id="app.offline.page_unavailable.dismiss">
@@ -8581,11 +8581,6 @@
         <source> The page you are looking for does not exist or has been moved. </source>
       </segment>
     </unit>
-    <unit id="5306728370945378331">
-      <segment>
-        <source>Go Home</source>
-      </segment>
-    </unit>
     <unit id="5307137022448766473">
       <segment>
         <source>Failed to load communities</source>
@@ -12977,6 +12972,21 @@
         <source>Spot Access</source>
       </segment>
     </unit>
+    <unit id="spot_edit.votes_no">
+      <segment>
+        <source>No: <ph id="0" equiv="INTERPOLATION" disp="{{ noVotes() }}"/></source>
+      </segment>
+    </unit>
+    <unit id="spot_edit.votes_total">
+      <segment>
+        <source>Total: <ph id="0" equiv="INTERPOLATION" disp="{{ totalVotes() }}"/></source>
+      </segment>
+    </unit>
+    <unit id="spot_edit.votes_yes">
+      <segment>
+        <source>Yes: <ph id="0" equiv="INTERPOLATION" disp="{{ yesVotes() }}"/></source>
+      </segment>
+    </unit>
     <unit id="3637006077361642270">
       <segment>
         <source>Shown amenities</source>
@@ -13316,6 +13326,11 @@
       </notes>
       <segment>
         <source> There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
+      </segment>
+    </unit>
+    <unit id="not_found.to_map">
+      <segment>
+        <source>Back to the map</source>
       </segment>
     </unit>
     <unit id="notification_center.action.accept">
@@ -16942,6 +16957,11 @@
     <unit id="search_field_default_placeholder">
       <segment>
         <source>Find spots and more</source>
+      </segment>
+    </unit>
+    <unit id="search_field_spot_placeholder">
+      <segment>
+        <source>Search for a Spot</source>
       </segment>
     </unit>
     <unit id="community.breadcrumb.map">

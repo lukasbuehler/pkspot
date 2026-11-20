@@ -80,9 +80,12 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.event-organizer__text {
+  min-width: 0;
+}
+
 .event-organizer__community {
-  display: inline-flex;
-  gap: 0.25em;
+  white-space: nowrap;
   color: var(--mat-sys-on-surface-variant);
 }
 

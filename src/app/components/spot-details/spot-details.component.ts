@@ -1,3 +1,4 @@
+import { SpotEditLeaveService } from "../../guards/spot-edit-leave.guard";
 import { CommunityLinksComponent } from "../community-links/community-links.component";
 import { getSpotCommunityCandidates } from "../../../scripts/CommunityHelpers";
 import { SpotPersonalStatsComponent } from "../spot-personal-stats/spot-personal-stats.component";
@@ -310,6 +311,7 @@ export class SpotDetailsComponent
     return spot ? spotCopy(spot, this.locale) : null;
   });
   private _challengeService = inject(SpotChallengesService);
+  private readonly _spotEditLeave = inject(SpotEditLeaveService);
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
@@ -889,7 +891,9 @@ export class SpotDetailsComponent
     this.saveClick.emit(spot);
   }
 
-  onEditorDiscard(): void {
+  async onEditorDiscard(): Promise<void> {
+    // Ask first when something was changed, as leaving the page does.
+    if (!(await this._spotEditLeave.confirmDiscard())) return;
     this.discardClick.emit();
     this.isEditing.set(false);
 
