@@ -920,6 +920,79 @@ runWithEmulator("EventsService emulator integration", () => {
     }
   }, eventTypesenseIntegrationTimeoutMs);
 
+  it("refreshes the organizer snapshot from the organization", async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const organizationId = `org-snapshot-${suffix}`;
+    const eventId = `organizer-snapshot-${suffix}`;
+    const organizationRef = adminDb().doc(`organizations/${organizationId}`);
+    await organizationRef.set({
+      name: "Snapshot Crew",
+      slug: organizationId,
+      logo_url: "https://example.test/crew.png",
+      logo_background_color: "transparent",
+      active: true,
+    });
+
+    // An editor saves an older snapshot without the logo.
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Organizer snapshot event",
+      start: { seconds: 1_780_311_600, nanoseconds: 0 },
+      end: { seconds: 1_780_318_800, nanoseconds: 0 },
+      organizer: {
+        type: "organization",
+        organization: { id: organizationId, name: "Old name", slug: organizationId },
+      },
+    });
+
+    const waitForOrganizer = async (logoUrl: string) => {
+      let event: admin.firestore.DocumentData | undefined;
+      let projected: admin.firestore.DocumentData | undefined;
+      for (let attempt = 0; attempt < 60; attempt += 1) {
+        event = (await adminDb().doc(`events/${eventId}`).get()).data();
+        projected = (
+          await adminDb().doc(`event_discovery/${eventId}`).get()
+        ).data();
+        if (
+          event?.["organizer_logo_url"] === logoUrl &&
+          projected?.["organizer_logo_url"] === logoUrl
+        ) {
+          break;
+        }
+        await sleep(250);
+      }
+      return { event, projected };
+    };
+
+    const linked = await waitForOrganizer("https://example.test/crew.png");
+    expect(linked.event?.["organizer"]).toEqual({
+      type: "organization",
+      organization: {
+        id: organizationId,
+        name: "Snapshot Crew",
+        slug: organizationId,
+        logo_url: "https://example.test/crew.png",
+        logo_background_color: "transparent",
+      },
+    });
+    expect(linked.projected).toEqual(
+      expect.objectContaining({
+        organizer_display_name: "Snapshot Crew",
+        organizer_logo_url: "https://example.test/crew.png",
+        organizer_logo_background_color: "transparent",
+      }),
+    );
+
+    await organizationRef.update({ logo_url: "https://example.test/crew-2.png" });
+
+    const updated = await waitForOrganizer("https://example.test/crew-2.png");
+    expect(updated.event?.["organizer"]?.organization?.logo_url).toBe(
+      "https://example.test/crew-2.png",
+    );
+    expect(updated.projected?.["organizer_logo_url"]).toBe(
+      "https://example.test/crew-2.png",
+    );
+  }, 30_000);
+
   it("materializes only public events into the disposable discovery projection", async () => {
     const eventId = `event-discovery-${Date.now()}`;
     const reference = adminDb().doc(`events/${eventId}`);

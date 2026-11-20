@@ -32,6 +32,10 @@ import {
   EventRSVPSchema,
 } from "../../src/db/schemas/EventRSVPSchema";
 import { eventTimeZoneAt } from "./event-time-zone";
+import {
+  makeOrganizationReference,
+  organizationReferenceMatches,
+} from "./organizationVerificationHelpers";
 
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_BACKFILL_EVENT_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-event-typesense-fields`;
@@ -819,6 +823,38 @@ const _addTypesenseFields = async (
   return _removeUndefinedValues(out);
 };
 
+/**
+ * Events embed a snapshot of their organizer organization. Refresh it from
+ * `organizations/{id}` so the event page, cards and search show the current
+ * name and logo, even when an editor saves an older snapshot back. Returns an
+ * `organizer` patch only when the snapshot is out of date; a missing
+ * organization leaves the snapshot untouched.
+ */
+const _refreshedOrganizerPatch = async (
+  eventData: EventSchema,
+): Promise<Pick<EventSchema, "organizer">> => {
+  if (eventData.organizer?.type !== "organization") return {};
+  const organizationId = eventData.organizer.organization?.id;
+  if (typeof organizationId !== "string" || organizationId.length === 0) {
+    return {};
+  }
+
+  const organization = await admin
+    .firestore()
+    .doc(`organizations/${organizationId}`)
+    .get();
+  if (!organization.exists) return {};
+
+  const reference = makeOrganizationReference(
+    organizationId,
+    organization.data() ?? {},
+  );
+  if (organizationReferenceMatches(eventData.organizer.organization, reference)) {
+    return {};
+  }
+  return { organizer: { type: "organization", organization: reference } };
+};
+
 const _getChangedFields = (
   currentData: EventSchema,
   proposedData: Partial<EventSchema>
@@ -1002,9 +1038,14 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
         fields: normalized.invalid,
       });
     }
+    const organizerPatch = await _refreshedOrganizerPatch({
+      ...normalizationInput,
+      ...normalized.patch,
+    } as EventSchema);
     const normalizedData = {
       ...normalizationInput,
       ...normalized.patch,
+      ...organizerPatch,
     } as EventSchema;
     const locationRemoved =
       beforeData?.location_raw !== undefined &&
@@ -1015,6 +1056,7 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
     const changed = {
       ...publicationCompatibility,
       ...normalized.patch,
+      ...organizerPatch,
       ..._getChangedFields(afterData, derived),
     };
     if (Object.keys(changed).length === 0) return null;
@@ -1109,8 +1151,9 @@ export const countEventRsvpsOnWrite = onDocumentWritten(
 /**
  * Backfill helper. Create a doc at
  * `maintenance/run-backfill-event-typesense-fields` (any contents) to
- * recompute the Typesense fields on every event in the database. The doc
- * is deleted on completion so a future create re-triggers the job.
+ * recompute the Typesense fields on every event in the database and refresh
+ * stale organizer organization snapshots. The doc is deleted on completion so
+ * a future create re-triggers the job.
  */
 export const updateAllEventsWithTypesenseFields = onDocumentCreated(
   { document: RUN_BACKFILL_EVENT_TYPESENSE_DOC, timeoutSeconds: 540 },
@@ -1120,9 +1163,14 @@ export const updateAllEventsWithTypesenseFields = onDocumentCreated(
     for (const doc of events.docs) {
       if (!isEventRuntimeDoc(doc.id)) continue;
 
-      const eventData = doc.data() as EventSchema;
+      const storedData = doc.data() as EventSchema;
+      const organizerPatch = await _refreshedOrganizerPatch(storedData);
+      const eventData = { ...storedData, ...organizerPatch } as EventSchema;
       const derived = await _addTypesenseFields(eventData);
-      const changed = _getChangedFields(eventData, derived);
+      const changed = {
+        ...organizerPatch,
+        ..._getChangedFields(storedData, derived),
+      };
 
       if (Object.keys(changed).length > 0) {
         await doc.ref.update(changed);

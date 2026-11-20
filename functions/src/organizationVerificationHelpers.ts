@@ -34,6 +34,29 @@ function optionalString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+const ORGANIZATION_REFERENCE_FIELDS = [
+  "id",
+  "name",
+  "slug",
+  "logo_url",
+  "logo_background_color",
+] as const;
+
+/**
+ * True when an embedded organization snapshot already matches the current
+ * organization reference, so callers can skip no-op writes.
+ */
+export function organizationReferenceMatches(
+  current: unknown,
+  next: OrganizationReferenceData
+): boolean {
+  if (!current || typeof current !== "object") return false;
+  const record = current as Record<string, unknown>;
+  return ORGANIZATION_REFERENCE_FIELDS.every(
+    (field) => record[field] === next[field]
+  );
+}
+
 export function makeOrganizationReference(
   organizationId: string,
   organization: Record<string, unknown>
