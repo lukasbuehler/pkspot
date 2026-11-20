@@ -5791,6 +5791,36 @@
         <source> Featured people, groups &amp; acts </source>
       </segment>
     </unit>
+    <unit id="event_host.by">
+      <segment>
+        <source>by</source>
+      </segment>
+    </unit>
+    <unit id="event_host.community">
+      <segment>
+        <source>Community</source>
+      </segment>
+    </unit>
+    <unit id="event_host.community_hint">
+      <segment>
+        <source>Community event, organized by members</source>
+      </segment>
+    </unit>
+    <unit id="event_host.community_unnamed">
+      <segment>
+        <source>Organized by the community</source>
+      </segment>
+    </unit>
+    <unit id="event_host.verified">
+      <segment>
+        <source>Verified organizer</source>
+      </segment>
+    </unit>
+    <unit id="event_host.verified_text">
+      <segment>
+        <source>Verified organizer</source>
+      </segment>
+    </unit>
     <unit id="event_info.map_label">
       <segment>
         <source> Event map </source>
@@ -17924,11 +17954,6 @@
         <source>Events</source>
       </segment>
     </unit>
-    <unit id="event_listing.community">
-      <segment>
-        <source>Community event</source>
-      </segment>
-    </unit>
     <unit id="6241445530231242277">
       <segment>
         <source>Sign in to plan a community event</source>
@@ -17982,11 +18007,6 @@
     <unit id="3792622364508901777">
       <segment>
         <source>Send an Event to PK Spot staff for review. It will not be published from this form.</source>
-      </segment>
-    </unit>
-    <unit id="552004881794875858">
-      <segment>
-        <source>Community event</source>
       </segment>
     </unit>
     <unit id="2008167069818962786">

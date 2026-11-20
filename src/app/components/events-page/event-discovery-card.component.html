@@ -66,9 +66,6 @@
         </span>
       </mat-card-title>
       <mat-card-subtitle>
-        @if (communityLabel(); as label) {
-          <span class="listing-badge community">{{ label }}</span>
-        }
         @if (event().lifecycleStatus === "cancelled") {
           <span class="cancelled-label" i18n>Cancelled</span>
         }
@@ -82,6 +79,8 @@
         }
       </mat-card-subtitle>
     </mat-card-header>
+
+    <app-event-host-line class="host-line" [event]="event()" />
 
     <mat-card-content>
       <p class="venue mat-body-medium">

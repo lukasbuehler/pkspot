@@ -20202,6 +20202,42 @@
         <target>Abrir mapa del evento</target>
       </segment>
     </unit>
+    <unit id="event_host.by">
+      <segment state="translated">
+        <source>by</source>
+        <target>por</target>
+      </segment>
+    </unit>
+    <unit id="event_host.community">
+      <segment state="translated">
+        <source>Community</source>
+        <target>Comunidad</target>
+      </segment>
+    </unit>
+    <unit id="event_host.community_hint">
+      <segment state="translated">
+        <source>Community event, organized by members</source>
+        <target>Evento de la comunidad, organizado por miembros</target>
+      </segment>
+    </unit>
+    <unit id="event_host.community_unnamed">
+      <segment state="translated">
+        <source>Organized by the community</source>
+        <target>Organizado por la comunidad</target>
+      </segment>
+    </unit>
+    <unit id="event_host.verified">
+      <segment state="translated">
+        <source>Verified organizer</source>
+        <target>Organizador verificado</target>
+      </segment>
+    </unit>
+    <unit id="event_host.verified_text">
+      <segment state="translated">
+        <source>Verified organizer</source>
+        <target>Organizador verificado</target>
+      </segment>
+    </unit>
     <unit id="event_info.map_label">
       <segment state="initial">
         <source> Event map </source>
@@ -21420,12 +21456,6 @@
         <target>Eventos</target>
       </segment>
     </unit>
-    <unit id="event_listing.community">
-      <segment state="initial">
-        <source>Community event</source>
-        <target>Evento comunitario</target>
-      </segment>
-    </unit>
     <unit id="6241445530231242277">
       <segment state="initial">
         <source>Sign in to plan a community event</source>
@@ -21490,12 +21520,6 @@
       <segment state="initial">
         <source>Send an Event to PK Spot staff for review. It will not be published from this form.</source>
         <target>Envía un evento al equipo de PK Spot para su revisión. No se publicará desde este formulario.</target>
-      </segment>
-    </unit>
-    <unit id="552004881794875858">
-      <segment state="initial">
-        <source>Community event</source>
-        <target>Evento comunitario</target>
       </segment>
     </unit>
     <unit id="2008167069818962786">

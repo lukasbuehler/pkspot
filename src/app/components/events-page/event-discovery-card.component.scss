@@ -117,22 +117,10 @@ mat-card-subtitle {
   color: var(--mat-sys-error);
 }
 
-.listing-badge {
-  align-self: flex-start;
-  margin-bottom: 0.35rem;
-  padding: 0.18rem 0.45rem;
-  border: 1px solid var(--mat-sys-primary);
-  border-radius: 999px;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  font: var(--mat-sys-label-small);
-  font-weight: 700;
-}
-
-.listing-badge.community {
-  border-color: var(--mat-sys-tertiary);
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
+// Who hosts the event, between the title block and the venue.
+.host-line {
+  padding-inline: 16px;
+  margin-block: 2px 4px;
 }
 
 .data-issue {

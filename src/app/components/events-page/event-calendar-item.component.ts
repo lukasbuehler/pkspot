@@ -12,10 +12,16 @@ import { DateTimeFormatService } from "../../services/date-time-format.service";
 import type { EventDiscoveryItem } from "../../services/search.service";
 import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
 import { EventCalendarThumbnailComponent } from "./event-calendar-thumbnail.component";
+import { EventHostLineComponent } from "../event-host-line/event-host-line.component";
 
 @Component({
   selector: "app-event-calendar-item",
-  imports: [MatIconModule, RouterLink, EventCalendarThumbnailComponent],
+  imports: [
+    MatIconModule,
+    RouterLink,
+    EventCalendarThumbnailComponent,
+    EventHostLineComponent,
+  ],
   templateUrl: "./event-calendar-item.component.html",
   styleUrl: "./event-calendar-item.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,11 +83,6 @@ export class EventCalendarItemComponent {
           });
     return eventDiscoveryAccessibleLabel(event, date);
   });
-  readonly communityLabel = computed(() =>
-    this.event().listingTier === "community"
-      ? $localize`Community event`
-      : null,
-  );
 
   trackClick(): void {
     const event = this.event();

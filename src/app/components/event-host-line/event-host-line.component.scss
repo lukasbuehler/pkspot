@@ -1,0 +1,83 @@
+// A single line that never wraps: a long organiser name is cut with an
+// ellipsis while the icon, verified mark and "Community" stay visible.
+:host {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  white-space: nowrap;
+}
+
+:host(:empty) {
+  display: none;
+}
+
+:host(.is-compact) {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.host-logo {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--mat-sys-surface-container-high);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.host-icon,
+.host-verified {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+// Approved organisations: the name reads as a title and carries the blue
+// verified mark (blue is the app's highlight colour, not a live state).
+:host(.is-official) {
+  font: var(--mat-sys-label-large);
+}
+
+:host(.is-official) .host-name {
+  color: var(--mat-sys-on-surface);
+}
+
+.host-verified {
+  color: var(--mat-sys-primary);
+}
+
+.host-text {
+  display: inline-flex;
+  min-width: 0;
+  gap: 0.25em;
+}
+
+.host-name {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.host-text .host-name {
+  color: var(--mat-sys-on-surface);
+  font-weight: 600;
+}
+
+.host-by,
+.host-suffix {
+  flex: 0 0 auto;
+}

@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
+import { EventHostLineComponent } from "../event-host-line/event-host-line.component";
 import { RouterLink } from "@angular/router";
 import type { EventSearchPreview } from "../../services/search.service";
 import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
@@ -23,6 +24,7 @@ import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
 @Component({
   selector: "app-event-discovery-card",
   imports: [
+    EventHostLineComponent,
     MatCardModule,
     MatIconModule,
     RouterLink,
@@ -185,11 +187,6 @@ export class EventDiscoveryCardComponent {
       .filter(Boolean)
       .join(", ") ||
     $localize`:@@event.venue_tba:Venue to be announced`,
-  );
-  readonly communityLabel = computed(() =>
-    this.event().listingTier === "community"
-      ? $localize`:@@event_listing.community:Community event`
-      : null,
   );
 
   trackClick(): void {

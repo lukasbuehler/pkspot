@@ -1718,6 +1718,10 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               id: "visual-city-jam",
               slug: "visual-city-jam",
               name: "City Parkour Jam",
+              organizer_user: { uid: "visual-alex", display_name: "Alex Runner" },
+              organizer_kind: "user",
+              organizer_display_name: "Alex Runner",
+              organizer_user_id: "visual-alex",
               published: true,
               visibility: "public",
               discoverability: { audience: "global" },
@@ -1803,6 +1807,17 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               id: "visual-skills-open",
               slug: "visual-skills-open",
               name: "Parkour Skills Open",
+              // An approved organisation. The organizer_* fields are what the events
+              // index adds; until the app maps them, cards show only the verified mark.
+              has_organization: true,
+              organizer: {
+                type: "organization",
+                organization: { id: "visual-movement-league", slug: "movement-league", name: "Movement League" },
+              },
+              organizer_kind: "organization",
+              organizer_display_name: "Movement League",
+              organizer_organization_id: "visual-movement-league",
+              organizer_organization_slug: "movement-league",
               banner_src: "assets/swissjam/swissjam26_banner.jpeg",
               venue_string: "Movement Hall",
               locality_string: "Zurich, Switzerland",

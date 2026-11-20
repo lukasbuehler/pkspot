@@ -12778,7 +12778,7 @@
     <unit id="logEditor.quickDayLabel">
       <segment state="translated">
         <source>Training day</source>
-        <target>Jour d'entraînement</target>
+        <target>Jour d&apos;entraînement</target>
       </segment>
     </unit>
     <unit id="logEditor.save">
@@ -12808,7 +12808,7 @@
     <unit id="logEditor.today">
       <segment state="translated">
         <source>Today</source>
-        <target>Aujourd'hui</target>
+        <target>Aujourd&apos;hui</target>
       </segment>
     </unit>
     <unit id="logEditor.trainingDetails">
@@ -14386,7 +14386,7 @@
     <unit id="profile.follow_request_sent">
       <segment state="translated">
         <source>Follow request sent.</source>
-        <target>Demande d'abonnement envoyée.</target>
+        <target>Demande d&apos;abonnement envoyée.</target>
       </segment>
     </unit>
     <unit id="map.create.event">
@@ -20202,6 +20202,42 @@
         <target>Ouvrir la carte de l’événement</target>
       </segment>
     </unit>
+    <unit id="event_host.by">
+      <segment state="translated">
+        <source>by</source>
+        <target>par</target>
+      </segment>
+    </unit>
+    <unit id="event_host.community">
+      <segment state="translated">
+        <source>Community</source>
+        <target>Communauté</target>
+      </segment>
+    </unit>
+    <unit id="event_host.community_hint">
+      <segment state="translated">
+        <source>Community event, organized by members</source>
+        <target>Événement communautaire, organisé par des membres</target>
+      </segment>
+    </unit>
+    <unit id="event_host.community_unnamed">
+      <segment state="translated">
+        <source>Organized by the community</source>
+        <target>Organisé par la communauté</target>
+      </segment>
+    </unit>
+    <unit id="event_host.verified">
+      <segment state="translated">
+        <source>Verified organizer</source>
+        <target>Organisateur vérifié</target>
+      </segment>
+    </unit>
+    <unit id="event_host.verified_text">
+      <segment state="translated">
+        <source>Verified organizer</source>
+        <target>Organisateur vérifié</target>
+      </segment>
+    </unit>
     <unit id="event_info.map_label">
       <segment state="initial">
         <source> Event map </source>
@@ -21420,12 +21456,6 @@
         <target>Événements</target>
       </segment>
     </unit>
-    <unit id="event_listing.community">
-      <segment state="initial">
-        <source>Community event</source>
-        <target>Événement communautaire</target>
-      </segment>
-    </unit>
     <unit id="6241445530231242277">
       <segment state="initial">
         <source>Sign in to plan a community event</source>
@@ -21490,12 +21520,6 @@
       <segment state="initial">
         <source>Send an Event to PK Spot staff for review. It will not be published from this form.</source>
         <target>Envoie un événement à l’équipe PK Spot pour examen. Il ne sera pas publié depuis ce formulaire.</target>
-      </segment>
-    </unit>
-    <unit id="552004881794875858">
-      <segment state="initial">
-        <source>Community event</source>
-        <target>Événement communautaire</target>
       </segment>
     </unit>
     <unit id="2008167069818962786">

@@ -160,11 +160,28 @@
                   <app-organization-button
                     [organization]="organization"
                   ></app-organization-button>
-                } @else {
+                  <mat-icon
+                    class="event-organizer__verified"
+                    role="img"
+                    i18n-aria-label="@@event_host.verified"
+                    aria-label="Verified organizer"
+                    i18n-matTooltip="@@event_host.verified"
+                    matTooltip="Verified organizer"
+                    >verified</mat-icon
+                  >
+                } @else if (event.listingTier === "community") {
                   <span class="event-organizer__fallback mat-title-small">
                     <mat-icon aria-hidden="true">groups</mat-icon>
                     <span>{{ organizerName() }}</span>
+                    <span class="event-organizer__community mat-body-medium">
+                      <span aria-hidden="true">·</span>
+                      <span i18n="@@event_host.community">Community</span>
+                    </span>
                   </span>
+                } @else {
+                  <span class="event-organizer__fallback mat-title-small">{{
+                    organizerName()
+                  }}</span>
                 }
               </div>
             }
