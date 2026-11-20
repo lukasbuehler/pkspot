@@ -8,6 +8,7 @@ import type {
   EventRegionFilterOption,
   EventSeriesFilterOption,
 } from "./event-discovery-toolbar.component";
+import { EVENT_DATE_RANGES, eventDateRangeLabel, type EventDateRange } from "./event-date-range";
 
 export interface EventFiltersDialogData {
   regions: readonly EventRegionFilterOption[];
@@ -16,12 +17,16 @@ export interface EventFiltersDialogData {
   selectedRegions: readonly EventRegionKey[];
   selectedSeriesIds: readonly string[];
   selectedListingTiers: readonly EventListingTier[];
+  /** Offered only for upcoming events in the list. */
+  showDateRange: boolean;
+  selectedDateRange: EventDateRange | null;
 }
 
 export interface EventFiltersDialogResult {
   regions: EventRegionKey[];
   seriesIds: string[];
   listingTiers: EventListingTier[];
+  dateRange: EventDateRange | null;
 }
 
 /**
@@ -48,11 +53,17 @@ export class EventFiltersDialogComponent {
     community: $localize`:@@events.filters_dialog.tier_community:Community`,
   };
 
+  readonly dateRanges = EVENT_DATE_RANGES.map((id) => ({ id, label: eventDateRangeLabel(id) }));
+  readonly dateRange = signal<EventDateRange | null>(this.data.selectedDateRange);
   readonly regions = signal<EventRegionKey[]>([...this.data.selectedRegions]);
   readonly seriesIds = signal<string[]>([...this.data.selectedSeriesIds]);
   readonly listingTiers = signal<EventListingTier[]>([
     ...this.data.selectedListingTiers,
   ]);
+
+  setDateRange(value: EventDateRange | null | undefined): void {
+    this.dateRange.set(value ?? null);
+  }
 
   setRegions(value: EventRegionKey[] | null): void {
     this.regions.set(value ?? []);
@@ -67,6 +78,7 @@ export class EventFiltersDialogComponent {
   }
 
   reset(): void {
+    this.dateRange.set(null);
     this.regions.set([]);
     this.seriesIds.set([]);
     this.listingTiers.set([]);
@@ -77,6 +89,7 @@ export class EventFiltersDialogComponent {
       regions: this.regions(),
       seriesIds: this.seriesIds(),
       listingTiers: this.listingTiers(),
+      dateRange: this.data.showDateRange ? this.dateRange() : null,
     });
   }
 }

@@ -11,6 +11,8 @@
   }
   @if (liveIndicator()) {
     <span class="live-indicator" aria-hidden="true"></span>
+  } @else if (badgeCount() > 0) {
+    <span class="count-badge" aria-hidden="true">{{ badgeText() }}</span>
   }
   <span class="nav-label text-truncate w-100">
     {{ label() }}
@@ -34,6 +36,8 @@
   }
   @if (liveIndicator()) {
     <span class="live-indicator" aria-hidden="true"></span>
+  } @else if (badgeCount() > 0) {
+    <span class="count-badge" aria-hidden="true">{{ badgeText() }}</span>
   }
   <span class="nav-label text-truncate w-100">
     {{ label() }}

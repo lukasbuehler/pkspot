@@ -228,16 +228,6 @@
         <target>Logo-Hintergrund</target>
       </segment>
     </unit>
-    <unit id="spot.report.tooltip">
-      <notes>
-        <note category="description">Tooltip for report spot button</note>
-        <note category="meaning">report spot tooltip</note>
-      </notes>
-      <segment state="initial">
-        <source>Report this spot</source>
-        <target>Diesen Spot melden</target>
-      </segment>
-    </unit>
     <unit id="3209433866980480523">
       <segment state="initial">
         <source> Sign out </source>
@@ -1578,6 +1568,12 @@
         <target>Das konnte noch immer nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.</target>
       </segment>
     </unit>
+    <unit id="profile.menu.about">
+      <segment state="translated">
+        <source>About PK Spot</source>
+        <target>Über PK Spot</target>
+      </segment>
+    </unit>
     <unit id="profile.menu.ariaLabel">
       <segment state="initial">
         <source>Profile settings</source>
@@ -2070,6 +2066,12 @@
       <segment state="translated">
         <source>Filter events</source>
         <target>Events filtern</target>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.when">
+      <segment state="translated">
+        <source>When</source>
+        <target>Wann</target>
       </segment>
     </unit>
     <unit id="map_community_filters_aria_label">
@@ -4770,12 +4772,6 @@
         <target>Wird geladen…</target>
       </segment>
     </unit>
-    <unit id="planned.log">
-      <segment state="translated">
-        <source>Log what you did</source>
-        <target>Aktivität eintragen</target>
-      </segment>
-    </unit>
     <unit id="planned.manage">
       <segment state="translated">
         <source>Manage session</source>
@@ -5993,6 +5989,18 @@
       <segment state="initial">
         <source>live event underway</source>
         <target>Live-Event läuft</target>
+      </segment>
+    </unit>
+    <unit id="navigation.notifications">
+      <segment state="translated">
+        <source>Notifications</source>
+        <target>Inbox</target>
+      </segment>
+    </unit>
+    <unit id="navigation.unread_count">
+      <segment state="translated">
+        <source><ph id="0" equiv="count" disp="unreadCount"/> unread</source>
+        <target><ph id="0" equiv="count" disp="unreadCount"/> ungelesen</target>
       </segment>
     </unit>
     <unit id="navigation_progress.loading">
@@ -11534,6 +11542,24 @@
         <target>Event erstellen</target>
       </segment>
     </unit>
+    <unit id="events.date_range.month">
+      <segment state="translated">
+        <source>Next 30 days</source>
+        <target>Nächste 30 Tage</target>
+      </segment>
+    </unit>
+    <unit id="events.date_range.week">
+      <segment state="translated">
+        <source>Next 7 days</source>
+        <target>Nächste 7 Tage</target>
+      </segment>
+    </unit>
+    <unit id="events.date_range.weekend">
+      <segment state="translated">
+        <source>This weekend</source>
+        <target>Dieses Wochenende</target>
+      </segment>
+    </unit>
     <unit id="events.discovery_card_aria">
       <segment state="initial">
         <source><ph id="0" equiv="eventName" disp="event.name"/>, <ph id="1" equiv="localDate" disp="localDate"/>, <ph id="2" equiv="location" disp="location"/>, <ph id="3" equiv="goingSummary" disp="going"/>, <ph id="4" equiv="interestedSummary" disp="interested"/></source>
@@ -12637,6 +12663,30 @@
       <segment state="translated">
         <source>No contributors yet. Be the first!</source>
         <target>Noch keine Beitragenden. Sei die erste Person!</target>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.counts">
+      <segment state="translated">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ own.edits }}"/> edits · <ph id="1" equiv="INTERPOLATION_1" disp="{{ own.spots }}"/> Spots · <ph id="2" equiv="INTERPOLATION_2" disp="{{ own.media }}"/> media</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ own.edits }}"/> Bearbeitungen · <ph id="1" equiv="INTERPOLATION_1" disp="{{ own.spots }}"/> Spots · <ph id="2" equiv="INTERPOLATION_2" disp="{{ own.media }}"/> Medien</target>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.how">
+      <segment state="translated">
+        <source>Add a Spot, edit one or add a photo to join.</source>
+        <target>Füge einen Spot hinzu, bearbeite einen oder lade ein Foto hoch, um dabei zu sein.</target>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.none">
+      <segment state="translated">
+        <source>You&apos;re not on the leaderboard yet</source>
+        <target>Du bist noch nicht auf der Rangliste</target>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.not_listed">
+      <segment state="translated">
+        <source>You&apos;re not in the top 100 yet</source>
+        <target>Du bist noch nicht in den Top 100</target>
       </segment>
     </unit>
     <unit id="leaderboard.sort_by">
@@ -14799,16 +14849,6 @@
         <target>Verifizierungsergebnis prüfen</target>
       </segment>
     </unit>
-    <unit id="spot.delete.tooltip">
-      <notes>
-        <note category="description">Tooltip for delete spot button</note>
-        <note category="meaning">Delete spot tooltip</note>
-      </notes>
-      <segment state="initial">
-        <source>Delete this spot</source>
-        <target>Diesen Spot löschen</target>
-      </segment>
-    </unit>
     <unit id="spot.details.header">
       <notes>
         <note category="description">Header for the spot details section</note>
@@ -14909,6 +14949,18 @@
       <segment state="initial">
         <source>Managed by <ph id="0" equiv="INTERPOLATION" disp="{{ managed.organization.name }}"/></source>
         <target>Verwaltet von <ph id="0" equiv="INTERPOLATION" disp="{{ managed.organization.name }}"/></target>
+      </segment>
+    </unit>
+    <unit id="spot.more_actions">
+      <segment state="translated">
+        <source>More Spot actions</source>
+        <target>Weitere Spot-Aktionen</target>
+      </segment>
+    </unit>
+    <unit id="spot.more_actions.tooltip">
+      <segment state="translated">
+        <source>More</source>
+        <target>Mehr</target>
       </segment>
     </unit>
     <unit id="spot.edit.access_type.header">
@@ -15147,16 +15199,6 @@
       <segment state="initial">
         <source>Select preffered spot URL</source>
         <target>Bevorzugte Spot URL auswählen</target>
-      </segment>
-    </unit>
-    <unit id="spot.edit_history.tooltip">
-      <notes>
-        <note category="description">Tooltip for edit history button</note>
-        <note category="meaning">edit history tooltip</note>
-      </notes>
-      <segment state="initial">
-        <source>View edit history of this spot</source>
-        <target>Bearbeitungsverlauf dieses Spots anzeigen</target>
       </segment>
     </unit>
     <unit id="spot.edit.url.add_custom">
@@ -16688,12 +16730,6 @@
         <target>Log</target>
       </segment>
     </unit>
-    <unit id="train.rhythm.logSession">
-      <segment state="translated">
-        <source>Log a session</source>
-        <target>Session eintragen</target>
-      </segment>
-    </unit>
     <unit id="train.rhythm.thisWeek">
       <segment state="translated">
         <source>sessions this week</source>
@@ -16950,6 +16986,12 @@
       <segment state="initial">
         <source>New training entry</source>
         <target>Neuer Eintrag</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.addNote">
+      <segment state="translated">
+        <source>Add a note</source>
+        <target>Notiz hinzufügen</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.back">
@@ -19177,9 +19219,9 @@
       </segment>
     </unit>
     <unit id="event_rsvp.going">
-      <segment state="initial">
+      <segment state="translated">
         <source>Going</source>
-        <target>Gehe hin</target>
+        <target>Dabei</target>
       </segment>
     </unit>
     <unit id="event_rsvp.group_label">

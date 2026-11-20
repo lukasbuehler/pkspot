@@ -104,9 +104,31 @@
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            [class.own-row]="row.uid === ownUid"
+            [attr.aria-current]="row.uid === ownUid ? 'true' : null"
+          ></tr>
         </table>
       </div>
+
+      @if (ownStanding; as own) {
+      <!-- Outside the top 100 there is no rank to show, but your own counts
+           and the way in still are. -->
+      <div class="own-standing" role="status">
+        <mat-icon aria-hidden="true">person</mat-icon>
+        <div>
+          @if (own.edits + own.spots + own.media > 0) {
+          <p class="own-standing__title" i18n="@@leaderboard.own.not_listed">You're not in the top 100 yet</p>
+          <p class="own-standing__counts" i18n="@@leaderboard.own.counts">{{ own.edits }} edits · {{ own.spots }} Spots · {{ own.media }} media</p>
+          } @else {
+          <p class="own-standing__title" i18n="@@leaderboard.own.none">You're not on the leaderboard yet</p>
+          <p class="own-standing__counts" i18n="@@leaderboard.own.how">Add a Spot, edit one or add a photo to join.</p>
+          }
+        </div>
+      </div>
+      }
 
       @if (leaderboardData.length === 0) {
       <div class="empty-state">

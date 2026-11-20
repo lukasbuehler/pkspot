@@ -68,6 +68,13 @@ export class LeaderboardPageComponent implements OnInit {
 
   leaderboardData: LeaderboardEntry[] = [];
   isLoading = true;
+  /** The signed-in user's id, to mark their own row. */
+  ownUid: string | null = null;
+  /**
+   * The signed-in user's own counts when they are not in the loaded top 100,
+   * so they still see where they stand. Null when they are listed or signed out.
+   */
+  ownStanding: { edits: number; spots: number; media: number } | null = null;
   displayedColumns: string[] = [
     "rank",
     "user",
@@ -136,6 +143,16 @@ export class LeaderboardPageComponent implements OnInit {
       }
 
       this.leaderboardData = entries;
+      this.ownUid = this._authService.user?.uid ?? null;
+      const ownData = this._authService.user?.data?.data;
+      this.ownStanding =
+        this.ownUid && !entries.some((entry) => entry.uid === this.ownUid)
+          ? {
+              edits: ownData?.spot_edits_count ?? 0,
+              spots: ownData?.spot_creates_count ?? 0,
+              media: ownData?.media_added_count ?? 0,
+            }
+          : null;
       this._cdr.detectChanges();
     } catch (error) {
       this.featureTelemetry.failure("leaderboard-page", "loadLeaderboard", error);

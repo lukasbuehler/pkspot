@@ -2739,7 +2739,7 @@ test("recent check-in prompt has space above the card @visual", async ({page}) =
     signedIn: true, trainingLogFixture: true, unloggedCheckIn: true, fixedTime: "2026-08-20T12:00:00Z"});
   const prompt = page.locator("app-check-in-log-prompt .prompt");
   await expect(prompt).toBeVisible();
-  const preceding = (await page.locator(".activity-details").boundingBox())!;
+  const preceding = (await page.locator(".log-hero").boundingBox())!;
   const card = (await prompt.boundingBox())!;
   expect(card.y - preceding.y - preceding.height).toBeGreaterThanOrEqual(23);
 });
@@ -3214,7 +3214,10 @@ function uiReviewExtraSections(): UiReviewSection[] {
 
     // Dialogs and sheets
     overlay("dialog-spot-review", "map", [...openFirstSpot, button("Spot bewerten")], { signedIn: true }),
-    overlay("dialog-spot-report", "map", [...openFirstSpot, button("Melden", true)], { signedIn: true }),
+    // Report sits in the header's More menu; on phones the sheet opens fully first.
+    overlay("dialog-spot-report", "map", [...openFirstSpot, button("Weitere Spot-Aktionen"), click({ role: "menuitem", name: "Melden", exact: true })], { signedIn: true, only: ["desktop"] }),
+    overlay("dialog-spot-report", "map", [...openFirstSpot, click({ css: "app-bottom-sheet .handle-region" }), { action: "wait", ms: 1_500 },
+      button("Weitere Spot-Aktionen"), click({ role: "menuitem", name: "Melden", exact: true })], { signedIn: true, only: ["mobile"] }),
     overlay("dialog-media-upload", "map", [...openFirstSpot, button("Medien hinzufügen")], { signedIn: true }),
     overlay("dialog-map-filters", "map", [button("Filter", true)]),
     overlay("dialog-location", "map", [button("Standort einschalten")]),

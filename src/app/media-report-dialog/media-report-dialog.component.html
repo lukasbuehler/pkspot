@@ -90,7 +90,7 @@
     <button matButton="text" color="warn" [disabled]="isSubmitting()" (click)="withdrawReport()" i18n>Withdraw report</button>
   } @else { <span></span> }
   <div class="d-flex gap-2">
-    <button matButton="outlined" [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">Cancel</button>
+    <button matButton [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">Cancel</button>
     <button matButton="filled" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim())">
       @if (isSubmitting()) {
         <span i18n="submitting label">Saving...</span>

@@ -1,5 +1,20 @@
 <h2 mat-dialog-title i18n="@@events.filters_dialog.title">Filter events</h2>
 <mat-dialog-content class="filter-sections">
+  @if (data.showDateRange) {
+    <section class="filter-section" aria-labelledby="event-filter-date">
+      <h3 id="event-filter-date" class="mat-title-small" i18n="@@events.filters_dialog.when">When</h3>
+      <mat-chip-listbox
+        aria-labelledby="event-filter-date"
+        [value]="dateRange()"
+        (change)="setDateRange($event.value)"
+      >
+        @for (option of dateRanges; track option.id) {
+          <mat-chip-option [value]="option.id">{{ option.label }}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </section>
+  }
+
   @if (data.regions.length > 0) {
     <section class="filter-section" aria-labelledby="event-filter-region">
       <h3 id="event-filter-region" class="mat-title-small" i18n="@@events.filters_dialog.region">Region</h3>

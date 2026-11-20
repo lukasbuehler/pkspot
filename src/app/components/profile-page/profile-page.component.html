@@ -315,6 +315,11 @@
                 <mat-icon>help</mat-icon>
                 <span i18n>Support</span>
               </a>
+              <!-- On phones the bottom bar shows notifications instead of About. -->
+              <a mat-menu-item routerLink="/about">
+                <mat-icon>info</mat-icon>
+                <span i18n="@@profile.menu.about">About PK Spot</span>
+              </a>
               <button mat-menu-item (click)="logOut()">
                 <mat-icon>logout</mat-icon>
                 <span i18n="@@profile.menu.logout">Log out</span>

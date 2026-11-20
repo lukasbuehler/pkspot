@@ -129,6 +129,7 @@ import {
   MatCardContent,
 } from "@angular/material/card";
 import { MatDividerModule } from "@angular/material/divider";
+import { MatMenuModule } from "@angular/material/menu";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import {
@@ -271,6 +272,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatButton,
     SpotRatingComponent,
     MatDividerModule,
+    MatMenuModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
     KeyValuePipe,

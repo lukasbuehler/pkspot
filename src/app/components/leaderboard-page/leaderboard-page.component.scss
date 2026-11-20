@@ -222,3 +222,41 @@
     white-space: nowrap;
   }
 }
+
+// Your own row: the blue highlight, as for other active selections.
+.own-row {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+
+  .user-name {
+    font-weight: 600;
+  }
+}
+
+.own-standing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+
+  > mat-icon {
+    flex: 0 0 auto;
+    color: var(--mat-sys-primary);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.own-standing__title {
+  font: var(--mat-sys-title-small);
+}
+
+.own-standing__counts {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}

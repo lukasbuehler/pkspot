@@ -31,7 +31,7 @@
       data-desktop-leading-navigation
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
-      [attr.aria-label]="button.liveIndicator ? button.name + ', ' + liveEventLabel : null"
+      [attr.aria-label]="button.ariaLabel ?? null"
       #desktopButtonRla="routerLinkActive"
     >
       <app-mat3-nav-button
@@ -40,6 +40,7 @@
         [image]="button.image ?? ''"
         [active]="desktopButtonRla.isActive || !!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
         [presentational]="true"
       ></app-mat3-nav-button>
     </a>
@@ -52,6 +53,7 @@
       [label]="button.name"
       [active]="!!button.active"
       [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
     ></app-mat3-nav-button>
     } }
 
@@ -74,7 +76,7 @@
       [attr.data-navigation-id]="button.id"
       routerLinkActive="active"
       ariaCurrentWhenActive="page"
-      [attr.aria-label]="button.liveIndicator ? button.name + ', ' + liveEventLabel : null"
+      [attr.aria-label]="button.ariaLabel ?? null"
       #desktopButtonRla="routerLinkActive"
     >
       <app-mat3-nav-button
@@ -83,6 +85,7 @@
         [image]="button.image ?? ''"
         [active]="desktopButtonRla.isActive || !!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
         [presentational]="true"
       ></app-mat3-nav-button>
     </a>
@@ -96,6 +99,7 @@
       [label]="button.name"
       [active]="!!button.active"
       [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
     ></app-mat3-nav-button>
     } }
 
@@ -182,7 +186,7 @@
         [routerLink]="button.link"
         routerLinkActive="active"
         ariaCurrentWhenActive="page"
-        [attr.aria-label]="button.liveIndicator ? button.name + ', ' + liveEventLabel : null"
+        [attr.aria-label]="button.ariaLabel ?? null"
         #mobileButtonRla="routerLinkActive"
       >
         <app-mat3-nav-button
@@ -191,6 +195,7 @@
           [image]="button.image ?? ''"
           [active]="mobileButtonRla.isActive || !!button.active"
           [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
           [presentational]="true"
         ></app-mat3-nav-button>
       </a>
@@ -202,6 +207,7 @@
         [label]="button.name"
         [active]="!!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
       ></app-mat3-nav-button>
       } }
       @if (hasNavbarOverflow()) {
@@ -219,7 +225,7 @@
         [routerLink]="button.link"
         routerLinkActive="active"
         ariaCurrentWhenActive="page"
-        [attr.aria-label]="button.liveIndicator ? button.name + ', ' + liveEventLabel : null"
+        [attr.aria-label]="button.ariaLabel ?? null"
         #mobileButtonRla="routerLinkActive"
       >
         <app-mat3-nav-button
@@ -228,6 +234,7 @@
           [image]="button.image ?? ''"
           [active]="mobileButtonRla.isActive || !!button.active"
           [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
           [presentational]="true"
         ></app-mat3-nav-button>
       </a>
@@ -240,6 +247,7 @@
         [label]="button.name"
         [active]="!!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
       ></app-mat3-nav-button>
       } }
       <mat-menu #mobileOverflowMenu="matMenu">

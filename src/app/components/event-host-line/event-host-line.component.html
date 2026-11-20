@@ -2,13 +2,13 @@
   @switch (host.kind) {
     @case ("organization") {
       @if (!compact()) {
-        @if (host.logoUrl) {
+        @if (host.logoUrl && failedLogo() !== host.logoUrl) {
           <span
             class="host-logo"
             [style.background]="host.logoBackground"
             aria-hidden="true"
           >
-            <img [src]="host.logoUrl" alt="" />
+            <img [src]="host.logoUrl" alt="" (error)="failedLogo.set(host.logoUrl)" />
           </span>
         }
         @if (host.name) {

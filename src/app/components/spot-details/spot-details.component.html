@@ -339,6 +339,67 @@
                   <mat-icon>directions</mat-icon>
                 </button>
               }
+              @if (authenticationService.isSignedIn && editable()) {
+                <button
+                  mat-icon-button
+                  [matMenuTriggerFor]="spotMoreMenu"
+                  aria-label="More Spot actions"
+                  i18n-aria-label="@@spot.more_actions"
+                  matTooltip="More"
+                  i18n-matTooltip="@@spot.more_actions.tooltip"
+                  (click)="$event.stopPropagation()"
+                >
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #spotMoreMenu="matMenu" xPosition="before">
+                  <a
+                    mat-menu-item
+                    [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']"
+                    [queryParams]="mapQueryParams()"
+                    queryParamsHandling="merge"
+                    (click)="editHistoryButtonClick()"
+                  >
+                    <mat-icon>history</mat-icon>
+                    <span
+                      i18n="
+                        Edit history button label|Label of the button to view the edit
+                        history of the spot
+                      "
+                      >Edit History</span
+                    >
+                  </a>
+                  <button mat-menu-item type="button" (click)="openSpotReportDialog()">
+                    <mat-icon>flag</mat-icon>
+                    @if (ownReport()) {
+                      <span i18n>Edit your report</span>
+                    } @else {
+                      <span
+                        i18n="
+                          report button label|Label of the button to report the spot
+                        "
+                        >Report</span
+                      >
+                    }
+                  </button>
+                  @if (isAdmin()) {
+                    <button
+                      mat-menu-item
+                      type="button"
+                      class="menu-item-destructive"
+                      [disabled]="isDeletingSpot()"
+                      (click)="deleteSpotClick()"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span
+                        i18n="
+                          Delete button label|Label of the button to delete the spot
+                        "
+                        >Delete</span
+                      >
+                    </button>
+                  }
+                </mat-menu>
+              }
             </div>
           }
         </mat-card-subtitle>
@@ -903,11 +964,12 @@
           </div>
         }
 
-        <!-- Action buttons -->
+        <!-- Editing is how people improve a Spot, so it stays a visible
+             button. History, report and delete live in the header menu. -->
         @if (authenticationService.isSignedIn && editable()) {
           <mat-divider></mat-divider>
-          <div class="d-flex my-3 gap-2">
-            @if (canParticipatePublicly()) {
+          @if (canParticipatePublicly()) {
+            <div class="d-flex my-3">
               <button
                 mat-stroked-button
                 i18n-matTooltip="
@@ -915,7 +977,7 @@
                   button@@spot.edit.tooltip"
                 matTooltip="Edit this spot"
                 (click)="editButtonClick()"
-                class="flex-grow-1 flex-basis-0"
+                class="flex-grow-1"
               >
                 <mat-icon>edit</mat-icon>
                 <span
@@ -923,74 +985,8 @@
                   >Edit Spot</span
                 >
               </button>
-            }
-            <a
-              mat-stroked-button
-              [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']"
-              [queryParams]="mapQueryParams()"
-              queryParamsHandling="merge"
-              (click)="editHistoryButtonClick()"
-              class="flex-grow-1 flex-basis-0"
-              i18n-matTooltip="
-                edit history tooltip|Tooltip for edit history
-                button@@spot.edit_history.tooltip"
-              matTooltip="View edit history of this spot"
-            >
-              <mat-icon>history</mat-icon>
-              <span
-                i18n="
-                  Edit history button label|Label of the button to view the edit
-                  history of the spot
-                "
-                >Edit History</span
-              >
-            </a>
-          </div>
-          <div class="d-flex my-3 gap-2">
-            <button
-              mat-stroked-button
-              color="warn"
-              i18n-matTooltip="
-                report spot tooltip|Tooltip for report spot
-                button@@spot.report.tooltip"
-              matTooltip="Report this spot"
-              class="flex-grow-1 flex-basis-0"
-              (click)="openSpotReportDialog()"
-            >
-              <mat-icon>report</mat-icon>
-              @if (ownReport()) {
-                <span i18n>Edit your report</span>
-              } @else {
-                <span
-                  i18n="
-                    report button label|Label of the button to report the spot
-                  "
-                  >Report</span
-                >
-              }
-            </button>
-            @if (isAdmin()) {
-              <button
-                mat-stroked-button
-                color="warn"
-                [disabled]="isDeletingSpot()"
-                i18n-matTooltip="
-                  Delete spot tooltip|Tooltip for delete spot
-                  button@@spot.delete.tooltip"
-                matTooltip="Delete this spot"
-                (click)="deleteSpotClick()"
-                class="flex-grow-1 flex-basis-0"
-              >
-                <mat-icon>delete</mat-icon>
-                <span
-                  i18n="
-                    Delete button label|Label of the button to delete the spot
-                  "
-                  >Delete</span
-                >
-              </button>
-            }
-          </div>
+            </div>
+          }
           @if (ownReport()) {
             <div class="reporter-report-state mb-3" role="status">
               <mat-icon>flag</mat-icon>

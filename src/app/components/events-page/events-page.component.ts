@@ -71,6 +71,11 @@ import {
 } from "./event-discovery-toolbar.component";
 import type { EventFiltersDialogResult } from "./event-filters-dialog.component";
 import {
+  eventDateRangeWindow,
+  isEventDateRange,
+  type EventDateRange,
+} from "./event-date-range";
+import {
   EventDiscoveryViewToggleComponent,
   type EventsDiscoveryView,
 } from "./event-discovery-view-toggle.component";
@@ -121,6 +126,7 @@ interface DiscoveryRequest {
   regionKeys: EventRegionKey[];
   seriesIds: string[];
   period: EventsListPeriod;
+  dateRange?: EventDateRange | null;
   month: string;
   limit: number;
   rangeStartSeconds?: number;
@@ -258,6 +264,7 @@ export class EventsPageComponent {
     equal: sameOrderedValues,
   });
   readonly period = signal<EventsListPeriod>("upcoming");
+  readonly dateRange = signal<EventDateRange | null>(null);
   readonly month = signal(currentMonthKey());
   readonly requestedDay = signal("");
   readonly resultLimit = signal(LIST_PAGE_SIZE);
@@ -302,6 +309,7 @@ export class EventsPageComponent {
       regionKeys: this.selectedRegions(),
       seriesIds: this.selectedSeriesIds(),
       period: this.period(),
+      dateRange: this.dateRange(),
       month: this.month(),
       limit: this.resultLimit(),
     }),
@@ -337,7 +345,9 @@ export class EventsPageComponent {
         ...common,
         ...(params.period === "past"
           ? { endsBeforeSeconds: nowSeconds, sort: "past" as const }
-          : { endsAfterSeconds: nowSeconds, sort: "upcoming" as const }),
+          : params.dateRange
+            ? { ...eventDateRangeWindow(params.dateRange, new Date()), sort: "upcoming" as const }
+            : { endsAfterSeconds: nowSeconds, sort: "upcoming" as const }),
         page: 1,
         perPage: Math.min(params.limit, 250),
       });
@@ -690,7 +700,13 @@ export class EventsPageComponent {
       region: serializeList(result.regions),
       series: serializeList(result.seriesIds),
       tier: serializeList(result.listingTiers),
+      dates: result.dateRange,
     });
+  }
+
+  clearDateRange(): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({ dates: null });
   }
 
   clearFilters(): void {
@@ -703,6 +719,7 @@ export class EventsPageComponent {
       series: null,
       tier: null,
       region: null,
+      dates: null,
     });
   }
 
@@ -805,6 +822,8 @@ export class EventsPageComponent {
     );
     this.selectedRegions.set(parseList(params, "region").filter(isEventRegionKey));
     this.period.set(params.get("when") === "past" ? "past" : "upcoming");
+    const dates = params.get("dates");
+    this.dateRange.set(isEventDateRange(dates) ? dates : null);
     const month = params.get("month") ?? "";
     this._hasValidMonthParam = isMonthKey(month);
     this.month.set(this._hasValidMonthParam ? month : currentMonthKey());

@@ -732,6 +732,30 @@ app-root.event-map-route .embedded-content {
       dialog-fade-top linear both,
       dialog-fade-bottom linear both;
     animation-timeline: scroll(self), scroll(self);
+    scroll-timeline: --dialog-content block;
+  }
+
+  // The fade alone is easy to miss, so a divider above the buttons also says
+  // "there is more": Material's scrolling-dialog divider. It shows while the
+  // content can scroll further and goes once the end is reached.
+  .mat-mdc-dialog-surface {
+    timeline-scope: --dialog-content;
+  }
+
+  .mat-mdc-dialog-actions {
+    border-block-start: 1px solid transparent;
+    animation: dialog-more-divider linear both;
+    animation-timeline: --dialog-content;
+  }
+}
+
+@keyframes dialog-more-divider {
+  from,
+  96% {
+    border-block-start-color: var(--mat-sys-outline-variant);
+  }
+  to {
+    border-block-start-color: transparent;
   }
 }
 
@@ -751,4 +775,10 @@ app-root.event-map-route .embedded-content {
 // a dialog. A stronger scrim makes the dialog the only thing in play.
 .cdk-overlay-dark-backdrop.cdk-overlay-backdrop-showing {
   background: rgb(0 0 0 / 60%);
+}
+
+// Destructive entries in a menu (delete) use the error colour, text and icon.
+.mat-mdc-menu-item.menu-item-destructive:not([disabled]) {
+  --mat-menu-item-label-text-color: var(--mat-sys-error);
+  --mat-menu-item-icon-color: var(--mat-sys-error);
 }

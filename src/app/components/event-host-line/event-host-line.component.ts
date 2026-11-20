@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, input, signal } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import type { EventListingTier } from "../../../db/schemas/EventSchema";
@@ -74,6 +74,8 @@ export class EventHostLineComponent {
   readonly compact = input(false);
 
   readonly host = computed(() => eventHost(this.event()));
+  /** A logo that failed to load; the line then shows the name alone. */
+  readonly failedLogo = signal<string | null>(null);
 
   readonly verifiedLabel = $localize`:@@event_host.verified:Verified organizer`;
   readonly communityLabel = $localize`:@@event_host.community_hint:Community event, organized by members`;

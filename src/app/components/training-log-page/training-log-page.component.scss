@@ -9,9 +9,9 @@ h1 { margin: 0 0 6px; font: var(--mat-sys-headline-large); }
 .log-hero > div > p:last-child, .timeline__header p, .check-in-history__header p { margin: 0; color: var(--mat-sys-on-surface-variant); }
 
 
-.stats { display: block; margin: 28px 0 16px; }
+.stats { display: block; margin: 40px 0 0; }
 app-training-activity-contribution-graph { display: block; margin-top: 16px; }
-.timeline { margin-top: 40px; }
+.timeline { margin-top: 24px; }
 .timeline__header { align-items: flex-start; }
 .timeline__header .eyebrow { margin-top: 0; }
 .timeline h2, .check-in-history h2 { margin: 0 0 4px; font: var(--mat-sys-title-large); }
@@ -67,6 +67,7 @@ app-training-activity-contribution-graph { display: block; margin-top: 16px; }
 }
 
 .log-hero h1 { margin-top: 12px; }
+.activity-details { margin-top: 24px; }
 .activity-details mat-panel-title {
   display: flex;
   align-items: center;

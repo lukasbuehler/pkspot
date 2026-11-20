@@ -34,7 +34,7 @@
       @if (log.note) {
         <p class="description">{{ log.note }}</p>
       } @else {
-        <a matButton="filled" [routerLink]="['/train/log', log.id, 'edit']" i18n="@@planned.log">Log what you did</a>
+        <a matButton="filled" [routerLink]="['/train/log', log.id, 'edit']" i18n="@@trainingSessionDetail.addNote">Add a note</a>
       }
     </section>
 

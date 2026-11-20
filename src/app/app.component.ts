@@ -125,6 +125,8 @@ import {
 } from "./features/navbar-overflow";
 import { MyEventContextService } from "./services/my-event-context.service";
 import { NativeTabBarService } from "./services/native-tab-bar.service";
+import { NotificationCenterService } from "./services/notification-center.service";
+import { navigationAccessibleLabel } from "./components/mat3-nav-button/mat3-nav-button.component";
 import { nativeTabBarOwnsNavigation } from "./features/native-tab-bar";
 
 interface ButtonBase {
@@ -135,6 +137,10 @@ interface ButtonBase {
   image?: string;
   active?: boolean;
   liveIndicator?: boolean;
+  /** Unread items behind this destination. */
+  badgeCount?: number;
+  /** Spoken name when it says more than `name` (live event, unread count). */
+  ariaLabel?: string;
   alwaysVisible?: boolean;
 }
 
@@ -270,6 +276,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
   readonly myEventContext = inject(MyEventContextService);
+  private readonly _notificationCenter = inject(NotificationCenterService);
   readonly checkInEnabled = environment.features.checkIns;
   private readonly _desktopNavigationRailMeasurement = signal<DesktopNavigationRailMeasurement | null>(
     null,
@@ -1615,13 +1622,17 @@ html.pkspot-roboto-loaded body {
       });
     }
 
+    const eventsName = $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`;
     buttons.push({
       id: "events",
-      name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
+      name: eventsName,
       link: "/events",
       icon: "event",
       overflowPriority: 2,
       liveIndicator: this.myEventContext.hasLiveEvent(),
+      ariaLabel: this.myEventContext.hasLiveEvent()
+        ? navigationAccessibleLabel(eventsName, true, 0)
+        : undefined,
     });
 
     if (!isCompact) {
@@ -1645,14 +1656,31 @@ html.pkspot-roboto-loaded body {
       });
     }
 
-    // About is lowest priority, so More absorbs it before primary navigation.
-    buttons.push({
-      id: "about",
+    // Signed-in phones give the last slot to notifications, which people
+    // check daily; About moves to the profile menu there. Signed-out visitors
+    // and the desktop rail keep About.
+    if (signedIn && isCompact) {
+      const unread = this._notificationCenter.unreadCount();
+      const name = $localize`:@@navigation.notifications:Notifications`;
+      buttons.push({
+        id: "notifications",
+        name,
+        link: "/notifications",
+        icon: "notifications",
+        overflowPriority: 5,
+        badgeCount: unread,
+        ariaLabel: unread > 0 ? navigationAccessibleLabel(name, false, unread) : undefined,
+      });
+    } else {
+      // About is lowest priority, so More absorbs it before primary navigation.
+      buttons.push({
+        id: "about",
       name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
-      link: "/about",
-      icon: "info",
-      overflowPriority: 5,
-    });
+        link: "/about",
+        icon: "info",
+        overflowPriority: 5,
+      });
+    }
 
     // Compact navigation routes lower-priority destinations through More, so
     // administrators retain access without crowding out the primary actions.
@@ -1792,7 +1820,6 @@ html.pkspot-roboto-loaded body {
   }
 
   /** Appended to a navigation link's name while one of its events is live. */
-  readonly liveEventLabel = $localize`:@@navigation.live_event:live event underway`;
   readonly moreNavigationLabel = $localize`:More navbar button label|A very short label that opens overflow navigation@@more.nav:More`;
   readonly overflowNavigationActive = computed(() =>
     this.overflowNavbarButtons().some(

@@ -68,12 +68,14 @@
     [selectedSeriesIds]="selectedSeriesIds()"
     [selectedListingTiers]="selectedListingTiers()"
     [selectedRegions]="selectedRegions()"
+    [dateRange]="dateRange()"
     (periodChange)="onPeriodChange($event)"
     (categoryToggled)="toggleCategory($event)"
     (seriesToggled)="toggleSeries($event)"
     (listingTierToggled)="toggleListingTier($event)"
     (regionToggled)="toggleRegion($event)"
     (filtersCleared)="clearFilters()"
+    (dateRangeCleared)="clearDateRange()"
     (dialogFiltersApplied)="applyDialogFilters($event)"
   />
 

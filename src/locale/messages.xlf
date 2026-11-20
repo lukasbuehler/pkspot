@@ -176,6 +176,11 @@
         <source> Still unable to load this. Check your connection and try again. </source>
       </segment>
     </unit>
+    <unit id="profile.menu.about">
+      <segment>
+        <source>About PK Spot</source>
+      </segment>
+    </unit>
     <unit id="profile.menu.ariaLabel">
       <segment>
         <source>Profile settings</source>
@@ -269,6 +274,11 @@
     <unit id="events.filters_dialog.title">
       <segment>
         <source>Filter events</source>
+      </segment>
+    </unit>
+    <unit id="events.filters_dialog.when">
+      <segment>
+        <source>When</source>
       </segment>
     </unit>
     <unit id="map_community_filters_aria_label">
@@ -7016,6 +7026,21 @@
         <source>Create event</source>
       </segment>
     </unit>
+    <unit id="events.date_range.month">
+      <segment>
+        <source>Next 30 days</source>
+      </segment>
+    </unit>
+    <unit id="events.date_range.week">
+      <segment>
+        <source>Next 7 days</source>
+      </segment>
+    </unit>
+    <unit id="events.date_range.weekend">
+      <segment>
+        <source>This weekend</source>
+      </segment>
+    </unit>
     <unit id="events.discovery_card_aria">
       <segment>
         <source><ph id="0" equiv="eventName" disp="event.name"/>, <ph id="1" equiv="localDate" disp="localDate"/>, <ph id="2" equiv="location" disp="location"/>, <ph id="3" equiv="goingSummary" disp="going"/>, <ph id="4" equiv="interestedSummary" disp="interested"/></source>
@@ -7268,6 +7293,26 @@
     <unit id="leaderboard.empty">
       <segment>
         <source>No contributors yet. Be the first!</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.counts">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ own.edits }}"/> edits · <ph id="1" equiv="INTERPOLATION_1" disp="{{ own.spots }}"/> Spots · <ph id="2" equiv="INTERPOLATION_2" disp="{{ own.media }}"/> media</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.how">
+      <segment>
+        <source>Add a Spot, edit one or add a photo to join.</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.none">
+      <segment>
+        <source>You&apos;re not on the leaderboard yet</source>
+      </segment>
+    </unit>
+    <unit id="leaderboard.own.not_listed">
+      <segment>
+        <source>You&apos;re not in the top 100 yet</source>
       </segment>
     </unit>
     <unit id="leaderboard.sort_by">
@@ -11008,11 +11053,6 @@
         <source>Log</source>
       </segment>
     </unit>
-    <unit id="train.rhythm.logSession">
-      <segment>
-        <source>Log a session</source>
-      </segment>
-    </unit>
     <unit id="train.rhythm.thisWeek">
       <segment>
         <source>sessions this week</source>
@@ -11226,6 +11266,11 @@
     <unit id="trainingLog.new">
       <segment>
         <source>New training entry</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.addNote">
+      <segment>
+        <source>Add a note</source>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.back">
@@ -12136,15 +12181,6 @@
         <source>Your report is pending. You can edit or withdraw it at any time.</source>
       </segment>
     </unit>
-    <unit id="spot.delete.tooltip">
-      <notes>
-        <note category="description">Tooltip for delete spot button</note>
-        <note category="meaning">Delete spot tooltip</note>
-      </notes>
-      <segment>
-        <source>Delete this spot</source>
-      </segment>
-    </unit>
     <unit id="spot.details.header">
       <notes>
         <note category="description">Header for the spot details section</note>
@@ -12237,6 +12273,16 @@
     <unit id="spot.managed.tooltip">
       <segment>
         <source>Managed by <ph id="0" equiv="INTERPOLATION" disp="{{ managed.organization.name }}"/></source>
+      </segment>
+    </unit>
+    <unit id="spot.more_actions">
+      <segment>
+        <source>More Spot actions</source>
+      </segment>
+    </unit>
+    <unit id="spot.more_actions.tooltip">
+      <segment>
+        <source>More</source>
       </segment>
     </unit>
     <unit id="spot.open_maps.label">
@@ -12496,15 +12542,6 @@
         <source>No image</source>
       </segment>
     </unit>
-    <unit id="spot.edit_history.tooltip">
-      <notes>
-        <note category="description">Tooltip for edit history button</note>
-        <note category="meaning">edit history tooltip</note>
-      </notes>
-      <segment>
-        <source>View edit history of this spot</source>
-      </segment>
-    </unit>
     <unit id="1433932376397571385">
       <notes>
         <note category="description">Label of the button to view the edit history of the spot</note>
@@ -12512,15 +12549,6 @@
       </notes>
       <segment>
         <source>Edit History</source>
-      </segment>
-    </unit>
-    <unit id="spot.report.tooltip">
-      <notes>
-        <note category="description">Tooltip for report spot button</note>
-        <note category="meaning">report spot tooltip</note>
-      </notes>
-      <segment>
-        <source>Report this spot</source>
       </segment>
     </unit>
     <unit id="5353526426392827566">
@@ -13313,6 +13341,16 @@
     <unit id="navigation.live_event">
       <segment>
         <source>live event underway</source>
+      </segment>
+    </unit>
+    <unit id="navigation.notifications">
+      <segment>
+        <source>Notifications</source>
+      </segment>
+    </unit>
+    <unit id="navigation.unread_count">
+      <segment>
+        <source><ph id="0" equiv="count" disp="unreadCount"/> unread</source>
       </segment>
     </unit>
     <unit id="navigation_progress.loading">
@@ -15423,11 +15461,6 @@
     <unit id="planned.loading">
       <segment>
         <source>Loading…</source>
-      </segment>
-    </unit>
-    <unit id="planned.log">
-      <segment>
-        <source>Log what you did</source>
       </segment>
     </unit>
     <unit id="planned.manage">

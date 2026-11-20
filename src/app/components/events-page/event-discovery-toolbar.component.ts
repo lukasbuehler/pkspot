@@ -17,6 +17,7 @@ import type {
 } from "../../../db/schemas/EventSchema";
 import type { EventsDiscoveryView } from "./event-discovery-view-toggle.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
+import { eventDateRangeLabel, type EventDateRange } from "./event-date-range";
 import {
   EventFiltersDialogComponent,
   type EventFiltersDialogData,
@@ -78,6 +79,11 @@ export class EventDiscoveryToolbarComponent {
   readonly selectedSeriesIds = input<readonly string[]>([]);
   readonly selectedListingTiers = input<readonly EventListingTier[]>([]);
   readonly selectedRegions = input<readonly EventRegionKey[]>([]);
+  readonly dateRange = input<EventDateRange | null>(null);
+  /** Date windows only make sense for the upcoming list. */
+  readonly showDateRange = computed(
+    () => this.view() === "list" && this.period() === "upcoming",
+  );
 
   private readonly _dialog = inject(MatDialog);
 
@@ -101,16 +107,25 @@ export class EventDiscoveryToolbarComponent {
     ...this.regionOptions()
       .filter(option => this.selectedRegions().includes(option.id))
       .map(region => ({ urlParam: `region:${region.id}`, label: region.label, icon: "public" })),
+    ...this.activeDateRanges().map(range => ({
+      urlParam: `date:${range}`, label: eventDateRangeLabel(range), icon: "date_range",
+    })),
   ]);
+  private readonly activeDateRanges = computed(() => {
+    const range = this.dateRange();
+    return range && this.showDateRange() ? [range] : [];
+  });
   /** Whether the Filter dialog has anything to offer. */
   readonly hasDialogFilters = computed(
     () =>
+      this.showDateRange() ||
       this.seriesOptions().length > 0 ||
       this.listingTierOptions().length > 0 ||
       this.regionOptions().length > 0,
   );
   readonly dialogFiltersActive = computed(
     () =>
+      this.activeDateRanges().length > 0 ||
       this.selectedSeriesIds().length > 0 ||
       this.selectedListingTiers().length > 0 ||
       this.selectedRegions().length > 0,
@@ -120,6 +135,7 @@ export class EventDiscoveryToolbarComponent {
     ...this.selectedSeriesIds().map(id => `series:${id}`),
     ...this.selectedListingTiers().map(id => `tier:${id}`),
     ...this.selectedRegions().map(id => `region:${id}`),
+    ...this.activeDateRanges().map(range => `date:${range}`),
   ]);
 
   toggleDetail(value: string): void {
@@ -130,7 +146,8 @@ export class EventDiscoveryToolbarComponent {
     const tier = this.listingTierOptions().find(option => `tier:${option.id}` === value);
     if (tier) { this.listingTierToggled.emit(tier.id); return; }
     const region = this.regionOptions().find(option => `region:${option.id}` === value);
-    if (region) this.regionToggled.emit(region.id);
+    if (region) { this.regionToggled.emit(region.id); return; }
+    if (value.startsWith("date:")) this.dateRangeCleared.emit();
   }
 
   openFilters(): void {
@@ -141,6 +158,8 @@ export class EventDiscoveryToolbarComponent {
       selectedRegions: this.selectedRegions(),
       selectedSeriesIds: this.selectedSeriesIds(),
       selectedListingTiers: this.selectedListingTiers(),
+      showDateRange: this.showDateRange(),
+      selectedDateRange: this.dateRange(),
     };
     this._dialog
       .open<EventFiltersDialogComponent, EventFiltersDialogData, EventFiltersDialogResult>(
@@ -160,6 +179,7 @@ export class EventDiscoveryToolbarComponent {
   readonly listingTierToggled = output<EventListingTier>();
   readonly regionToggled = output<EventRegionKey>();
   readonly filtersCleared = output<void>();
+  readonly dateRangeCleared = output<void>();
   readonly dialogFiltersApplied = output<EventFiltersDialogResult>();
 
   hasFilters(): boolean {
@@ -169,6 +189,7 @@ export class EventDiscoveryToolbarComponent {
       this.selectedSeriesIds().length > 0 ||
       this.selectedListingTiers().length > 0 ||
       this.selectedRegions().length > 0 ||
+      this.activeDateRanges().length > 0 ||
       !!this.query()
     );
   }

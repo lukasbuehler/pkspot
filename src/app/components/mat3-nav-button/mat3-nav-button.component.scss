@@ -48,6 +48,26 @@
   background: var(--mat-sys-secondary);
 }
 
+// Unread count: the blue highlight colour, since green means "live" here.
+.count-badge {
+  position: absolute;
+  top: -2px;
+  left: calc(50% + 4px);
+  z-index: 1;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  box-sizing: border-box;
+  border: 2px solid var(--mat-sys-surface-container);
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-small);
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+}
+
 .button-container > mat-icon,
 .button-container > .image {
   transition: color 0.2s, background-color 0.2s, width 0.2s;
