@@ -20,5 +20,16 @@
     <span class="mat-title-small organization-button__name">
       {{ displayOrganization().name }}
     </span>
+    @if (verified()) {
+      <mat-icon
+        class="organization-button__verified"
+        role="img"
+        i18n-aria-label="@@event_host.verified"
+        aria-label="Verified organizer"
+        i18n-matTooltip="@@event_host.verified"
+        matTooltip="Verified organizer"
+        >verified</mat-icon
+      >
+    }
   </span>
 </a>

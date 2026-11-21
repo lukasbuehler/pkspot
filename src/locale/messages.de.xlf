@@ -11577,6 +11577,12 @@
         <target state="translated">Läuft – offenes Ende</target>
       </segment>
     </unit>
+    <unit id="events.status.live_until_day">
+      <segment state="translated">
+        <source>Ongoing — until <ph id="0" equiv="LAST_DAY" disp="lastDay"/></source>
+        <target>Läuft - bis <ph id="0" equiv="LAST_DAY" disp="lastDay"/></target>
+      </segment>
+    </unit>
     <unit id="events.status.live_with_end">
       <segment state="initial">
         <source>Ongoing — ends <ph id="0" equiv="PH" disp="relative"/></source>
@@ -18867,12 +18873,6 @@
       <segment state="initial">
         <source>Open target</source>
         <target>Ziel öffnen</target>
-      </segment>
-    </unit>
-    <unit id="746689080802550943">
-      <segment state="initial">
-        <source> Spot </source>
-        <target>Spot</target>
       </segment>
     </unit>
     <unit id="3031673576218082316">

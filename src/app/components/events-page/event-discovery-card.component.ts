@@ -4,6 +4,7 @@ import {
   computed,
   inject,
   input,
+  LOCALE_ID,
 } from "@angular/core";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
@@ -16,6 +17,7 @@ import { AnalyticsService } from "../../services/analytics.service";
 import {
   eventCategoryIcon,
   eventImageDisplaySrc,
+  eventStatusLabel,
 } from "../event-display/event-display.helpers";
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
@@ -41,6 +43,7 @@ import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
 export class EventDiscoveryCardComponent {
   private readonly _dateTime = inject(DateTimeFormatService);
   private readonly _analytics = inject(AnalyticsService);
+  private readonly _locale = inject(LOCALE_ID);
 
   readonly event = input.required<EventSearchPreview>();
   readonly seriesById = input<Record<string, SeriesDocument>>({});
@@ -146,8 +149,19 @@ export class EventDiscoveryCardComponent {
     const now = Date.now();
     if (now < start.getTime()) return "upcoming";
     if (now > end.getTime()) return "past";
-    if (this.event().timing?.mode === "date_only") return "upcoming";
     return "live";
+  });
+  /** Green "Ongoing" line, shown only while the event is happening. */
+  readonly liveLabel = computed(() => {
+    const start = this.start();
+    const end = this.end();
+    if (this.status() !== "live" || !start || !end) return null;
+    if (this.event().lifecycleStatus === "cancelled") return null;
+    return eventStatusLabel(
+      { start, end, timing: this.event().timing },
+      "live",
+      this._locale,
+    );
   });
   /** Day and short month for the cover fallback, in the event's time zone. */
   readonly coverDate = computed(() => {

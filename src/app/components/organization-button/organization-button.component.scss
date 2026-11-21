@@ -48,3 +48,12 @@ a {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.organization-button__verified {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-inline-start: 6px;
+  font-size: 20px;
+  color: var(--mat-sys-primary);
+}

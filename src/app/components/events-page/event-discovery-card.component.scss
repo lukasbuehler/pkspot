@@ -203,6 +203,12 @@ mat-card-subtitle {
   color: var(--mat-sys-on-surface-variant);
 }
 
+// Green is the live accent: only events happening right now get it.
+.live-label {
+  display: block;
+  color: var(--mat-sys-secondary);
+}
+
 .event-card[data-status="past"] {
   opacity: 0.82;
 }

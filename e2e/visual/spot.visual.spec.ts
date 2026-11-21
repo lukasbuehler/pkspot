@@ -176,6 +176,11 @@ test.describe("Spot Details Visual Regression @visual", () => {
   test("should ellipsize an overflowing loading title on narrow phones", async ({ page }) => {
     await openSpotFixture(page, { width: 320, height: 844 }, "loading");
     const title = page.locator(".spot-loading-name");
+    // The fixture name fits at 320px now that the header has no "Spot" label,
+    // so give it a name long enough to overflow.
+    await title.evaluate(element => {
+      element.textContent = "Riverside Training Walls and Rooftop Precision Line";
+    });
     await expect(title).toHaveCSS("white-space", "nowrap");
     await expect(title).toHaveCSS("text-overflow", "ellipsis");
     const size = await title.evaluate(element => ({
@@ -342,7 +347,7 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
   test(`spot title and activity hierarchy ${name} @visual`, async ({page}) => {
     await openSpotFixture(page, undefined, 'loaded', `&activity=1${name === 'Lindenhof' ? '&shortTitle=1' : ''}`, name);
     const title = page.locator('.spot-title-text').first();
-    const badge = page.locator('.spot-kind-label').first();
+    const badge = page.locator('.spot-header-badges').first();
     const activity = page.locator('.spot-activity-reveal');
     await expect(activity).toContainText('2+');
     await expect(activity).not.toContainText('30');
@@ -354,7 +359,7 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
       return {y: rect.y, height: rect.height};
     });
     const badgeBox = (await badge.boundingBox())!;
-    // "Spot" and the rating form their own row directly below the title.
+    // The facts and actions row sits directly below the title.
     expect(badgeBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height - 2);
     const headerBox = (await page.locator('app-spot-details mat-card-subtitle').last().boundingBox())!;
     expect((await activity.boundingBox())!.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1);

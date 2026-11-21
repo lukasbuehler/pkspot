@@ -198,7 +198,13 @@ html {
         primary: $_primary,
         tertiary: $_tertiary,
       ),
-      typography: Roboto,
+      // Roboto loads after startup (AppComponent.loadDeferredRobotoFonts), so
+      // the type tokens carry a sans-serif fallback. A bare "Roboto" made
+      // early dialogs render in the browser's default serif font.
+      typography: (
+        plain-family: (Roboto, Arial, sans-serif),
+        brand-family: (Roboto, Arial, sans-serif),
+      ),
       density: (
         scale: -1,
       ),

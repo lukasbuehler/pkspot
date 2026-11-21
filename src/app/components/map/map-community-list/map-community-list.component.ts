@@ -13,6 +13,8 @@ import { AppHrefPipe } from "../../../pipes/app-href.pipe";
 })
 export class MapCommunityListComponent {
   communities = input<readonly CommunitySearchPreview[]>([]);
+  /** Lays the rows out side by side when the container has room. */
+  wrap = input(false);
   selectCommunity = output<CommunitySearchPreview>();
 
   onSelect(event: MouseEvent, community: CommunitySearchPreview): void {

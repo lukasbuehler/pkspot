@@ -1449,6 +1449,7 @@ export class SearchService {
       start: { seconds: startSeconds, nanoseconds: 0 },
       end: { seconds: endSeconds, nanoseconds: 0 },
       time_zone: preview.timeZone,
+      timing: preview.timing,
       lifecycle_status: preview.lifecycleStatus,
       promo_starts_at:
         preview.promoStartsAtSeconds !== undefined
@@ -1960,6 +1961,14 @@ export class SearchService {
       "venue_spot_count",
       "start_seconds",
       "end_seconds",
+      // Without timing and time zone, map Events cannot tell date-only Events
+      // from exact ones, so cards showed day boundaries as times.
+      "active_until_seconds",
+      "timing",
+      "time_zone",
+      "lifecycle_status",
+      "listing_tier",
+      "rsvp_counts",
       "promo_starts_at_seconds",
       "location",
       "location_raw",

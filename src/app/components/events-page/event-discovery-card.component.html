@@ -70,6 +70,9 @@
         @if (event().lifecycleStatus === "cancelled") {
           <span class="cancelled-label" i18n>Cancelled</span>
         }
+        @if (liveLabel(); as label) {
+          <span class="live-label">{{ label }}</span>
+        }
         @if (dataIssue(); as issue) {
           <span class="data-issue">
             <mat-icon inline aria-hidden="true">warning</mat-icon>

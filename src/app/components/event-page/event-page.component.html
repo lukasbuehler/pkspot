@@ -164,16 +164,8 @@
                 @if (organizer(); as organization) {
                   <app-organization-button
                     [organization]="organization"
+                    [verified]="true"
                   ></app-organization-button>
-                  <mat-icon
-                    class="event-organizer__verified"
-                    role="img"
-                    i18n-aria-label="@@event_host.verified"
-                    aria-label="Verified organizer"
-                    i18n-matTooltip="@@event_host.verified"
-                    matTooltip="Verified organizer"
-                    >verified</mat-icon
-                  >
                 } @else if (event.listingTier === "community") {
                   <span class="event-organizer__fallback mat-title-small">
                     <mat-icon aria-hidden="true">groups</mat-icon>
@@ -213,7 +205,7 @@
       }
 
       <!-- "Parkour event in <place>" heads the details below (description,
-           tags, communities, links): people get a section heading between the
+           tags, links): people get a section heading between the
            title and the details, and search engines keep the localized phrase. -->
       @if (localizedCopy(); as copy) {
         <h2 class="event-about-heading mat-title-large">{{ copy.heading }}</h2>
@@ -295,14 +287,6 @@
               }
             </mat-chip-set>
           }
-        </section>
-      }
-
-      @if (event.communityKeys.length > 0) {
-        <section class="event-section event-communities">
-          <app-community-links
-            [communityKeys]="event.communityKeys"
-          />
         </section>
       }
 
@@ -791,6 +775,16 @@
               }
             </article>
           }
+        </section>
+      }
+
+      <!-- Communities close the page: they lead away from the event, so they
+           follow everything about the event itself. -->
+      @if (event.communityKeys.length > 0) {
+        <section class="event-section event-communities">
+          <app-community-links
+            [communityKeys]="event.communityKeys"
+          />
         </section>
       }
 

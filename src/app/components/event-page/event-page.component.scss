@@ -90,11 +90,6 @@
 }
 
 // Approved organisations carry the blue verified mark, as on event cards.
-.event-organizer__verified {
-  margin-inline-start: -0.25rem;
-  color: var(--mat-sys-primary);
-}
-
 .event-hero {
   overflow: hidden;
   height: clamp(180px, 28vh, 300px);

@@ -3310,12 +3310,6 @@
         <target>Doel openen</target>
       </segment>
     </unit>
-    <unit id="746689080802550943">
-      <segment state="initial">
-        <source> Spot </source>
-        <target> Spot </target>
-      </segment>
-    </unit>
     <unit id="7482807007581364111">
       <segment state="initial">
         <source>Unlikely</source>
@@ -11743,6 +11737,12 @@
       <segment state="initial">
         <source>Ongoing — open end</source>
         <target>Bezig — open einde</target>
+      </segment>
+    </unit>
+    <unit id="events.status.live_until_day">
+      <segment state="translated">
+        <source>Ongoing — until <ph id="0" equiv="LAST_DAY" disp="lastDay"/></source>
+        <target>Bezig - tot <ph id="0" equiv="LAST_DAY" disp="lastDay"/></target>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">

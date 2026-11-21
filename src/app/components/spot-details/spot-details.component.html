@@ -28,12 +28,6 @@
           } @else {
             <span class="spot-loading-title" aria-hidden="true"></span>
           }
-          <span
-            i18n
-            class="mat-label-small px-1 border rounded spot-kind-label"
-          >
-            Spot
-          </span>
         </span>
 
         @if (dismissable()) {
@@ -146,18 +140,14 @@
             </button>
           }
         </mat-card-title>
-        <!-- Second row: what this is (Spot) and its rating, with the actions.
+        <!-- Second row: verification, rating, type, amenities, access and place
+             on the left, the actions on the right; it wraps on narrow sheets.
              A mat-card-subtitle so the card header keeps it in source order. -->
         <mat-card-subtitle
           class="spot-header-badges collapsible-header-info d-flex align-items-center gap-2"
           [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
         >
-            <span
-              i18n
-              class="mat-label-small px-1 border rounded spot-kind-label"
-              >Spot</span
-            >
-
+            <div class="spot-header-info">
             @if (managedOrganization(); as managed) {
               <a
                 matIconButton
@@ -254,6 +244,92 @@
                       ></app-spot-rating>
                     </button>
                   }
+              @if (
+                (showRating() && spot()?.rating) ||
+                spot()!.importantAmenitiesArray().length > 0 ||
+                spot()?.access() !== "other" ||
+                spot()?.type() !== "other" || spot()?.address()
+              ) {
+                <div class="spot-context-row">
+                  @if (spot()?.type() !== "other") {
+                    <div
+                      class="d-flex align-items-center"
+                      [@fadeSlideOnChange]="typeAnimKey()"
+                      style="min-width: 0"
+                    >
+                      <mat-icon
+                        class="amenity-icon me-1 flex-shrink-0"
+                        [matTooltip]="spotTypeNames[spot()!.type()]"
+                        >{{ spotTypesIcons[spot()!.type()] }}</mat-icon
+                      >
+
+                      <span class="mat-label-large text-nowrap text-truncate">{{
+                        spotTypeNames[spot()!.type()]
+                      }}</span>
+                    </div>
+                  }
+                  <!-- Separators are visual only; each icon below carries its own name. -->
+                  @if (
+                    ((showRating() && spot()?.rating) ||
+                      spot()?.type() !== "other") &&
+                    spot()!.importantAmenitiesArray().length > 0
+                  ) {
+                    <span aria-hidden="true">⸱</span>
+                  }
+                  @if (spot()!.importantAmenitiesArray().length > 0) {
+                    <div class="d-flex flex-row gap-1 align-items-center">
+                      @for (
+                        amenity of spot()!.importantAmenitiesArray();
+                        track $index
+                      ) {
+                        <mat-icon
+                          class="amenity-icon"
+                          role="img"
+                          aria-hidden="false"
+                          [attr.aria-label]="amenity.name"
+                          [matTooltip]="amenity.name"
+                          >{{ amenity.icon }}</mat-icon
+                        >
+                      }
+                    </div>
+                  }
+                  @if (
+                    ((showRating() && spot()?.rating) ||
+                      spot()?.type() !== "other" ||
+                      spot()!.importantAmenitiesArray().length > 0) &&
+                    spot()?.access() !== "other"
+                  ) {
+                    <span aria-hidden="true">⸱</span>
+                  }
+                  @if (spot()?.access() !== "other") {
+                    <mat-icon
+                      class="amenity-icon flex-shrink-0"
+                      [class.access-off-limits]="
+                        spot()!.access() === 'off-limits'
+                      "
+                      [class.access-private]="spot()!.access() === 'private'"
+                      role="img"
+                      aria-hidden="false"
+                      [attr.aria-label]="spotAccessNames[spot()!.access()]"
+                      [matTooltip]="spotAccessNames[spot()!.access()]"
+                      >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
+                    >
+                  }
+              @if (spot()?.address()) {
+                <span class="spot-locality d-inline-flex align-items-center gap-1">
+                  @if (displayLocation()) {
+                    <span>{{ displayLocation() }}</span>
+                  }
+                  @if (countryFlagEmoji()) {
+                    <span class="flag-emoji" [matTooltip]="countryTooltip()">
+                      {{ countryFlagEmoji() }}
+                    </span>
+                  }
+                </span>
+              }
+                </div>
+              }
+            </div>
           <!-- Icon buttons in header - collapsible when sheet is closed -->
           @if (!isEditing()) {
             <div
@@ -402,105 +478,6 @@
               }
             </div>
           }
-        </mat-card-subtitle>
-        <mat-card-subtitle class="d-flex flex-row justify-content-between">
-          <div
-            class="d-flex flex-column flex-grow-1 justify-content-center text-truncate"
-          >
-            <!-- Collapsible header info - hidden when bottom sheet is closed -->
-            <div
-              class="collapsible-header-info"
-              [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
-            >
-              @if (
-                (showRating() && spot()?.rating) ||
-                spot()!.importantAmenitiesArray().length > 0 ||
-                spot()?.access() !== "other" ||
-                spot()?.type() !== "other" || spot()?.address()
-              ) {
-                <div class="spot-context-row d-flex flex-row flex-wrap gap-1 align-items-center pb-1">
-                  <!-- <span class="mat-label-small px-1 border rounded me-1">Spot</span> -->
-                  @if (spot()?.type() !== "other") {
-                    <div
-                      class="d-flex align-items-center"
-                      [@fadeSlideOnChange]="typeAnimKey()"
-                      style="min-width: 0"
-                    >
-                      <mat-icon
-                        class="amenity-icon me-1 flex-shrink-0"
-                        [matTooltip]="spotTypeNames[spot()!.type()]"
-                        >{{ spotTypesIcons[spot()!.type()] }}</mat-icon
-                      >
-
-                      <span class="mat-label-large text-nowrap text-truncate">{{
-                        spotTypeNames[spot()!.type()]
-                      }}</span>
-                    </div>
-                  }
-                  <!-- Separators are visual only; each icon below carries its own name. -->
-                  @if (
-                    ((showRating() && spot()?.rating) ||
-                      spot()?.type() !== "other") &&
-                    spot()!.importantAmenitiesArray().length > 0
-                  ) {
-                    <span aria-hidden="true">⸱</span>
-                  }
-                  @if (spot()!.importantAmenitiesArray().length > 0) {
-                    <div class="d-flex flex-row gap-1 align-items-center">
-                      @for (
-                        amenity of spot()!.importantAmenitiesArray();
-                        track $index
-                      ) {
-                        <mat-icon
-                          class="amenity-icon"
-                          role="img"
-                          aria-hidden="false"
-                          [attr.aria-label]="amenity.name"
-                          [matTooltip]="amenity.name"
-                          >{{ amenity.icon }}</mat-icon
-                        >
-                      }
-                    </div>
-                  }
-                  @if (
-                    ((showRating() && spot()?.rating) ||
-                      spot()?.type() !== "other" ||
-                      spot()!.importantAmenitiesArray().length > 0) &&
-                    spot()?.access() !== "other"
-                  ) {
-                    <span aria-hidden="true">⸱</span>
-                  }
-                  @if (spot()?.access() !== "other") {
-                    <mat-icon
-                      class="amenity-icon flex-shrink-0"
-                      [class.access-off-limits]="
-                        spot()!.access() === 'off-limits'
-                      "
-                      [class.access-private]="spot()!.access() === 'private'"
-                      role="img"
-                      aria-hidden="false"
-                      [attr.aria-label]="spotAccessNames[spot()!.access()]"
-                      [matTooltip]="spotAccessNames[spot()!.access()]"
-                      >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
-                    >
-                  }
-              @if (spot()?.address()) {
-                <span class="spot-locality d-inline-flex align-items-center gap-1">
-                  @if (displayLocation()) {
-                    <span>{{ displayLocation() }}</span>
-                  }
-                  @if (countryFlagEmoji()) {
-                    <span class="flag-emoji" [matTooltip]="countryTooltip()">
-                      {{ countryFlagEmoji() }}
-                    </span>
-                  }
-                </span>
-              }
-                </div>
-              }
-            </div>
-          </div>
-
         </mat-card-subtitle>
         <div
           class="spot-activity-reveal collapsible-header-info"
@@ -955,9 +932,8 @@
         <!-- Editing is how people improve a Spot, so it stays a visible
              button. History, report and delete live in the header menu. -->
         @if (authenticationService.isSignedIn && editable()) {
-          <mat-divider></mat-divider>
           @if (canParticipatePublicly()) {
-            <div class="d-flex my-3">
+            <div class="d-flex mb-4">
               <button
                 mat-stroked-button
                 i18n-matTooltip="
@@ -995,7 +971,6 @@
               </button>
             </div>
           }
-          <mat-divider class="mb-3"></mat-divider>
         }
 
         <!-- Spot Challenges - temporarily hidden while not working

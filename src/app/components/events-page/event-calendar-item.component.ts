@@ -62,7 +62,6 @@ export class EventCalendarItemComponent {
     this.event().slug ?? this.event().id,
   ]);
   readonly isLive = computed(() => {
-    if (this.event().timing?.mode === "date_only") return false;
     const now = this.nowSeconds();
     return now >= this.event().startSeconds && now <= this.event().endSeconds;
   });

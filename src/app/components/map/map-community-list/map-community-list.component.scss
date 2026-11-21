@@ -5,6 +5,10 @@
 .map-community-list {
   display: grid;
   gap: 0.5rem;
+
+  &.is-wrapping {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  }
 }
 
 .community-row {

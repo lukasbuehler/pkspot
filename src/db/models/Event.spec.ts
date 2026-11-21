@@ -97,7 +97,7 @@ describe("Event", () => {
     expect(event.status(now)).toBe("past");
   });
 
-  it("keeps a locationless date-only event out of the live state", () => {
+  it("treats a locationless date-only event as live during its days", () => {
     const event = new Event("event-date-only" as EventId, {
       name: "Venue TBA",
       start: "2026-07-09T00:00:00.000Z",
@@ -108,7 +108,8 @@ describe("Event", () => {
 
     expect(event.location).toBeUndefined();
     expect(event.hasLocation).toBe(false);
-    expect(event.status(new Date("2026-07-09T12:00:00.000Z"))).toBe(
+    expect(event.status(new Date("2026-07-09T12:00:00.000Z"))).toBe("live");
+    expect(event.status(new Date("2026-07-08T12:00:00.000Z"))).toBe(
       "upcoming",
     );
     expect(event.isPromotable(new Date("2026-07-09T12:00:00.000Z"))).toBe(

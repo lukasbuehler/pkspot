@@ -5,6 +5,7 @@
     </h4>
     <app-map-community-list
       [communities]="links()"
+      [wrap]="true"
       (selectCommunity)="openCommunity($event)"
     />
   </div>

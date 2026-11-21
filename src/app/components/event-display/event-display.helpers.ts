@@ -186,7 +186,7 @@ export function promotedEventLabel(context: "full" | "short" = "full"): string {
 }
 
 export function eventStatusLabel(
-  event: PkEvent,
+  event: Pick<PkEvent, "start" | "end" | "timing">,
   status: EventStatus,
   locale: string,
   context: EventStatusLabelContext = "default",
@@ -201,9 +201,21 @@ export function eventStatusLabel(
     if (context === "mapIsland") {
       return $localize`:@@map_island.event_live:Live Event`;
     }
-    return event.timing?.mode === "open_end"
-      ? $localize`:@@events.status.live_open_end:Ongoing — open end`
-      : $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
+    if (event.timing?.mode === "open_end") {
+      return $localize`:@@events.status.live_open_end:Ongoing — open end`;
+    }
+    if (event.timing?.mode === "date_only") {
+      // No end time is known, so name the last day instead of a countdown.
+      const lastDay = new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      }).format(
+        utcNoonForDateKey(event.timing.end_date ?? event.timing.start_date),
+      );
+      return $localize`:@@events.status.live_until_day:Ongoing — until ${lastDay}:LAST_DAY:`;
+    }
+    return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
   }
 
   if (context === "compact") {

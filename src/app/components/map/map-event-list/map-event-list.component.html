@@ -1,11 +1,10 @@
 @if (events().length > 0) {
   <div class="map-event-list">
-    @for (event of events(); track event.id) {
-      <app-event-card
+    @for (event of previews(); track event.id) {
+      <app-event-discovery-card
         [event]="event"
         [seriesById]="seriesById()"
-        [showVenue]="false"
-      ></app-event-card>
+      />
     }
   </div>
 } @else {

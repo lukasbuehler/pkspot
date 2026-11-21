@@ -917,11 +917,6 @@
         <source>Open target</source>
       </segment>
     </unit>
-    <unit id="746689080802550943">
-      <segment>
-        <source> Spot </source>
-      </segment>
-    </unit>
     <unit id="2704103786825350604">
       <segment>
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
@@ -7076,6 +7071,11 @@
     <unit id="events.status.live_open_end">
       <segment>
         <source>Ongoing — open end</source>
+      </segment>
+    </unit>
+    <unit id="events.status.live_until_day">
+      <segment>
+        <source>Ongoing — until <ph id="0" equiv="LAST_DAY" disp="lastDay"/></source>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">

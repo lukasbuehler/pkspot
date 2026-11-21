@@ -89,12 +89,6 @@ mat-tab-group {
   text-overflow: ellipsis;
 }
 
-.spot-kind-label {
-  border-color: currentColor !important;
-  color: inherit;
-  flex-shrink: 0;
-}
-
 .spot-loading-header-reserve {
   display: block;
   width: 44%;
@@ -408,7 +402,19 @@ div.google-img-container {
   background: var(--mat-sys-surface-variant);
 }
 
-.spot-header-badges { margin-block: 4px; }
+.spot-header-badges { flex-wrap: wrap; row-gap: 4px; margin-block: 4px; }
+
+// The Spot's facts and the actions flow as one wrapping row: the wrappers
+// step aside so each fact wraps on its own, and the actions stay at the end
+// of whichever line they land on.
+.spot-header-info,
+.spot-header-info .spot-context-row {
+  display: contents;
+}
+
+.spot-header-badges .spot-button-row {
+  margin-inline-start: auto;
+}
 .spot-header-badges[data-collapsed] { margin-block: 0; }
 
 .spot-locality { max-width: 100%; white-space: normal; }

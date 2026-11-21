@@ -370,7 +370,8 @@ export class Event {
   status(now: Date = new Date()): "upcoming" | "live" | "past" {
     if (now < this.start) return "upcoming";
     if (now > this.end) return "past";
-    if (this.timing?.mode === "date_only") return "upcoming";
+    // Date-only events are live for their whole days (UTC day boundaries),
+    // even though the exact start and end times are not announced yet.
     return "live";
   }
 
