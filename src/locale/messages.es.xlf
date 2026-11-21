@@ -4024,6 +4024,12 @@
         <target>Contraseña incorrecta. Por favor intenta de nuevo.</target>
       </segment>
     </unit>
+    <unit id="media_report.details_required">
+      <segment state="translated">
+        <source>Details (required for Other)</source>
+        <target>Detalles (obligatorio para Otro)</target>
+      </segment>
+    </unit>
     <unit id="media_report.preview_alt">
       <segment state="translated">
         <source>Image to report</source>

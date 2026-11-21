@@ -4024,6 +4024,12 @@
         <target>Password non corretta. Riprova.</target>
       </segment>
     </unit>
+    <unit id="media_report.details_required">
+      <segment state="translated">
+        <source>Details (required for Other)</source>
+        <target>Dettagli (obbligatori per Altro)</target>
+      </segment>
+    </unit>
     <unit id="media_report.preview_alt">
       <segment state="translated">
         <source>Image to report</source>

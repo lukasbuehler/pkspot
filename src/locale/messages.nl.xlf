@@ -4192,6 +4192,12 @@
         <target>Onjuist wachtwoord. Probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="media_report.details_required">
+      <segment state="translated">
+        <source>Details (required for Other)</source>
+        <target>Details (verplicht bij Anders)</target>
+      </segment>
+    </unit>
     <unit id="media_report.preview_alt">
       <segment state="translated">
         <source>Image to report</source>

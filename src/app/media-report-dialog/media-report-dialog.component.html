@@ -59,10 +59,16 @@
     }
 
     <mat-form-field class="w-100" appearance="outline">
-      <mat-label i18n="report comment label">More details (optional)</mat-label>
+      <!-- "Other" needs a description, so the field says so as soon as it is
+           chosen; a mat-error would only show once the field was touched. -->
+      @if (isReasonSelected('other')) {
+        <mat-label i18n="@@media_report.details_required">Details (required for Other)</mat-label>
+      } @else {
+        <mat-label i18n="report comment label">More details (optional)</mat-label>
+      }
       <textarea matInput rows="3" maxlength="2000" formControlName="comment"></textarea>
       @if (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim()) {
-        <mat-error i18n>Please add details when selecting Other.</mat-error>
+        <mat-hint i18n>Please add details when selecting Other.</mat-hint>
       }
     </mat-form-field>
 

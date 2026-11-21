@@ -92,7 +92,25 @@
 }
 
 mat-card-header {
+  min-width: 0;
   padding-top: 0.75rem;
+}
+
+// Material's header text block does not shrink by default, so long titles and
+// dates ran past the card edge at large text sizes. Let it shrink and wrap.
+mat-card-header ::ng-deep .mat-mdc-card-header-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+// Two lines for the name, then an ellipsis; long single words break.
+.title-text {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .title-line {
@@ -110,6 +128,7 @@ mat-card-header {
 mat-card-subtitle {
   display: flex;
   flex-direction: column;
+  overflow-wrap: anywhere;
 }
 
 .cancelled-label,

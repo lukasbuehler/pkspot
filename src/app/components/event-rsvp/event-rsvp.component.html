@@ -81,7 +81,8 @@
             [attr.aria-pressed]="activeRsvp === 'going'"
             (click)="toggleGoing()"
           >
-            <mat-icon>{{ activeRsvp === "going" ? "check_circle" : "check" }}</mat-icon>
+            <!-- A check only once you are going; before that, "+" invites joining. -->
+            <mat-icon>{{ activeRsvp === "going" ? "check_circle" : "add" }}</mat-icon>
             <span i18n="@@event_rsvp.going">Going</span>
           </button>
         } @else {
@@ -93,7 +94,7 @@
             [attr.aria-label]="signInToGoLabel"
             (click)="trackRsvpSignInClicked()"
           >
-            <mat-icon>check</mat-icon>
+            <mat-icon>add</mat-icon>
             <span i18n="@@event_rsvp.going">Going</span>
           </a>
         }

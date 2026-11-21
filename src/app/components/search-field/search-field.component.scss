@@ -39,6 +39,14 @@
   }
 }
 
+// The filled field hides Material's line ripple, which was its only focus
+// cue. An inset ring in the highlight colour shows where the focus is.
+.spot-search-field:not(.spot-search-field--outline):has(input:focus-visible) {
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    box-shadow: inset 0 0 0 2px var(--mat-sys-primary);
+  }
+}
+
 // Outlined fields (dialogs, forms) draw their own rounded outline. Clipping
 // to the glass shape would cut off the outline's corners.
 .spot-search-field.spot-search-field--outline {

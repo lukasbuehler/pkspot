@@ -1,15 +1,17 @@
-// A single line that never wraps: a long organiser name is cut with an
-// ellipsis while the icon, verified mark and "Community" stay visible.
+// One line at normal text size: a long organiser name is cut with an
+// ellipsis while the icon, verified mark and "Community" stay visible. With
+// large text the words wrap instead of being clipped at the card edge.
 :host {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  row-gap: 2px;
   gap: 6px;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
-  white-space: nowrap;
 }
 
 :host(:empty) {
@@ -62,14 +64,16 @@
 
 .host-text {
   display: inline-flex;
+  flex-wrap: wrap;
   min-width: 0;
-  gap: 0.25em;
+  column-gap: 0.25em;
 }
 
 .host-name {
   overflow: hidden;
   min-width: 0;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .host-text .host-name {
@@ -80,4 +84,5 @@
 .host-by,
 .host-suffix {
   flex: 0 0 auto;
+  white-space: nowrap;
 }

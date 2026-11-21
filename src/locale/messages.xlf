@@ -15054,6 +15054,11 @@
         <source>Agree and Continue</source>
       </segment>
     </unit>
+    <unit id="media_report.details_required">
+      <segment>
+        <source>Details (required for Other)</source>
+      </segment>
+    </unit>
     <unit id="media_report.preview_alt">
       <segment>
         <source>Image to report</source>

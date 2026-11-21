@@ -537,7 +537,7 @@
       </notes>
       <segment state="initial">
         <source> Add bounds </source>
-        <target> Grundriß hinzufügen </target>
+        <target> Grundriss hinzufügen </target>
       </segment>
     </unit>
     <unit id="6877113876835666202">
@@ -4024,6 +4024,12 @@
         <target>Falsches Passwort. Bitte versuche es erneut.</target>
       </segment>
     </unit>
+    <unit id="media_report.details_required">
+      <segment state="translated">
+        <source>Details (required for Other)</source>
+        <target>Details (erforderlich bei Anderes)</target>
+      </segment>
+    </unit>
     <unit id="media_report.preview_alt">
       <segment state="translated">
         <source>Image to report</source>
@@ -4090,7 +4096,7 @@
     <unit id="6024008212258429928">
       <segment state="initial">
         <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spotName }}"/>&apos;</source>
-        <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/>&apos; melden</target>
+        <target>Spot „<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/>“ melden</target>
       </segment>
     </unit>
     <unit id="603746038161851978">
@@ -6954,7 +6960,7 @@
     <unit id="9074160907730350759">
       <segment state="initial">
         <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
-        <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>&apos; bewerten</target>
+        <target>Spot „<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>“ bewerten</target>
       </segment>
     </unit>
     <unit id="9081463435738465430">
@@ -13959,7 +13965,7 @@
     <unit id="2114926278043068343">
       <segment state="initial">
         <source> Add an editable boundary for this spot. After adding, you can adjust the polygon shape on the map. </source>
-        <target> Füge eine bearbeitbares Areal für diesen Spot hinzu. Nach dem Hinzufügen kannst du die Polygonform auf der Karte anpassen. </target>
+        <target> Füge ein bearbeitbares Areal für diesen Spot hinzu. Nach dem Hinzufügen kannst du die Polygonform auf der Karte anpassen. </target>
       </segment>
     </unit>
     <unit id="212841987551167718">
