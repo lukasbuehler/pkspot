@@ -27,7 +27,9 @@ import {
   PLATFORM_ID,
   resource,
   untracked,
+  afterRenderEffect,
 } from "@angular/core";
+import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 import {
   MatProgressBarModule,
 } from "@angular/material/progress-bar";
@@ -254,6 +256,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     ]),
   ],
   imports: [
+    ResizeObserverDirective,
     CommunityLinksComponent,
     SpotPersonalStatsComponent,
     MatCard,
@@ -1325,6 +1328,37 @@ export class SpotDetailsComponent
     return reviews === 1
       ? $localize`:@@spot.rating_histogram_one:${stars}:stars: stars: 1 review`
       : $localize`:@@spot.rating_histogram_many:${stars}:stars: stars: ${reviews}:count: reviews`;
+  }
+
+  private readonly _headerFacts =
+    viewChild<ElementRef<HTMLElement>>("headerFacts");
+
+  // Re-check the dots whenever the facts may have changed; the resize
+  // observer covers width changes.
+  private readonly _factLineEndsEffect = afterRenderEffect(() => {
+    this.spot();
+    this.markFactLineEnds();
+  });
+
+  /**
+   * Marks header facts that end a wrapped line, so their trailing dot is
+   * hidden. The dot keeps its space (only made invisible), and that space sits
+   * at the end of the line, so marking never moves a line break or leaves a
+   * visible gap.
+   */
+  markFactLineEnds(): void {
+    const container = this._headerFacts()?.nativeElement;
+    if (!container) return;
+    const facts = Array.from(
+      container.querySelectorAll<HTMLElement>(".spot-fact"),
+    );
+    facts.forEach((fact, index) => {
+      const next = facts[index + 1];
+      fact.classList.toggle(
+        "is-line-end",
+        !next || next.offsetTop > fact.offsetTop + 2,
+      );
+    });
   }
 
   scrollToRatings(): void {

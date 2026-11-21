@@ -479,19 +479,23 @@
   }
 }
 
-// Counts that open a list carry a chevron, like other rows that open a view;
-// the visited count stays plain text.
-.clickable-stat {
+// Counts that open a list are outlined like Material outlined buttons; counts
+// on other people's profiles are disabled and stay plain.
+.clickable-stat:not(:disabled) {
   position: relative;
-}
+  border: 1px solid var(--mat-sys-outline);
+  cursor: pointer;
 
-.profile-stat__chevron {
-  position: absolute;
-  inset-inline-end: 2px;
-  top: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
-  transform: translateY(-50%);
-  color: var(--mat-sys-on-surface-variant);
+  &:hover {
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-on-surface) 8%,
+      var(--mat-sys-surface-container-low)
+    );
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
 }

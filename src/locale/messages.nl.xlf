@@ -5985,9 +5985,9 @@
       </segment>
     </unit>
     <unit id="spot-type.natural-landscape">
-      <segment state="initial">
-        <source>Natural Landscape</source>
-        <target>Natuurlandschap</target>
+      <segment state="translated">
+        <source>Nature Spot</source>
+        <target>Natuur-Spot</target>
       </segment>
     </unit>
     <unit id="spot-type.other">
@@ -6057,9 +6057,9 @@
       </segment>
     </unit>
     <unit id="spot-type.urban-landscape">
-      <segment state="initial">
-        <source>Urban Landscape</source>
-        <target>Stedelijk landschap</target>
+      <segment state="translated">
+        <source>Street Spot</source>
+        <target>Straat-Spot</target>
       </segment>
     </unit>
     <unit id="spot-type.water">

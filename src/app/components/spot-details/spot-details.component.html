@@ -103,9 +103,15 @@
           <span
             class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
           >
+            <span
+              [@fadeSlideOnChange]="nameAnimKey()"
+              [matTooltip]="spot()!.name()"
+              class="d-block spot-title-text"
+              >{{ spot()!.name() }}</span
+            >
             @if (spot()?.isIconic) {
               <mat-icon
-                style="width: 24px; flex-shrink: 0"
+                class="spot-iconic-mark"
                 matTooltip="Iconic Spot"
                 i18n-matTooltip="
                   iconic spot tooltip|Tooltip for iconic spot
@@ -113,41 +119,7 @@
                 >stars</mat-icon
               >
             }
-            <span
-              [@fadeSlideOnChange]="nameAnimKey()"
-              [matTooltip]="spot()!.name()"
-              class="d-block spot-title-text"
-              >{{ spot()!.name() }}</span
-            >
-          </span>
-
-          <!-- dismiss button -->
-          @if (dismissable()) {
-            <button
-              mat-icon-button
-              aria-label="Close Spot"
-              i18n-aria-label="@@spot.close.aria_label"
-              (click)="dismissed()"
-              i18n-matTooltip="
-                close spot tooltip|Tooltip for close spot
-                button@@spot.close.tooltip"
-              matTooltip="Close Spot"
-            >
-              <mat-icon>close</mat-icon>
-              <!-- <mat-icon>turn_right</mat-icon> -->
-              <!-- <mat-icon>route</mat-icon> -->
-              <!-- <mat-icon>share_location</mat-icon> -->
-            </button>
-          }
-        </mat-card-title>
-        <!-- Second row: verification, rating, type, amenities, access and place
-             on the left, the actions on the right; it wraps on narrow sheets.
-             A mat-card-subtitle so the card header keeps it in source order. -->
-        <mat-card-subtitle
-          class="spot-header-badges collapsible-header-info d-flex align-items-center gap-2"
-          [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
-        >
-            <div class="spot-header-info">
+            <!-- Verification stays with the name it vouches for. -->
             @if (managedOrganization(); as managed) {
               <a
                 matIconButton
@@ -218,105 +190,119 @@
                 </a>
               }
             }
+          </span>
 
-                  @if (showRating() && spot()?.rating) {
-                    <!-- The header rating jumps to reviews, where people rate
-                         the Spot, so rating does not wait at the bottom. -->
-                    <button
-                      type="button"
-                      class="header-rating-button d-flex align-items-center gap-1 flex-shrink-0"
-                      [attr.aria-label]="ratingJumpLabel()"
-                      [matTooltip]="ratingJumpLabel()"
-                      (click)="scrollToRatings()"
-                    >
-                      <app-fancy-counter
-                        [number]="spot()!.rating!"
-                        [decimals]="1"
-                        aria-hidden="true"
-                      ></app-fancy-counter>
-                      <app-spot-rating
-                        [rating1to5]="spot()!.rating"
-                        [showNumReviews]="true"
-                        [numReviews]="spot()!.numReviews"
-                        [isCompact]="true"
-                        [showRating]="false"
-                        aria-hidden="true"
-                      ></app-spot-rating>
-                    </button>
-                  }
-              @if (
-                (showRating() && spot()?.rating) ||
-                spot()!.importantAmenitiesArray().length > 0 ||
-                spot()?.access() !== "other" ||
-                spot()?.type() !== "other" || spot()?.address()
-              ) {
-                <div class="spot-context-row">
-                  @if (spot()?.type() !== "other") {
-                    <div
-                      class="d-flex align-items-center"
-                      [@fadeSlideOnChange]="typeAnimKey()"
-                      style="min-width: 0"
-                    >
-                      <mat-icon
-                        class="amenity-icon me-1 flex-shrink-0"
-                        [matTooltip]="spotTypeNames[spot()!.type()]"
-                        >{{ spotTypesIcons[spot()!.type()] }}</mat-icon
-                      >
-
-                      <span class="mat-label-large text-nowrap text-truncate">{{
-                        spotTypeNames[spot()!.type()]
-                      }}</span>
-                    </div>
-                  }
-                  <!-- Separators are visual only; each icon below carries its own name. -->
-                  @if (
-                    ((showRating() && spot()?.rating) ||
-                      spot()?.type() !== "other") &&
-                    spot()!.importantAmenitiesArray().length > 0
+          <!-- dismiss button -->
+          @if (dismissable()) {
+            <button
+              mat-icon-button
+              aria-label="Close Spot"
+              i18n-aria-label="@@spot.close.aria_label"
+              (click)="dismissed()"
+              i18n-matTooltip="
+                close spot tooltip|Tooltip for close spot
+                button@@spot.close.tooltip"
+              matTooltip="Close Spot"
+            >
+              <mat-icon>close</mat-icon>
+              <!-- <mat-icon>turn_right</mat-icon> -->
+              <!-- <mat-icon>route</mat-icon> -->
+              <!-- <mat-icon>share_location</mat-icon> -->
+            </button>
+          }
+        </mat-card-title>
+        <!-- Second row: rating, type, amenities, access and place on the left,
+             the actions on the right. The facts wrap to a third line before
+             the actions would move down.
+             A mat-card-subtitle so the card header keeps it in source order. -->
+        <mat-card-subtitle
+          class="spot-header-badges collapsible-header-info d-flex"
+          [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+        >
+            <!-- Each fact wraps as a unit with its leading dot; facts that start
+                 a new line hide their dot (see markFactLineEnds). -->
+            <div
+              #headerFacts
+              class="spot-header-info"
+              appResizeObserver
+              (resize)="markFactLineEnds()"
+            >
+              @if (showRating() && spot()?.rating) {
+                <!-- The header rating jumps to reviews, where people rate
+                     the Spot, so rating does not wait at the bottom. -->
+                <span class="spot-fact spot-fact--rating">
+                  <button
+                    type="button"
+                    class="header-rating-button d-flex align-items-center gap-1 flex-shrink-0"
+                    [attr.aria-label]="ratingJumpLabel()"
+                    [matTooltip]="ratingJumpLabel()"
+                    (click)="scrollToRatings()"
+                  >
+                    <app-fancy-counter
+                      [number]="spot()!.rating!"
+                      [decimals]="1"
+                      aria-hidden="true"
+                    ></app-fancy-counter>
+                    <app-spot-rating
+                      [rating1to5]="spot()!.rating"
+                      [showNumReviews]="true"
+                      [numReviews]="spot()!.numReviews"
+                      [isCompact]="true"
+                      [showRating]="false"
+                      aria-hidden="true"
+                    ></app-spot-rating>
+                  </button>
+                </span>
+              }
+              @if (spot()?.type() !== "other") {
+                <span
+                  class="spot-fact spot-fact--type"
+                  [@fadeSlideOnChange]="typeAnimKey()"
+                >
+                  <mat-icon
+                    class="amenity-icon me-1 flex-shrink-0"
+                    [matTooltip]="spotTypeNames[spot()!.type()]"
+                    >{{ spotTypesIcons[spot()!.type()] }}</mat-icon
+                  >
+                  <span class="mat-label-large text-nowrap text-truncate">{{
+                    spotTypeNames[spot()!.type()]
+                  }}</span>
+                </span>
+              }
+              <!-- The dots are visual only; each icon carries its own name. -->
+              @if (spot()!.importantAmenitiesArray().length > 0) {
+                <span class="spot-fact gap-1">
+                  @for (
+                    amenity of spot()!.importantAmenitiesArray();
+                    track $index
                   ) {
-                    <span aria-hidden="true">⸱</span>
-                  }
-                  @if (spot()!.importantAmenitiesArray().length > 0) {
-                    <div class="d-flex flex-row gap-1 align-items-center">
-                      @for (
-                        amenity of spot()!.importantAmenitiesArray();
-                        track $index
-                      ) {
-                        <mat-icon
-                          class="amenity-icon"
-                          role="img"
-                          aria-hidden="false"
-                          [attr.aria-label]="amenity.name"
-                          [matTooltip]="amenity.name"
-                          >{{ amenity.icon }}</mat-icon
-                        >
-                      }
-                    </div>
-                  }
-                  @if (
-                    ((showRating() && spot()?.rating) ||
-                      spot()?.type() !== "other" ||
-                      spot()!.importantAmenitiesArray().length > 0) &&
-                    spot()?.access() !== "other"
-                  ) {
-                    <span aria-hidden="true">⸱</span>
-                  }
-                  @if (spot()?.access() !== "other") {
                     <mat-icon
-                      class="amenity-icon flex-shrink-0"
-                      [class.access-off-limits]="
-                        spot()!.access() === 'off-limits'
-                      "
-                      [class.access-private]="spot()!.access() === 'private'"
+                      class="amenity-icon"
                       role="img"
                       aria-hidden="false"
-                      [attr.aria-label]="spotAccessNames[spot()!.access()]"
-                      [matTooltip]="spotAccessNames[spot()!.access()]"
-                      >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
+                      [attr.aria-label]="amenity.name"
+                      [matTooltip]="amenity.name"
+                      >{{ amenity.icon }}</mat-icon
                     >
                   }
+                </span>
+              }
+              @if (spot()?.access() !== "other") {
+                <span class="spot-fact">
+                  <mat-icon
+                    class="amenity-icon flex-shrink-0"
+                    [class.access-off-limits]="spot()!.access() === 'off-limits'"
+                    [class.access-private]="spot()!.access() === 'private'"
+                    role="img"
+                    aria-hidden="false"
+                    [attr.aria-label]="spotAccessNames[spot()!.access()]"
+                    [matTooltip]="spotAccessNames[spot()!.access()]"
+                    >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
+                  >
+                </span>
+              }
               @if (spot()?.address()) {
-                <span class="spot-locality d-inline-flex align-items-center gap-1">
+                <span class="spot-fact spot-locality gap-1">
                   @if (displayLocation()) {
                     <span>{{ displayLocation() }}</span>
                   }
@@ -327,9 +313,10 @@
                   }
                 </span>
               }
-                </div>
-              }
             </div>
+            <!-- Narrow sheets: the rating shares line 2 with the actions and
+                 the other facts start on line 3 after this break. -->
+            <span class="spot-header-break" aria-hidden="true"></span>
           <!-- Icon buttons in header - collapsible when sheet is closed -->
           @if (!isEditing()) {
             <div

@@ -349,8 +349,11 @@ div.google-img-container {
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
-  width: 60px;
-  min-width: 0;
+  // Sized to its content: a shield alone stays a plain icon button, a shield
+  // with a logo widens to fit both.
+  width: auto !important;
+  min-width: 40px;
+  padding-inline: 4px !important;
   overflow: hidden;
 
   mat-icon {
@@ -363,6 +366,7 @@ div.google-img-container {
   box-sizing: border-box;
   width: 24px;
   height: 24px;
+  padding: 3px;
   border-radius: 50%;
   object-fit: contain;
   background: var(--mat-sys-surface);
@@ -402,20 +406,91 @@ div.google-img-container {
   background: var(--mat-sys-surface-variant);
 }
 
-.spot-header-badges { flex-wrap: wrap; row-gap: 4px; margin-block: 4px; }
+.spot-header-badges {
+  container-type: inline-size;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2px 8px;
+  margin-block: 4px;
+}
+.spot-header-badges[data-collapsed] { margin-block: 0; }
 
-// The Spot's facts and the actions flow as one wrapping row: the wrappers
-// step aside so each fact wraps on its own, and the actions stay at the end
-// of whichever line they land on.
-.spot-header-info,
-.spot-header-info .spot-context-row {
-  display: contents;
+// The facts take the free width and wrap item by item (the place moves to a
+// third line first); the actions keep their width and never wrap below.
+.spot-header-info {
+  display: flex;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 0;
+  min-width: 0;
+  min-height: 40px;
+}
+
+// One fact (rating, type, amenities, access, place) that wraps as a unit with
+// its trailing dot. A fact that ends a line keeps the dot's space but hides
+// the dot; that space is at the line end, so nothing visible moves.
+.spot-fact {
+  --spot-fact-dot: 16px;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-width: 0;
+  // Facts wrap whole; one only truncates when it is wider than a full line.
+  max-width: 100%;
+
+  &::after {
+    content: "⸱";
+    flex: 0 0 var(--spot-fact-dot);
+    text-align: center;
+  }
+
+  &.is-line-end::after {
+    visibility: hidden;
+  }
+}
+
+.spot-iconic-mark {
+  flex-shrink: 0;
 }
 
 .spot-header-badges .spot-button-row {
+  flex-shrink: 0;
   margin-inline-start: auto;
 }
-.spot-header-badges[data-collapsed] { margin-block: 0; }
+
+.spot-header-break {
+  display: none;
+}
+
+// Narrow sheets: the facts column would get only a sliver next to the
+// actions, so the rating sits beside the actions and the other facts wrap
+// from line 3.
+@container (max-width: 479.98px) {
+  .spot-header-info {
+    display: contents;
+  }
+
+  .spot-fact {
+    order: 3;
+  }
+
+  .spot-fact--rating {
+    order: 0;
+    align-self: center;
+  }
+
+  .spot-header-badges .spot-button-row {
+    order: 1;
+  }
+
+  .spot-header-break {
+    display: block;
+    order: 2;
+    flex-basis: 100%;
+    height: 0;
+  }
+}
 
 .spot-locality { max-width: 100%; white-space: normal; }
 

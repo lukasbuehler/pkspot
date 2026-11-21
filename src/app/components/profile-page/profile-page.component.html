@@ -222,9 +222,6 @@
                               other {Followers}
                             }</span
                           >
-                          @if (isMyProfile) {
-                            <mat-icon class="profile-stat__chevron" aria-hidden="true">chevron_right</mat-icon>
-                          }
                         </button>
                         <button
                           type="button"
@@ -243,13 +240,16 @@
                             i18n="@@profile.stats.following"
                             >Following</span
                           >
-                          @if (isMyProfile) {
-                            <mat-icon class="profile-stat__chevron" aria-hidden="true">chevron_right</mat-icon>
-                          }
                         </button>
-                        <!-- Check-ins are private: only the owner sees how many Spots they visited. -->
+                        <!-- Check-ins are private: only the owner sees how many Spots they visited,
+                             and the count opens their private visited list. -->
                         @if (isMyProfile) {
-                          <div class="profile-stat">
+                          <button
+                            type="button"
+                            class="profile-stat clickable-stat"
+                            matRipple
+                            (click)="openPrivateSpotListsDialog('visited')"
+                          >
                             <span class="profile-stat__value mat-headline-small">
                               <app-fancy-counter
                                 [number]="user.visitedSpotsCount || 0"
@@ -263,7 +263,7 @@
                                 other {Spots visited}
                               }</span
                             >
-                          </div>
+                          </button>
                         }
                       </div>
                     }
