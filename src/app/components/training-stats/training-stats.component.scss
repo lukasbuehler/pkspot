@@ -1,9 +1,4 @@
 :host {
-  // Material uses the green secondary container for selected toggles; green is
-  // reserved for live state, so selections use the blue highlight instead.
-  --mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
-  --mat-button-toggle-selected-state-text-color: var(--mat-sys-on-primary-container);
-
   display: block;
   min-width: 0;
 }

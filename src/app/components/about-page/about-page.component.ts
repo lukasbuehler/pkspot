@@ -1,4 +1,5 @@
 import {
+  signal,
   Component,
   ElementRef,
   ViewChild,
@@ -123,6 +124,13 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
   // 30 copies * 2 items * 200px = 12,000px total width
   // Half width (reset point) = 6,000px
   partners: Partner[] = Array(30).fill(this.basePartners).flat();
+  /**
+   * With reduced motion the partners sit still, once each, in a row that
+   * scrolls by hand. Otherwise the repeated copies feed the endless ticker.
+   */
+  readonly reducedMotion = signal(false);
+  /** Hover or keyboard focus pauses the ticker so a logo can be read and used. */
+  private _carouselPaused = false;
 
   private currentOffset = 0;
   private readonly baseSpeed = 0.2; // Halved base speed
@@ -154,8 +162,15 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
         passive: true,
       });
 
-      this.startAnimation();
+      this.reducedMotion.set(
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
+      );
+      if (!this.reducedMotion()) this.startAnimation();
     }
+  }
+
+  pauseCarousel(paused: boolean): void {
+    this._carouselPaused = paused;
   }
 
   ngOnDestroy() {
@@ -213,6 +228,10 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
 
     this.ngZone.runOutsideAngular(() => {
       const animate = () => {
+        if (this._carouselPaused) {
+          this.animationFrameId = requestAnimationFrame(animate);
+          return;
+        }
         // Friction to return to base speed
         this.scrollVelocity *= 0.95;
 

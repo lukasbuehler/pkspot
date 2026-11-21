@@ -20,13 +20,13 @@ test.describe("Spot Details", () => {
     await expect(details).toContainText("Riverside Training Walls");
     await expect(details).toContainText("Spot");
     await expect(details).toContainText(/Public|Öffentlich/u);
-    await expect(details).toContainText(/Urban Landscape|Urbane Landschaft/u);
+    await expect(details).toContainText(/Street/u);
     await expect(details).toContainText(/Limmatstrasse 271/u);
     await expect(details).toContainText(
       /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
     );
     await expect(details).toContainText(
-      /Rating and user reviews|Bewertung und user Rezensionen/u,
+      /Rating and user reviews|Bewertungen und Rezensionen/u,
     );
     await expect(details).toContainText(/24 reviews|24 Bewertungen/u);
     await expect(details).toContainText(

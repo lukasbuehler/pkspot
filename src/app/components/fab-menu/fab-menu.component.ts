@@ -52,6 +52,11 @@ export class FabMenuComponent {
   readonly actions = input.required<readonly FabMenuAction[]>();
   readonly launcherLabel = input.required<string>();
   readonly launcherIcon = input("add");
+  /**
+   * Short visible text beside the icon (an extended FAB) while the menu is
+   * closed, for pages whose main action is not obvious from "+" alone.
+   */
+  readonly launcherText = input("");
   // Dynamic menus can retain a stable launcher as available actions change.
   readonly collapseSingleAction = input(true);
   readonly closeLabel = input(DEFAULT_CLOSE_LABEL);

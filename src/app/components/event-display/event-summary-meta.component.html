@@ -6,16 +6,33 @@
 }
 
 @if (statusLabel()) {
-  <p class="event-meta mat-title-medium m-0 d-flex flex-wrap gap-1">
+  <!-- Status and date on their own lines: a long date in parentheses
+       wrapped awkwardly on phones. -->
+  <p class="event-meta mat-title-medium m-0 d-flex flex-column">
     <span class="event-status" [attr.data-status]="status()">{{
       statusLabel()
     }}</span>
-    <span class="event-date-range">({{ dateRange() }})</span>
+    <span class="event-date-range">{{ dateRange() }}</span>
   </p>
 }
 
 @if (showVenue() && venueLine()) {
-  <p class="event-venue mat-title-medium m-0">{{ venueLine() }}</p>
+  <p class="event-venue mat-title-medium m-0">
+    <span>{{ venueLine() }}</span>
+    @if (showDirections()) {
+      <!-- Directions where people read the address, not only further down. -->
+      <button
+        mat-icon-button
+        type="button"
+        class="venue-directions"
+        [attr.aria-label]="directionsLabel"
+        [matTooltip]="directionsLabel"
+        (click)="directionsRequested.emit()"
+      >
+        <mat-icon>directions</mat-icon>
+      </button>
+    }
+  </p>
 }
 
 @if (attendanceRestriction(); as restriction) {

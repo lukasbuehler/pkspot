@@ -7,13 +7,142 @@
 }
 
 .settings-page-content {
+  max-width: 1120px;
+  margin-inline: auto;
   padding: max(1.5rem, var(--alain-menu-block-start-clearance, 1.5rem))
     1.5rem 1.5rem;
 }
 
-div.menu {
-  overflow: hidden;
+.settings-title {
+  margin-block: 0 1.5rem;
 }
+
+.section-description {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Wide screens: a narrow section list beside the open section.
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+  gap: 2rem;
+}
+
+.settings-nav {
+  position: sticky;
+  top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-nav-item.mat-mdc-button-base {
+  justify-content: flex-start;
+  height: 48px;
+  padding-inline: 16px;
+  border-radius: 24px;
+  color: var(--mat-sys-on-surface-variant);
+
+  // The label fills the row so the chevron lines up at the end of every item.
+  ::ng-deep .mdc-button__label {
+    flex: 1;
+    text-align: start;
+  }
+
+  mat-icon {
+    margin-inline: 0 12px;
+  }
+
+  .settings-nav-chevron {
+    margin-inline: 12px 0;
+  }
+
+  &.selected {
+    color: var(--mat-sys-on-primary-container);
+    background: var(--mat-sys-primary-container);
+  }
+}
+
+// Text cue next to the badge dot, so unsaved drafts are not colour-only.
+.settings-nav-unsaved {
+  margin-inline-start: 6px;
+  color: var(--mat-sys-tertiary);
+}
+
+.settings-nav-chevron,
+.settings-back {
+  display: none !important;
+}
+
+.settings-nav-label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// Wide screens keep the side list compact beside the open section.
+.settings-nav-summary {
+  display: none;
+  overflow: hidden;
+  color: var(--mat-sys-on-surface-variant);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Narrow screens drill in: the list on /settings, one section on /settings/:tab.
+@media (max-width: 959.98px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-nav {
+    position: static;
+    overflow: hidden;
+    gap: 0;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 18px;
+    background: var(--mat-sys-surface-container-low);
+  }
+
+  // The phone list has room to wrap a summary onto a second line.
+  .settings-nav-summary {
+    display: block;
+    white-space: normal;
+  }
+
+  .settings-nav-item.mat-mdc-button-base,
+  .settings-nav-item.mat-mdc-button-base.selected {
+    height: auto;
+    min-height: 64px;
+    padding-block: 10px;
+    border-radius: 0;
+    color: var(--mat-sys-on-surface);
+    background: transparent;
+  }
+
+  .settings-nav-item + .settings-nav-item {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .settings-nav-chevron {
+    display: inline-block !important;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .settings-page-container:not(.section-open) .settings-section,
+  .settings-page-container.section-open .settings-nav,
+  .settings-page-container.section-open .settings-title {
+    display: none;
+  }
+
+  .settings-page-container.section-open .settings-back {
+    display: inline-flex !important;
+    margin-block-end: 0.5rem;
+    margin-inline-start: -12px;
+  }
+}
+
 
 mat-button-toggle-group {
   display: flex;
@@ -23,22 +152,6 @@ mat-button-toggle-group {
   }
 }
 
-button.menuButton {
-  text-align: left;
-  height: 48px;
-  border-radius: 0;
-  padding-left: 18px;
-
-  mat-icon {
-    margin-right: 10px;
-  }
-}
-
-button.menuButton.selected {
-  border-left: 2px solid;
-  border-color: var(--mat-sys-primary);
-  padding-left: 16px;
-}
 
 .profile-access-card {
   display: grid;
@@ -156,23 +269,5 @@ button.menuButton.selected {
 
   &.app-check-status-failed mat-icon {
     color: var(--mat-sys-error);
-  }
-}
-
-@media (max-width: 767.98px) {
-  div.menu {
-    flex-direction: row !important;
-    overflow-x: auto;
-    margin-bottom: 1.5rem !important;
-    border-radius: 12px;
-  }
-  button.menuButton {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-  button.menuButton.selected {
-    border-left: 0;
-    border-bottom: 2px solid var(--mat-sys-primary);
-    padding-left: 18px;
   }
 }

@@ -188,12 +188,22 @@ html {
   // friends without relying on hardcoded fallbacks. Without this, only the
   // tokens consumed inside Material's own components were getting set —
   // ad-hoc consumers fell through to their `var()` fallback.
+  // Typography emits the type-scale tokens (`--mat-sys-title-large` and so
+  // on) that component stylesheets use as `font: var(--mat-sys-…)`; without
+  // them those font rules are dropped and text falls back to body size.
   @include mat.theme(
     (
       color: (
         theme-type: dark,
         primary: $_primary,
         tertiary: $_tertiary,
+      ),
+      // Roboto loads after startup (AppComponent.loadDeferredRobotoFonts), so
+      // the type tokens carry a sans-serif fallback. A bare "Roboto" made
+      // early dialogs render in the browser's default serif font.
+      typography: (
+        plain-family: (Roboto, Arial, sans-serif),
+        brand-family: (Roboto, Arial, sans-serif),
       ),
       density: (
         scale: -1,
@@ -225,6 +235,12 @@ html {
 
   .mat-mdc-icon-button.mat-accent {
     @include mat.icon-button-color($dark-theme, $color-variant: secondary);
+  }
+
+  // Checkboxes default to "accent", which the compatibility layer maps to pink
+  // tertiary. Selections are blue throughout the app.
+  .mat-mdc-checkbox.mat-accent {
+    @include mat.checkbox-color($dark-theme, $color-variant: primary);
   }
 
   @include mat3-nav-button.theme($dark-theme);

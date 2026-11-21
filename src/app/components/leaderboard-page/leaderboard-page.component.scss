@@ -23,6 +23,23 @@
   padding: 3rem;
 }
 
+// Phones use the short column labels from the toggle.
+.label-short,
+.label-count {
+  display: none;
+}
+
+// The count picker is only needed when phones hide the other columns.
+.mobile-sort {
+  display: none;
+  width: 100%;
+  margin-bottom: 0.75rem;
+
+  mat-button-toggle {
+    flex: 1;
+  }
+}
+
 .table-container {
   overflow-x: auto;
   border-radius: 12px;
@@ -135,4 +152,114 @@
     width: 28px;
     height: 28px;
   }
+
+  // Phones show rank, name and only the sorted count (always the third
+  // column); the toggle above picks which count, so names have room.
+  .leaderboard-table {
+    table-layout: fixed;
+
+    .mat-mdc-header-cell:nth-of-type(n + 4),
+    .mat-mdc-cell:nth-of-type(n + 4) {
+      display: none;
+    }
+
+    .mat-mdc-header-cell:first-of-type,
+    .mat-mdc-cell:first-of-type {
+      width: 48px;
+      padding-inline: 0.5rem 0;
+      overflow: visible;
+    }
+
+    // The toggle above names the count, so its heading may wrap small.
+    .mat-mdc-header-cell:nth-of-type(3),
+    .mat-mdc-cell:nth-of-type(3) {
+      width: 5.25rem;
+      text-align: end;
+    }
+
+    // The toggle above already names the count, so the heading just says
+    // "Count" on one line; screen readers still hear the specific label.
+    .mat-mdc-header-cell:nth-of-type(3) {
+      white-space: nowrap;
+    }
+
+    .label-full {
+      display: none;
+    }
+
+    .label-short {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .label-count {
+      display: inline;
+    }
+  }
+
+  .mobile-sort {
+    display: flex;
+  }
+
+  .rank {
+    width: 28px;
+    height: 28px;
+  }
+
+  .user-link {
+    min-width: 0;
+    gap: 0.5rem;
+  }
+
+  // Long names wrap to a second line instead of being cut; three lines at most.
+  .user-name {
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+}
+
+// Your own row: the blue highlight, as for other active selections.
+.own-row {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+
+  .user-name {
+    font-weight: 600;
+  }
+}
+
+.own-standing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+
+  > mat-icon {
+    flex: 0 0 auto;
+    color: var(--mat-sys-primary);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.own-standing__title {
+  font: var(--mat-sys-title-small);
+}
+
+.own-standing__counts {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
 }

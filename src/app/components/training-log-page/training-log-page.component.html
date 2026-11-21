@@ -28,49 +28,21 @@
         <button matButton="outlined" type="button" (click)="load()" i18n="@@notification_center.retry">Retry</button>
       </section>
     }
-    <app-training-stats class="stats" [reloadKey]="statsReload()" />
-    <details class="activity-details">
-      <summary><mat-icon aria-hidden="true">calendar_month</mat-icon><span i18n="@@train.history.title">Training history</span><mat-icon class="disclosure-arrow" aria-hidden="true">expand_more</mat-icon></summary>
-    <app-training-activity-contribution-graph
-      [days]="activityDays()"
-      [recoveryPauses]="recoveryPauses()"
-      [selected]="selection()"
-      (selectionChange)="selection.set($event)"
-    />
-    </details>
     <app-check-in-log-prompt [sessions]="sessions()" [logs]="logs()" />
-    <section class="check-in-history">
-      <div class="check-in-history__header">
-        <div>
-          <h2 i18n="@@trainingLog.checkIns.title">Private check-ins</h2>
-          <p i18n="@@trainingLog.checkIns.description">Only you can see this archive. It never shares your precise location.</p>
-        </div>
-        <details class="archive-actions">
-          <summary aria-label="Private check-ins" i18n-aria-label="@@trainingLog.checkIns.title"><mat-icon aria-hidden="true">more_horiz</mat-icon></summary>
-          <div class="actions">
-          <button matButton="outlined" type="button" (click)="exportCheckIns()" [disabled]="!checkIns().length"><mat-icon>download</mat-icon><span i18n="@@trainingLog.checkIns.export">Export</span></button>
-          <button matButton="outlined" type="button" (click)="clearCheckIns()" [disabled]="!checkIns().length"><mat-icon>delete_sweep</mat-icon><span i18n="@@trainingLog.checkIns.clear">Clear all</span></button>
-          </div>
-        </details>
-      </div>
-      @if (checkIns().length) {
-        <div class="check-in-history__list">
-          @for (checkIn of checkIns(); track checkIn.checkInId) {
-            <article class="check-in-history__item">
-              <div><strong>{{ checkIn.spotName || spotNames().get(checkIn.spotId) || loadingSpotLabel }}</strong><span>{{ checkIn.arrivedAtRawMs | systemDate: "medium" }}</span></div>
-              @if (logBySession().get(checkIn.sessionRecordId); as entryId) {
-                <a mat-button [routerLink]="['/train/log', entryId]" i18n="@@checkInLogPrompt.view">View log entry</a>
-              } @else {
-              <a mat-button routerLink="/train/log/new" [queryParams]="{ sessionRecord: checkIn.sessionRecordId }" i18n="@@planned.log">Log what you did</a>
-              }
-              <button matIconButton type="button" (click)="removeCheckIn(checkIn)" i18n-aria-label="@@trainingLog.checkIns.delete" aria-label="Delete check-in"><mat-icon>delete</mat-icon></button>
-            </article>
-          }
-        </div>
-      } @else {
-        <p class="check-in-history__empty" i18n="@@trainingLog.checkIns.empty">Your confirmed nearby check-ins will appear here.</p>
-      }
-    </section>
+    <mat-expansion-panel class="activity-details">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon aria-hidden="true">calendar_month</mat-icon>
+          <span i18n="@@trainingLog.activityCalendar">Activity calendar</span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <app-training-activity-contribution-graph
+        [days]="activityDays()"
+        [recoveryPauses]="recoveryPauses()"
+        [selected]="selection()"
+        (selectionChange)="selection.set($event)"
+      />
+    </mat-expansion-panel>
     <section class="timeline">
       <header class="timeline__header">
         <div>
@@ -152,7 +124,53 @@
         }
       }
     </section>
-
+    <!-- Entries come first; the totals sum them up once there is something to count. -->
+    @if (logs().length || checkIns().length) {
+      <app-training-stats class="stats" [reloadKey]="statsReload()" />
+    }
+    <section class="check-in-history">
+      <div class="check-in-history__header">
+        <div>
+          <h2 i18n="@@trainingLog.checkIns.title">Private check-ins</h2>
+          <p i18n="@@trainingLog.checkIns.description">Only you can see this archive. It never shares your precise location.</p>
+        </div>
+        <button
+          matIconButton
+          type="button"
+          class="archive-actions"
+          [matMenuTriggerFor]="archiveMenu"
+          aria-label="Check-in archive actions"
+          i18n-aria-label="@@trainingLog.checkIns.actions"
+        >
+          <mat-icon>more_horiz</mat-icon>
+        </button>
+        <mat-menu #archiveMenu="matMenu" xPosition="before">
+          <button mat-menu-item type="button" (click)="exportCheckIns()" [disabled]="!checkIns().length">
+            <mat-icon>download</mat-icon><span i18n="@@trainingLog.checkIns.export">Export</span>
+          </button>
+          <button mat-menu-item type="button" (click)="clearCheckIns()" [disabled]="!checkIns().length">
+            <mat-icon>delete_sweep</mat-icon><span i18n="@@trainingLog.checkIns.clear">Clear all</span>
+          </button>
+        </mat-menu>
+      </div>
+      @if (checkIns().length) {
+        <div class="check-in-history__list">
+          @for (checkIn of checkIns(); track checkIn.checkInId) {
+            <article class="check-in-history__item">
+              <div><strong>{{ checkIn.spotName || spotNames().get(checkIn.spotId) || loadingSpotLabel }}</strong><span>{{ checkIn.arrivedAtRawMs | systemDate: "mediumDateShortTime" }}</span></div>
+              @if (logBySession().get(checkIn.sessionRecordId); as entryId) {
+                <a mat-button [routerLink]="['/train/log', entryId]" i18n="@@checkInLogPrompt.view">View log entry</a>
+              } @else {
+              <a mat-button routerLink="/train/log/new" [queryParams]="{ sessionRecord: checkIn.sessionRecordId }" i18n="@@train.fab.text">Log training</a>
+              }
+              <button matIconButton type="button" (click)="removeCheckIn(checkIn)" i18n-aria-label="@@trainingLog.checkIns.delete" aria-label="Delete check-in"><mat-icon>delete</mat-icon></button>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="check-in-history__empty" i18n="@@trainingLog.checkIns.empty">Your confirmed nearby check-ins will appear here.</p>
+      }
+    </section>
   }
 </main>
 
@@ -162,6 +180,7 @@
     class="app-page-fab"
     [actions]="addActions"
     [launcherLabel]="addLabel"
+    [launcherText]="addText"
     (actionSelected)="onAddAction($event)"
   />
 }

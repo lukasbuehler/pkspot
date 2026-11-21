@@ -43,3 +43,25 @@ form {
     color: color-mix(in srgb, var(--mat-sys-error) 80%, transparent);
   }
 }
+
+// Discard and Save share a row while both labels fit and stack when they
+// do not, so neither label is cut (e.g. in a narrow tablet panel).
+.editor-actions {
+  flex-wrap: wrap;
+
+  > button {
+    min-width: max-content;
+  }
+}
+
+// The top action row stays in view while the person scrolls to and types in
+// lower fields, so Save and Discard are never out of reach. It sits on the
+// same surface as the side panel and bottom sheet that hold the editor.
+.editor-actions:not(.editor-actions--end) {
+  position: sticky;
+  // Below the search field that floats over the desktop side panel.
+  inset-block-start: var(--map-panel-sticky-top, 0px);
+  z-index: 2;
+  padding-block: 8px;
+  background: var(--mat-sys-surface-container-low);
+}

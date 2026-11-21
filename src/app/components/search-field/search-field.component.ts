@@ -226,12 +226,17 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   private readonly fullSearch = computed(() => !this.onlySpots() && !this.onlyCommunities());
   readonly defaultPlaceholder = $localize`:@@search_field_default_placeholder:Find spots and more`;
   private readonly communityPlaceholder = $localize`:@@search_field_community_placeholder:Search for a community`;
+  private readonly spotPlaceholder = $localize`:@@search_field_spot_placeholder:Search for a Spot`;
   readonly clearContextLabel = $localize`:@@search_field_clear_context:Clear search filters`;
   readonly openingMapLinkLabel = $localize`:@@searchField.openingMapsLink:Opening Maps link...`;
   protected readonly mapLinkLoading = signal(false);
   readonly placeholderText = computed(
     () => this.contextLabel() ||
-      (this.onlyCommunities() ? this.communityPlaceholder : this.defaultPlaceholder)
+      (this.onlyCommunities()
+        ? this.communityPlaceholder
+        : this.onlySpots()
+          ? this.spotPlaceholder
+          : this.defaultPlaceholder)
   );
 
   ngOnInit() {

@@ -11,10 +11,12 @@ import {
   output,
   signal,
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router } from "@angular/router";
+import { MatDialog } from "@angular/material/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { SignInRequiredDialogComponent, type SignInRequiredDialogData } from "../sign-in-required-dialog/sign-in-required-dialog.component";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {
   EventRSVPCountsSchema,
@@ -35,10 +37,8 @@ type ScreenshotGlobal = typeof globalThis & {
 @Component({
   selector: "app-event-rsvp",
   imports: [
-    RouterLink,
     MatButtonModule,
     MatIconModule,
-    MatMenuModule,
     MatTooltipModule,
     FancyCounterComponent,
   ],
@@ -55,6 +55,9 @@ export class EventRsvpComponent {
   private _myEventsService?: MyEventsService;
   private _notificationOptInService?: NotificationOptInService;
   private _analytics = inject(AnalyticsService);
+  private _dialog = inject(MatDialog);
+  private _snackBar = inject(MatSnackBar);
+  private _router = inject(Router);
   private _loadVersion = 0;
 
   readonly eventId = input<string | null>(null);
@@ -71,9 +74,13 @@ export class EventRsvpComponent {
   readonly isSaving = signal(false);
   readonly relationshipFallbackSuppressed = signal(false);
   readonly errorMessage = signal("");
+  /** Loading the saved answer failed, so the error offers a retry. */
+  readonly loadFailed = signal(false);
   readonly disclaimerText = $localize`:@@event_rsvp.disclaimer:These numbers show PK Spot user intent, not tickets bought.`;
-  readonly addLabel = $localize`:@@event_rsvp.add_to_my_events:Add to My Events`;
-  readonly changeLabel = $localize`:@@event_rsvp.change_my_event_status:Change My Events status`;
+  readonly myEventsGroupLabel = $localize`:@@event_rsvp.group_label:Save to My Events`;
+  readonly signInToGoLabel = $localize`:@@event_add.sign_in:Sign in to mark Going`;
+  /** Once going, the same button takes it back; the tooltip says so. */
+  readonly leaveGoingHint = $localize`:@@event_rsvp.going_remove_hint:You're going – tap to take it back`;
 
   readonly isSignedIn = computed(() => !!this.userId());
   readonly myEventsRsvp = computed<"going" | "interested" | null>(() => {
@@ -153,15 +160,14 @@ export class EventRsvpComponent {
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
     let notificationLevel = this.defaultNotificationLevel();
-    if (
+    // Save the response first; reminders are offered afterwards without
+    // blocking it. Until the person answers, the event gets no notifications.
+    const offerReminders =
       (next === "going" || next === "interested") &&
       previousLoaded !== "going" &&
-      previousLoaded !== "interested"
-    ) {
-      const prompt = await this._notificationOptIn().maybePrompt("event_reminders");
-      if (prompt === "dismissed") notificationLevel = "none";
-      if (prompt === "context") notificationLevel = "reminders";
-    }
+      previousLoaded !== "interested" &&
+      this._notificationOptIn().wouldPrompt("event_reminders");
+    if (offerReminders) notificationLevel = "none";
     this._analytics.trackEvent("event_rsvp_selected", {
       event_id: eventId,
       rsvp: next,
@@ -185,6 +191,7 @@ export class EventRsvpComponent {
         event_id: eventId,
         rsvp: next,
       });
+      if (offerReminders) void this._offerReminders(eventId, next);
     } catch (err) {
       this.featureTelemetry.failure("event-rsvp", "selectRsvp", err);
       console.error("Failed to save event RSVP", err);
@@ -200,6 +207,24 @@ export class EventRsvpComponent {
       });
     } finally {
       this.isSaving.set(false);
+    }
+  }
+
+  /** Asks once, without blocking, whether to remind; applies the answer. */
+  private async _offerReminders(
+    eventId: string,
+    rsvp: EventRSVPOption,
+  ): Promise<void> {
+    const prompt = await this._notificationOptIn().maybePrompt("event_reminders", {
+      inline: true,
+    });
+    const level: EventNotificationLevel | null =
+      prompt === "context" ? "reminders" : prompt === "all" ? this.defaultNotificationLevel() : null;
+    if (!level || this.loadedRsvp() !== rsvp) return;
+    try {
+      await this._myEvents().setRsvp(eventId, rsvp, level);
+    } catch (err) {
+      this.featureTelemetry.failure("event-rsvp", "offerReminders", err);
     }
   }
 
@@ -230,6 +255,7 @@ export class EventRsvpComponent {
         rsvp: "interested",
         storage: "device",
       });
+      this._confirmSavedOnDevice();
     } catch (err) {
       this.featureTelemetry.failure("event-rsvp", "selectInterested", err);
       console.error("Failed to save event locally", err);
@@ -288,6 +314,24 @@ export class EventRsvpComponent {
     }
   }
 
+  /** Interested, or remove it again when it is already the answer. */
+  async toggleInterested(): Promise<void> {
+    if (this.myEventsRsvp() === "interested") {
+      await this.clearRsvp();
+      return;
+    }
+    await this.selectInterested();
+  }
+
+  /** Going, or remove it again when it is already the answer. */
+  async toggleGoing(): Promise<void> {
+    if (this.myEventsRsvp() === "going") {
+      await this.clearRsvp();
+      return;
+    }
+    await this.selectRsvp("going");
+  }
+
   trackRsvpMenuOpened(): void {
     const eventId = this.eventId();
     if (!eventId) {
@@ -300,21 +344,58 @@ export class EventRsvpComponent {
     });
   }
 
-  trackRsvpSignInClicked(): void {
+  /**
+   * Going is public and tied to an account, so signed-out people get a short
+   * explanation and a way to sign in or sign up that brings them back here.
+   */
+  openSignInToGo(): void {
     const eventId = this.eventId();
-    if (!eventId) {
-      return;
+    if (eventId) {
+      this._analytics.trackEvent("event_rsvp_sign_in_clicked", {
+        event_id: eventId,
+      });
     }
+    this._dialog.open<SignInRequiredDialogComponent, SignInRequiredDialogData>(
+      SignInRequiredDialogComponent,
+      {
+        data: {
+          title: this.signInToGoLabel,
+          message: $localize`:@@event_rsvp.sign_in_to_go_message:Going shows the organizer and others that you will be there, so it needs a PK Spot account. Interested works without one and is saved on this device.`,
+          returnUrl: this._router.url,
+        },
+        width: "480px",
+        maxWidth: "calc(100vw - 2rem)",
+      },
+    );
+  }
 
-    this._analytics.trackEvent("event_rsvp_sign_in_clicked", {
-      event_id: eventId,
-    });
+  /** Signed-out "Interested" is kept on this device; say so once it is. */
+  private _confirmSavedOnDevice(): void {
+    const returnUrl = this._router.url;
+    this._snackBar
+      .open(
+        $localize`:@@event_rsvp.saved_on_device:Saved on this device`,
+        $localize`:@@event_rsvp.saved_on_device_sign_in:Sign in`,
+        { duration: 6000 },
+      )
+      .onAction()
+      .subscribe(() => {
+        void this._router.navigate(["/sign-in"], {
+          queryParams: { returnUrl },
+        });
+      });
+  }
+
+  retryLoad(): void {
+    const eventId = this.eventId();
+    if (eventId) void this._loadRsvp(eventId);
   }
 
   private async _loadRsvp(eventId: string): Promise<void> {
     const version = ++this._loadVersion;
     this.isLoading.set(true);
     this.errorMessage.set("");
+    this.loadFailed.set(false);
     try {
       const doc = await this._events().getMyRsvp(eventId);
       if (version !== this._loadVersion) return;
@@ -330,6 +411,7 @@ export class EventRsvpComponent {
       this.errorMessage.set(
         $localize`:@@event_rsvp.load_failed:Couldn't load your response.`,
       );
+      this.loadFailed.set(true);
     } finally {
       if (version === this._loadVersion) {
         this.isLoading.set(false);

@@ -59,6 +59,39 @@ export class TrainingActivityContributionGraphComponent {
     return shown && shown > 0 ? weeks.slice(-shown) : weeks;
   });
 
+  /**
+   * Spoken names for each day and week, built once per data change. Screen
+   * readers get a date and status instead of empty cells or ISO keys.
+   */
+  private readonly _labels = computed(() => {
+    const dateFormat = new Intl.DateTimeFormat(this.locale, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    const shortDate = new Intl.DateTimeFormat(this.locale, {
+      day: "numeric",
+      month: "long",
+    });
+    const days = new Map<string, string>();
+    const weeks = new Map<string, string>();
+    for (const week of this.visibleWeeks()) {
+      let trainingDays = 0;
+      let pauseDays = 0;
+      for (const day of week.days) {
+        const date = dateFormat.format(dayKeyToDate(day.key));
+        days.set(day.key, describeDay(date, day));
+        if (day.activity) trainingDays++;
+        else if (day.recoveryPause) pauseDays++;
+      }
+      const first = week.days[0];
+      if (!first) continue;
+      const start = shortDate.format(dayKeyToDate(first.key));
+      weeks.set(week.key, describeWeek(start, trainingDays, pauseDays));
+    }
+    return { days, weeks };
+  });
+
   readonly singleWeek = computed(() => this.weeks() === 1);
   readonly currentWeekDays = computed(
     () => this.visibleWeeks().at(-1)?.days ?? [],
@@ -93,15 +126,44 @@ export class TrainingActivityContributionGraphComponent {
   }
 
   dayLabel(day: TrainingContributionDay): string {
-    const sessionCount = day.activity?.sessionCount ?? 0;
-    if (day.activity) {
-      return `${day.key}: ${sessionCount} ${sessionCount === 1 ? "session" : "sessions"}`;
-    }
-    if (day.recoveryPause) {
-      return `${day.key}: ${recoveryReasonLabel(day.recoveryPause.reason)} ${recoveryPauseLabel()}`;
-    }
-    return day.key;
+    return this._labels().days.get(day.key) ?? day.key;
   }
+
+  weekLabel(weekKey: string): string {
+    return this._labels().weeks.get(weekKey) ?? "";
+  }
+}
+
+function dayKeyToDate(key: string): Date {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, (month ?? 1) - 1, day ?? 1);
+}
+
+function describeDay(date: string, day: TrainingContributionDay): string {
+  if (day.activity) {
+    const count = day.activity.sessionCount;
+    return count === 1
+      ? $localize`:@@trainingContributionGraph.day_one_session:${date}:date:: 1 session`
+      : $localize`:@@trainingContributionGraph.day_sessions:${date}:date:: ${count}:count: sessions`;
+  }
+  if (day.recoveryPause) {
+    return `${date}: ${recoveryReasonLabel(day.recoveryPause.reason)}, ${recoveryPauseLabel()}`;
+  }
+  if (day.isFuture) return date;
+  return $localize`:@@trainingContributionGraph.day_no_training:${date}:date:: no training`;
+}
+
+function describeWeek(
+  start: string,
+  trainingDays: number,
+  pauseDays: number,
+): string {
+  const training =
+    trainingDays === 1
+      ? $localize`:@@trainingContributionGraph.week_one_day:Week of ${start}:start:: 1 training day`
+      : $localize`:@@trainingContributionGraph.week_days:Week of ${start}:start:: ${trainingDays}:count: training days`;
+  if (pauseDays === 0) return training;
+  return `${training}, ${$localize`:@@trainingContributionGraph.week_pause_days:${pauseDays}:count: recovery days`}`;
 }
 
 function matchesSelection(

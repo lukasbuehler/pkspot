@@ -73,7 +73,34 @@ const TRAILING_PHOTO_ASPECT_RATIO = 4 / 3;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
+  /** What the photos show, usually the Spot or event name. */
   readonly imageDescription = input("PK Spot");
+  /**
+   * One alt text per media item. Numbering tells screen-reader users the
+   * photos apart instead of repeating the same name for every photo.
+   */
+  readonly imageAlts = computed(() => {
+    const name = this.imageDescription();
+    const total = this.media()?.length ?? 0;
+    if (total <= 1) return [name];
+    return Array.from(
+      { length: total },
+      (_, i) =>
+        $localize`:@@media.image_alt_numbered:${name}:name:, photo ${i + 1}:index: of ${total}:total:`,
+    );
+  });
+  /** Names the keyboard button over each photo, e.g. "Open Lindenhof, photo 1 of 3". */
+  readonly openPhotoLabels = computed(() =>
+    this.imageAlts().map(
+      (alt) => $localize`:@@img_carousel.open_photo:Open ${alt}:photo: full screen`,
+    ),
+  );
+  readonly trailingPhotoAlt = computed(
+    () =>
+      $localize`:@@media.google_photo_alt:${this.imageDescription()}:name: on Google Maps`,
+  );
+  readonly muteVideoLabel = $localize`:@@media.video_mute:Mute video`;
+  readonly unmuteVideoLabel = $localize`:@@media.video_unmute:Unmute video`;
   readonly trailingPhotoAspectRatio = TRAILING_PHOTO_ASPECT_RATIO;
   media = input<AnyMedia[] | undefined>();
   processingMedia = input<PendingMediaPreview[]>([]);
@@ -142,8 +169,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   private readonly previewGapPx = 10;
   private readonly containedImageDefaultBackground =
     "var(--mat-sys-surface-container-highest)";
-  readonly scrollLeftLabel = "Scroll images left";
-  readonly scrollRightLabel = "Scroll images right";
+  readonly scrollLeftLabel = $localize`:@@media.scroll_left:Previous photos`;
+  readonly scrollRightLabel = $localize`:@@media.scroll_right:Next photos`;
 
   @ViewChild("previewViewport")
   private previewViewport: ElementRef<HTMLElement> | undefined;
@@ -689,6 +716,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     const dialogRef = this.dialog.open(SwiperDialogComponent, {
       data: {
         media: this.media(),
+        imageAlts: this.imageAlts(),
         index: index,
         spotId: this.spotId(),
         reportContext: this.reportContext(),
@@ -704,6 +732,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       maxWidth: "95vw",
       maxHeight: "95vh",
       panelClass: "dialog",
+      ariaLabel: $localize`:@@img_carousel.viewer_label:Photo viewer`,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -998,6 +1027,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
 
 interface SwiperDialogData {
   media?: AnyMedia[];
+  /** Alt text per item of `media`, in the same order. */
+  imageAlts?: string[];
   index?: number;
   spotId?: string;
   reportContext?: "spot" | "event" | "media";
@@ -1054,6 +1085,7 @@ interface SwiperDialogResult {
                   } @else {
                     <img
                       ngSrc="{{ getSrc(mediaObj) }}"
+                      [alt]="dialogAlts()[$index]"
                       fill
                       [attr.referrerpolicy]="
                         getReferrerPolicyForMedia(mediaObj)
@@ -1091,11 +1123,13 @@ interface SwiperDialogResult {
         }
         @if (canReportCurrentMedia()) {
           <button
-            mat-icon-button
-            class="swiper-report-button d-flex"
+            mat-stroked-button
+            type="button"
+            class="swiper-report-button"
             (click)="onReportClick()"
           >
-            <mat-icon>report</mat-icon>
+            <mat-icon>flag</mat-icon>
+            <span i18n="@@img_carousel.report_photo">Report photo</span>
           </button>
         }
       </div>
@@ -1110,6 +1144,8 @@ interface SwiperDialogResult {
       <button
         mat-icon-button
         style="display: flex; position: absolute; top: 10px; right: 10px; z-index: 1; background-color: #00000080;"
+        aria-label="Close"
+        i18n-aria-label="@@img_carousel.close_viewer"
         (click)="onNoClick()"
       >
         <mat-icon>close</mat-icon>
@@ -1551,6 +1587,14 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   readonly dialogMedia = computed(() => this.data.media?.filter((media) => this.isDialogMedia(media)) ?? []);
+  /** Alt text for each shown item, matched back to its place in `data.media`. */
+  readonly dialogAlts = computed(() => {
+    const alts = this.data.imageAlts ?? [];
+    const media = this.data.media ?? [];
+    return this.dialogMedia().map(
+      (item) => alts[media.indexOf(item)] ?? $localize`:@@img_carousel.photo_alt_fallback:Photo`,
+    );
+  });
   readonly youtubeVideoIds = computed(() => this.dialogMedia().map((media) => media instanceof ExternalVideo ? media.youtubeId : null));
 
   private isBlockedExternalDialogMedia(mediaObj: AnyMedia): boolean {

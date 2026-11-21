@@ -42,7 +42,7 @@ describe("SpotPersonalStatsComponent", () => {
     });
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain("7");
-    expect(text).toContain("9h");
+    expect(text).toContain("9 h");
     expect(text).toContain("#2 at this Spot");
     expect(text).toContain("Tied with 1 other person");
     expect(text).toContain("4 days this month");

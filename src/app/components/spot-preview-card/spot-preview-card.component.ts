@@ -40,6 +40,7 @@ import {
   SpotAccess,
   SpotTypesIcons,
   SpotAccessIcons,
+  SpotAccessNames,
   parseSpotType,
   parseSpotAccess,
 } from "../../../db/schemas/SpotTypeAndAccess";
@@ -83,12 +84,15 @@ export class SpotPreviewCardComponent
   SpotAccess = SpotAccess;
   spotTypesIcons = SpotTypesIcons;
   spotAccessIcons = SpotAccessIcons;
+  spotAccessNames = SpotAccessNames;
 
   hasBorder = input<boolean>(true);
   imgSize = input<200 | 400 | 800>(200);
   loadingPriority = input<boolean>(false);
   mapZoom = input<number | null>(null);
   forcePlaceholderContainer = input<boolean>(false);
+  /** Shows a missing photo as a short strip instead of a full image slot. */
+  compactMissingMedia = input<boolean>(false);
 
   spotData = input<Spot | LocalSpot | SpotPreviewCardData | null>(null);
   readonly activitySpotId = computed(() => this.shouldLoadMedia() ? this._getSpotId(this.spotData()) : undefined);
@@ -140,7 +144,6 @@ export class SpotPreviewCardComponent
   readonly dismiss = output<boolean>();
   readonly edit = output<void>();
 
-  fallbackImgSrc = "assets/spot_placeholder.png";
   private _intersectionObserver: IntersectionObserver | null = null;
   private _isViewportSettled = signal(false);
   private _viewportTimer: ReturnType<typeof setTimeout> | null = null;

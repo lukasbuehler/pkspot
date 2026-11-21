@@ -8,12 +8,26 @@
     >
       <mat-label>{{ localeLabel(locale) }}</mat-label>
 
-      @if(isTextArea()) {
+      @if(isTextArea() && autosizeMinRows(); as minRows) {
+      <!-- Grows with the text, so longer descriptions can be checked as a whole. -->
       <textarea
         cdkFocusInitial
         matInput
         [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
         [placeholder]="placeholder()"
+        [attr.aria-label]="fieldLabel() ? fieldLabel() + ' (' + localeLabel(locale) + ')' : null"
+        (change)="valueChanged($event, locale)"
+        cdkTextareaAutosize
+        [cdkAutosizeMinRows]="minRows"
+        [cdkAutosizeMaxRows]="16"
+      ></textarea>
+      } @else if(isTextArea()) {
+      <textarea
+        cdkFocusInitial
+        matInput
+        [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
+        [placeholder]="placeholder()"
+        [attr.aria-label]="fieldLabel() ? fieldLabel() + ' (' + localeLabel(locale) + ')' : null"
         (change)="valueChanged($event, locale)"
         rows="3"
       ></textarea>
@@ -23,6 +37,7 @@
         matInput
         [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
         [placeholder]="placeholder()"
+        [attr.aria-label]="fieldLabel() ? fieldLabel() + ' (' + localeLabel(locale) + ')' : null"
         (change)="valueChanged($event, locale)"
       />}
     </mat-form-field>
@@ -33,7 +48,7 @@
         type="button"
         (click)="removeTranslation(locale)"
         class="mt-2"
-        [attr.aria-label]="'Remove ' + localeLabel(locale) + ' translation'"
+        [attr.aria-label]="removeTranslationLabel(locale)"
       >
         <mat-icon>delete</mat-icon>
       </button>

@@ -88,7 +88,7 @@
           <a
             mat-flat-button
             class="ticket-action"
-            [href]="view.ticket.url"
+            [href]="view.href"
             target="_blank"
             rel="noopener noreferrer"
             (click)="openTicket(view.ticket)"
@@ -100,7 +100,7 @@
           <a
             mat-button
             class="ticket-action ticket-action--details"
-            [href]="view.ticket.url"
+            [href]="view.href"
             target="_blank"
             rel="noopener noreferrer"
             (click)="openTicket(view.ticket)"

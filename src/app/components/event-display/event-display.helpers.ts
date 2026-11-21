@@ -9,6 +9,7 @@ import {
 } from "../../../db/models/Media";
 import { MediaType } from "../../../db/models/Interfaces";
 import { MediaSchema } from "../../../db/schemas/Media";
+import type { EventCategory } from "../../../db/schemas/EventSchema";
 import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 
@@ -185,7 +186,7 @@ export function promotedEventLabel(context: "full" | "short" = "full"): string {
 }
 
 export function eventStatusLabel(
-  event: PkEvent,
+  event: Pick<PkEvent, "start" | "end" | "timing">,
   status: EventStatus,
   locale: string,
   context: EventStatusLabelContext = "default",
@@ -200,9 +201,21 @@ export function eventStatusLabel(
     if (context === "mapIsland") {
       return $localize`:@@map_island.event_live:Live Event`;
     }
-    return event.timing?.mode === "open_end"
-      ? $localize`:@@events.status.live_open_end:Ongoing — open end`
-      : $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
+    if (event.timing?.mode === "open_end") {
+      return $localize`:@@events.status.live_open_end:Ongoing — open end`;
+    }
+    if (event.timing?.mode === "date_only") {
+      // No end time is known, so name the last day instead of a countdown.
+      const lastDay = new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      }).format(
+        utcNoonForDateKey(event.timing.end_date ?? event.timing.start_date),
+      );
+      return $localize`:@@events.status.live_until_day:Ongoing — until ${lastDay}:LAST_DAY:`;
+    }
+    return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
   }
 
   if (context === "compact") {
@@ -214,4 +227,28 @@ export function eventStatusLabel(
   }
 
   return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
+}
+
+/** Material Symbol for an event category, shared by event lists and pages. */
+export function eventCategoryIcon(category: EventCategory | string): string {
+  switch (category) {
+    case "camp":
+      return "camping";
+    case "competition":
+      return "trophy";
+    case "jam":
+      return "groups";
+    case "workshop":
+      return "school";
+    case "show":
+      return "theater_comedy";
+    case "awards":
+      return "workspace_premium";
+    case "social":
+      return "celebration";
+    case "travel":
+      return "directions_bus";
+    default:
+      return "sell";
+  }
 }

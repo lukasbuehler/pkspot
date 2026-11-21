@@ -100,8 +100,10 @@ const visualSpotData: SpotSchema = {
         organization_id: "fixture-org",
         organization: {
           id: "fixture-org",
-          name: "PK Spot Fixture Crew",
-          slug: "fixture-crew",
+          name: "PK Spot",
+          slug: "pk-spot",
+          logo_url: "assets/icons/icon-96.webp",
+          logo_background_color: "#000000",
         },
         stewarded_by_user_id: "fixture-admin",
         stewarded_at: Timestamp.fromDate(new Date("2026-01-15T12:00:00.000Z")),

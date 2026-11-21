@@ -176,6 +176,26 @@ describe("ShareCardService failure isolation", () => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(link);
       expect(snack).toHaveBeenCalledWith("Link copied.", undefined, {duration: 3000});
     });
+    it("copies the link when the browser refuses its share sheet", async () => {
+      call.mockResolvedValue({imageUrl: endpoint, reused: false});
+      webShare.mockRejectedValue(new DOMException("x", "NotAllowedError"));
+      await TestBed.inject(ShareCardService).share({kind: "spot", id: "spot"}, link, "Spot");
+      await dialogData().share();
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(link);
+      expect(snack).toHaveBeenCalledWith("Link copied.", undefined, {duration: 3000});
+      expect(webClose).toHaveBeenCalledOnce();
+    });
+    it("shows the link to copy by hand when copying is blocked too", async () => {
+      call.mockResolvedValue({imageUrl: endpoint, reused: false});
+      vi.mocked(navigator.clipboard.writeText).mockRejectedValue(new Error("blocked"));
+      const execCommand = vi.fn(() => false);
+      Object.defineProperty(document, "execCommand", { value: execCommand, configurable: true });
+      await TestBed.inject(ShareCardService).share({kind: "spot", id: "spot"}, link, "Spot");
+      await dialogData().copy();
+      expect(execCommand).toHaveBeenCalledWith("copy");
+      expect(snack).toHaveBeenCalledWith(`Copy this link: ${link}`, "OK", {duration: 15000});
+      expect(document.querySelector("textarea")).toBeNull();
+    });
     it("shows the title-only fallback when preparation fails", async () => {
       call.mockRejectedValue({code: "unavailable"});
       await TestBed.inject(ShareCardService).share({kind: "spot", id: "spot"}, link, "Spot");

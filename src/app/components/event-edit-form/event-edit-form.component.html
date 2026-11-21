@@ -284,6 +284,7 @@
           matInput
           formControlName="locality_string"
           placeholder="City, Country"
+          i18n-placeholder="@@eventEdit.placeholder.cityCountry"
         />
       </mat-form-field>
     </div>
@@ -2321,6 +2322,7 @@
                                     matInput
                                     [value]="path.label"
                                     placeholder="Swiss pathway"
+          i18n-placeholder="@@eventEdit.placeholder.pathway"
                                     (input)="
                                       updateQualificationPath(
                                         membership.id,
@@ -2559,6 +2561,7 @@
                           matInput
                           [value]="plan.conditionLabel"
                           placeholder="Bad weather"
+          i18n-placeholder="@@eventEdit.placeholder.badWeather"
                           (input)="
                             updateProgramPlan(plan.id, {
                               conditionLabel: $any($event.target).value,
@@ -2900,6 +2903,7 @@
                           matInput
                           [value]="spot.name"
                           placeholder="Main stage"
+          i18n-placeholder="@@eventEdit.placeholder.mainStage"
                           (input)="
                             updateInlineSpot(spot.key, {
                               name: $any($event.target).value,

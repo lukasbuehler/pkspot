@@ -13,6 +13,7 @@
       type="button"
       color="primary"
       class="fab-menu__launcher"
+      [extended]="!!launcherText() && !isOpen()"
       [class.fab-menu__launcher--open]="isOpen()"
       [disabled]="directAction()?.disabled ?? false"
       [attr.aria-expanded]="isMenu() ? isOpen() : null"
@@ -20,9 +21,10 @@
       [attr.aria-label]="
         isOpen()
           ? closeLabel()
-          : (directAction()?.ariaLabel ??
-            directAction()?.label ??
-            launcherLabel())
+          : launcherText() ||
+            (directAction()?.ariaLabel ??
+              directAction()?.label ??
+              launcherLabel())
       "
       [matTooltip]="
         isOpen() ? closeLabel() : (directAction()?.label ?? launcherLabel())
@@ -37,6 +39,9 @@
             : (directAction()?.icon ?? launcherIcon())
         }}
       </mat-icon>
+      @if (launcherText() && !isOpen()) {
+        <span class="fab-menu__launcher-text">{{ launcherText() }}</span>
+      }
     </button>
 
     @if (isOpen()) {

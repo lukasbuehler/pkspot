@@ -4,7 +4,20 @@ import { shouldShowEarlyWelcome } from "./app/startup/welcome-policy";
 import { loadApplication } from "./app/startup/application-loader";
 import { capturePreHydrationInput } from "./app/startup/pre-hydration-input";
 
+/**
+ * Browsers keep pinch zoom so people can enlarge text (WCAG 1.4.4). The app
+ * shell feels native only without page zoom, so it locks zoom there alone.
+ */
+export function lockNativePageZoom(): void {
+  if (!Capacitor.isNativePlatform()) return;
+  const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+  if (viewport && !/user-scalable/.test(viewport.content)) {
+    viewport.content += ", maximum-scale=1.0, user-scalable=no";
+  }
+}
+
 export function startBrowserApplication(): void {
+  lockNativePageZoom();
   capturePreHydrationInput();
   let earlyWelcome = false;
   try {

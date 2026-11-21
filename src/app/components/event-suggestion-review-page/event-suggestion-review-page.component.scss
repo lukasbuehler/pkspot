@@ -8,8 +8,6 @@
 header, .review-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 h1 { margin-block: 12px; }
 mat-button-toggle-group {
-  --mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
-  --mat-button-toggle-selected-state-text-color: var(--mat-sys-on-primary-container);
   max-width: 100%; overflow-x: auto; margin-bottom: 20px; }
 mat-accordion {
   --mat-expansion-header-expanded-state-height: auto;

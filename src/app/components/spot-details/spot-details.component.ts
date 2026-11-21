@@ -1,3 +1,4 @@
+import { SpotEditLeaveService } from "../../guards/spot-edit-leave.guard";
 import { CommunityLinksComponent } from "../community-links/community-links.component";
 import { getSpotCommunityCandidates } from "../../../scripts/CommunityHelpers";
 import { SpotPersonalStatsComponent } from "../spot-personal-stats/spot-personal-stats.component";
@@ -10,6 +11,7 @@ import {
   OnInit,
   OnChanges,
   ElementRef,
+  viewChild,
   LOCALE_ID,
   Pipe,
   PipeTransform,
@@ -25,7 +27,9 @@ import {
   PLATFORM_ID,
   resource,
   untracked,
+  afterRenderEffect,
 } from "@angular/core";
+import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 import {
   MatProgressBarModule,
 } from "@angular/material/progress-bar";
@@ -127,6 +131,7 @@ import {
   MatCardContent,
 } from "@angular/material/card";
 import { MatDividerModule } from "@angular/material/divider";
+import { MatMenuModule } from "@angular/material/menu";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import {
@@ -251,6 +256,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     ]),
   ],
   imports: [
+    ResizeObserverDirective,
     CommunityLinksComponent,
     SpotPersonalStatsComponent,
     MatCard,
@@ -269,6 +275,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatButton,
     SpotRatingComponent,
     MatDividerModule,
+    MatMenuModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
     KeyValuePipe,
@@ -309,6 +316,7 @@ export class SpotDetailsComponent
     return spot ? spotCopy(spot, this.locale) : null;
   });
   private _challengeService = inject(SpotChallengesService);
+  private readonly _spotEditLeave = inject(SpotEditLeaveService);
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
@@ -543,6 +551,19 @@ export class SpotDetailsComponent
   bookmarked = signal<boolean>(false);
   isBookmarkUpdating = signal<boolean>(false);
   isVisitedUpdating = signal<boolean>(false);
+  /** Tooltips say what a tap does now, so a saved Spot is not unsaved by surprise. */
+  // The name says the state and what a tap does, so nobody removes a saved
+  // Spot by tapping "Save" (a fixed name with aria-pressed read that way).
+  readonly bookmarkTooltip = computed(() =>
+    this.bookmarked()
+      ? $localize`:@@spot.bookmark.tooltip_saved:Saved – tap to remove`
+      : $localize`:@@bookmark_spot_tooltip:Bookmark this spot`,
+  );
+  readonly visitedTooltip = computed(() =>
+    this.visited()
+      ? $localize`:@@spot.visited.tooltip_visited:Visited – tap to undo`
+      : $localize`:@@mark_this_spot_as_visited_tooltip:Mark this spot as visited`,
+  );
   isDeletingSpot = signal<boolean>(false);
 
   spotTypeNames = SpotTypesNames;
@@ -877,7 +898,9 @@ export class SpotDetailsComponent
     this.saveClick.emit(spot);
   }
 
-  onEditorDiscard(): void {
+  async onEditorDiscard(): Promise<void> {
+    // Ask first when something was changed, as leaving the page does.
+    if (!(await this._spotEditLeave.confirmDiscard())) return;
     this.discardClick.emit();
     this.isEditing.set(false);
 
@@ -966,6 +989,7 @@ export class SpotDetailsComponent
         spot_id: spot.id,
         enabled: shouldBookmark,
       });
+      this._confirmBookmark(shouldBookmark);
     } catch (error) {
       this.bookmarked.set(!shouldBookmark);
       console.error("Failed to update saved spot", error);
@@ -985,6 +1009,17 @@ export class SpotDetailsComponent
     } finally {
       this.isBookmarkUpdating.set(false);
     }
+  }
+
+  /** Confirms a save or removal and lets people undo an accidental tap. */
+  private _confirmBookmark(saved: boolean): void {
+    const message = saved
+      ? $localize`:@@spot.bookmark.saved:Saved to your Spots`
+      : $localize`:@@spot.bookmark.removed:Removed from your saved Spots`;
+    this._snackbar
+      .open(message, $localize`:@@spot.bookmark.undo:Undo`, { duration: 4000 })
+      .onAction()
+      .subscribe(() => void this.bookmarkClick());
   }
 
   async visitedClick(event?: Event) {
@@ -1232,12 +1267,17 @@ export class SpotDetailsComponent
         spotId: spot.id,
         spotName: spot.name(),
         report: this.ownReport(),
+        hasPhotos: spot.media().length > 0 && !!this.mediaCarousel(),
       },
     });
     dialogRef
       .afterClosed()
       .subscribe(
         (result?: SpotReportDialogResult) => {
+          if (result?.reportPhoto) {
+            this.mediaCarousel()?.openImageViewer(0);
+            return;
+          }
           if (!result?.reportId && !result?.withdrawn) {
             return;
           }
@@ -1268,6 +1308,64 @@ export class SpotDetailsComponent
           if (result.created) void this._notificationOptIn.maybePrompt("report_updates");
         },
       );
+  }
+
+  private readonly _ratingsSection =
+    viewChild<ElementRef<HTMLElement>>("ratingsSection");
+  /** The Spot's photo carousel; its viewer reports single photos. */
+  private readonly mediaCarousel = viewChild(ImgCarouselComponent);
+
+  /** Names the header rating button with the value, e.g. "4.0 stars, see reviews". */
+  readonly ratingJumpLabel = computed(() => {
+    const rating = this.spot()?.rating;
+    const value = rating ? rating.toFixed(1) : "";
+    return $localize`:@@spot.rating_jump_label:Rated ${value}:rating: of 5, show reviews`;
+  });
+
+  /** Names a rating-distribution bar, e.g. "5 stars: 2 reviews". */
+  ratingHistogramLabel(stars: string | number, count: number | undefined): string {
+    const reviews = count ?? 0;
+    return reviews === 1
+      ? $localize`:@@spot.rating_histogram_one:${stars}:stars: stars: 1 review`
+      : $localize`:@@spot.rating_histogram_many:${stars}:stars: stars: ${reviews}:count: reviews`;
+  }
+
+  private readonly _headerFacts =
+    viewChild<ElementRef<HTMLElement>>("headerFacts");
+
+  // Re-check the dots whenever the facts may have changed; the resize
+  // observer covers width changes.
+  private readonly _factLineEndsEffect = afterRenderEffect(() => {
+    this.spot();
+    this.markFactLineEnds();
+  });
+
+  /**
+   * Marks header facts that end a wrapped line, so their trailing dot is
+   * hidden. The dot keeps its space (only made invisible), and that space sits
+   * at the end of the line, so marking never moves a line break or leaves a
+   * visible gap.
+   */
+  markFactLineEnds(): void {
+    const container = this._headerFacts()?.nativeElement;
+    if (!container) return;
+    const facts = Array.from(
+      container.querySelectorAll<HTMLElement>(".spot-fact"),
+    );
+    facts.forEach((fact, index) => {
+      const next = facts[index + 1];
+      fact.classList.toggle(
+        "is-line-end",
+        !next || next.offsetTop > fact.offsetTop + 2,
+      );
+    });
+  }
+
+  scrollToRatings(): void {
+    this._ratingsSection()?.nativeElement.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }
 
   openSpotReviewDialog() {

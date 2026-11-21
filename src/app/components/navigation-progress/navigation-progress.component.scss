@@ -1,0 +1,26 @@
+:host {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 1100;
+  pointer-events: none;
+}
+
+// Shown only when loading takes a noticeable moment, so fast page changes
+// and query-parameter updates do not flash a bar.
+.navigation-progress {
+  opacity: 0;
+  animation: navigation-progress-appear 150ms ease-out 250ms forwards;
+}
+
+@keyframes navigation-progress-appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation-progress {
+    animation-duration: 0s;
+  }
+}

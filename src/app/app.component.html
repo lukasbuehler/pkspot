@@ -1,5 +1,9 @@
+<!-- Thin top bar while the next page is still loading. -->
+<app-navigation-progress />
 @if(!isEmbedded()) {
 <!-- is not embedded  -->
+<!-- First tab stop: skip the navigation and go straight to the page. -->
+<a class="skip-link" href="#main-content" (click)="skipToMainContent($event)" i18n="@@a11y.skip_to_content">Skip to content</a>
 <app-nav-rail-container>
   <!-- The server renders both navigations; CSS shows the one fitting the viewport. -->
   @if(usesNavigationRail() || isServer) {
@@ -25,8 +29,9 @@
     <a
       [routerLink]="button.link"
       data-desktop-leading-navigation
-      tabindex="-1"
       routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      [attr.aria-label]="button.ariaLabel ?? null"
       #desktopButtonRla="routerLinkActive"
     >
       <app-mat3-nav-button
@@ -35,6 +40,8 @@
         [image]="button.image ?? ''"
         [active]="desktopButtonRla.isActive || !!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
+        [presentational]="true"
       ></app-mat3-nav-button>
     </a>
     } @else if(button.function) {
@@ -46,6 +53,7 @@
       [label]="button.name"
       [active]="!!button.active"
       [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
     ></app-mat3-nav-button>
     } }
 
@@ -66,8 +74,9 @@
       [routerLink]="button.link"
       data-desktop-trailing-navigation
       [attr.data-navigation-id]="button.id"
-      tabindex="-1"
       routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      [attr.aria-label]="button.ariaLabel ?? null"
       #desktopButtonRla="routerLinkActive"
     >
       <app-mat3-nav-button
@@ -76,6 +85,8 @@
         [image]="button.image ?? ''"
         [active]="desktopButtonRla.isActive || !!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
+        [presentational]="true"
       ></app-mat3-nav-button>
     </a>
     } @else if(button.function) {
@@ -88,6 +99,7 @@
       [label]="button.name"
       [active]="!!button.active"
       [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
     ></app-mat3-nav-button>
     } }
 
@@ -144,7 +156,7 @@
   }
   <app-nav-rail-content class="flex-col">
     <!-- This is where the pages content gets displayed -->
-    <div class="main-content flex-grow-1" cdkScrollable>
+    <div id="main-content" class="main-content flex-grow-1" cdkScrollable tabindex="-1">
       <router-outlet></router-outlet>
     </div>
 
@@ -172,8 +184,9 @@
       @for (button of mobileLeadingNavbarButtons(); track button.id) { @if(button.link) {
       <a
         [routerLink]="button.link"
-        tabindex="-1"
         routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        [attr.aria-label]="button.ariaLabel ?? null"
         #mobileButtonRla="routerLinkActive"
       >
         <app-mat3-nav-button
@@ -182,6 +195,8 @@
           [image]="button.image ?? ''"
           [active]="mobileButtonRla.isActive || !!button.active"
           [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
+          [presentational]="true"
         ></app-mat3-nav-button>
       </a>
       } @else if(button.function) {
@@ -192,6 +207,7 @@
         [label]="button.name"
         [active]="!!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
       ></app-mat3-nav-button>
       } }
       @if (hasNavbarOverflow()) {
@@ -207,8 +223,9 @@
       <a
         class="mobile-trailing-nav-button"
         [routerLink]="button.link"
-        tabindex="-1"
         routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        [attr.aria-label]="button.ariaLabel ?? null"
         #mobileButtonRla="routerLinkActive"
       >
         <app-mat3-nav-button
@@ -217,6 +234,8 @@
           [image]="button.image ?? ''"
           [active]="mobileButtonRla.isActive || !!button.active"
           [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
+          [presentational]="true"
         ></app-mat3-nav-button>
       </a>
       } @else if(button.function) {
@@ -228,6 +247,7 @@
         [label]="button.name"
         [active]="!!button.active"
         [liveIndicator]="!!button.liveIndicator"
+        [badgeCount]="button.badgeCount ?? 0"
       ></app-mat3-nav-button>
       } }
       <mat-menu #mobileOverflowMenu="matMenu">

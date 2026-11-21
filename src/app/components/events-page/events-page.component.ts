@@ -40,7 +40,7 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
-import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import { eventCategoryIcon, eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { EventCardComponent } from "../event-card/event-card.component";
 import {
   type FabMenuAction,
@@ -69,6 +69,12 @@ import {
   type EventSeriesFilterOption,
   type EventsListPeriod,
 } from "./event-discovery-toolbar.component";
+import type { EventFiltersDialogResult } from "./event-filters-dialog.component";
+import {
+  eventDateRangeWindow,
+  isEventDateRange,
+  type EventDateRange,
+} from "./event-date-range";
 import {
   EventDiscoveryViewToggleComponent,
   type EventsDiscoveryView,
@@ -120,6 +126,7 @@ interface DiscoveryRequest {
   regionKeys: EventRegionKey[];
   seriesIds: string[];
   period: EventsListPeriod;
+  dateRange?: EventDateRange | null;
   month: string;
   limit: number;
   rangeStartSeconds?: number;
@@ -257,6 +264,7 @@ export class EventsPageComponent {
     equal: sameOrderedValues,
   });
   readonly period = signal<EventsListPeriod>("upcoming");
+  readonly dateRange = signal<EventDateRange | null>(null);
   readonly month = signal(currentMonthKey());
   readonly requestedDay = signal("");
   readonly resultLimit = signal(LIST_PAGE_SIZE);
@@ -301,6 +309,7 @@ export class EventsPageComponent {
       regionKeys: this.selectedRegions(),
       seriesIds: this.selectedSeriesIds(),
       period: this.period(),
+      dateRange: this.dateRange(),
       month: this.month(),
       limit: this.resultLimit(),
     }),
@@ -336,7 +345,9 @@ export class EventsPageComponent {
         ...common,
         ...(params.period === "past"
           ? { endsBeforeSeconds: nowSeconds, sort: "past" as const }
-          : { endsAfterSeconds: nowSeconds, sort: "upcoming" as const }),
+          : params.dateRange
+            ? { ...eventDateRangeWindow(params.dateRange, new Date()), sort: "upcoming" as const }
+            : { endsAfterSeconds: nowSeconds, sort: "upcoming" as const }),
         page: 1,
         perPage: Math.min(params.limit, 250),
       });
@@ -358,6 +369,13 @@ export class EventsPageComponent {
       : this.discoveryResult(),
   );
   readonly events = computed(() => this.discoveryResult()?.items ?? []);
+  /** True while the "No matching events" state, with its own reset button, is shown. */
+  readonly showsEmptyState = computed(
+    () =>
+      !this.usesContinuousCalendar() &&
+      !!this.discoveryResult() &&
+      this.events().length === 0,
+  );
   readonly invalidEventsResource = resource({
     params: () => (this.isAdmin() ? true : undefined),
     loader: async ({ abortSignal }) =>
@@ -451,7 +469,7 @@ export class EventsPageComponent {
       this.availableFacets()?.categories, category, this.selectedCategories(),
     )).map((category) => ({
       id: category,
-      icon: categoryIcon(category),
+      icon: eventCategoryIcon(category),
       label: categoryLabel(category),
       count: counts.get(category) ?? 0,
     }));
@@ -682,6 +700,22 @@ export class EventsPageComponent {
     });
   }
 
+  /** Applies the filters dialog's selection in one navigation. */
+  applyDialogFilters(result: EventFiltersDialogResult): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({
+      region: serializeList(result.regions),
+      series: serializeList(result.seriesIds),
+      tier: serializeList(result.listingTiers),
+      dates: result.dateRange,
+    });
+  }
+
+  clearDateRange(): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({ dates: null });
+  }
+
   clearFilters(): void {
     this.areaAliases.set([]);
     this.resultLimit.set(LIST_PAGE_SIZE);
@@ -692,6 +726,7 @@ export class EventsPageComponent {
       series: null,
       tier: null,
       region: null,
+      dates: null,
     });
   }
 
@@ -794,6 +829,8 @@ export class EventsPageComponent {
     );
     this.selectedRegions.set(parseList(params, "region").filter(isEventRegionKey));
     this.period.set(params.get("when") === "past" ? "past" : "upcoming");
+    const dates = params.get("dates");
+    this.dateRange.set(isEventDateRange(dates) ? dates : null);
     const month = params.get("month") ?? "";
     this._hasValidMonthParam = isMonthKey(month);
     this.month.set(this._hasValidMonthParam ? month : currentMonthKey());
@@ -1077,28 +1114,6 @@ function toggleValue<T>(values: readonly T[], value: T): T[] {
     : [...values, value];
 }
 
-function categoryIcon(category: EventCategory): string {
-  switch (category) {
-    case "competition":
-      return "trophy";
-    case "jam":
-      return "groups";
-    case "camp":
-      return "camping";
-    case "workshop":
-      return "school";
-    case "show":
-      return "theater_comedy";
-    case "awards":
-      return "workspace_premium";
-    case "social":
-      return "celebration";
-    case "travel":
-      return "travel_explore";
-    case "other":
-      return "sell";
-  }
-}
 
 function parseList(params: ParamMap, key: string): string[] {
   return [

@@ -58,7 +58,13 @@ import {
   ChallengeParticipantTypeValues,
 } from "../../../db/schemas/SpotChallengeLabels";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import { MatDatepickerModule } from "@angular/material/datepicker";
+// Not MatDatepickerModule: it provides its own English MatDatepickerIntl,
+// which would hide the translated one from app.config.
+import {
+  MatDatepicker,
+  MatDatepickerInput,
+  MatDatepickerToggle,
+} from "@angular/material/datepicker";
 import { MatTimepickerModule } from "@angular/material/timepicker";
 import { FormsModule } from "@angular/forms";
 import { provideNativeDateAdapter } from "@angular/material/core";
@@ -89,7 +95,9 @@ import { buildSpotChallengeCanonicalPath } from "../../../scripts/SpotRouteHelpe
     SystemDatePipe,
     MatDividerModule,
     MatTooltipModule,
-    MatDatepickerModule,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
     MatTimepickerModule,
     FormsModule,
     MatSlideToggleModule,

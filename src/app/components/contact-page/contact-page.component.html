@@ -36,10 +36,10 @@
           [attr.aria-busy]="isSubmitting()"
           (ngSubmit)="submitContactMessage()"
         >
-          <mat-form-field appearance="outline">
-            <mat-label i18n="@@contact.contact_info.label">
-              How can we reach you?
-            </mat-label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <!-- No whitespace around the text: Material adds the required
+                 asterisk right after it, like on the message label. -->
+            <mat-label i18n="@@contact.contact_info.label">How can we reach you?</mat-label>
             <input
               matInput
               formControlName="contactInfo"
@@ -49,14 +49,19 @@
             <mat-hint i18n="@@contact.contact_info.hint">
               Email, Instagram, Discord, or whatever works best for you.
             </mat-hint>
-            @if (contactInfoHasError) {
-              <mat-error i18n="@@contact.contact_info.error">
-                Please add contact information, up to 240 characters.
+            <!-- One flat chain, so Material projects the error below the field. -->
+            @if (contactInfoHasError && contactForm.controls.contactInfo.hasError("maxlength")) {
+              <mat-error i18n="@@contact.contact_info.too_long">
+                Keep this under 240 characters.
+              </mat-error>
+            } @else if (contactInfoHasError) {
+              <mat-error i18n="@@contact.contact_info.required">
+                Add how we can reach you.
               </mat-error>
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label i18n="@@contact.message.label">Message</mat-label>
             <textarea
               matInput
@@ -67,9 +72,13 @@
             <mat-hint i18n="@@contact.message.hint">
               We only use this information to reply to your message.
             </mat-hint>
-            @if (messageHasError) {
-              <mat-error i18n="@@contact.message.error">
-                Please add a message, up to 4000 characters.
+            @if (messageHasError && contactForm.controls.message.hasError("maxlength")) {
+              <mat-error i18n="@@contact.message.too_long">
+                Keep your message under 4000 characters.
+              </mat-error>
+            } @else if (messageHasError) {
+              <mat-error i18n="@@contact.message.required">
+                Write your message.
               </mat-error>
             }
           </mat-form-field>

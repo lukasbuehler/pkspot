@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { DOCUMENT } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
 import {
   AbstractControl,
@@ -24,8 +25,8 @@ import {
 import { NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatInput } from "@angular/material/input";
-import { MatFormField, MatLabel, MatHint, MatError } from "@angular/material/form-field";
-import { MatButton } from "@angular/material/button";
+import { MatFormField, MatLabel, MatHint, MatError, MatSuffix } from "@angular/material/form-field";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatDividerModule } from "@angular/material/divider";
 import { Subscription } from "rxjs";
@@ -39,6 +40,8 @@ import { AnalyticsService } from "../../services/analytics.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatButton,
+    MatIconButton,
+    MatSuffix,
     RouterLink,
     FormsModule,
     ReactiveFormsModule,
@@ -55,6 +58,10 @@ import { AnalyticsService } from "../../services/analytics.service";
   ],
 })
 export class SignUpPageComponent implements OnInit, OnDestroy {
+  /** Both password fields reveal together, so typos are easy to compare. */
+  readonly showPasswords = signal(false);
+  readonly showPasswordLabel = $localize`:@@auth.password.show:Show password`;
+  readonly hidePasswordLabel = $localize`:@@auth.password.hide:Hide password`;
   createAccountForm: UntypedFormGroup | undefined;
   readonly repeatPasswordMatcher: ErrorStateMatcher = {
     isErrorState: (control, form) => !!(
@@ -76,6 +83,19 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
 
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _analytics = inject(AnalyticsService);
+  private readonly _document = inject(DOCUMENT);
+
+  /**
+   * After an invalid submit, focus moves to the first field that needs
+   * attention, so keyboard and screen-reader users land on the problem
+   * instead of losing focus to the top of the page.
+   */
+  private _focusFirstInvalidField(): void {
+    const field = this._document.querySelector<HTMLElement>(
+      "app-sign-up-page input.ng-invalid, app-sign-up-page mat-checkbox.ng-invalid input",
+    );
+    field?.focus();
+  }
 
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
@@ -101,12 +121,12 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
             const password = c.get("password")?.value;
             const repeatedPassword = c.get("repeatPassword")?.value;
 
-            if (password && repeatedPassword && password === repeatedPassword) {
-              return null; // all good
-            } else {
-              // repeated password does not match password
-              return { repeatedPasswordDoesNotMatchPassword: true };
+            // Only compare once both fields have a value; empty fields
+            // report "required" on their own.
+            if (!password || !repeatedPassword || password === repeatedPassword) {
+              return null;
             }
+            return { repeatedPasswordDoesNotMatchPassword: true };
           },
         ],
       },
@@ -163,6 +183,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
           this.createAccountForm.controls["repeatPassword"].invalid,
         terms_invalid: this.createAccountForm.controls["agreeCheck"].invalid,
       });
+      this._focusFirstInvalidField();
       return;
     }
 
@@ -240,15 +261,8 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       return $localize`Could not create account!`;
     }
 
-    if (form.hasError("repeatedPasswordDoesNotMatchPassword")) {
-      return $localize`Password and repeated password don't match`;
-    }
-
-    if (form.controls["agreeCheck"].invalid) {
-      return $localize`You need to agree to the terms and conditions!`;
-    }
-
-    return $localize`Could not create account!`;
+    // Every field, including the agreement, shows its own error in place.
+    return "";
   }
 
   private _getAuthErrorCode(error: unknown): string | null {

@@ -84,6 +84,14 @@ export class SpotReportsService extends ConsentAwareService {
   }
 
   async getOwnSpotReport(spotId: string): Promise<OwnReportSummary | null> {
+    // Screenshot runs answer from the same fixture as the "My reports" page.
+    const fixture = (globalThis as {
+      __PKSPOT_SCREENSHOT_MY_REPORTS__?: OwnReportSummary[];
+    }).__PKSPOT_SCREENSHOT_MY_REPORTS__;
+    if (fixture) {
+      return fixture.find((report) =>
+        report.kind === "spot" && report.spot?.id === spotId && report.status === "open") ?? null;
+    }
     const response = await this._functionsAdapter.call<
       { kind: "spot"; spotId: string },
       GetOwnReportResponse

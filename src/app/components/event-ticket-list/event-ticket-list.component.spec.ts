@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EventTicketOption } from "../../../db/models/Event";
+import { AnalyticsService } from "../../services/analytics.service";
 import { EventTicketListComponent } from "./event-ticket-list.component";
 
 const tickets: EventTicketOption[] = [
@@ -61,6 +62,13 @@ describe("EventTicketListComponent", () => {
       providers: [
         provideNoopAnimations(),
         { provide: LOCALE_ID, useValue: "en" },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: (url: string | undefined, campaign: string) =>
+              url ? `${url}?utm_source=pkspot&utm_campaign=${campaign}` : null,
+          },
+        },
       ],
     });
     fixture = TestBed.createComponent(EventTicketListComponent);
@@ -130,13 +138,17 @@ describe("EventTicketListComponent", () => {
     expect(action.classList.contains("ticket-action--details")).toBe(false);
   });
 
-  it("keeps external links safe and emits the selected ticket", async () => {
+  it("keeps external links safe, tags them and emits the selected ticket", async () => {
     const opened = vi.fn();
     fixture.componentInstance.ticketOpened.subscribe(opened);
     await fixture.whenStable();
 
-    const link = fixture.nativeElement.querySelector(
-      'a[href="https://tickets.example/regular"]',
+    const link = [
+      ...(fixture.nativeElement as HTMLElement).querySelectorAll("a"),
+    ].find(
+      (anchor) =>
+        anchor.getAttribute("href") ===
+        "https://tickets.example/regular?utm_source=pkspot&utm_campaign=event_page",
     ) as HTMLAnchorElement;
     expect(link.target).toBe("_blank");
     expect(link.rel).toBe("noopener noreferrer");

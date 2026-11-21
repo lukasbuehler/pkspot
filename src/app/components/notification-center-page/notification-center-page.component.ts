@@ -176,9 +176,13 @@ export class NotificationCenterPageComponent {
   }
 
   private _viewModel(item: InAppNotificationDocument): NotificationViewModel {
+    const copy = this._copy(item);
     return {
       id: item.id,
-      ...this._copy(item),
+      ...copy,
+      // Some notifications repeat their title as body text, often with a
+      // trailing full stop; show it only once.
+      body: sameText(copy.body, copy.title) ? "" : copy.body,
       path: resolveNotificationPath(item),
       time: this._relativeDate(item.created_at_raw_ms),
       unread: !item.read_at_raw_ms,
@@ -470,4 +474,10 @@ export class NotificationCenterPageComponent {
       { duration: 4000 },
     );
   }
+}
+
+/** Whether two notification texts say the same, ignoring case, spaces and end punctuation. */
+function sameText(a: string, b: string): boolean {
+  const normalize = (text: string) => text.trim().replace(/[.!?…\s]+$/u, "").toLowerCase();
+  return normalize(a) === normalize(b);
 }

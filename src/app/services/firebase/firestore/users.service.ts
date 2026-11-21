@@ -12,6 +12,7 @@ import { CheckInSchema } from "../../../../db/schemas/CheckInSchema";
 import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { isLocalScreenshotRun } from "../../../shared/local-screenshot-run";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 
 interface ScreenshotGlobal {
@@ -175,6 +176,10 @@ export class UsersService extends ConsentAwareService {
 
   async getAccessibleUserProfile(userId: string): Promise<User | null> {
     if (!userId) return null;
+    // Same per-user screenshot fixture as getUserById.
+    const screenshotProfile = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_USER_PROFILES__?.[userId];
+    if (screenshotProfile) return new User(userId, screenshotProfile);
 
     try {
       const profile = await this.executeWhenConsent(() =>
@@ -429,6 +434,15 @@ export class UsersService extends ConsentAwareService {
    * Only accessible by the authenticated user themselves.
    */
   getPrivateData(userId: string): Observable<PrivateUserDataSchema | null> {
+    // Local screenshot runs supply private data per user ID; users without an
+    // entry use the normal Firestore read.
+    const fixture = isLocalScreenshotRun()
+      ? (globalThis as typeof globalThis & {
+          __PKSPOT_SCREENSHOT_PRIVATE_DATA__?: Record<string, PrivateUserDataSchema>;
+        }).__PKSPOT_SCREENSHOT_PRIVATE_DATA__?.[userId]
+      : undefined;
+    if (fixture) return of(fixture);
+
     return from(
       this.executeWhenConsent(() => {
         return this._firestoreAdapter.documentSnapshots<PrivateUserDataSchema>(

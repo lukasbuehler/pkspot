@@ -1,7 +1,7 @@
 <div
   class="filter-chips-container"
   [class.solid-appearance]="appearance() === 'solid'"
-  [class.primary-selection]="selectionRole() === 'primary'"
+  [class.deselect-icon-row]="showDeselectIcon()"
 >
   <div
     class="chips-scroll-shell"
@@ -29,11 +29,39 @@
       (pointercancel)="onScrollPointerEnd($event)"
       (pointerleave)="onScrollPointerEnd($event)"
     >
+      <!-- With the deselect icon, the selected chip shows a close icon instead
+           of Material's checkmark, to say that tapping it shows everything. -->
       <mat-chip-listbox
+        [hideSingleSelectionIndicator]="showDeselectIcon()"
         [multiple]="selectedFilters() !== null"
         [value]="selectedFilters() ?? renderedSelectedFilter()"
         [attr.aria-label]="ariaLabel() ?? quickFiltersLabel"
       >
+        @for (filter of visiblePresetFilters(); track filter.urlParam) {
+          <mat-chip-option
+            [class.glass]="appearance() === 'glass'"
+            [class.solid-chip]="appearance() === 'solid'"
+            [value]="filter.urlParam"
+            [selected]="selectedFilters()?.includes(filter.urlParam) ?? (renderedSelectedFilter() === filter.urlParam)"
+            [aria-description]="showDeselectIcon() && allowDeselect() && renderedSelectedFilter() === filter.urlParam ? deselectHint : null"
+            (click)="onPresetChipClick(filter.urlParam, $event)"
+          >
+            @if (showDeselectIcon() && allowDeselect() && renderedSelectedFilter() === filter.urlParam) {
+              <mat-icon matChipAvatar>close</mat-icon>
+            } @else if (filter.imageSrc) {
+              <img matChipAvatar class="preset-image" [src]="filter.imageSrc" [style.background]="filter.imageBackground" alt="" />
+            } @else if (filter.icon) {
+              <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
+            }
+            @if (filter.count !== undefined) {
+              <span class="chip-count"><app-fancy-counter [number]="filter.count" /> {{ filter.label }}</span>
+            } @else {
+              <span>{{ filter.label }}</span>
+            }
+          </mat-chip-option>
+        }
+        <!-- Personal lists come after the condition filters (dry, indoor…)
+             that people reach for outdoors, so those stay in view. -->
         @if (showSavedChip()) {
           <mat-chip-option
             [class.glass]="appearance() === 'glass'"
@@ -59,23 +87,6 @@
             <span>{{ visitedLabel }}</span>
           </mat-chip-option>
         }
-
-        @for (filter of visiblePresetFilters(); track filter.urlParam) {
-          <mat-chip-option
-            [class.glass]="appearance() === 'glass'"
-            [class.solid-chip]="appearance() === 'solid'"
-            [value]="filter.urlParam"
-            [selected]="selectedFilters()?.includes(filter.urlParam) ?? (renderedSelectedFilter() === filter.urlParam)"
-            (click)="onPresetChipClick(filter.urlParam, $event)"
-          >
-            @if (filter.imageSrc) {
-              <img matChipAvatar class="preset-image" [src]="filter.imageSrc" [style.background]="filter.imageBackground" alt="" />
-            } @else if (filter.icon) {
-              <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
-            }
-            <span>{{ filter.label }}</span>
-          </mat-chip-option>
-        }
       </mat-chip-listbox>
     </div>
 
@@ -92,28 +103,39 @@
   </div>
 
   @if ((selectedFilter() && showClearChip()) || showFiltersChip()) {
+    <!-- Actions, not filter values: plain chips that act as buttons, so
+         screen readers announce "button" instead of a list option. -->
     <div class="action-chips">
       @if (selectedFilter() && showClearChip()) {
-        <mat-chip-option
+        <mat-chip
           class="filters-chip clear-chip"
+          role="button"
+          tabindex="0"
           [class.glass]="appearance() === 'glass'"
           [class.solid-chip]="appearance() === 'solid'"
           (click)="onClearClick()"
+          (keydown.enter)="onClearClick()"
+          (keydown.space)="$event.preventDefault(); onClearClick()"
         >
           <mat-icon matChipAvatar>filter_alt_off</mat-icon>
           <span>{{ clearLabel }}</span>
-        </mat-chip-option>
+        </mat-chip>
       } @else {
-        <mat-chip-option
+        <mat-chip
           class="filters-chip"
+          role="button"
+          tabindex="0"
           [class.glass]="appearance() === 'glass'"
           [class.solid-chip]="appearance() === 'solid'"
-          [selected]="customFilterActive()"
+          [class.is-active]="customFilterActive()"
+          [attr.aria-pressed]="customFilterActive()"
           (click)="onFiltersClick()"
+          (keydown.enter)="onFiltersClick()"
+          (keydown.space)="$event.preventDefault(); onFiltersClick()"
         >
           <mat-icon matChipAvatar>tune</mat-icon>
           <span>{{ filtersLabel }}</span>
-        </mat-chip-option>
+        </mat-chip>
       }
     </div>
   }

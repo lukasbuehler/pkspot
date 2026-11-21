@@ -55,17 +55,38 @@ mat-tab-group {
   justify-content: space-around;
 }
 
+.spot-summary {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Access and Spot type sit side by side, and stack in narrow panels so their
+// values stay whole instead of being cut off.
+.property-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.property-column {
+  flex: 1 1 14rem;
+}
+
+.property-value {
+  min-width: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.access-description {
+  max-width: 48ch;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .spot-title-text {
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.spot-kind-label {
-  border-color: currentColor !important;
-  color: inherit;
-  flex-shrink: 0;
 }
 
 .spot-loading-header-reserve {
@@ -328,8 +349,11 @@ div.google-img-container {
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
-  width: 60px;
-  min-width: 0;
+  // Sized to its content: a shield alone stays a plain icon button, a shield
+  // with a logo widens to fit both.
+  width: auto !important;
+  min-width: 40px;
+  padding-inline: 4px !important;
   overflow: hidden;
 
   mat-icon {
@@ -342,6 +366,7 @@ div.google-img-container {
   box-sizing: border-box;
   width: 24px;
   height: 24px;
+  padding: 3px;
   border-radius: 50%;
   object-fit: contain;
   background: var(--mat-sys-surface);
@@ -379,4 +404,111 @@ div.google-img-container {
   height: 1lh;
   border-radius: 4px;
   background: var(--mat-sys-surface-variant);
+}
+
+// Line 2 of the header: the actions float at the end and the facts flow
+// beside them, then continue at full width below. So the facts use all the
+// room next to the actions, and only what does not fit moves to line 3; the
+// actions never move down.
+.spot-header-badges {
+  display: block;
+  margin-block: 4px;
+}
+.spot-header-badges[data-collapsed] { margin-block: 0; }
+
+// The facts row can run to three lines plus the actions, so it gets more
+// room than the default collapsible limit before clipping.
+.spot-header-badges.collapsible-header-info {
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 160px);
+}
+
+// Lines are 32px; the 40px buttons overhang by 4px above and below, so their
+// float covers exactly one line and line 3 gets the full width.
+.spot-header-badges .spot-button-row {
+  float: inline-end;
+  margin-block: -4px;
+  margin-inline-start: 8px;
+}
+
+// A plain block (no flex, no new formatting context) so the facts wrap
+// around the floated actions.
+.spot-header-info {
+  display: block;
+  min-width: 0;
+  line-height: 32px;
+}
+
+// One fact (rating, type, amenities, access, place). Each fact is plain
+// inline content sized to its text (no nested flex box, whose intrinsic
+// width Chrome can under-measure), so it moves to the next line whole and
+// never squeezes its text. Only a name wider than a full line wraps, and
+// only at spaces. The trailing dot is hidden at line ends; its space stays
+// at the line end, so nothing visible moves.
+.spot-fact {
+  display: inline-block;
+  max-width: 100%;
+  line-height: 24px;
+  vertical-align: middle;
+  white-space: nowrap;
+
+  > *,
+  &::after {
+    vertical-align: middle;
+  }
+
+  &::after {
+    content: "⸱";
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+  }
+
+  &.is-line-end::after {
+    visibility: hidden;
+  }
+}
+
+// The place may wrap at spaces when it is longer than a whole line.
+.spot-locality {
+  white-space: normal;
+
+  .flag-emoji {
+    margin-inline-start: 4px;
+  }
+}
+
+.spot-fact .amenity-icon + .amenity-icon {
+  margin-inline-start: 4px;
+}
+
+.spot-iconic-mark {
+  flex-shrink: 0;
+}
+
+
+
+// The header rating is a quiet text button that jumps to the reviews.
+.header-rating-button {
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+// Jumping to reviews stops below the floating search field and chips.
+.spot-ratings-section {
+  scroll-margin-top: 152px;
 }

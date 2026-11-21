@@ -35,6 +35,19 @@ describe("ProfilePageComponent", () => {
     expect(template).toMatch(/@if \(trainingFeatureEnabled && isMyProfile\)[\s\S]*?routerLink="\/train\/log"/);
     expect(template).not.toContain("['/u', userId, 'logs']");
   });
+
+  it("shows the private Spot lists on the owner's profile whether or not follow requests are pending", () => {
+    const template = readFileSync(join(process.cwd(), "src/app/components/profile-page/profile-page.component.html"), "utf8");
+    const beforeLists = template.slice(0, template.indexOf("Your Private Spot Lists"));
+    const conditions = [...beforeLists.matchAll(/@if \(([^{]*)\) \{/g)].map((match) => match[1].trim());
+    expect(conditions.at(-1)).toBe("isMyProfile");
+  });
+  it("shows the visited Spot count only on the owner's profile", () => {
+    const template = readFileSync(join(process.cwd(), "src/app/components/profile-page/profile-page.component.html"), "utf8");
+    const beforeCount = template.slice(0, template.indexOf("user.visitedSpotsCount"));
+    const conditions = [...beforeCount.matchAll(/@if \(([^{]*)\) \{/g)].map((match) => match[1].trim());
+    expect(conditions.at(-1)).toBe("isMyProfile");
+  });
   const authState = new BehaviorSubject<{ uid: string } | null>({
     uid: "profile-user",
   });

@@ -37,6 +37,14 @@ export function relevantMapCommunities(
   communities: CommunitySearchPreview[],
   viewport: VisibleViewport,
   spots: readonly CountryEvidence[] = [],
+  options: {
+    /**
+     * Browsing communities (the Communities type or "Länder" filter) lists
+     * every country in view: one with Spots or local communities in view, or
+     * whose own centre is in view. Suggestions keep only the centre country.
+     */
+    everyCountryInView?: boolean;
+  } = {},
 ): CommunitySearchPreview[] {
   const local = communities.filter((community) => community.scope !== "country");
   const countries = communities.filter((community) => community.scope === "country");
@@ -62,6 +70,18 @@ export function relevantMapCommunities(
   const nearestEvidence = [...evidence]
     .sort((a, b) => distance(a.lat, a.lng) - distance(b.lat, b.lng))
     .find((item) => byCode(item.countryCode).length);
+
+  if (options.everyCountryInView) {
+    const codes = new Set(
+      [...(nearestEvidence ? [nearestEvidence] : []), ...evidence.filter(inView)]
+        .map((item) => item.countryCode.toUpperCase()),
+    );
+    const listed = countries.filter((community) =>
+      codes.has(community.countryCode?.toUpperCase() ?? "") ||
+      (!!community.boundsCenter &&
+        inView({ countryCode: "", lat: community.boundsCenter[0], lng: community.boundsCenter[1] })));
+    return [...local, ...listed];
+  }
 
   if (nearestEvidence) {
     if (viewport.zoom >= BORDER_ZOOM) {

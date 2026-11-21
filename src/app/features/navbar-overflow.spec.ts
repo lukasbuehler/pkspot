@@ -55,13 +55,13 @@ describe("splitNavigationOverflow", () => {
     ]);
   });
 
-  it("moves lower-priority destinations into More before physical slots run out", () => {
+  it("puts a lone overflow destination in the More slot instead of a menu", () => {
     const result = splitNavigationOverflow(
       [
         { id: "map", overflowPriority: 0 },
         { id: "train", overflowPriority: 1 },
         { id: "events", overflowPriority: 2 },
-        { id: "shop", overflowPriority: 3 },
+        { id: "about", overflowPriority: 3 },
         { id: "account", overflowPriority: 4, alwaysVisible: true },
       ],
       5,
@@ -72,9 +72,10 @@ describe("splitNavigationOverflow", () => {
       "map",
       "train",
       "events",
+      "about",
       "account",
     ]);
-    expect(result.overflow.map((item) => item.id)).toEqual(["shop"]);
+    expect(result.overflow).toEqual([]);
   });
 
   it("keeps About available in More after the core compact destinations", () => {

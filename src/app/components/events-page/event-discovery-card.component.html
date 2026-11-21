@@ -8,8 +8,9 @@
     class="event-card"
     [attr.data-status]="status()"
     [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
+    [class.no-cover]="!imageSrc()"
   >
-    <div class="image-wrap">
+    <div class="image-wrap" [class.is-fallback]="!imageSrc()">
       @if (seriesBadges().length > 0) {
         <div class="series-badges" aria-label="Event series" i18n-aria-label>
           @for (series of seriesBadges(); track series.id) {
@@ -21,7 +22,7 @@
               @if (series.logoSrc) {
                 <img [src]="series.logoSrc" alt="" />
               } @else {
-                <span>{{ series.label.slice(0, 3) }}</span>
+                <span>{{ series.initials }}</span>
               }
             </span>
           }
@@ -48,6 +49,10 @@
           [src]="null"
           variant="event"
           [label]="event().name"
+          [dateDay]="coverDate()?.day ?? null"
+          [dateMonth]="coverDate()?.month ?? null"
+          [icon]="coverIcon()"
+          [tone]="event().listingTier === 'community' ? 'neutral' : 'primary'"
         />
       }
     </div>
@@ -55,18 +60,18 @@
     <mat-card-header>
       <mat-card-title>
         <span class="title-line mat-title-medium">
-          <span class="text-truncate">{{ event().name }}</span>
+          <span class="title-text">{{ event().name }}</span>
           @if (event().isSponsored) {
             <mat-icon inline title="Promoted event" i18n-title>handshake</mat-icon>
           }
         </span>
       </mat-card-title>
       <mat-card-subtitle>
-        @if (communityLabel(); as label) {
-          <span class="listing-badge community">{{ label }}</span>
-        }
         @if (event().lifecycleStatus === "cancelled") {
           <span class="cancelled-label" i18n>Cancelled</span>
+        }
+        @if (liveLabel(); as label) {
+          <span class="live-label">{{ label }}</span>
         }
         @if (dataIssue(); as issue) {
           <span class="data-issue">
@@ -78,6 +83,8 @@
         }
       </mat-card-subtitle>
     </mat-card-header>
+
+    <app-event-host-line class="host-line" [event]="event()" />
 
     <mat-card-content>
       <p class="venue mat-body-medium">

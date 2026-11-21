@@ -59,35 +59,47 @@
   color: var(--mat-sys-primary);
 }
 
-.rsvp-menu-button {
-  width: auto;
+.rsvp-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
   max-width: 100%;
-  color: var(--mat-sys-on-surface);
+}
+
+.rsvp-action {
   white-space: nowrap;
 }
 
-.rsvp-menu-button mat-icon {
-  color: inherit;
+// Going uses green, like the "going" counts; Interested uses the primary
+// filled button when chosen.
+.rsvp-action[data-rsvp="going"].is-active {
+  --mat-button-outlined-outline-color: var(--mat-sys-secondary);
+  --mat-button-outlined-label-text-color: var(--mat-sys-on-secondary-container);
+  --mat-button-outlined-icon-color: var(--mat-sys-on-secondary-container);
+
+  background: var(--mat-sys-secondary-container);
 }
 
-.rsvp-menu-button[data-rsvp="going"] {
-  border-color: var(--mat-sys-secondary);
-  color: var(--mat-sys-secondary);
-}
-
-.rsvp-menu-button[data-rsvp="interested"] {
-  border-color: var(--mat-sys-primary);
-  color: var(--mat-sys-primary);
-}
-
-.rsvp-menu-button strong {
-  color: inherit;
-  font-weight: 700;
-}
-
+// Tonal error card, like the app's other semantic status cards.
 .rsvp-error {
-  margin: 0;
-  color: var(--mat-sys-error);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid var(--app-notice-outline);
+  border-radius: 18px;
+  color: var(--app-notice-text);
+  background: var(--app-notice-background);
+
+  mat-icon {
+    flex: 0 0 auto;
+    color: var(--mat-sys-error);
+  }
+}
+
+.rsvp-error__text {
+  flex: 1 1 12rem;
 }
 
 .rsvp-disclaimer-help mat-icon {
@@ -132,7 +144,7 @@
 
   .rsvp-count-number,
   .rsvp-disclaimer-help,
-  .rsvp-menu-button {
+  .rsvp-actions {
     flex: 0 0 auto;
   }
 

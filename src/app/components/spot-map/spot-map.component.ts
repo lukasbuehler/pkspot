@@ -1354,6 +1354,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /** Whether the open editor holds changes that leaving would throw away. */
+  hasUnsavedEdit(): boolean {
+    const spot = this.selectedSpot();
+    if (!this.isEditing() || !spot) return false;
+    if (!this.uneditedSpot) return true;
+    return JSON.stringify(spot.data()) !== JSON.stringify(this.uneditedSpot.data());
+  }
+
   async saveSpot(spot: LocalSpot | Spot) {
     if (this.isSavingSpot()) {
       if (spot instanceof LocalSpot && !(spot instanceof Spot)) {

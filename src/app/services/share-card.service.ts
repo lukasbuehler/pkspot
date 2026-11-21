@@ -111,14 +111,42 @@ export class ShareCardService {
   }
 
   private async copyLink(url: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(url);
+    if (await this.writeToClipboard(url)) {
       this.snackbar.open($localize`:@@share_card.copied:Link copied.`, undefined, { duration: 3000 });
       this.telemetry.outcome("share-card", "open-share-sheet-or-copy", true);
-    } catch (error) {
-      this.telemetry.failure("share-card", "share-link", error);
-      this.snackbar.open($localize`:@@share_card.failed:Couldn't share the link. Please try again.`, undefined, { duration: 5000 });
+    } else {
+      this.telemetry.failure("share-card", "share-link", new Error("Clipboard unavailable"));
+      this.showLinkToCopy(url);
     }
+  }
+
+  /**
+   * Copies text with the Clipboard API, falling back to a selected text field
+   * for browsers that block or lack it. Returns whether either way worked.
+   */
+  private async writeToClipboard(text: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const field = document.createElement("textarea");
+      field.value = text;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      try { return document.execCommand("copy"); } catch { return false; } finally { field.remove(); }
+    }
+  }
+
+  /** Last resort: show the link itself so people can copy it by hand. */
+  private showLinkToCopy(url: string): void {
+    this.snackbar.open(
+      $localize`:@@share_card.copy_manually:Copy this link: ${url}:url:`,
+      $localize`:@@share_card.copy_manually.dismiss:OK`,
+      { duration: 15000 },
+    );
   }
 
   /** Opens the platform share UI; returns false when cancelled or failed. */
@@ -139,18 +167,25 @@ export class ShareCardService {
           const { Share } = await import("@capacitor/share");
           await Share.share({ url, title });
         }
-      } else if (navigator.share) await navigator.share({ url, title });
-      else {
-        await navigator.clipboard.writeText(url);
-        this.snackbar.open($localize`:@@share_card.copied:Link copied.`, undefined, { duration: 3000 });
+      } else if (navigator.share && (!navigator.canShare || navigator.canShare({ url, title }))) {
+        await navigator.share({ url, title });
+      } else {
+        await this.copyLink(url);
+        return true;
       }
       this.telemetry.outcome("share-card", "open-share-sheet-or-copy", true);
       return true;
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return false;
       this.telemetry.failure("share-card", "share-link", error);
-      this.snackbar.open($localize`:@@share_card.failed:Couldn't share the link. Please try again.`, undefined, { duration: 5000 });
-      return false;
+      if (Capacitor.isNativePlatform()) {
+        this.snackbar.open($localize`:@@share_card.failed:Couldn't share the link. Please try again.`, undefined, { duration: 5000 });
+        return false;
+      }
+      // A browser can refuse its share sheet (no permission, no target app);
+      // the link still has to reach the person, so copy it instead.
+      await this.copyLink(url);
+      return true;
     }
   }
 

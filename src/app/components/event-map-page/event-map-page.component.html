@@ -26,16 +26,6 @@
           class="flex-grow-1 d-flex justify-content-start align-items-center gap-5 min-w-0"
         >
           <h2 class="mat-heading-large m-0 text-truncate">{{ name() }}</h2>
-          @if (responsive.isDesktop()) {
-            <p
-              class="mat-body-medium m-0 flex-grow-1 event-map-description"
-              style="flex-basis: 0"
-              i18n="@@event_map_page.description"
-            >
-              This is an interactive map of the event area. Click on blue spots
-              or other pins to see more information.
-            </p>
-          }
         </div>
         @if (!isEmbedded) {
           <div class="d-flex flex-row gap-2 flex-shrink-0">
@@ -83,6 +73,17 @@
         [event]="event()!"
         [showVenue]="false"
       ></app-event-summary-meta>
+      <!-- A hint under the event's details, not beside the title, so it reads
+           as help rather than as part of the heading. -->
+      @if (responsive.isDesktop()) {
+        <p
+          class="mat-body-medium m-0 event-map-description"
+          i18n="@@event_map_page.description"
+        >
+          This is an interactive map of the event area. Click on blue spots
+          or other pins to see more information.
+        </p>
+      }
       @if (event()?.lifecycleStatus === "cancelled") {
         <aside class="event-map-cancellation" role="status">
           <span class="event-map-cancellation__icon" aria-hidden="true">
@@ -99,15 +100,6 @@
     </div>
 
     <mat-menu #menu="matMenu">
-      @if (event()?.id === "swissjam25") {
-        <a
-          href="https://results.vertical-life.info/event/288/"
-          target="_blank"
-          mat-menu-item
-        >
-          <mat-icon>checklist</mat-icon><span i18n>Smart Scorecard</span></a
-        >
-      }
       @if (eventLocationMarker(); as marker) {
         <button
           mat-menu-item
@@ -160,12 +152,12 @@
         >
           <app-filter-chips-bar
             class="d-block p-3 w-100"
-            [selectedFilter]="tab()"
+            [selectedFilter]="selectedTabChip()"
             [presetFilters]="mapObjectFilterChips()"
             [showFiltersChip]="false"
             [showClearChip]="false"
-            [allowDeselect]="false"
-            ariaLabel="Event map object type"
+            [showDeselectIcon]="true"
+            [ariaLabel]="objectTypeLabel"
             appearance="solid"
             (filterChange)="selectTab($event)"
           ></app-filter-chips-bar>
@@ -193,7 +185,7 @@
                           ></app-marker>
                           <span class="custom-marker-row-copy">
                             <span class="text-truncate">{{
-                              marker.name || "Event marker"
+                              marker.name || eventMarkerFallbackName
                             }}</span>
                             @if (marker.locality || marker.description) {
                               <span class="mat-label-small text-truncate">
@@ -292,7 +284,7 @@
                           class="d-flex flex-column justify-content-start gap-1 min-w-0"
                         >
                           <h3 class="mat-title-medium m-0 text-truncate">
-                            {{ marker.name || "Event marker" }}
+                            {{ marker.name || eventMarkerFallbackName }}
                           </h3>
                           @if (marker.locality) {
                             <p class="mat-label-large m-0 custom-marker-locality text-truncate">
@@ -362,6 +354,7 @@
                       @if (selectedCustomMarkerMedia().length > 0) {
                         <app-img-carousel
                           [media]="selectedCustomMarkerMedia()"
+                          [imageDescription]="marker.name || name()"
                           reportContext="event"
                           [reportTargetId]="event()?.id"
                         ></app-img-carousel>
@@ -402,7 +395,7 @@
                         ></app-marker>
                         <span class="custom-marker-row-copy">
                           <span class="text-truncate">{{
-                            marker.name || "Event marker"
+                            marker.name || eventMarkerFallbackName
                           }}</span>
                           @if (marker.locality || marker.description) {
                             <span class="mat-label-small text-truncate">
@@ -483,6 +476,16 @@
         style="border-radius: 16px"
         [class.no-rounding]="isCompactView"
       >
+        @if (!mapReady()) {
+          <div class="event-map-loading" role="status">
+            <mat-progress-spinner
+              mode="indeterminate"
+              diameter="40"
+              aria-hidden="true"
+            ></mat-progress-spinner>
+            <span class="mat-body-medium">{{ mapLoadingLabel }}</span>
+          </div>
+        }
         @defer {
           @if (bounds()) {
             <app-google-map-2d

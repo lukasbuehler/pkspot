@@ -8,9 +8,9 @@
     </p>
   }
   <div class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3">
-    <div class="rounded bg-black" style="width: 200px; height: 200px; position: relative">
+    <div class="media-report-preview rounded bg-black">
       @if (getPreviewSrc(dialogData.media)) {
-        <img [ngSrc]="getPreviewSrc(dialogData.media)!" alt="Image to report" style="object-fit: contain" priority fill />
+        <img [ngSrc]="getPreviewSrc(dialogData.media)!" alt="Image to report" i18n-alt="@@media_report.preview_alt" style="object-fit: contain" priority fill />
       } @else if (getVideoPreviewSrc(dialogData.media)) {
         <video [src]="getVideoPreviewSrc(dialogData.media)!" muted playsinline style="width: 100%; height: 100%; object-fit: contain"></video>
       }
@@ -47,6 +47,9 @@
         <span class="mat-body-large">Other</span>
       </mat-checkbox>
     </div>
+    @if (selectedReasons().length === 0) {
+      <p class="mat-body-small text-secondary" i18n="@@report.choose_reason_hint">Choose at least one reason to send the report.</p>
+    }
 
     @if (isReasonSelected('duplicate')) {
       <mat-form-field class="w-100" appearance="outline">
@@ -55,11 +58,17 @@
       </mat-form-field>
     }
 
-    <mat-form-field class="w-100" appearance="outline">
-      <mat-label i18n="report comment label">More details (optional)</mat-label>
+    <mat-form-field class="w-100" appearance="outline" subscriptSizing="dynamic">
+      <!-- "Other" needs a description, so the field says so as soon as it is
+           chosen; a mat-error would only show once the field was touched. -->
+      @if (isReasonSelected('other')) {
+        <mat-label i18n="@@media_report.details_required">Details (required for Other)</mat-label>
+      } @else {
+        <mat-label i18n="report comment label">More details (optional)</mat-label>
+      }
       <textarea matInput rows="3" maxlength="2000" formControlName="comment"></textarea>
       @if (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim()) {
-        <mat-error i18n>Please add details when selecting Other.</mat-error>
+        <mat-hint i18n>Please add details when selecting Other.</mat-hint>
       }
     </mat-form-field>
 
@@ -87,8 +96,8 @@
     <button matButton="text" color="warn" [disabled]="isSubmitting()" (click)="withdrawReport()" i18n>Withdraw report</button>
   } @else { <span></span> }
   <div class="d-flex gap-2">
-    <button matButton="outlined" [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">Cancel</button>
-    <button matButton="filled" color="warn" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim())">
+    <button matButton [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">Cancel</button>
+    <button matButton="filled" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim())">
       @if (isSubmitting()) {
         <span i18n="submitting label">Saving...</span>
       } @else if (ownReport()) {

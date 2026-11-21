@@ -6,8 +6,39 @@
     aria-hidden="true"
   />
 }
-@if(showLabel()) {
-  @if(label(); as customLabel) {
+@if (variant() === "spot" && !src() && !loading()) {
+  <!-- Designed missing-photo state: a quiet tile that invites a first photo. -->
+  <div class="placeholder-art">
+    <span class="placeholder-art__icon" aria-hidden="true">
+      <mat-icon>add_photo_alternate</mat-icon>
+    </span>
+    @if (showLabel()) {
+      @if (label(); as customLabel) {
+        <span class="placeholder-art__label">{{ customLabel }}</span>
+      } @else {
+        <span
+          class="placeholder-art__label"
+          i18n="No media placeholder label shown on spot preview cards@@spot-edit-summary.row.media.none"
+        >
+          No media
+        </span>
+      }
+    }
+  </div>
+} @else if (variant() === "event" && dateDay()) {
+  <!-- Event cover without an image: a type-tinted gradient, the type icon as a
+       large watermark, and a calendar tile in the corner. -->
+  <div class="event-cover" aria-hidden="true">
+    @if (icon(); as iconName) {
+      <mat-icon class="event-cover__watermark">{{ iconName }}</mat-icon>
+    }
+    <span class="event-cover__date">
+      <span class="event-cover__month">{{ dateMonth() }}</span>
+      <span class="event-cover__day">{{ dateDay() }}</span>
+    </span>
+  </div>
+} @else if (showLabel() && !loading()) {
+  @if (label(); as customLabel) {
     <span class="placeholder-label">{{ customLabel }}</span>
   } @else {
     <span

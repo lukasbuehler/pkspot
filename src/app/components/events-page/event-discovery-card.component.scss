@@ -36,6 +36,57 @@
   height: 200px;
 }
 
+// In a grid every cover has the same height, so titles line up across a row.
+// Phones list one card per row: there an event without a photo becomes a row
+// with a narrow date strip on the left, so empty artwork no longer takes more
+// room than the event's details.
+@media (max-width: 599.98px) {
+  .event-card.no-cover {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .event-card.no-cover > * {
+    grid-column: 2;
+  }
+
+  .event-card.no-cover > .image-wrap {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    height: auto;
+    min-height: 120px;
+  }
+
+  // Room for the date tile at the top and the series badge at the bottom.
+  .event-card.no-cover > .image-wrap:has(.series-badges) {
+    min-height: 144px;
+  }
+
+  .no-cover .image-wrap ::ng-deep .event-cover__watermark {
+    display: none;
+  }
+
+  .no-cover .image-wrap ::ng-deep .event-cover__date {
+    top: 14px;
+    bottom: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .no-cover .series-badges {
+    top: auto;
+    right: auto;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .no-cover mat-card-header {
+    padding-top: 0.875rem;
+  }
+}
+
 .banner-frame {
   position: absolute;
   inset: 0;
@@ -52,10 +103,12 @@
   object-fit: contain;
 }
 
+// Top right: the date tile owns the bottom-left corner and grows with large
+// text, so the two never meet.
 .series-badges {
   position: absolute;
   top: 0.65rem;
-  left: 0.65rem;
+  right: 0.65rem;
   z-index: 1;
   display: flex;
   gap: 0.4rem;
@@ -63,8 +116,9 @@
 
 .series-badge {
   display: grid;
-  width: 34px;
-  height: 34px;
+  // In rem so the circle grows with the initials at large text sizes.
+  width: 2.125rem;
+  height: 2.125rem;
   place-items: center;
   overflow: hidden;
   border: 1px solid var(--mat-sys-outline);
@@ -81,7 +135,25 @@
 }
 
 mat-card-header {
+  min-width: 0;
   padding-top: 0.75rem;
+}
+
+// Material's header text block does not shrink by default, so long titles and
+// dates ran past the card edge at large text sizes. Let it shrink and wrap.
+mat-card-header ::ng-deep .mat-mdc-card-header-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+// Two lines for the name, then an ellipsis; long single words break.
+.title-text {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .title-line {
@@ -99,6 +171,7 @@ mat-card-header {
 mat-card-subtitle {
   display: flex;
   flex-direction: column;
+  overflow-wrap: anywhere;
 }
 
 .cancelled-label,
@@ -106,22 +179,10 @@ mat-card-subtitle {
   color: var(--mat-sys-error);
 }
 
-.listing-badge {
-  align-self: flex-start;
-  margin-bottom: 0.35rem;
-  padding: 0.18rem 0.45rem;
-  border: 1px solid var(--mat-sys-primary);
-  border-radius: 999px;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  font: var(--mat-sys-label-small);
-  font-weight: 700;
-}
-
-.listing-badge.community {
-  border-color: var(--mat-sys-tertiary);
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
+// Who hosts the event, between the title block and the venue.
+.host-line {
+  padding-inline: 16px;
+  margin-block: 2px 4px;
 }
 
 .data-issue {
@@ -140,6 +201,12 @@ mat-card-subtitle {
 .venue {
   margin: 0 0 0.75rem;
   color: var(--mat-sys-on-surface-variant);
+}
+
+// Green is the live accent: only events happening right now get it.
+.live-label {
+  display: block;
+  color: var(--mat-sys-secondary);
 }
 
 .event-card[data-status="past"] {

@@ -84,13 +84,12 @@
               <span class="mat-body-small">{{ alert.activeUntil }}</span>
             }
             @if (alert.hasDetails) {
-              <details>
-                <summary
-                  class="mat-label-large"
-                  i18n="@@weather.alert.safety_details"
-                >
-                  Safety information
-                </summary>
+              <mat-expansion-panel class="alert-details">
+                <mat-expansion-panel-header>
+                  <mat-panel-title i18n="@@weather.alert.safety_details">
+                    Safety information
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
                 @if (alert.description) {
                   <p class="mat-body-small">{{ alert.description }}</p>
                 }
@@ -111,7 +110,7 @@
                 ) {
                   <p class="mat-body-small">{{ instruction }}</p>
                 }
-              </details>
+              </mat-expansion-panel>
             }
             <a
               class="public-alert-source mat-label-medium"

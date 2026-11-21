@@ -1,12 +1,12 @@
 <div class="account-page keyboard-padding">
   <div class="language-strip">
-    <button type="button" mat-stroked-button routerLink="/about">
+    <button type="button" mat-button routerLink="/about">
       <mat-icon>info</mat-icon>
       <span i18n="account about top button@@account.about.top_button"
         >About Us</span
       >
     </button>
-    <button type="button" mat-stroked-button routerLink="/support"><mat-icon>help</mat-icon><span i18n>Support</span></button>
+    <button type="button" mat-button routerLink="/support"><mat-icon>help</mat-icon><span i18n>Support</span></button>
     <div class="flex-grow-1"></div>
 
     <button
@@ -26,20 +26,14 @@
   </div>
 
   <div class="account-grid">
-    <section class="account-panel auth-panel">
-      <p
-        class="mat-label-large section-kicker"
-        i18n="account auth kicker@@account.auth.kicker"
-      >
-        Sign in
-      </p>
+    <section class="auth-card auth-panel">
       <h2
         class="mat-headline-small"
         i18n="
           account auth title|Heading for account auth
           section@@account.auth.title"
       >
-        Sign in or create an account
+        Sign in to PK Spot
       </h2>
 
       <app-oauth-sign-in-buttons
@@ -50,7 +44,7 @@
         (error)="onOAuthError($event)"
       ></app-oauth-sign-in-buttons>
 
-      <div class="divider-row">
+      <div class="auth-divider">
         <mat-divider class="flex-grow-1"></mat-divider>
         <span class="mat-label-medium" i18n="@@signin.divider_or">or</span>
         <mat-divider class="flex-grow-1"></mat-divider>
@@ -64,7 +58,7 @@
           (ngSubmit)="trySignIn(signInForm.value)"
         >
           <mat-form-field appearance="outline">
-            <mat-label>E-Mail</mat-label>
+            <mat-label i18n="@@auth.email.label">Email address</mat-label>
             <input
               matInput
               type="email"
@@ -72,13 +66,22 @@
               autocomplete="email"
               appAutoScrollOnFocus
             />
-            @if (emailFieldHasError) {
+            <!-- Keep one flat @if chain: a nested block stops Material from
+                 projecting mat-error below the field, so it rendered inside. -->
+            @if (
+              emailFieldHasError &&
+              signInForm.controls["email"].hasError("required")
+            ) {
+              <mat-error i18n="@@signin.email.required">
+                Enter your e-mail address.
+              </mat-error>
+            } @else if (emailFieldHasError) {
               <mat-error
                 i18n="
                   email validation error|Error message for invalid
                   email@@signin.email.validation_error"
               >
-                This E-Mail address is not valid!
+                Enter a valid e-mail address.
               </mat-error>
             }
           </mat-form-field>
@@ -86,18 +89,28 @@
             <mat-label i18n>Password</mat-label>
             <input
               matInput
-              type="password"
+              [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
               autocomplete="current-password"
               appAutoScrollOnFocus
             />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? hidePasswordLabel : showPasswordLabel"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <mat-icon>{{ showPassword() ? "visibility_off" : "visibility" }}</mat-icon>
+            </button>
             @if (passwordFieldHasError) {
               <mat-error
                 i18n="
                   password validation error|Error message for empty
                   password@@signin.password.validation_error"
               >
-                The password field is empty!
+                Enter your password.
               </mat-error>
             }
           </mat-form-field>
@@ -107,6 +120,17 @@
               {{ signInError() }}
             </div>
           }
+
+          <!-- Recovery is a quiet link under the password; sign-in is the one primary action. -->
+          <a mat-button class="forgot-link" routerLink="/forgot-password">
+            <span
+              i18n="
+                forgot password button|Button to reset
+                password@@signin.forgot_password.button"
+            >
+              Forgot password
+            </span>
+          </a>
 
           <div class="auth-actions">
             <button
@@ -122,29 +146,18 @@
               </span>
               <mat-spinner progressIndicator diameter="20" strokeWidth="3" />
             </button>
-            <a mat-stroked-button routerLink="/forgot-password">
-              <mat-icon>lock_reset</mat-icon>
-              <span
-                i18n="
-                  forgot password button|Button to reset
-                  password@@signin.forgot_password.button"
-              >
-                Forgot password
-              </span>
-            </a>
-            <a
-              mat-stroked-button
-              routerLink="/sign-up"
-              queryParamsHandling="preserve"
-            >
-              <mat-icon>person_add</mat-icon>
+          </div>
+
+          <p class="auth-switch mat-body-medium">
+            <span i18n="@@signin.new_here">New to PK Spot?</span>
+            <a routerLink="/sign-up" queryParamsHandling="preserve">
               <span
                 i18n="sign up button|Button to sign up@@signin.signup.button"
               >
                 Create account
               </span>
             </a>
-          </div>
+          </p>
         </form>
       }
 
@@ -168,7 +181,7 @@
       }
     </section>
 
-    <section class="account-panel benefits-panel">
+    <section class="auth-card benefits-panel">
       <p
         class="mat-label-large section-kicker"
         i18n="account benefits kicker@@account.benefits.kicker"

@@ -12,16 +12,24 @@ import { DateTimeFormatService } from "../../services/date-time-format.service";
 import type { EventDiscoveryItem } from "../../services/search.service";
 import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
 import { EventCalendarThumbnailComponent } from "./event-calendar-thumbnail.component";
+import { EventHostLineComponent } from "../event-host-line/event-host-line.component";
 
 @Component({
   selector: "app-event-calendar-item",
-  imports: [MatIconModule, RouterLink, EventCalendarThumbnailComponent],
+  imports: [
+    MatIconModule,
+    RouterLink,
+    EventCalendarThumbnailComponent,
+    EventHostLineComponent,
+  ],
   templateUrl: "./event-calendar-item.component.html",
   styleUrl: "./event-calendar-item.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "[style.grid-column]": "gridColumn()",
     "[style.grid-row]": "gridRow()",
+    "[class.is-compact]": "compact()",
+    "[attr.aria-hidden]": "compact() ? 'true' : null",
   },
 })
 export class EventCalendarItemComponent {
@@ -35,17 +43,25 @@ export class EventCalendarItemComponent {
   readonly nowSeconds = input.required<number>();
   readonly continuesBefore = input(false);
   readonly continuesAfter = input(false);
+  /**
+   * A thin bar for narrow calendars: name only, no thumbnail or counts. It is
+   * decorative there; tapping passes through to the day, whose agenda lists
+   * the events with full names, and the day cell carries the spoken summary.
+   */
+  readonly compact = input(false);
 
   readonly gridColumn = computed(
     () => `${this.startColumn()} / span ${this.span()}`,
   );
   readonly gridRow = computed(() => String(this.lane() + 2));
+  readonly isCommunity = computed(
+    () => this.event().listingTier === "community",
+  );
   readonly route = computed(() => [
     "/events",
     this.event().slug ?? this.event().id,
   ]);
   readonly isLive = computed(() => {
-    if (this.event().timing?.mode === "date_only") return false;
     const now = this.nowSeconds();
     return now >= this.event().startSeconds && now <= this.event().endSeconds;
   });
@@ -66,11 +82,6 @@ export class EventCalendarItemComponent {
           });
     return eventDiscoveryAccessibleLabel(event, date);
   });
-  readonly communityLabel = computed(() =>
-    this.event().listingTier === "community"
-      ? $localize`Community event`
-      : null,
-  );
 
   trackClick(): void {
     const event = this.event();

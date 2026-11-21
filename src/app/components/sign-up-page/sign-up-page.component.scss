@@ -1,8 +1,26 @@
-.oauth-buttons {
-  button {
-    margin-left: 5px;
-    margin-right: 5px;
-  }
+.social-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+// Long consent text starts beside the checkbox, not centred on it.
+.consent-check ::ng-deep .mdc-form-field {
+  align-items: flex-start;
+}
+
+// A required agreement that was skipped shows the error colour on its box.
+.consent-check--invalid {
+  --mat-checkbox-unselected-icon-color: var(--mat-sys-error);
+  --mat-checkbox-unselected-hover-icon-color: var(--mat-sys-error);
+  --mat-checkbox-unselected-focus-icon-color: var(--mat-sys-error);
+}
+
+// Matches a Material field error: small, error colour, aligned with the label.
+.consent-error {
+  min-height: 0;
+  margin: 0 0 0 40px;
+  color: var(--mat-sys-error);
 }
 
 .alert.alert-danger {

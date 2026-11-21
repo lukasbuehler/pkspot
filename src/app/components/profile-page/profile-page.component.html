@@ -241,33 +241,30 @@
                             >Following</span
                           >
                         </button>
-                        <div class="profile-stat">
-                          <span class="profile-stat__value mat-headline-small">
-                            <app-fancy-counter
-                              [number]="totalContributions"
-                            ></app-fancy-counter>
-                          </span>
-                          <span
-                            class="profile-stat__label mat-body-small"
-                            i18n="@@profile.stats.contributions"
-                            >Contributions</span
+                        <!-- Check-ins are private: only the owner sees how many Spots they visited,
+                             and the count opens their private visited list. -->
+                        @if (isMyProfile) {
+                          <button
+                            type="button"
+                            class="profile-stat clickable-stat"
+                            matRipple
+                            (click)="openPrivateSpotListsDialog('visited')"
                           >
-                        </div>
-                        <div class="profile-stat">
-                          <span class="profile-stat__value mat-headline-small">
-                            <app-fancy-counter
-                              [number]="user.visitedSpotsCount || 0"
-                            ></app-fancy-counter>
-                          </span>
-                          <span
-                            class="profile-stat__label mat-body-small"
-                            i18n="@@profile.stats.visited"
-                            >{user.visitedSpotsCount, plural,
-                              =1 {Spot visited}
-                              other {Spots visited}
-                            }</span
-                          >
-                        </div>
+                            <span class="profile-stat__value mat-headline-small">
+                              <app-fancy-counter
+                                [number]="user.visitedSpotsCount || 0"
+                              ></app-fancy-counter>
+                            </span>
+                            <span
+                              class="profile-stat__label mat-body-small"
+                              i18n="@@profile.stats.visited"
+                              >{user.visitedSpotsCount, plural,
+                                =1 {Spot visited}
+                                other {Spots visited}
+                              }</span
+                            >
+                          </button>
+                        }
                       </div>
                     }
 
@@ -317,6 +314,11 @@
               <a mat-menu-item routerLink="/support">
                 <mat-icon>help</mat-icon>
                 <span i18n>Support</span>
+              </a>
+              <!-- On phones the bottom bar shows notifications instead of About. -->
+              <a mat-menu-item routerLink="/about">
+                <mat-icon>info</mat-icon>
+                <span i18n="@@profile.menu.about">About PK Spot</span>
               </a>
               <button mat-menu-item (click)="logOut()">
                 <mat-icon>logout</mat-icon>
@@ -369,39 +371,48 @@
                     </span>
                   </button>
                 }
+                <!-- Blocking and reporting are rare and protective, so
+                     they sit in a menu instead of next to Follow. -->
                 <button
-                  mat-stroked-button
-                  color="warn"
-                  class="profile-overview__action"
-                  (click)="toggleBlockUser()"
+                  mat-icon-button
+                  class="profile-overview__more"
+                  [matMenuTriggerFor]="otherProfileMenu"
+                  aria-label="More actions for this profile"
+                  i18n-aria-label="@@profile.actions.more"
                 >
-                  @if (isBlocked) {
-                    <span i18n="@@profile.actions.unblock">Unblock</span>
-                  } @else {
-                    <span i18n="@@profile.actions.block">Block</span>
-                  }
+                  <mat-icon>more_vert</mat-icon>
                 </button>
-                <button
-                  mat-stroked-button
-                  color="warn"
-                  class="profile-overview__action"
-                  (click)="openProfileReportDialog()"
-                >
-                  <mat-icon>report</mat-icon>
-                  <span i18n="@@profile.actions.report">Report</span>
-                </button>
+                <mat-menu #otherProfileMenu="matMenu" xPosition="before">
+                  <button mat-menu-item (click)="toggleBlockUser()">
+                    <mat-icon>block</mat-icon>
+                    @if (isBlocked) {
+                      <span i18n="@@profile.actions.unblock">Unblock</span>
+                    } @else {
+                      <span i18n="@@profile.actions.block">Block</span>
+                    }
+                  </button>
+                  <button mat-menu-item (click)="openProfileReportDialog()">
+                    <mat-icon>flag</mat-icon>
+                    <span i18n="@@profile.actions.report">Report</span>
+                  </button>
+                </mat-menu>
               </div>
             }
 
-            <!-- saved and visited spots -->
-            @if (isMyProfile) {
+            <!-- Follow requests: shown only while there is something to
+                 decide, or loading it failed; an empty card only pushed the
+                 saved Spot lists down. -->
+            @if (
+              isMyProfile &&
+              (followRequestsLoadFailed || followRequests.length > 0)
+            ) {
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
-                  <mat-card-title class="mat-title-small" i18n>
+                  <mat-card-title role="heading" aria-level="2" class="mat-title-small" i18n>
                     Follow requests
                   </mat-card-title>
-                  <mat-card-subtitle class="mat-body-small text-muted" i18n>
-                    Private accounts can approve who follows them.
+                  <mat-card-subtitle class="mat-body-small text-muted" i18n="@@profile.follow_requests.subtitle">
+                    You decide who follows you.
                   </mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content class="profile-section__content">
@@ -410,12 +421,22 @@
                       <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
                     </div>
                   } @else if (followRequestsLoadFailed) {
-                    <div class="profile-section__load-error">
+                    <div class="profile-section__load-error" role="alert">
+                      <span class="profile-section__load-error-icon" aria-hidden="true">
+                        <mat-icon>error</mat-icon>
+                      </span>
                       <p
-                        class="profile-section__placeholder mat-body-medium"
-                        i18n
+                        class="profile-section__load-error-text mat-body-medium"
                       >
-                        Unable to process this request. Please try again later.
+                        @if (followRequestsRetryFailed) {
+                          <span i18n="@@profile.load_error.retry_failed">
+                            Still unable to load this. Check your connection and try again.
+                          </span>
+                        } @else {
+                          <span i18n="@@profile.load_error.follow_requests">
+                            Follow requests could not be loaded.
+                          </span>
+                        }
                       </p>
                       <button
                         mat-stroked-button
@@ -505,20 +526,17 @@
                         </div>
                       }
                     </div>
-                  } @else {
-                    <p
-                      class="profile-section__placeholder mat-body-medium"
-                      i18n
-                    >
-                      No pending follow requests.
-                    </p>
                   }
                 </mat-card-content>
               </mat-card>
+            }
 
+            <!-- Saved and visited Spots: private lists, always on your own
+                 profile. -->
+            @if (isMyProfile) {
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
-                  <mat-card-title class="mat-title-small" i18n>
+                  <mat-card-title role="heading" aria-level="2" class="mat-title-small" i18n>
                     Your Private Spot Lists
                   </mat-card-title>
                   <mat-card-subtitle class="mat-body-small text-muted" i18n
@@ -531,12 +549,22 @@
                       <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
                     </div>
                   } @else if (privateDataLoadFailed) {
-                    <div class="profile-section__load-error">
+                    <div class="profile-section__load-error" role="alert">
+                      <span class="profile-section__load-error-icon" aria-hidden="true">
+                        <mat-icon>error</mat-icon>
+                      </span>
                       <p
-                        class="profile-section__placeholder mat-body-medium"
-                        i18n
+                        class="profile-section__load-error-text mat-body-medium"
                       >
-                        Unable to process this request. Please try again later.
+                        @if (privateDataRetryFailed) {
+                          <span i18n="@@profile.load_error.retry_failed">
+                            Still unable to load this. Check your connection and try again.
+                          </span>
+                        } @else {
+                          <span i18n="@@profile.load_error.private_lists">
+                            Your saved and visited Spots could not be loaded.
+                          </span>
+                        }
                       </p>
                       <button
                         mat-stroked-button
@@ -599,11 +627,12 @@
           <section
             class="profile-secondary"
             aria-label="Additional profile details"
+            i18n-aria-label="@@profile.secondary_region"
           >
             @if (badges.length > 0) {
               <mat-card class="profile-section mat-elevation-z1">
                 <mat-card-header class="profile-section__header">
-                  <mat-card-title i18n class="mat-title-small"
+                  <mat-card-title role="heading" aria-level="2" i18n class="mat-title-small"
                     >Badges</mat-card-title
                   >
                 </mat-card-header>

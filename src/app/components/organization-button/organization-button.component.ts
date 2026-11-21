@@ -8,13 +8,14 @@ import {
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { RouterLink } from "@angular/router";
 import { OrganizationReferenceSchema } from "../../../db/schemas/OrganizationSchema";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 
 @Component({
   selector: "app-organization-button",
-  imports: [RouterLink, MatButtonModule, MatIconModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule],
   templateUrl: "./organization-button.component.html",
   styleUrl: "./organization-button.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +24,8 @@ export class OrganizationButtonComponent {
   private readonly organizationsService = inject(OrganizationsService);
 
   readonly organization = input.required<OrganizationReferenceSchema>();
+  /** Shows a verified mark inside the pill, after the name. */
+  readonly verified = input(false);
 
   readonly organizationResource = resource({
     params: () => this.organization().id,

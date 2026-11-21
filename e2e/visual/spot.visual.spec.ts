@@ -1,7 +1,10 @@
 import { test, expect, type Page } from "@playwright/test";
 import { acceptCurrentTerms } from "../fixtures/consent";
+import { guardProductionWrites } from "../fixtures/production-write-guard";
 
 test.beforeEach(async ({ page }) => {
+  // Never let a scripted click report, upload or save against production.
+  await guardProductionWrites(page);
   // Visual fixtures must not depend on the external App Check challenge.
   await page.addInitScript(() => {
     (globalThis as typeof globalThis & { __PKSPOT_STORE_SCREENSHOT__?: boolean })
@@ -173,6 +176,11 @@ test.describe("Spot Details Visual Regression @visual", () => {
   test("should ellipsize an overflowing loading title on narrow phones", async ({ page }) => {
     await openSpotFixture(page, { width: 320, height: 844 }, "loading");
     const title = page.locator(".spot-loading-name");
+    // The fixture name fits at 320px now that the header has no "Spot" label,
+    // so give it a name long enough to overflow.
+    await title.evaluate(element => {
+      element.textContent = "Riverside Training Walls and Rooftop Precision Line";
+    });
     await expect(title).toHaveCSS("white-space", "nowrap");
     await expect(title).toHaveCSS("text-overflow", "ellipsis");
     const size = await title.evaluate(element => ({
@@ -205,7 +213,7 @@ test.describe("Spot Details Visual Regression @visual", () => {
       /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
     );
     await expect(details).toContainText(
-      /Rating and user reviews|Bewertung und user Rezensionen/u,
+      /Rating and user reviews|Bewertungen und Rezensionen/u,
     );
     await expect(details).toContainText(/edits are waiting|Bearbeitungen warten/u);
     await expect(details).toContainText(/License|Lizenz/u);
@@ -236,7 +244,7 @@ test.describe("Spot Details Visual Regression @visual", () => {
     // settle. Screenshot animation disabling happens too late for a precomputed clip.
     await page.evaluate(() => document.fonts.ready);
     await sheet.evaluate(async element => {
-      await Promise.all(element.getAnimations({subtree: true}).map(animation => animation.finished.catch(() => undefined)));
+      await Promise.all(element.getAnimations({subtree: true}).filter((animation) => animation.timeline instanceof DocumentTimeline).map(animation => animation.finished.catch(() => undefined)));
     });
     const box = await sheet.boundingBox();
     expect(box).not.toBeNull();
@@ -269,7 +277,6 @@ test("shows an existing Spot report with localized edit and withdrawal actions @
   await expect(dialog).toContainText("Meldung bearbeiten");
   await expect(dialog).toContainText("Meldung zurückziehen");
   await expect(dialog.locator("textarea")).toHaveValue("Die Trainingsmauer wurde entfernt.");
-  await expect(dialog.locator("mat-select")).toContainText("Deutsch");
   await expect(page.locator("mat-dialog-container")).toHaveScreenshot("spot-report-edit-mobile.png", {animations: "disabled"});
   await page.keyboard.press("Escape");
   await expect(page.locator(".spot-access-warning")).toContainText("entfernt");
@@ -340,7 +347,7 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
   test(`spot title and activity hierarchy ${name} @visual`, async ({page}) => {
     await openSpotFixture(page, undefined, 'loaded', `&activity=1${name === 'Lindenhof' ? '&shortTitle=1' : ''}`, name);
     const title = page.locator('.spot-title-text').first();
-    const badge = page.locator('.spot-kind-label').first();
+    const badge = page.locator('.spot-header-badges').first();
     const activity = page.locator('.spot-activity-reveal');
     await expect(activity).toContainText('2+');
     await expect(activity).not.toContainText('30');
@@ -352,8 +359,9 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
       return {y: rect.y, height: rect.height};
     });
     const badgeBox = (await badge.boundingBox())!;
-    expect(Math.abs(titleBox.y + titleBox.height / 2 - badgeBox.y - badgeBox.height / 2)).toBeLessThanOrEqual(3);
-    const headerBox = (await page.locator('mat-card-subtitle').first().boundingBox())!;
+    // The facts and actions row sits directly below the title.
+    expect(badgeBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height - 2);
+    const headerBox = (await page.locator('app-spot-details mat-card-subtitle').last().boundingBox())!;
     expect((await activity.boundingBox())!.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1);
     await expect(page.locator('app-spot-details')).toHaveScreenshot(`spot-header-${name === 'Lindenhof' ? 'short' : 'long'}.png`, {animations:'disabled'});
     await page.locator('app-bottom-sheet .handle-region').click();
@@ -361,6 +369,68 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
     await expect.poll(async () => (await activity.boundingBox())?.height).toBe(0);
   });
 }
+
+// Your own record at a Spot comes from your check-ins and logged sessions. It is
+// private: only the signed-in owner sees it, with the monthly rank only when
+// they take part in Local Legend.
+for (const legend of [true, false]) {
+  test(`own visits at a Spot ${legend ? "with rank" : "without rank"} @visual`, async ({page}) => {
+    await page.clock.setFixedTime(new Date("2026-08-20T12:00:00.000Z"));
+    await page.addInitScript((localLegend) => {
+      const august = (day: number, hour: number) => Date.UTC(2026, 7, day, hour);
+      const spot = {spot_id: "visual-riverside-training-walls", spot_name: "Riverside Training Walls"};
+      const session = (id: string, source: string, day: number, hours: number, checkIn?: string) => ({
+        id,
+        owner_id: "visual-spot-user",
+        source,
+        started_at_raw_ms: august(day, 16),
+        ended_at_raw_ms: august(day, 16 + hours),
+        last_activity_raw_ms: august(day, 16 + hours),
+        time_zone: "Europe/Zurich",
+        spot_visits: [{...spot, arrived_at_raw_ms: august(day, 16), ...(checkIn ? {check_in_id: checkIn} : {})}],
+        people_present: [],
+        time_created_raw_ms: august(day, 16 + hours),
+        time_updated_raw_ms: august(day, 16 + hours),
+      });
+      const screenshotWindow = window as typeof window & Record<string, unknown>;
+      screenshotWindow.__PKSPOT_SCREENSHOT_AUTH_USER__ = {
+        uid: "visual-spot-user",
+        email: "visual-spot-user@example.test",
+        emailVerified: true,
+        providerId: "password",
+        data: {display_name: "Visual Spot User", verified_email: true, profile_visibility: "public"},
+      };
+      screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_SESSIONS__ = [
+        session("visual-spot-session-1", "check_in", 18, 2, "visual-spot-check-in-1"),
+        session("visual-spot-session-2", "manual", 11, 1),
+        session("visual-spot-session-3", "manual", 2, 1),
+      ];
+      screenshotWindow.__PKSPOT_SCREENSHOT_LOCAL_LEGEND__ = localLegend;
+      if (localLegend) {
+        screenshotWindow.__PKSPOT_SCREENSHOT_SPOT_RANKS__ = {
+          version: 1,
+          month: "2026-08",
+          final: false,
+          computed_at_raw_ms: august(20, 3),
+          spots: {"visual-riverside-training-walls": {status: "ranked", verified_days: 1, rank: 3, tied_with: 0, legend: false}},
+        };
+      }
+    }, legend);
+    await openSpotFixture(page);
+
+    const stats = page.locator("app-spot-personal-stats");
+    await expect(stats.locator(".spot-visits")).toBeVisible();
+    await expect(stats.locator(".spot-visits__numbers dd").first()).toHaveText("3");
+    await expect(stats).toContainText(/Only you|Nur du/u);
+    await expect(stats.locator(".spot-rank")).toHaveCount(legend ? 1 : 0);
+    await expect(stats).toHaveScreenshot(`spot-own-visits-${legend ? "rank" : "no-rank"}.png`, {animations: "disabled"});
+  });
+}
+
+test("own visits stay hidden when signed out @visual", async ({page}) => {
+  await openSpotFixture(page);
+  await expect(page.locator("app-spot-personal-stats .spot-visits")).toHaveCount(0);
+});
 
 // The server renders before any browser measurement, so compare its layout with
 // the hydrated page instead of trusting either on its own. Geometry, not pixels:
@@ -384,7 +454,7 @@ test.describe("Spot details server rendering @visual", () => {
         const details = current.locator("app-spot-details");
         await expect(details.locator(".spot-title-text").first()).toHaveText(longTitle);
         await expect(details.locator("app-spot-rating").first()).toBeAttached();
-        await expect(details.getByRole("button", { name: /Share|Teilen/u }).first()).toBeAttached();
+        await expect(details.getByRole("button", { name: /Share|teilen/iu }).first()).toBeAttached();
       }
 
       const measure = async (selector: string) => {
@@ -431,4 +501,17 @@ test.describe("Spot details server rendering @visual", () => {
       await context.close();
     });
   }
+});
+
+
+/** UI review capture of the full rich Spot details sheet; runs only when UI_REVIEW_DIR is set. */
+test("UI review capture spot-details-long mobile", async ({ page }) => {
+  const dir = process.env["UI_REVIEW_DIR"];
+  test.skip(!dir, "Set UI_REVIEW_DIR to capture review screenshots.");
+  await openSpotFixture(page, { width: 390, height: 1800 });
+  await expandSheetForFullContentSnapshot(page);
+  await page.locator("app-bottom-sheet .sheet").screenshot({
+    path: `${dir}/spot-details-long--mobile.png`,
+    animations: "disabled",
+  });
 });

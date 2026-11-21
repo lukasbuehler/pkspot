@@ -118,7 +118,6 @@ export class CustomFilterDialogComponent {
   readonly amenitiesSectionLabel = $localize`:@@filter_section_amenities:Amenities`;
   readonly clearLabel = $localize`:@@filter_clear:Clear`;
   readonly applyLabel = $localize`:@@filter_apply:Apply`;
-  readonly cancelLabel = $localize`:@@filter_cancel:Cancel`;
   readonly anyLabel = $localize`:@@filter_any:Any`;
   readonly yesLabel = $localize`:@@filter_yes:Yes`;
   readonly noLabel = $localize`:@@filter_no:No`;
@@ -154,28 +153,6 @@ export class CustomFilterDialogComponent {
     }
 
     this._initialParams = this._snapshotParams();
-  }
-
-  toggleType(type: SpotTypes): void {
-    this.selectedTypes = this.selectedTypes.includes(type)
-      ? this.selectedTypes.filter((selectedType) => selectedType !== type)
-      : [...this.selectedTypes, type];
-  }
-
-  isTypeSelected(type: SpotTypes): boolean {
-    return this.selectedTypes.includes(type);
-  }
-
-  toggleAccess(access: SpotAccess): void {
-    this.selectedAccesses = this.selectedAccesses.includes(access)
-      ? this.selectedAccesses.filter(
-          (selectedAccess) => selectedAccess !== access
-        )
-      : [...this.selectedAccesses, access];
-  }
-
-  isAccessSelected(access: SpotAccess): boolean {
-    return this.selectedAccesses.includes(access);
   }
 
   getAmenityState(amenity: keyof AmenitiesMap): AmenityState {
@@ -234,10 +211,6 @@ export class CustomFilterDialogComponent {
     };
 
     this.dialogRef.close(result);
-  }
-
-  cancel(): void {
-    this.dialogRef.close(null);
   }
 
   private _snapshotParams(): CustomFilterParams {

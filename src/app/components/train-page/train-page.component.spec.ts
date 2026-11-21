@@ -319,7 +319,7 @@ describe("TrainPageComponent", () => {
     // The session is finished, so the green card gives way to the log prompt.
     expect(component.momentViews()).toEqual([]);
     expect(component.promptSessions().map((session) => session.id)).toEqual(["active-1"]);
-    expect(snackbar.open).toHaveBeenCalledWith("Checked out after 1h 23m", "Add notes", { duration: 8_000 });
+    expect(snackbar.open).toHaveBeenCalledWith("Checked out after 1 h 23 min", "Add notes", { duration: 8_000 });
   });
 
   it("shows Spots before the forecast arrives, then prefers dry Spots when rain is likely", async () => {

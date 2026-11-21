@@ -28,17 +28,13 @@
           } @else {
             <span class="spot-loading-title" aria-hidden="true"></span>
           }
-          <span
-            i18n
-            class="mat-label-small px-1 border rounded spot-kind-label"
-          >
-            Spot
-          </span>
         </span>
 
         @if (dismissable()) {
           <button
             mat-icon-button
+            aria-label="Close Spot"
+            i18n-aria-label="@@spot.close.aria_label"
             (click)="dismissed()"
             i18n-matTooltip="
               close spot tooltip|Tooltip for close spot
@@ -107,9 +103,15 @@
           <span
             class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
           >
+            <span
+              [@fadeSlideOnChange]="nameAnimKey()"
+              [matTooltip]="spot()!.name()"
+              class="d-block spot-title-text"
+              >{{ spot()!.name() }}</span
+            >
             @if (spot()?.isIconic) {
               <mat-icon
-                style="width: 24px; flex-shrink: 0"
+                class="spot-iconic-mark"
                 matTooltip="Iconic Spot"
                 i18n-matTooltip="
                   iconic spot tooltip|Tooltip for iconic spot
@@ -117,18 +119,7 @@
                 >stars</mat-icon
               >
             }
-            <span
-              [@fadeSlideOnChange]="nameAnimKey()"
-              [matTooltip]="spot()!.name()"
-              class="d-block spot-title-text"
-              >{{ spot()!.name() }}</span
-            >
-            <span
-              i18n
-              class="mat-label-small px-1 border rounded spot-kind-label"
-              >Spot</span
-            >
-
+            <!-- Verification stays with the name it vouches for. -->
             @if (managedOrganization(); as managed) {
               <a
                 matIconButton
@@ -205,6 +196,8 @@
           @if (dismissable()) {
             <button
               mat-icon-button
+              aria-label="Close Spot"
+              i18n-aria-label="@@spot.close.aria_label"
               (click)="dismissed()"
               i18n-matTooltip="
                 close spot tooltip|Tooltip for close spot
@@ -218,122 +211,25 @@
             </button>
           }
         </mat-card-title>
-        <mat-card-subtitle class="d-flex flex-row justify-content-between">
-          <div
-            class="d-flex flex-column flex-grow-1 justify-content-center text-truncate"
-          >
-            <!-- Collapsible header info - hidden when bottom sheet is closed -->
-            <div
-              class="collapsible-header-info"
-              [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
-            >
-              @if (
-                (showRating() && spot()?.rating) ||
-                spot()!.importantAmenitiesArray().length > 0 ||
-                spot()?.access() !== "other" ||
-                spot()?.type() !== "other"
-              ) {
-                <div class="d-flex flex-row gap-1 align-items-center pb-1">
-                  <!-- <span class="mat-label-small px-1 border rounded me-1">Spot</span> -->
-                  @if (showRating() && spot()?.rating) {
-                    <span class="d-flex align-items-center gap-1 flex-shrink-0">
-                      <app-fancy-counter
-                        [number]="spot()!.rating!"
-                        [decimals]="1"
-                      ></app-fancy-counter>
-                      <app-spot-rating
-                        [rating1to5]="spot()!.rating"
-                        [showNumReviews]="true"
-                        [numReviews]="spot()!.numReviews"
-                        [isCompact]="true"
-                        [showRating]="false"
-                      ></app-spot-rating>
-                    </span>
-                  }
-                  {{
-                    showRating() && spot()?.rating && spot()?.type() !== "other"
-                      ? "⸱"
-                      : null
-                  }}
-                  @if (spot()?.type() !== "other") {
-                    <div
-                      class="d-flex align-items-center"
-                      [@fadeSlideOnChange]="typeAnimKey()"
-                      style="min-width: 0"
-                    >
-                      <mat-icon
-                        class="amenity-icon me-1 flex-shrink-0"
-                        [matTooltip]="spotTypeNames[spot()!.type()]"
-                        >{{ spotTypesIcons[spot()!.type()] }}</mat-icon
-                      >
-
-                      <span class="mat-label-large text-nowrap text-truncate">{{
-                        spotTypeNames[spot()!.type()]
-                      }}</span>
-                    </div>
-                  }
-                  {{
-                    ((showRating() && spot()?.rating) ||
-                      spot()?.type() !== "other") &&
-                    spot()!.importantAmenitiesArray().length > 0
-                      ? "⸱"
-                      : null
-                  }}
-                  @if (spot()!.importantAmenitiesArray().length > 0) {
-                    <div class="d-flex flex-row gap-1 align-items-center">
-                      @for (
-                        amenity of spot()!.importantAmenitiesArray();
-                        track $index
-                      ) {
-                        <mat-icon
-                          class="amenity-icon"
-                          [matTooltip]="amenity.name"
-                          >{{ amenity.icon }}</mat-icon
-                        >
-                      }
-                    </div>
-                  }
-                  {{
-                    ((showRating() && spot()?.rating) ||
-                      spot()?.type() !== "other" ||
-                      spot()!.importantAmenitiesArray().length > 0) &&
-                    spot()?.access() !== "other"
-                      ? "⸱"
-                      : null
-                  }}
-                  @if (spot()?.access() !== "other") {
-                    <mat-icon
-                      class="amenity-icon flex-shrink-0"
-                      [class.access-off-limits]="
-                        spot()!.access() === 'off-limits'
-                      "
-                      [class.access-private]="spot()!.access() === 'private'"
-                      [matTooltip]="spotAccessNames[spot()!.access()]"
-                      >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
-                    >
-                  }
-                </div>
-              }
-              @if (spot()?.address()) {
-                <span class="text-truncate d-flex align-items-center gap-1">
-                  @if (displayLocation()) {
-                    <span>{{ displayLocation() }}</span>
-                  }
-                  @if (countryFlagEmoji()) {
-                    <span class="flag-emoji" [matTooltip]="countryTooltip()">
-                      {{ countryFlagEmoji() }}
-                    </span>
-                  }
-                </span>
-              }
-            </div>
-          </div>
-
+        <!-- Second row: rating, type, amenities, access and place on the left,
+             the actions on the right. The facts wrap to a third line before
+             the actions would move down.
+             A mat-card-subtitle so the card header keeps it in source order. -->
+        <mat-card-subtitle
+          class="spot-header-badges collapsible-header-info"
+          [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+        >
+          <!-- The actions come first so they can float at the end of line 2
+               while the facts flow beside and below them. -->
           <!-- Icon buttons in header - collapsible when sheet is closed -->
           @if (!isEditing()) {
+            <!-- The facts flow around this row, so its width (e.g. when the
+                 weather button arrives) re-checks the line ends too. -->
             <div
-              class="spot-button-row collapsible-header-info flex-shrink-0"
+              class="spot-button-row collapsible-header-info"
               [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+              appResizeObserver
+              (resize)="markFactLineEnds()"
             >
               @if (weatherAvailable()) {
                 <app-weather-icon-button
@@ -348,14 +244,8 @@
                     mat-icon-button
                     color="primary"
                     [disabled]="isBookmarkUpdating()"
-                    matTooltip="Bookmark this spot"
-                    i18n-matTooltip="
-                      Bookmark spot tooltip|The tooltip of the bookmark spot
-                      icon button@@bookmark_spot_tooltip"
-                    aria-label="Icon button with a bookmark icon"
-                    i18n-aria-label="
-                      Bookmark spot aria label|The aria label of the bookmark
-                      spot icon button@@bookmark_spot_aria_label"
+                    [matTooltip]="bookmarkTooltip()"
+                    [attr.aria-label]="bookmarkTooltip()"
                     (click)="bookmarkClick($event)"
                   >
                     <mat-icon
@@ -368,18 +258,10 @@
 
                   <button
                     mat-icon-button
-                    [color]="visited() ? 'accent' : 'white'"
+                    [color]="visited() ? 'primary' : 'white'"
                     [disabled]="isVisitedUpdating()"
-                    matTooltip="Mark this spot as visited"
-                    i18n-matTooltip="
-                      Mark this spot as visited tooltip|The tooltip of the mark
-                      this spot as visited icon
-                      button@@mark_this_spot_as_visited_tooltip"
-                    aria-label="Icon button with a banner and checkmark icon"
-                    i18n-aria-label="
-                      Mark this spot as visited aria label|The aria label of the
-                      mark this spot as visited icon
-                      button@@mark_this_spot_as_visited_aria_label"
+                    [matTooltip]="visitedTooltip()"
+                    [attr.aria-label]="visitedTooltip()"
                     (click)="visitedClick($event)"
                   >
                     <mat-icon>beenhere</mat-icon>
@@ -393,7 +275,7 @@
                   i18n-matTooltip="
                     Share spot tooltip|The tootltip of the share spot icon
                     button@@share_spot_tooltip"
-                  aria-label="Icon button with a share icon"
+                  aria-label="Share Spot"
                   i18n-aria-label="
                     Share spot aria label|The aria label of the share spot icon
                     button@@share_spot_aria_label"
@@ -410,7 +292,7 @@
                   i18n-matTooltip="
                     Directions spot tooltip|The tooltip of the directions spot
                     icon button@@directions_spot_tooltip"
-                  aria-label="Icon button with a directions icon"
+                  aria-label="Directions to Spot"
                   i18n-aria-label="
                     Spot directions aria label|The aria label of the directions
                     spot icon button@@directions_spot_aria_label"
@@ -419,8 +301,173 @@
                   <mat-icon>directions</mat-icon>
                 </button>
               }
+              @if (authenticationService.isSignedIn && editable()) {
+                <button
+                  mat-icon-button
+                  [matMenuTriggerFor]="spotMoreMenu"
+                  aria-label="More Spot actions"
+                  i18n-aria-label="@@spot.more_actions"
+                  matTooltip="More"
+                  i18n-matTooltip="@@spot.more_actions.tooltip"
+                  (click)="$event.stopPropagation()"
+                >
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #spotMoreMenu="matMenu" xPosition="before">
+                  @if (canParticipatePublicly()) {
+                    <button mat-menu-item type="button" (click)="editButtonClick()">
+                      <mat-icon>edit</mat-icon>
+                      <span
+                        i18n="Edit button label|Label of the button to edit the spot"
+                        >Edit Spot</span
+                      >
+                    </button>
+                  }
+                  <a
+                    mat-menu-item
+                    [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']"
+                    [queryParams]="mapQueryParams()"
+                    queryParamsHandling="merge"
+                    (click)="editHistoryButtonClick()"
+                  >
+                    <mat-icon>history</mat-icon>
+                    <span
+                      i18n="
+                        Edit history button label|Label of the button to view the edit
+                        history of the spot
+                      "
+                      >Edit History</span
+                    >
+                  </a>
+                  <button mat-menu-item type="button" (click)="openSpotReportDialog()">
+                    <mat-icon>flag</mat-icon>
+                    @if (ownReport()) {
+                      <span i18n>Edit your report</span>
+                    } @else {
+                      <span
+                        i18n="
+                          report button label|Label of the button to report the spot
+                        "
+                        >Report</span
+                      >
+                    }
+                  </button>
+                  @if (isAdmin()) {
+                    <button
+                      mat-menu-item
+                      type="button"
+                      class="menu-item-destructive"
+                      [disabled]="isDeletingSpot()"
+                      (click)="deleteSpotClick()"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span
+                        i18n="
+                          Delete button label|Label of the button to delete the spot
+                        "
+                        >Delete</span
+                      >
+                    </button>
+                  }
+                </mat-menu>
+              }
             </div>
           }
+            <!-- Each fact wraps as a unit with its leading dot; facts that start
+                 a new line hide their dot (see markFactLineEnds). -->
+            <div
+              #headerFacts
+              class="spot-header-info"
+              appResizeObserver
+              (resize)="markFactLineEnds()"
+            >
+              @if (showRating() && spot()?.rating) {
+                <!-- The header rating jumps to reviews, where people rate
+                     the Spot, so rating does not wait at the bottom. -->
+                <span class="spot-fact spot-fact--rating">
+                  <button
+                    type="button"
+                    class="header-rating-button d-inline-flex align-items-center gap-1"
+                    [attr.aria-label]="ratingJumpLabel()"
+                    [matTooltip]="ratingJumpLabel()"
+                    (click)="scrollToRatings()"
+                  >
+                    <app-fancy-counter
+                      [number]="spot()!.rating!"
+                      [decimals]="1"
+                      aria-hidden="true"
+                    ></app-fancy-counter>
+                    <app-spot-rating
+                      [rating1to5]="spot()!.rating"
+                      [showNumReviews]="true"
+                      [numReviews]="spot()!.numReviews"
+                      [isCompact]="true"
+                      [showRating]="false"
+                      aria-hidden="true"
+                    ></app-spot-rating>
+                  </button>
+                </span>
+              }
+              @if (spot()?.type() !== "other") {
+                <span
+                  class="spot-fact spot-fact--type"
+                  [@fadeSlideOnChange]="typeAnimKey()"
+                >
+                  <mat-icon
+                    class="amenity-icon me-1 flex-shrink-0"
+                    [matTooltip]="spotTypeNames[spot()!.type()]"
+                    >{{ spotTypesIcons[spot()!.type()] }}</mat-icon
+                  >
+                  <span class="mat-label-large">{{
+                    spotTypeNames[spot()!.type()]
+                  }}</span>
+                </span>
+              }
+              <!-- The dots are visual only; each icon carries its own name. -->
+              @if (spot()!.importantAmenitiesArray().length > 0) {
+                <span class="spot-fact">
+                  @for (
+                    amenity of spot()!.importantAmenitiesArray();
+                    track $index
+                  ) {
+                    <mat-icon
+                      class="amenity-icon"
+                      role="img"
+                      aria-hidden="false"
+                      [attr.aria-label]="amenity.name"
+                      [matTooltip]="amenity.name"
+                      >{{ amenity.icon }}</mat-icon
+                    >
+                  }
+                </span>
+              }
+              @if (spot()?.access() !== "other") {
+                <span class="spot-fact">
+                  <mat-icon
+                    class="amenity-icon flex-shrink-0"
+                    [class.access-off-limits]="spot()!.access() === 'off-limits'"
+                    [class.access-private]="spot()!.access() === 'private'"
+                    role="img"
+                    aria-hidden="false"
+                    [attr.aria-label]="spotAccessNames[spot()!.access()]"
+                    [matTooltip]="spotAccessNames[spot()!.access()]"
+                    >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
+                  >
+                </span>
+              }
+              @if (spot()?.address()) {
+                <span class="spot-fact spot-locality">
+                  @if (displayLocation()) {
+                    <span>{{ displayLocation() }}</span>
+                  }
+                  @if (countryFlagEmoji()) {
+                    <span class="flag-emoji" [matTooltip]="countryTooltip()">
+                      {{ countryFlagEmoji() }}
+                    </span>
+                  }
+                </span>
+              }
+            </div>
         </mat-card-subtitle>
         <div
           class="spot-activity-reveal collapsible-header-info"
@@ -555,10 +602,10 @@
         <!-- Access and Type -->
         @if (spot()?.access() !== "other" || spot()!.type() !== "other") {
           <div class="mb-4">
-            <div class="d-flex flex-row gap-2">
+            <div class="property-columns">
               @if (spot()?.access() !== "other") {
                 <div
-                  class="d-flex flex-column justify-content-start align-items-start gap-2 pt-2 flex-grow-1 flex-basis-0"
+                  class="property-column d-flex flex-column justify-content-start align-items-start gap-2 pt-2"
                   style="min-width: 0"
                 >
                   <h4
@@ -567,7 +614,7 @@
                   >
                     Spot Access
                   </h4>
-                  <h4
+                  <p
                     class="mat-title-medium m-0 d-flex align-items-center gap-2"
                     style="min-width: 0; max-width: 100%"
                     [class.access-off-limits]="
@@ -578,31 +625,19 @@
                     <mat-icon class="flex-shrink-0">{{
                       spotAccessIcons[spot()!.access()]
                     }}</mat-icon>
-                    <span class="text-truncate flex-shrink-1">{{
+                    <span class="property-value">{{
                       spotAccessNames[spot()!.access()]
                     }}</span>
-                    <button
-                      mat-icon-button
-                      type="button"
-                      class="spot-help-button flex-shrink-0"
-                      [matTooltip]="spotAccessDescriptions[spot()!.access()]"
-                      matTooltipTouchGestures="on"
-                      #spotAccessTooltip="matTooltip"
-                      [attr.aria-label]="
-                        spotAccessDescriptions[spot()!.access()]
-                      "
-                      (click)="
-                        spotAccessTooltip.show(0); $event.stopPropagation()
-                      "
-                    >
-                      <mat-icon class="help-icon">help_outline</mat-icon>
-                    </button>
-                  </h4>
+                  </p>
+                  <!-- The rule decides whether people can train here, so it is always shown. -->
+                  <p class="access-description mat-body-medium m-0">
+                    {{ spotAccessDescriptions[spot()!.access()] }}
+                  </p>
                 </div>
               }
               @if (spot()?.type() !== "other") {
                 <div
-                  class="d-flex flex-column justify-content-start align-items-start gap-2 pt-2 flex-grow-1 flex-basis-0"
+                  class="property-column d-flex flex-column justify-content-start align-items-start gap-2 pt-2"
                   style="min-width: 0"
                 >
                   <h4
@@ -611,14 +646,14 @@
                   >
                     Spot Type
                   </h4>
-                  <h4
+                  <p
                     class="mat-title-medium m-0 d-flex align-items-center gap-2"
                     style="min-width: 0; max-width: 100%"
                   >
                     <mat-icon class="flex-shrink-0">{{
                       spotTypesIcons[spot()!.type()]
                     }}</mat-icon>
-                    <span class="text-truncate flex-shrink-1">{{
+                    <span class="property-value">{{
                       spotTypeNames[spot()!.type()]
                     }}</span>
                     <button
@@ -635,7 +670,7 @@
                     >
                       <mat-icon class="help-icon">help_outline</mat-icon>
                     </button>
-                  </h4>
+                  </p>
                 </div>
               }
             </div>
@@ -667,11 +702,14 @@
           </div>
         }
 
-        <p class="mat-body-medium">{{ localizedCopy()?.description }}</p>
+        <!-- A short visible keyword line; the full generated description stays in
+             meta tags and structured data. -->
+        @if (localizedCopy(); as copy) {
+          <p class="mat-body-medium spot-summary">{{ copy.heading }}.</p>
+        }
         @if (spot()?.placeNames()) {
           <p class="mat-body-small">
-            <span i18n="@@community.placeNames.attribution">Place names:</span>
-            <a
+            <span i18n="@@community.placeNames.attribution">Place names:</span>&ngsp;<a
               href="https://www.geonames.org/"
               target="_blank"
               rel="noopener noreferrer"
@@ -722,7 +760,6 @@
           @if (communityKeys().length > 0) {
             <app-community-links
               class="mt-2"
-              kind="spot"
               [communityKeys]="communityKeys()"
             />
           }
@@ -756,7 +793,7 @@
           !isLocalSpot() &&
           (spot()?.rating || authenticationService.isSignedIn)
         ) {
-          <div class="mb-4">
+          <div class="mb-4 spot-ratings-section" #ratingsSection>
             <mat-divider class="my-3"></mat-divider>
             <h4
               class="mat-title-medium"
@@ -812,6 +849,12 @@
                         class="grid-item rounded"
                         mode="determinate"
                         [value]="100 * item.value"
+                        [attr.aria-label]="
+                          ratingHistogramLabel(
+                            item.key,
+                            spot()!.ratingHistogram()[item.key | asRatingKey]
+                          )
+                        "
                         style="margin-top: -2px"
                       ></mat-progress-bar>
                       <div class="grid-item mat-label-medium">
@@ -842,7 +885,7 @@
               <!-- // TODO in the future also make sure the user visited the spot -->
               <button
                 mat-stroked-button
-                color="accent"
+                color="primary"
                 i18n-matTooltip="
                   Review this spot button tooltip|Tooltip of button to review
                   the spot@@review_spot_tooltip"
@@ -876,23 +919,19 @@
           </div>
         }
 
-        <!-- Action buttons -->
+        <!-- Editing is how people improve a Spot, so it stays a visible
+             button. History, report and delete live in the header menu. -->
         @if (authenticationService.isSignedIn && editable()) {
-          <mat-divider></mat-divider>
-          <div class="d-flex my-3 gap-2">
-            @if (canParticipatePublicly()) {
+          @if (canParticipatePublicly()) {
+            <div class="d-flex mb-4">
               <button
                 mat-stroked-button
                 i18n-matTooltip="
                   edit spot tooltip|Tooltip for edit spot
                   button@@spot.edit.tooltip"
                 matTooltip="Edit this spot"
-                i18n-aria-label="
-                  edit spot aria label|Aria label for edit spot
-                  button@@spot.edit.aria_label"
-                aria-label="Edit button with a pencil icon"
                 (click)="editButtonClick()"
-                class="flex-grow-1 flex-basis-0"
+                class="flex-grow-1"
               >
                 <mat-icon>edit</mat-icon>
                 <span
@@ -900,86 +939,8 @@
                   >Edit Spot</span
                 >
               </button>
-            }
-            <a
-              mat-stroked-button
-              [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']"
-              [queryParams]="mapQueryParams()"
-              queryParamsHandling="merge"
-              (click)="editHistoryButtonClick()"
-              class="flex-grow-1 flex-basis-0"
-              i18n-matTooltip="
-                edit history tooltip|Tooltip for edit history
-                button@@spot.edit_history.tooltip"
-              matTooltip="View edit history of this spot"
-              i18n-aria-label="
-                edit history aria label|Aria label for edit history
-                button@@spot.edit_history.aria_label"
-              aria-label="Edit history button with a history icon"
-            >
-              <mat-icon>history</mat-icon>
-              <span
-                i18n="
-                  Edit history button label|Label of the button to view the edit
-                  history of the spot
-                "
-                >Edit History</span
-              >
-            </a>
-          </div>
-          <div class="d-flex my-3 gap-2">
-            <button
-              mat-stroked-button
-              color="warn"
-              i18n-matTooltip="
-                report spot tooltip|Tooltip for report spot
-                button@@spot.report.tooltip"
-              matTooltip="Report this spot"
-              i18n-aria-label="
-                report spot aria label|Aria label for report spot
-                button@@spot.report.aria_label"
-              aria-label="Report button with a warning icon"
-              class="flex-grow-1 flex-basis-0"
-              (click)="openSpotReportDialog()"
-            >
-              <mat-icon>report</mat-icon>
-              @if (ownReport()) {
-                <span i18n>Edit your report</span>
-              } @else {
-                <span
-                  i18n="
-                    report button label|Label of the button to report the spot
-                  "
-                  >Report</span
-                >
-              }
-            </button>
-            @if (isAdmin()) {
-              <button
-                mat-stroked-button
-                color="warn"
-                [disabled]="isDeletingSpot()"
-                i18n-matTooltip="
-                  Delete spot tooltip|Tooltip for delete spot
-                  button@@spot.delete.tooltip"
-                matTooltip="Delete this spot"
-                i18n-aria-label="
-                  Delete spot aria label|Aria label for delete spot
-                  button@@spot.delete.aria_label"
-                aria-label="Delete button with a trash icon"
-                (click)="deleteSpotClick()"
-                class="flex-grow-1 flex-basis-0"
-              >
-                <mat-icon>delete</mat-icon>
-                <span
-                  i18n="
-                    Delete button label|Label of the button to delete the spot
-                  "
-                  >Delete</span
-                >
-              </button>
-            }
-          </div>
+            </div>
+          }
           @if (ownReport()) {
             <div class="reporter-report-state mb-3" role="status">
               <mat-icon>flag</mat-icon>
@@ -1000,7 +961,6 @@
               </button>
             </div>
           }
-          <mat-divider class="mb-3"></mat-divider>
         }
 
         <!-- Spot Challenges - temporarily hidden while not working

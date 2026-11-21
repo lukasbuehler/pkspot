@@ -355,6 +355,27 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(source).toContain('this.mapObjectMode.set("events")');
   });
 
+  it("keeps the community scope filter in URL state", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const template = readFileSync(templatePath, "utf8");
+    const updateMethod = source.match(/\n  updateMapURL\([\s\S]*?\n  \}/)?.[0];
+    const querySyncMethod = source.match(
+      /private _syncMapQueryStateFromParams[\s\S]*?\n  \}/
+    )?.[0];
+
+    expect(source).toContain(
+      'type MapCommunityFilter = "country" | "locality"'
+    );
+    expect(template).toContain("showCommunityFilterChips()");
+    expect(template).toContain("communityFilterOptions");
+    expect(updateMethod).toContain(
+      'existingParams.set("communityFilter", activeCommunityFilter)'
+    );
+    expect(updateMethod).toContain('existingParams.delete("communityFilter")');
+    expect(querySyncMethod).toContain('params.get("communityFilter")');
+    expect(querySyncMethod).toContain('communityFilter\n            ? "communities"');
+  });
+
   it("promotes spot filters from all mode into the spots tab", () => {
     const source = readFileSync(componentPath, "utf8");
     const filterMethod = source.match(

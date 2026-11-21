@@ -27,4 +27,17 @@ describe('event discovery chip rows', () => {
     expect(series).toHaveBeenCalledWith('jam');
     expect(category).not.toHaveBeenCalled();
   });
+  it('keeps regions in the same chip row and routes their selections', () => {
+    const fixture = TestBed.createComponent(EventDiscoveryToolbarComponent);
+    fixture.componentRef.setInput('view', 'list');
+    fixture.componentRef.setInput('categoryOptions', [{ id: 'jam', label: 'Jam', count: 2 }]);
+    fixture.componentRef.setInput('regionOptions', [{ id: 'europe', label: 'Europe', count: 4 }]);
+    fixture.componentRef.setInput('selectedRegions', ['europe']);
+    expect(fixture.componentInstance.detailChips().map(chip => chip.urlParam)).toEqual(['category:jam', 'region:europe']);
+    expect(fixture.componentInstance.selectedDetails()).toEqual(['region:europe']);
+    const region = vi.fn();
+    fixture.componentInstance.regionToggled.subscribe(region);
+    fixture.componentInstance.toggleDetail('region:europe');
+    expect(region).toHaveBeenCalledWith('europe');
+  });
 });

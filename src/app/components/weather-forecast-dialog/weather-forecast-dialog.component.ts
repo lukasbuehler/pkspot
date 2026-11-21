@@ -1,3 +1,4 @@
+import { MatExpansionModule } from "@angular/material/expansion";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -43,6 +44,7 @@ import {
   HourlyForecastStripComponent,
   type HourlyForecastColumn,
 } from "../hourly-forecast-strip/hourly-forecast-strip.component";
+import { weatherAttribution } from "../../weather/weather-attribution";
 
 export interface WeatherForecastDialogData {
   spotName: string;
@@ -82,6 +84,7 @@ interface WeatherAlertView extends WeatherAlert {
   selector: "app-weather-forecast-dialog",
   imports: [
     MatButton,
+    MatExpansionModule,
     MatDialogClose,
     MatDialogContent,
     MatDialogTitle,
@@ -184,11 +187,7 @@ export class WeatherForecastDialogComponent {
     this.response.provider === "open-meteo"
       ? "https://open-meteo.com/"
       : "https://developers.google.com/maps/documentation/weather";
-  protected readonly attribution =
-    this.response.attribution ??
-    (this.response.provider === "open-meteo"
-      ? "Weather: Open-Meteo"
-      : "Weather: Google Weather");
+  protected readonly attribution = weatherAttribution(this.response.provider);
 
   private getCondition(point: WeatherPoint | undefined): WeatherCondition {
     return point?.condition ?? "unknown";

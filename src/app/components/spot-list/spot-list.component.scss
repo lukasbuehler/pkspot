@@ -1,3 +1,5 @@
+:host { container-type: inline-size; }
+
 .spot-container {
   display: grid;
   gap: 10px;
@@ -15,8 +17,10 @@
   grid-template-columns: repeat(1, 1fr);
 }
 
+// auto-fill keeps empty columns, so one or two results stay normal-sized
+// cards instead of stretching across the panel like a selected Spot.
 .spot-container:not(.compact) {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
 }
 
 a {

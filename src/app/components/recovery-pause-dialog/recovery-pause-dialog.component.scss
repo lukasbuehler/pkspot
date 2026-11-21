@@ -33,6 +33,8 @@ mat-form-field { width: 100%; }
 .recovery-dialog__dates {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  // Only the end date has a hint; keep the start date at its own height.
+  align-items: start;
   gap: 12px;
 }
 
@@ -40,5 +42,5 @@ mat-form-field { width: 100%; }
 
 @media (max-width: 599.98px) {
   mat-dialog-content { min-width: 0; }
-  .recovery-dialog__dates { grid-template-columns: 1fr; gap: 0; }
+  .recovery-dialog__dates { grid-template-columns: 1fr; gap: 14px; }
 }

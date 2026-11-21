@@ -1,82 +1,79 @@
-<h1 mat-dialog-title>
-  {{ data.type === "followers" ? "Followers" : "Following" }}
-</h1>
+<h2 mat-dialog-title>
+  @if (data.type === "followers") {
+    <span i18n="@@follow_list.title_followers">Followers</span>
+  } @else {
+    <span i18n="@@follow_list.title_following">Following</span>
+  }
+</h2>
 
+<!-- Only the list scrolls, so Close stays in reach on phones. -->
+<mat-dialog-content class="follow-list-content">
 <div class="p-2">
-  <table
-    mat-table
-    [dataSource]="followUsers()"
-    class="w-100 rounded overflow-scroll"
-    [class.d-none]="!hasFollowUsers()"
-  >
-    <ng-container matColumnDef="user">
-      <th mat-header-cell *matHeaderCellDef>User</th>
-      <td mat-cell *matCellDef="let followUser">
-        <div class="d-flex align-items-center gap-2">
-          <!-- Avatar container -->
-          <div class="avatar-container">
-            @if (followUser._profileSrc && !followUser._imgError) {
-            <img
-              class="profilePicture"
-              [src]="followUser._profileSrc"
-              height="40"
-              width="40"
-              alt="Profile"
-              (error)="followUser._imgError = true"
-            />
-            } @else {
-            <div class="profile-avatar-placeholder mat-elevation-z1">
-              {{ getInitials(followUser.display_name) }}
-            </div>
-            }
-          </div>
-          <span>{{ followUser.display_name }}</span>
-        </div>
-      </td>
-    </ng-container>
+  <!-- One tappable row per person: avatar, name, since when, chevron. -->
+  @if (hasFollowUsers()) {
+    <ul class="follow-list">
+      @for (followUser of followUsers(); track followUser.uid) {
+        <li>
+          <a
+            class="follow-list__row"
+            [routerLink]="['/u', followUser.uid]"
+            (click)="closeDialog()"
+          >
+            <span class="avatar-container" aria-hidden="true">
+              @if (followUser._profileSrc && !followUser._imgError) {
+                <img
+                  class="profilePicture"
+                  [src]="followUser._profileSrc"
+                  height="40"
+                  width="40"
+                  alt=""
+                  (error)="followUser._imgError = true"
+                />
+              } @else {
+                <span class="profile-avatar-placeholder mat-elevation-z1">
+                  {{ getInitials(followUser.display_name) }}
+                </span>
+              }
+            </span>
+            <span class="follow-list__text">
+              <span class="follow-list__name mat-body-large">{{ followUser.display_name }}</span>
+              <span class="follow-list__since mat-body-small">
+                <span i18n="@@follow_list.since">Since</span> {{ followUser | followDuration }}
+              </span>
+            </span>
+            <mat-icon aria-hidden="true">chevron_right</mat-icon>
+          </a>
+        </li>
+      }
+    </ul>
+  }
 
-    <ng-container matColumnDef="duration">
-      <th mat-header-cell *matHeaderCellDef>Duration</th>
-      <td mat-cell *matCellDef="let followUser">
-        {{ followUser.start_following | followDuration }}
-      </td>
-    </ng-container>
+  @if (showEmptyState()) {
+    <p class="text-center mat-body-medium text-muted mt-3">
+      @if (data.isMyProfile) {
+        @if (data.type === "followers") {
+          <span i18n="@@follow_list.empty_followers_own">You have no followers yet.</span>
+        } @else {
+          <span i18n="@@follow_list.empty_following_own">You aren't following anyone yet.</span>
+        }
+      } @else if (data.type === "followers") {
+        <span i18n="@@follow_list.empty_followers_other">{{ data.displayName || otherUserFallback }} has no followers yet.</span>
+      } @else {
+        <span i18n="@@follow_list.empty_following_other">{{ data.displayName || otherUserFallback }} isn't following anyone yet.</span>
+      }
+    </p>
+  }
 
-    <ng-container matColumnDef="open">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let followUser">
-        <a
-          [routerLink]="['/u', followUser.uid]"
-          (click)="closeDialog()"
-          mat-icon-button
-          color="primary"
-          aria-label="Open profile"
-        >
-          <mat-icon>open_in_new</mat-icon>
-        </a>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-
-  @if(showEmptyState()) {
-  <p class="text-center mat-body-medium text-muted mt-3">
-    @if(data.isMyProfile) {
-    {{
-      data.type === "followers"
-        ? "You have no followers yet."
-        : "You aren't following anyone yet."
-    }}
-    } @else {
-    {{
-      data.type === "followers"
-        ? (data.displayName || "This user") + " has no followers yet."
-        : (data.displayName || "This user") + " isn't following anyone yet."
-    }}
-    }
-  </p>
+  @if (loadFailed()) {
+    <div class="d-flex flex-column align-items-center gap-2 mt-3" role="alert">
+      <p class="mat-body-medium m-0 text-center" i18n="@@follow_list.load_failed">
+        This list couldn't be loaded.
+      </p>
+      <button mat-stroked-button type="button" (click)="loadMoreFollowing()">
+        <mat-icon>refresh</mat-icon>
+        <span i18n="@@follow_list.retry">Try again</span>
+      </button>
+    </div>
   }
 </div>
 
@@ -87,9 +84,14 @@
 </div>
 
 <div class="d-flex justify-content-center py-2">
-  @if(!isLoading() && !hasLoadedAll()) {
-  <button mat-raised-button color="accent" (click)="loadMoreFollowing()">
-    Load More
-  </button>
+  @if (showLoadMore()) {
+    <button mat-stroked-button color="primary" (click)="loadMoreFollowing()">
+      <span i18n="@@follow_list.load_more">Load more</span>
+    </button>
   }
 </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n="@@follow_list.close">Close</button>
+</mat-dialog-actions>

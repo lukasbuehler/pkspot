@@ -2,6 +2,9 @@
   // remove link shit
   text-decoration: none;
   color: inherit;
+  // A <button> centres its label by default; the span used inside navigation
+  // links does not, so centre it explicitly for both.
+  text-align: center;
 
   display: flex;
   flex-direction: column;
@@ -45,6 +48,26 @@
   background: var(--mat-sys-secondary);
 }
 
+// Unread count: the blue highlight colour, since green means "live" here.
+.count-badge {
+  position: absolute;
+  top: -2px;
+  left: calc(50% + 4px);
+  z-index: 1;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  box-sizing: border-box;
+  border: 2px solid var(--mat-sys-surface-container);
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-small);
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+}
+
 .button-container > mat-icon,
 .button-container > .image {
   transition: color 0.2s, background-color 0.2s, width 0.2s;
@@ -63,4 +86,27 @@
   // One compact indicator everywhere: the wider 64px variant crowded the
   // edges of narrow bottom bars.
   width: 56px;
+}
+
+// Keyboard focus: the icon pill shows the hover tint plus a primary outline,
+// whether focus is on the surrounding navigation link or on this button.
+:host-context(a:focus-visible) .button-container > mat-icon,
+:host-context(a:focus-visible) .button-container > .image,
+.button-container:focus-visible > mat-icon,
+.button-container:focus-visible > .image {
+  width: 56px;
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  background-color: var(--mat-sys-surface-container-highest);
+}
+
+.button-container:focus-visible {
+  outline: none;
+}
+
+// Five destinations share a phone-wide bar, so enlarged text would cut every
+// label to a few letters. Labels grow up to 13px, like platform tab bars; the
+// icon and the full accessible name stay unchanged.
+.nav-label {
+  font-size: min(1em, 13px);
 }

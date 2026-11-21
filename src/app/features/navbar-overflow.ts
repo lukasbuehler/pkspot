@@ -77,12 +77,25 @@ export function splitNavigationOverflow<T extends OverflowNavigationItem>(
       .map((item) => item.id),
   );
 
+  const overflow = items.filter(
+    (item) => !alwaysVisibleIds.has(item.id) && !visibleIds.has(item.id),
+  );
+  // A "More" menu holding a single destination only adds a tap: that
+  // destination takes the More slot itself.
+  if (overflow.length === 1) {
+    visibleIds.add(overflow[0].id);
+    return {
+      visible: items.filter(
+        (item) => alwaysVisibleIds.has(item.id) || visibleIds.has(item.id),
+      ),
+      overflow: [],
+    };
+  }
+
   return {
     visible: items.filter(
       (item) => alwaysVisibleIds.has(item.id) || visibleIds.has(item.id),
     ),
-    overflow: items.filter(
-      (item) => !alwaysVisibleIds.has(item.id) && !visibleIds.has(item.id),
-    ),
+    overflow,
   };
 }

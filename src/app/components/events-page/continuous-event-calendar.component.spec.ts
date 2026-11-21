@@ -59,7 +59,8 @@ describe("ContinuousEventCalendarComponent", () => {
       fixture.nativeElement.querySelector(".calendar-scroll");
     const augustMarker = [...fixture.nativeElement.querySelectorAll(
       ".month-marker",
-    )].find((element: Element) => element.textContent?.includes("August"));
+      // Narrow calendars name the month short ("Aug"), wide ones in full.
+    )].find((element: Element) => element.textContent?.includes("Aug"));
 
     expect(weekdayRow.parentElement).not.toBe(scrollViewport);
     expect(augustMarker).toBeTruthy();

@@ -64,6 +64,7 @@
 }
 
 .event-map-description {
+  color: var(--mat-sys-on-surface-variant);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -182,4 +183,19 @@
 // Hint text-overflow safety on a tight header row.
 .min-w-0 {
   min-width: 0;
+}
+
+// Shown until the map draws, so a slow map is never an empty black area.
+.event-map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container);
+  pointer-events: none;
 }

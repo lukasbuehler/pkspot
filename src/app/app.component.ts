@@ -1,3 +1,4 @@
+import { NavigationProgressComponent } from "./components/navigation-progress/navigation-progress.component";
 import {NativePhotoShareService} from "./media-ingestion/native-photo-share.service";
 import {NativeMapShareService} from "./services/native-map-share.service";
 import { FabMenuComponent, type FabMenuAction } from "./components/fab-menu/fab-menu.component";
@@ -58,6 +59,7 @@ import { isAcceptanceFreePath, withoutLocalePrefix } from "./startup/welcome-pol
 import { EARLY_WELCOME_CONTEXT } from "./startup/welcome-acceptance";
 import { WELCOME_DIALOG_OPTIONS } from "./startup/welcome-dialog-options";
 import {
+  DOCUMENT,
   Location,
   NgOptimizedImage,
   PathLocationStrategy,
@@ -123,6 +125,8 @@ import {
 } from "./features/navbar-overflow";
 import { MyEventContextService } from "./services/my-event-context.service";
 import { NativeTabBarService } from "./services/native-tab-bar.service";
+import { NotificationCenterService } from "./services/notification-center.service";
+import { navigationAccessibleLabel } from "./components/mat3-nav-button/mat3-nav-button.component";
 import { nativeTabBarOwnsNavigation } from "./features/native-tab-bar";
 
 interface ButtonBase {
@@ -133,6 +137,10 @@ interface ButtonBase {
   image?: string;
   active?: boolean;
   liveIndicator?: boolean;
+  /** Unread items behind this destination. */
+  badgeCount?: number;
+  /** Spoken name when it says more than `name` (live event, unread count). */
+  ariaLabel?: string;
   alwaysVisible?: boolean;
 }
 
@@ -179,6 +187,7 @@ type NavigationPerfDetails = Record<string, unknown>;
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
   imports: [
+    NavigationProgressComponent,
     WelcomePrerenderComponent,
     FabMenuComponent,
     MatProgressSpinnerModule,
@@ -233,6 +242,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _structuredDataService = inject(StructuredDataService);
   private _appRef = inject(ApplicationRef);
   private readonly _destroyRef = inject(DestroyRef);
+  private readonly _document = inject(DOCUMENT);
   readonly responsive = inject(ResponsiveService);
   private readonly _platformService = inject(PlatformService);
   private readonly _uiLanguageService = inject(UiLanguageService);
@@ -266,6 +276,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
   readonly myEventContext = inject(MyEventContextService);
+  private readonly _notificationCenter = inject(NotificationCenterService);
   readonly checkInEnabled = environment.features.checkIns;
   private readonly _desktopNavigationRailMeasurement = signal<DesktopNavigationRailMeasurement | null>(
     null,
@@ -1149,6 +1160,7 @@ html.pkspot-roboto-loaded body {
           this.userId = "";
         }
         this.isSignedIn.set(isAuthenticated);
+        this._ownUserId.set(user?.uid ?? "");
 
         if (user && user.uid) {
           this.shortUserDisplayName.set(
@@ -1539,6 +1551,8 @@ html.pkspot-roboto-loaded body {
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
   isSignedIn = signal(false);
+  /** The signed-in person's id, so only their own /u/ page marks Profile active. */
+  private readonly _ownUserId = signal("");
   // Subscribe during construction. Analytics initialization can outlive the
   // initial navigation; missing that event leaves the map shell at zero height.
   readonly currentNavUrl = toSignal(
@@ -1585,6 +1599,7 @@ html.pkspot-roboto-loaded body {
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
     const currentNavUrl = this.currentNavUrl();
+    const ownUserId = this._ownUserId();
     const isCompact = !this.usesNavigationRail();
     const isOnMobileWeb = this.isMobileAppStoreBrowser();
 
@@ -1607,13 +1622,17 @@ html.pkspot-roboto-loaded body {
       });
     }
 
+    const eventsName = $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`;
     buttons.push({
       id: "events",
-      name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
+      name: eventsName,
       link: "/events",
       icon: "event",
       overflowPriority: 2,
       liveIndicator: this.myEventContext.hasLiveEvent(),
+      ariaLabel: this.myEventContext.hasLiveEvent()
+        ? navigationAccessibleLabel(eventsName, true, 0)
+        : undefined,
     });
 
     if (!isCompact) {
@@ -1637,14 +1656,31 @@ html.pkspot-roboto-loaded body {
       });
     }
 
-    // About is lowest priority, so More absorbs it before primary navigation.
-    buttons.push({
-      id: "about",
+    // Signed-in phones give the last slot to notifications, which people
+    // check daily; About moves to the profile menu there. Signed-out visitors
+    // and the desktop rail keep About.
+    if (signedIn && isCompact) {
+      const unread = this._notificationCenter.unreadCount();
+      const name = $localize`:@@navigation.notifications:Notifications`;
+      buttons.push({
+        id: "notifications",
+        name,
+        link: "/notifications",
+        icon: "notifications",
+        overflowPriority: 5,
+        badgeCount: unread,
+        ariaLabel: unread > 0 ? navigationAccessibleLabel(name, false, unread) : undefined,
+      });
+    } else {
+      // About is lowest priority, so More absorbs it before primary navigation.
+      buttons.push({
+        id: "about",
       name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
-      link: "/about",
-      icon: "info",
-      overflowPriority: 5,
-    });
+        link: "/about",
+        icon: "info",
+        overflowPriority: 5,
+      });
+    }
 
     // Compact navigation routes lower-priority destinations through More, so
     // administrators retain access without crowding out the primary actions.
@@ -1681,9 +1717,13 @@ html.pkspot-roboto-loaded body {
             overflowPriority: 8,
             alwaysVisible: true,
             image: userPhoto || "",
+            // Another athlete's profile is not "your" Profile tab.
             active:
               currentNavUrl.startsWith("/profile") ||
-              currentNavUrl.startsWith("/u/"),
+              (!!ownUserId &&
+                (currentNavUrl === `/u/${ownUserId}` ||
+                  currentNavUrl.startsWith(`/u/${ownUserId}/`) ||
+                  currentNavUrl.startsWith(`/u/${ownUserId}?`))),
           }
         : {
             function: () => this.navigateToAccount(),
@@ -1767,6 +1807,19 @@ html.pkspot-roboto-loaded body {
   readonly hasNavbarOverflow = computed(
     () => this.overflowNavbarButtons().length > 0,
   );
+  /** Moves keyboard focus past the navigation to the page content. */
+  skipToMainContent(event: Event): void {
+    event.preventDefault();
+    const main = this._document?.getElementById("main-content");
+    if (!main) return;
+    const target = main.querySelector<HTMLElement>("h1, [role='main'], main") ?? main;
+    if (target !== main && !target.hasAttribute("tabindex")) {
+      target.setAttribute("tabindex", "-1");
+    }
+    target.focus();
+  }
+
+  /** Appended to a navigation link's name while one of its events is live. */
   readonly moreNavigationLabel = $localize`:More navbar button label|A very short label that opens overflow navigation@@more.nav:More`;
   readonly overflowNavigationActive = computed(() =>
     this.overflowNavbarButtons().some(

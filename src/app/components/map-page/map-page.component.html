@@ -35,6 +35,7 @@
           usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         (isEditingChange)="onSpotPanelEditingChange($event)"
+        (spotReplaced)="onSpotPanelSpotReplaced($event)"
         (dismiss)="closeSpot()"
         (addBoundsClick)="onSpotPanelAddBounds()"
         (focusClick)="onSpotPanelFocus()"
@@ -300,6 +301,17 @@
         (filterChange)="onEventFilterChipSelected($event)"
         (clearClick)="eventFilterChanged('')"
       ></app-filter-chips-bar>
+    } @else if (showCommunityFilterChips()) {
+      <app-filter-chips-bar
+        @fadeInOut
+        class="filter-chips-switcher__bar"
+        [selectedFilter]="selectedCommunityFilter()"
+        [presetFilters]="communityFilterOptions"
+        [showFiltersChip]="false"
+        [ariaLabel]="communityFiltersLabel"
+        (filterChange)="onCommunityFilterChipSelected($event)"
+        (clearClick)="communityFilterChanged('')"
+      ></app-filter-chips-bar>
     }
   </div>
 </ng-template>
@@ -371,7 +383,13 @@
   @if (usesMapDrawer()) {
     <div
       class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
+      #searchOverlay
+      appResizeObserver
+      (resize)="searchOverlayHeight.set(searchOverlay.offsetHeight)"
       [class.map-overlay-drawer]="usesOverlayMapDrawer()"
+      [class.search-field-container--over-content]="
+        sidenavOpen() && sidebarContentIsScrolling()
+      "
     >
       <div class="d-flex flex-row gap-3">
         @if (alainMode()) {
@@ -407,15 +425,20 @@
     [@.disabled]="serverPanelsVisible()"
   >
     @if (usesMapDrawer()) {
+      <!-- disableClose: the drawer would otherwise take Escape (and stop it)
+           even while a dialog is open over it. Escape closes dialogs first,
+           then an open Spot; the panel itself has its toggle button. -->
       <mat-drawer
         #infoDrawer
+        [disableClose]="true"
         [opened]="sidenavOpen()"
         position="start"
         [mode]="mapSidenavMode()"
         class="info-panel"
         [class.map-overlay-drawer]="usesOverlayMapDrawer()"
+        [style.--map-panel-sticky-top.px]="searchOverlayHeight()"
       >
-        <div [style.height.px]="chipsSpacerHeight()"></div>
+        <div class="map-panel-toolbar-spacer" [style.--measured-toolbar-height]="chipsSpacerHeight() + 'px'"></div>
         <ng-container
           *ngTemplateOutlet="movableOutlet; context: { $implicit: panelView }"
         ></ng-container>
@@ -441,6 +464,8 @@
             mat-icon-button
             (click)="toggleSidenav()"
             class="sidenav-toggle__button d-flex border justify-content-center align-items-center p-0"
+            [attr.aria-label]="sidenavOpen() ? hideSidePanelLabel : showSidePanelLabel"
+            [attr.aria-expanded]="sidenavOpen()"
           >
             @if (sidenavOpen()) {
               <mat-icon>chevron_left</mat-icon>

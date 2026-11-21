@@ -1,4 +1,8 @@
 import { ExternalMediaPreferencesService } from "../../services/external-media-preferences.service";
+import {
+  confirmDiscardChanges,
+  type HasUnsavedChanges,
+} from "../discard-changes-dialog/discard-changes-dialog.component";
 import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { AdultVerificationDialogComponent } from "../adult-verification-dialog/adult-verification-dialog.component";
 import { inject as injectFeatureTelemetry } from "@angular/core";
@@ -12,6 +16,7 @@ import {
   DestroyRef,
   PLATFORM_ID,
   effect,
+  signal,
 } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { isPlatformBrowser } from "@angular/common";
@@ -21,10 +26,6 @@ import { FormsModule } from "@angular/forms";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { ConsentService } from "../../services/consent.service";
 import { EditProfileComponent } from "../edit-profile/edit-profile.component";
-import {
-  SpeedDialFabButtonConfig,
-  SpeedDialFabComponent,
-} from "../speed-dial-fab/speed-dial-fab.component";
 import { MatTooltip } from "@angular/material/tooltip";
 import { MatInput } from "@angular/material/input";
 import {
@@ -33,7 +34,6 @@ import {
   MatSuffix,
   MatHint,
 } from "@angular/material/form-field";
-import { MatDivider } from "@angular/material/divider";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatBadge } from "@angular/material/badge";
 import { MatButtonModule } from "@angular/material/button";
@@ -85,7 +85,6 @@ import { LocalLegendSettingsComponent } from "../local-legend-settings/local-leg
     MatButtonModule,
     MatIcon,
     MatBadge,
-    MatDivider,
     EditProfileComponent,
     MatFormField,
     MatLabel,
@@ -93,7 +92,6 @@ import { LocalLegendSettingsComponent } from "../local-legend-settings/local-leg
     MatSuffix,
     MatTooltip,
     MatHint,
-    SpeedDialFabComponent,
     FormsModule,
     MatProgressSpinner,
     MatSlideToggleModule,
@@ -106,9 +104,12 @@ import { LocalLegendSettingsComponent } from "../local-legend-settings/local-leg
     NotificationSettingsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { ngSkipHydration: "true" },
+  host: {
+    ngSkipHydration: "true",
+    "(window:beforeunload)": "onBeforeUnload($event)",
+  },
 })
-export class SettingsPageComponent implements OnInit {
+export class SettingsPageComponent implements OnInit, HasUnsavedChanges {
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
 
   readonly mapProfiler = injectFeatureTelemetry(MapPerformanceProfilerService);
@@ -180,40 +181,49 @@ export class SettingsPageComponent implements OnInit {
   }
   languageCodes = languageCodes;
 
+  readonly dismissLabel = $localize`:@@common.dismiss:Dismiss`;
+
   menuPoints = [
     {
       id: "profile",
       name: $localize`Public profile`,
       icon: "person",
+      description: $localize`:@@settings.menu.profile_summary:Display name, bio, photo and links`,
       hasChanges: false,
     },
     {
       id: "account",
       name: $localize`Account`,
       icon: "manage_accounts",
+      description: $localize`:@@settings.menu.account_summary:Email, password, privacy and age check`,
       hasChanges: false,
     },
     {
       id: "general",
       name: $localize`General`,
       icon: "settings",
+      description: $localize`:@@settings.menu.general_summary:Language, units, location and media`,
       hasChanges: false,
     },
     {
       id: "notifications",
       name: $localize`:@@settings.notifications.menu:Notifications`,
       icon: "notifications",
+      description: $localize`:@@settings.menu.notifications_summary:What PK Spot may notify you about`,
       hasChanges: false,
     },
     {
       id: "about",
       name: $localize`About & Credits`,
       icon: "info",
+      description: $localize`:@@settings.menu.about_summary:Version, licences and contributors`,
       hasChanges: false,
     },
   ];
 
   selectedPoint: string = "profile";
+  /** Narrow layouts show either the section list or one open section. */
+  readonly sectionOpen = signal(false);
 
   hasChanges: boolean = false;
 
@@ -263,27 +273,13 @@ export class SettingsPageComponent implements OnInit {
   manageLocationAccess(): void {
     this._dialog.open(LocationAccessDialogComponent, {
       maxWidth: "min(420px, 92vw)",
+      panelClass: "reading-width-dialog",
     });
   }
 
   async disableLocationAccess(): Promise<void> {
     await this.locationAccess.disable();
   }
-
-  speedDialButtonConfig: SpeedDialFabButtonConfig = {
-    mainButton: {
-      icon: "save",
-      tooltip: "Save all changes",
-      color: "primary",
-    },
-    miniButtonColor: "default",
-    miniButtons: [
-      {
-        icon: "close",
-        tooltip: "Discard all changes",
-      },
-    ],
-  };
 
   emailAddress?: string;
   newEmailAddress: string = "";
@@ -381,11 +377,43 @@ export class SettingsPageComponent implements OnInit {
     }
   }
 
-  openMenuPoint(pointId: string) {
+  /** Closing or reloading the tab with unsaved edits gets the browser's own prompt. */
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.menuPoints[0].hasChanges) event.preventDefault();
+  }
+
+  /**
+   * Profile edits are drafts until saved. Leaving the profile section or the
+   * page asks first, so edits are never lost silently.
+   */
+  async confirmLeave(): Promise<boolean> {
+    if (!this.menuPoints[0].hasChanges) return true;
+    const discard = await confirmDiscardChanges(this._dialog);
+    if (discard) {
+      // The profile form stays mounted while hidden, so restore its saved
+      // values too; otherwise the discarded draft returns with the section.
+      this.editProfileComponent?.discardChanges();
+      this.menuPoints[0].hasChanges = false;
+      this.updateChanges();
+      this.changeDetector.markForCheck();
+    }
+    return discard;
+  }
+
+  async openMenuPoint(pointId: string) {
     // Check if this point id exists
     const point = this.menuPoints.find((menuPoint) => menuPoint.id === pointId);
+    if (
+      point &&
+      pointId !== this.selectedPoint &&
+      this.selectedPoint === "profile" &&
+      !(await this.confirmLeave())
+    ) {
+      return;
+    }
     if (point) {
       this.selectedPoint = pointId;
+      this.sectionOpen.set(true);
       this.updateURL(pointId);
 
       this._metaTagService.setStaticPageMetaTags(
@@ -519,7 +547,7 @@ export class SettingsPageComponent implements OnInit {
       .catch(() => {
         this._snackbar.open(
           $localize`Error, there was a problem signing out!`,
-          "Dismiss",
+          this.dismissLabel,
           {
             duration: 5000,
             horizontalPosition: "center",
@@ -537,8 +565,8 @@ export class SettingsPageComponent implements OnInit {
     this.authService.resendVerificationEmail().then(
       () => {
         this._snackbar.open(
-          "Verification E-Mail successfully re-sent",
-          "Dismiss",
+          $localize`:@@settings.verification_resent:Verification email sent again.`,
+          this.dismissLabel,
           {
             duration: 3000,
             horizontalPosition: "center",
@@ -760,14 +788,6 @@ export class SettingsPageComponent implements OnInit {
     this.hasChanges = false;
   }
 
-  miniFabPressed() {
-    this.discardAllChanges();
-  }
-
-  discardAllChanges() {
-    console.error("TODO Implement discarding");
-  }
-
   saveAllChanges() {
     if (
       this.selectedPoint === "profile" &&
@@ -785,7 +805,7 @@ export class SettingsPageComponent implements OnInit {
     this.editProfileComponent
       ?.saveAllChanges()
       ?.then(() => {
-        this._snackbar.open("Successfully saved all changes!", "Dismiss", {
+        this._snackbar.open($localize`:@@settings.profile_saved:Profile saved.`, this.dismissLabel, {
           duration: 3000,
           horizontalPosition: "center",
           verticalPosition: "bottom",
@@ -799,8 +819,8 @@ export class SettingsPageComponent implements OnInit {
       .catch((err) => {
         console.error("Saving settings failed!", err);
         this._snackbar.open(
-          "Error saving all changes! Please try again later.",
-          "Dismiss",
+          $localize`:@@settings.profile_save_failed:Your profile could not be saved. Please try again.`,
+          this.dismissLabel,
           {
             duration: 5000,
             horizontalPosition: "center",

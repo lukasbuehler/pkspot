@@ -26,13 +26,22 @@ import { Overlay } from "@angular/cdk/overlay";
 import { provideNativeDateAdapter } from "@angular/material/core";
 
 import { routes } from "./app.routes";
-import { provideRouter, withInMemoryScrolling } from "@angular/router";
+import {
+  provideRouter,
+  withInMemoryScrolling,
+  withNavigationErrorHandler,
+} from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
-import { ApplicationErrorHandler } from "./services/application-error-handler.service";
+import {
+  ApplicationErrorHandler,
+  rememberFailedNavigationTarget,
+} from "./services/application-error-handler.service";
 import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
 import { DateTimeFormatService } from "./services/date-time-format.service";
 import { provideFirebaseClient } from "./services/firebase/firebase-client.providers";
 
+import { MatDatepickerIntl } from "@angular/material/datepicker";
+import { LocalizedDatepickerIntl } from "./localization/material-datepicker-intl";
 export const appConfig: ApplicationConfig = {
   providers: [
     provideFirebaseClient(),
@@ -46,8 +55,10 @@ export const appConfig: ApplicationConfig = {
         anchorScrolling: "enabled",
         scrollPositionRestoration: "enabled",
       }),
+      withNavigationErrorHandler(rememberFailedNavigationTarget),
     ),
     BrowserModule,
+    { provide: MatDatepickerIntl, useClass: LocalizedDatepickerIntl },
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: {

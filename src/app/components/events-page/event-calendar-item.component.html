@@ -1,3 +1,15 @@
+@if (compact()) {
+  <span
+    class="calendar-bar"
+    [class.is-live]="isLive()"
+    [class.is-past]="isPast()"
+    [class.is-community]="isCommunity()"
+    [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
+    [class.continues-before]="continuesBefore()"
+    [class.continues-after]="continuesAfter()"
+    ><span class="calendar-bar__name">{{ event().name }}</span></span
+  >
+} @else {
 <a
   [routerLink]="route()"
   class="calendar-event"
@@ -12,9 +24,7 @@
   <app-event-calendar-thumbnail [event]="event()" [muted]="isPast()" />
   <span class="event-copy">
     <span class="event-name">{{ event().name }}</span>
-    @if (communityLabel(); as label) {
-      <span class="listing-badge community">{{ label }}</span>
-    }
+    <app-event-host-line [event]="event()" [compact]="true" />
     @if (
       event().rsvpCounts.going > 0 || event().rsvpCounts.interested > 0
     ) {
@@ -29,3 +39,4 @@
     }
   </span>
 </a>
+}

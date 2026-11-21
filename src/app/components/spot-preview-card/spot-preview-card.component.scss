@@ -83,6 +83,21 @@ mat-card:not(.compact) {
     overflow: hidden;
   }
 }
+// In grids that mix photo and no-photo cards, every card fills its row.
+:host:has(> mat-card.fill-height) {
+  display: block;
+}
+
+mat-card.fill-height {
+  height: 100%;
+}
+
+// A Spot without photos in a recommendation grid: a short strip, not a 4:3 slot.
+mat-card:not(.compact) > .img-container.missing-media-compact {
+  aspect-ratio: auto;
+  height: 56px;
+}
+
 mat-card.clickable:hover {
   background-color: var(--mat-sys-surface-container-high);
   transition: background-color 0.2s ease-in-out;
@@ -150,4 +165,9 @@ mat-card.clickable:hover {
 
 .country-code {
   font-weight: 500;
+}
+
+.access-label {
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
 }

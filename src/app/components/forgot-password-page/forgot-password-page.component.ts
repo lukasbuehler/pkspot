@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy } from "@angular/core";
+import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy, signal } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { RecaptchaUnavailableInSsrError } from "../../services/recaptcha.service";
@@ -39,13 +39,15 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
 })
 export class ForgotPasswordPageComponent implements OnInit {
   forgotPasswordForm: UntypedFormGroup;
-  forgotPasswordError: string = "";
+  /** A send failure that is not about the address itself. */
+  readonly forgotPasswordError = signal("");
 
   private _recaptchaSolved = false;
   private _recaptchaSetupCompleted = false;
   recaptcha: RecaptchaVerifier | null = null;
-  sendingSuccessful: boolean = false;
-  isSending: boolean = false;
+  // Signals, because the send result arrives asynchronously in a zoneless app.
+  readonly sendingSuccessful = signal(false);
+  readonly isSending = signal(false);
 
   constructor(
     private _authService: AuthenticationService,
@@ -149,37 +151,42 @@ export class ForgotPasswordPageComponent implements OnInit {
   }
 
   resetPassword(forgotPasswordFormValue: { email: string }) {
-    if (this.sendingSuccessful || this.isSending) {
+    if (this.sendingSuccessful() || this.isSending()) {
       return;
     }
 
+    const emailControl = this.forgotPasswordForm.controls["email"];
     const email = forgotPasswordFormValue.email?.trim();
-    if (!email) {
-      this.forgotPasswordError = $localize`Please enter your email address`;
+    if (!email || emailControl.invalid) {
+      // Field problems show under the field, like on sign-in.
+      emailControl.markAsTouched();
       return;
     }
 
-    this.isSending = true;
-    this.forgotPasswordError = "";
+    this.isSending.set(true);
+    this.forgotPasswordError.set("");
 
     this._authService
       .sendPasswordReset(email)
       .then(() => {
-        this.sendingSuccessful = true;
+        this.sendingSuccessful.set(true);
       })
       .catch((err) => {
         console.error("Error sending password reset:", err);
         if (err.code === "auth/user-not-found") {
           // Don't reveal if user exists, just show success
-          this.sendingSuccessful = true;
+          this.sendingSuccessful.set(true);
         } else if (err.code === "auth/invalid-email") {
-          this.forgotPasswordError = $localize`Invalid email address`;
+          emailControl.setErrors({ email: true });
+          emailControl.markAsTouched();
         } else {
-          this.forgotPasswordError = $localize`Error sending reset email. Please try again.`;
+          this.forgotPasswordError.set(
+            $localize`Error sending reset email. Please try again.`,
+          );
         }
       })
       .finally(() => {
-        this.isSending = false;
+        this.isSending.set(false);
       });
   }
 

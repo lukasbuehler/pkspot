@@ -1,0 +1,62 @@
+@if (host(); as host) {
+  @switch (host.kind) {
+    @case ("organization") {
+      @if (!compact()) {
+        @if (host.logoUrl && failedLogo() !== host.logoUrl) {
+          <span
+            class="host-logo"
+            [style.background]="host.logoBackground"
+            aria-hidden="true"
+          >
+            <img [src]="host.logoUrl" alt="" (error)="failedLogo.set(host.logoUrl)" />
+          </span>
+        }
+        @if (host.name) {
+          <span class="host-name">{{ host.name }}</span>
+        }
+      }
+      <mat-icon
+        class="host-verified"
+        role="img"
+        [attr.aria-label]="verifiedLabel"
+        [matTooltip]="verifiedLabel"
+        >verified</mat-icon
+      >
+      @if (!compact() && !host.name) {
+        <!-- Until the organisation's name is indexed, say what the mark means. -->
+        <span class="host-name" i18n="@@event_host.verified_text">Verified organizer</span>
+      }
+    }
+    @case ("community") {
+      <mat-icon
+        class="host-icon"
+        role="img"
+        [attr.aria-label]="communityLabel"
+        [matTooltip]="communityLabel"
+        >groups</mat-icon
+      >
+      @if (!compact()) {
+        @if (host.name) {
+          <span class="host-text">
+            <span class="host-by" i18n="@@event_host.by">by</span>
+            <span class="host-name">{{ host.name }}</span>
+          </span>
+          <span class="host-suffix" aria-hidden="true">·</span>
+          <span class="host-suffix" i18n="@@event_host.community">Community</span>
+        } @else {
+          <span class="host-text" i18n="@@event_host.community_unnamed"
+            >Organized by the community</span
+          >
+        }
+      }
+    }
+    @case ("named") {
+      @if (!compact()) {
+        <span class="host-text">
+          <span class="host-by" i18n="@@event_host.by">by</span>
+          <span class="host-name">{{ host.name }}</span>
+        </span>
+      }
+    }
+  }
+}

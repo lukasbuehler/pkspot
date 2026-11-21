@@ -6,7 +6,7 @@
     [selectedIndex]="selectedTab() === 'visited' ? 1 : 0"
     (selectedTabChange)="onTabChange($event)"
   >
-    <mat-tab label="Saved">
+    <mat-tab label="Saved" i18n-label="@@private_spots.tab_saved">
       <div class="tab-content">
         @if(isSavedLoading()) {
         <div class="loading-state">
@@ -34,6 +34,8 @@
             </a>
             }
           </div>
+          <!-- Paging only when there is more than one page. -->
+          @if (getTotalPages("saved") > 1) {
           <div class="pagination-controls">
             <button
               mat-button
@@ -55,12 +57,13 @@
               Next
             </button>
           </div>
+          }
         </div>
         }
       </div>
     </mat-tab>
 
-    <mat-tab label="Visited">
+    <mat-tab label="Visited" i18n-label="@@private_spots.tab_visited">
       <div class="tab-content">
         @if(isVisitedLoading()) {
         <div class="loading-state">
@@ -88,6 +91,8 @@
             </a>
             }
           </div>
+          <!-- Paging only when there is more than one page. -->
+          @if (getTotalPages("visited") > 1) {
           <div class="pagination-controls">
             <button
               mat-button
@@ -109,6 +114,7 @@
               Next
             </button>
           </div>
+          }
         </div>
         }
       </div>

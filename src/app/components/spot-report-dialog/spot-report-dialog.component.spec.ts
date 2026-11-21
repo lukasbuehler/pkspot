@@ -173,4 +173,8 @@ describe("SpotReportDialogComponent", () => {
     component.comment.set("The obstacle was replaced.");
     expect(component.canSubmit()).toBe(true);
   });
+  it("hands photo problems to the photo viewer instead of reporting the Spot", () => {
+    fixture.componentInstance.reportPhotoInstead();
+    expect(dialogRef.close).toHaveBeenCalledWith({ reportPhoto: true });
+  });
 });

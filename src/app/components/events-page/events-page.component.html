@@ -3,6 +3,21 @@
   appResizeObserver
   (resize)="onContainerResize($event)"
 >
+  <header class="page-header">
+    <div class="page-heading">
+      <h1 class="mat-headline-large" i18n="@@events.title">Events</h1>
+      <p class="mat-body-large" i18n>
+        Discover parkour events around the world.
+      </p>
+    </div>
+    <app-event-discovery-view-toggle
+      [view]="view()"
+      (viewChange)="onViewChange($event)"
+    />
+  </header>
+
+  <!-- The page title comes first; what is live and the person's own events
+       follow right under it, above the discovery filters. -->
   @if (myEventContext.liveEvents().length > 0) {
     <section
       class="live-events"
@@ -39,18 +54,6 @@
     />
   }
 
-  <header class="page-header">
-    <div class="page-heading">
-      <h1 class="mat-headline-large" i18n="@@events.title">Events</h1>
-      <p class="mat-body-large" i18n>
-        Discover parkour events around the world.
-      </p>
-    </div>
-    <app-event-discovery-view-toggle
-      [view]="view()"
-      (viewChange)="onViewChange($event)"
-    />
-  </header>
 
   <app-event-discovery-toolbar
     [query]="query()"
@@ -65,12 +68,16 @@
     [selectedSeriesIds]="selectedSeriesIds()"
     [selectedListingTiers]="selectedListingTiers()"
     [selectedRegions]="selectedRegions()"
+    [dateRange]="dateRange()"
+    [showClearFilters]="!showsEmptyState()"
     (periodChange)="onPeriodChange($event)"
     (categoryToggled)="toggleCategory($event)"
     (seriesToggled)="toggleSeries($event)"
     (listingTierToggled)="toggleListingTier($event)"
     (regionToggled)="toggleRegion($event)"
     (filtersCleared)="clearFilters()"
+    (dateRangeCleared)="clearDateRange()"
+    (dialogFiltersApplied)="applyDialogFilters($event)"
   />
 
   @if (discoveryResource.error() && !usesContinuousCalendar()) {
@@ -136,9 +143,18 @@
       <section class="empty-state">
         <mat-icon>event</mat-icon>
         <h2 class="mat-title-large" i18n>No matching events</h2>
-        <p class="mat-body-medium" i18n>
-          Try another month or clear the active filters.
-        </p>
+        @if (view() === "calendar") {
+          <p class="mat-body-medium" i18n>
+            Try another month or clear the active filters.
+          </p>
+        } @else {
+          <p class="mat-body-medium" i18n="@@events.empty.list_hint">
+            Clear the active filters, or switch between upcoming and past events.
+          </p>
+        }
+        <button matButton="tonal" type="button" (click)="clearFilters()" i18n="@@events.empty.clear_filters">
+          Clear filters
+        </button>
       </section>
     } @else if (view() === "calendar") {
       <app-event-calendar

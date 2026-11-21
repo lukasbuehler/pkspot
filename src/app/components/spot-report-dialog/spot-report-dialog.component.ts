@@ -8,6 +8,7 @@ import {
   signal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import {
   MAT_DIALOG_DATA,
@@ -19,8 +20,6 @@ import {
 import { FormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSelectModule } from "@angular/material/select";
-import { languageCodes } from "../../../scripts/Languages";
 import { MatInputModule } from "@angular/material/input";
 import type { SpotReportReason } from "../../../db/schemas/SpotReportSchema";
 import type { OwnReportSummary } from "../../../db/schemas/ReportLifecycleSchema";
@@ -35,18 +34,23 @@ export interface SpotReportDialogData {
   spotId: string;
   spotName: string;
   report?: OwnReportSummary | null;
+  /** The Spot has photos that can be reported one by one in the viewer. */
+  hasPhotos?: boolean;
 }
 
 export interface SpotReportDialogResult {
   reportId?: string;
   created?: boolean;
   withdrawn?: boolean;
+  /** The person wants to report a photo instead: open the photo viewer. */
+  reportPhoto?: boolean;
 }
 
 @Component({
   selector: "app-spot-report-dialog",
   imports: [
     MatButtonModule,
+    MatIconModule,
     MatCheckboxModule,
     MatDialogTitle,
     MatDialogContent,
@@ -54,7 +58,6 @@ export interface SpotReportDialogResult {
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatProgressSpinnerModule,
     EntityReferenceAutocompleteComponent,
   ],
@@ -72,10 +75,12 @@ export class SpotReportDialogComponent {
   readonly report = signal(this.data.report ?? null);
   readonly loading = signal(true);
   readonly loadError = signal(false);
+  /**
+   * Language of the optional comment, for moderators. It is the app's
+   * language rather than a field to fill in; an edited report keeps the
+   * language it was written in.
+   */
   readonly commentLocale = signal(inject(LOCALE_ID).split("-")[0]);
-  readonly languages = Object.entries(languageCodes).map(([code, language]) => ({
-    code, name: language.name_native ?? language.name_english,
-  }));
   readonly isSubmitting = signal(false);
   readonly submissionError = signal(false);
   readonly selectedReasons = signal<string[]>(this.data.report?.reasons ?? []);
@@ -115,6 +120,11 @@ export class SpotReportDialogComponent {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Photos are reported individually from the viewer, with media reasons. */
+  reportPhotoInstead(): void {
+    if (!this.isSubmitting()) this.dialogRef.close({ reportPhoto: true });
   }
 
   onNoClick(): void {

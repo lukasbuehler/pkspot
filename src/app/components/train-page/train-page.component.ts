@@ -287,9 +287,12 @@ export class TrainPageComponent {
   );
 
   readonly rhythmWeeks = RHYTHM_WEEKS;
+  /** Recent weeks only; the full history lives in the training log. */
+  readonly lookingBackWeeks = 16;
   readonly fabLabel = $localize`:@@trainingLog.add:Add to training log`;
+  readonly fabText = $localize`:@@train.fab.text:Log training`;
   readonly fabActions: readonly FabMenuAction[] = [
-    { id: "activity", icon: "add", label: $localize`:@@trainingLog.new:New training entry` },
+    { id: "activity", icon: "add", label: $localize`:@@train.fab.text:Log training` },
     ...(environment.features.plannedSessions
       ? [{ id: "session", icon: "groups", label: $localize`:@@planned.plan:Plan a session` }]
       : []),
@@ -578,6 +581,7 @@ export class TrainPageComponent {
       this.dialog
         .open(LocationAccessDialogComponent, {
           maxWidth: "min(420px, 92vw)",
+          panelClass: "reading-width-dialog",
         })
         .afterClosed()
         .subscribe((enabled) => {

@@ -11,11 +11,19 @@
     </div>
   }
   <div class="report-fields" [class.concealed]="loading() || loadError()" [attr.inert]="loading() || loadError() ? '' : null">
+  @if (data.hasPhotos && !isEditing) {
+    <div class="photo-report-note">
+      <mat-icon aria-hidden="true">image</mat-icon>
+      <div class="photo-report-note__text">
+        <p class="mat-body-medium" i18n="@@spot_report.photo_note">Is a photo the problem? Report that photo on its own, so only it is reviewed.</p>
+        <button matButton="text" type="button" (click)="reportPhotoInstead()" i18n="@@spot_report.photo_action">Choose photo to report</button>
+      </div>
+    </div>
+  }
   <p i18n>Select every reason that applies. Your report and identity are visible only to moderators.</p>
   <div class="d-flex flex-column gap-2">
     @for (reason of reasons; track reason.value) {
       <mat-checkbox
-        color="warn"
         [checked]="isReasonSelected(reason.value)"
         [disabled]="isSubmitting()"
         (change)="toggleReason(reason.value, $event.checked)"
@@ -24,6 +32,9 @@
       </mat-checkbox>
     }
   </div>
+  @if (selectedReasons().length === 0) {
+    <p class="mat-body-small text-secondary" i18n="@@report.choose_reason_hint">Choose at least one reason to send the report.</p>
+  }
 
   @if (isReasonSelected('duplicate')) {
     <div class="pt-3">
@@ -38,16 +49,12 @@
     </div>
   }
 
-  <mat-form-field class="w-100 pt-3" appearance="outline">
-    <mat-label i18n>Language</mat-label>
-    <mat-select [value]="commentLocale()" [disabled]="isSubmitting()" (selectionChange)="commentLocale.set($event.value)">
-      @for (language of languages; track language.code) {
-        <mat-option [value]="language.code">{{ language.name }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field class="w-100 pt-3" appearance="outline">
-    <mat-label i18n>Private details (optional)</mat-label>
+  <mat-form-field class="w-100 pt-3" appearance="outline" subscriptSizing="dynamic">
+    @if (isReasonSelected('other')) {
+      <mat-label i18n="@@media_report.details_required">Details (required for Other)</mat-label>
+    } @else {
+      <mat-label i18n>Private details (optional)</mat-label>
+    }
     <textarea
       matInput
       rows="4"
@@ -56,10 +63,10 @@
       [disabled]="isSubmitting()"
       (ngModelChange)="comment.set($event)"
     ></textarea>
-    <mat-hint align="end">{{ comment().length }}/1000</mat-hint>
     @if (isReasonSelected('other') && !comment().trim()) {
-      <mat-error i18n>Please add details when selecting Other.</mat-error>
+      <mat-hint i18n>Please add details when selecting Other.</mat-hint>
     }
+    <mat-hint align="end">{{ comment().length }}/1000</mat-hint>
   </mat-form-field>
 
   <p class="mat-body pt-1" i18n>
@@ -77,13 +84,12 @@
       Withdraw report
     </button>
   <div class="d-flex gap-2">
-    <button matButton="outlined" [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">
+    <button matButton [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">
       Cancel
     </button>
     <button
       [disabled]="!canSubmit() || isSubmitting()"
       matButton="filled"
-      color="warn"
       cdkFocusInitial
       (click)="submitReport()"
     >

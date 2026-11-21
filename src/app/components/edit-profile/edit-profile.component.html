@@ -23,7 +23,7 @@
           class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
           style="background: rgba(0, 0, 0, 0.3); border-radius: 50%"
         >
-          <mat-spinner diameter="40" color="accent"></mat-spinner>
+          <mat-spinner diameter="40" color="primary"></mat-spinner>
         </div>
         } @if (hasProfilePictureError && !isUpdatingProfilePicture) {
         <div class="position-absolute top-50 start-50 translate-middle">
@@ -42,8 +42,13 @@
         Your current profile picture
       </h5>
     </div>
+    } @else {
+    <!-- Without a picture, preview the initial other people currently see. -->
+    <div class="profile-initial mb-3" aria-hidden="true">
+      {{ user.displayName ? user.displayName.charAt(0).toUpperCase() : "?" }}
+    </div>
     }
-    <div class="w-100">
+    <div class="d-flex justify-content-center">
       <input
         #profilePictureInput
         hidden="true"
@@ -53,7 +58,6 @@
       />
       <button
         mat-stroked-button
-        class="w-100"
         (click)="profilePictureInput.click()"
         [disabled]="isUpdatingProfilePicture"
         i18n="
@@ -90,6 +94,7 @@
     >
     <input
       matInput
+      appAutoScrollOnFocus
       type="text"
       [value]="displayName"
       (input)="
@@ -114,6 +119,7 @@
     >
     <textarea
       matInput
+      appAutoScrollOnFocus
       placeholder="Write your Bio here..."
       [value]="biography"
       (input)="
@@ -143,15 +149,17 @@
     >
     <input
       matInput
+      appAutoScrollOnFocus
       type="text"
       placeholder="e.g. Germany"
+      i18n-placeholder="@@editProfile.nationality.placeholder"
       [formControl]="countryControl"
       [matAutocomplete]="auto"
     />
     <mat-autocomplete #auto="matAutocomplete">
       @for (code of filteredCountries | async; track code) {
-      <mat-option [value]="countries[code].name">
-        <span>{{ countries[code].emoji }} {{ countries[code].name }}</span>
+      <mat-option [value]="countryNames[code]">
+        <span>{{ countries[code].emoji }} {{ countryNames[code] }}</span>
       </mat-option>
       }
     </mat-autocomplete>
@@ -178,6 +186,7 @@
           <mat-label>Instagram</mat-label>
           <input
             matInput
+            appAutoScrollOnFocus
             type="text"
             [value]="instagramHandle"
             placeholder="@yourhandle or full profile URL"
@@ -193,6 +202,7 @@
           <mat-label>YouTube</mat-label>
           <input
             matInput
+            appAutoScrollOnFocus
             type="text"
             [value]="youtubeHandle"
             placeholder="@yourhandle, channel/id, or full profile URL"
@@ -208,6 +218,7 @@
           <mat-label>TikTok</mat-label>
           <input
             matInput
+            appAutoScrollOnFocus
             type="text"
             [value]="tiktokHandle"
             placeholder="@yourhandle or full profile URL"
@@ -223,6 +234,7 @@
           <mat-label>Discord</mat-label>
           <input
             matInput
+            appAutoScrollOnFocus
             type="url"
             [value]="discordUrl"
             placeholder="Invite code, invite URL, or profile URL"
@@ -254,6 +266,7 @@
     >
     <input
       matInput
+      appAutoScrollOnFocus
       [matDatepicker]="picker"
       [(ngModel)]="startDate"
       (dateChange)="startDate = $event.value; detectIfChanges()"
@@ -269,7 +282,7 @@
   </mat-form-field>
   } @else {
   <div class="d-flex justify-content-center w-100 p-5">
-    <mat-spinner color="accent"></mat-spinner>
+    <mat-spinner color="primary"></mat-spinner>
   </div>
   }
 </div>

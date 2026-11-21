@@ -40,6 +40,12 @@ import { AnalyticsService } from "../../services/analytics.service";
 })
 export class SpotReviewDialogComponent {
   hoverRating: number = 0;
+  /** Spoken names for the star buttons, e.g. "3 Sterne" instead of "3". */
+  readonly starLabels = [1, 2, 3, 4, 5].map((count) =>
+    count === 1
+      ? $localize`:@@spot_review.star_one:1 star`
+      : $localize`:@@spot_review.star_many:${count}:count: stars`,
+  );
   isHovering: boolean = false;
   review: SpotReviewSchema;
   isUpdate: boolean;

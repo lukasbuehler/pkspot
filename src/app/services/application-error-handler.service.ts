@@ -1,10 +1,13 @@
-import { DOCUMENT, isPlatformBrowser } from "@angular/common";
+import { DOCUMENT, isPlatformBrowser, LocationStrategy } from "@angular/common";
 import {
   ErrorHandler,
   Injectable,
+  Injector,
   PLATFORM_ID,
   inject,
 } from "@angular/core";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { NavigationError } from "@angular/router";
 import { AnalyticsService } from "./analytics.service";
 
 const dynamicImportReloadStorageKey = "pkspot.dynamic-import-reload.v1";
@@ -56,11 +59,27 @@ export function isAngularHmrModuleError(error: unknown): boolean {
   return angularHmrErrorSignals.some((signal) => signalText.includes(signal));
 }
 
+/** The page a navigation was opening when its code failed to load. */
+@Injectable({ providedIn: "root" })
+export class FailedNavigationTarget {
+  url: string | null = null;
+}
+
+/**
+ * Router navigation error handler. Remembers where a navigation was going
+ * when its page code failed to load, so recovery can open that page.
+ */
+export function rememberFailedNavigationTarget(error: NavigationError): void {
+  if (!isDynamicImportLoadError(error.error)) return;
+  inject(FailedNavigationTarget).url = inject(LocationStrategy).prepareExternalUrl(error.url);
+}
+
 @Injectable()
 export class ApplicationErrorHandler implements ErrorHandler {
   private readonly analytics = inject(AnalyticsService);
   private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly injector = inject(Injector);
 
   handleError(error: unknown): void {
     this.analytics.reportError(error, {
@@ -97,16 +116,116 @@ export class ApplicationErrorHandler implements ErrorHandler {
       return;
     }
 
+    // Without a connection the page part cannot load and a reload would only
+    // replace the app with the browser's offline page. Stay on the current
+    // page, say why, and open the page once the connection is back.
+    const failedNavigation = this.injector.get(FailedNavigationTarget);
+    const target = failedNavigation.url;
+    failedNavigation.url = null;
+
+    if (view.navigator?.onLine === false) {
+      this.showOfflineNotice(target ? offlinePageName(target) : null);
+      if (target) this.openWhenBackOnline(view, target);
+      return;
+    }
+
+    // Browsers remember a failed module download, so the page code cannot be
+    // loaded again without a fresh page load. Open the page the person was
+    // heading to (e.g. after reconnecting), or reload the current one.
+    const attempt = target ?? view.location.href;
     try {
-      if (view.sessionStorage.getItem(dynamicImportReloadStorageKey)) {
+      if (view.sessionStorage.getItem(dynamicImportReloadStorageKey) === attempt) {
         return;
       }
 
-      view.sessionStorage.setItem(dynamicImportReloadStorageKey, "1");
-      console.warn("[AppError] Reloading once to recover from a module-load error");
-      view.setTimeout(() => view.location.reload(), 0);
+      view.sessionStorage.setItem(dynamicImportReloadStorageKey, attempt);
+      console.warn("[AppError] Loading the page again to recover from a module-load error");
+      view.setTimeout(() => {
+        if (target) view.location.assign(target);
+        else view.location.reload();
+      }, 0);
     } catch (error) {
       console.warn("Failed to schedule stale app reload", error);
     }
+  }
+
+  /** The page to open on reconnecting; only the latest tap counts. */
+  private pendingOnlineTarget: string | null = null;
+
+  /**
+   * Keeps the offline notice's promise: once the browser is online again,
+   * open the page the person tapped, unless they have moved on since.
+   */
+  private openWhenBackOnline(view: Window, target: string): void {
+    const waiting = this.pendingOnlineTarget !== null;
+    this.pendingOnlineTarget = target;
+    if (waiting) return;
+
+    const startedOn = view.location.href;
+    // Tapping another link (even the current page's) means the person has
+    // chosen somewhere else to go; drop the pending page.
+    const cancelOnLinkTap = (event: Event) => {
+      const target = event.target as Element | null;
+      if (target?.closest?.("a[href]")) this.pendingOnlineTarget = null;
+    };
+    view.document?.addEventListener("click", cancelOnLinkTap, true);
+    view.addEventListener(
+      "online",
+      () => {
+        view.document?.removeEventListener("click", cancelOnLinkTap, true);
+        const pending = this.pendingOnlineTarget;
+        this.pendingOnlineTarget = null;
+        if (pending && view.location.href === startedOn) {
+          view.location.assign(pending);
+        }
+      },
+      { once: true },
+    );
+  }
+
+  private showOfflineNotice(pageName: string | null): void {
+    try {
+      this.injector.get(MatSnackBar).open(
+        pageName
+          ? $localize`:@@app.offline.named_page_unavailable:You're offline. ${pageName}:PAGE: opens once you're connected again.`
+          : $localize`:@@app.offline.page_unavailable:You're offline. The page you chose opens once you're connected again.`,
+        $localize`:@@app.offline.page_unavailable.dismiss:OK`,
+        { duration: 8000 },
+      );
+    } catch (error) {
+      console.warn("Failed to show the offline notice", error);
+    }
+  }
+}
+
+/**
+ * The navigation name of a top-level page, so the offline notice can say
+ * which page will open. Null for other pages; the notice then stays generic.
+ */
+export function offlinePageName(url: string): string | null {
+  let path: string;
+  try {
+    path = new URL(url, "https://pkspot.app").pathname;
+  } catch {
+    return null;
+  }
+  const segments = path.split("/").filter(Boolean);
+  // Localized builds prefix the path with the locale, e.g. /de/events.
+  if (segments[0] && /^[a-z]{2}(-[A-Za-z]{2})?$/.test(segments[0]) && segments.length > 1) {
+    segments.shift();
+  }
+  switch (segments[0]) {
+    case "map":
+      return $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`;
+    case "events":
+      return $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`;
+    case "train":
+      return $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`;
+    case "notifications":
+      return $localize`:@@navigation.notifications:Notifications`;
+    case "about":
+      return $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`;
+    default:
+      return null;
   }
 }

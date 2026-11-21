@@ -42,6 +42,7 @@ import {
 } from "@angular/core";
 import { DOCUMENT, Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { compareSpotPreviewsByPriority } from "../map/markers/spot-marker-priority";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotLoadError } from "../../../db/models/SpotLoadError";
 import { handleSpotResolutionError } from "../../resolvers/spot-resolution-error";
@@ -136,6 +137,8 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MatDialog } from "@angular/material/dialog";
+import { SpotEditLeaveService } from "../../guards/spot-edit-leave.guard";
+import { confirmDiscardChanges } from "../discard-changes-dialog/discard-changes-dialog.component";
 import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
@@ -175,9 +178,12 @@ import {
   MapIslandContent,
 } from "../map-island/map-island.component";
 import { afterNextRender } from "@angular/core";
-import { ChipSelectorOption } from "../chip-selector/chip-selector.component";
 import { MapObjectPanelComponent } from "../map/map-object-panel/map-object-panel.component";
-import { MapObjectCounts, MapObjectMode } from "../map/map-object-mode.model";
+import {
+  MapObjectCounts,
+  MapObjectMode,
+  MapObjectTypeChip,
+} from "../map/map-object-mode.model";
 import { MapSpotEditsPanelComponent } from "../map/map-spot-edits-panel/map-spot-edits-panel.component";
 import { MapSpotChallengesPanelComponent } from "../map/map-spot-challenges-panel/map-spot-challenges-panel.component";
 import { MapSpotDetailsPanelComponent } from "../map/map-spot-details-panel/map-spot-details-panel.component";
@@ -213,6 +219,9 @@ import {
 } from "../weather-forecast-dialog/weather-forecast-dialog.component";
 
 type MapEventFilter = "live" | "competition" | "jam" | "camp";
+/** Community results can be narrowed to one geographic level. */
+// PK Spot has country and city communities only; regions may come later.
+type MapCommunityFilter = "country" | "locality";
 
 type CommunityCountryFocusData = {
   boundsCenter?: [number, number];
@@ -266,6 +275,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     "[class.map-with-bottom-sheet]": "usesMapBottomSheet()",
     "[class.map-with-overlay-panel]": "usesOverlayMapDrawer() && sidenavOpen()",
     "[style.--map-sheet-closed-height.px]": "mapSheetClosedHeight()",
+    "(document:keydown.escape)": "onEscapeKey($event)",
   },
   templateUrl: "./map-page.component.html",
   styleUrls: ["./map-page.component.scss"],
@@ -481,10 +491,31 @@ export class MapPageComponent
 
   onSpotPanelEditingChange(isEditing: boolean) {
     if (isEditing) {
+      this._editingPath = this._location.path();
+      // The panel edits this page's Spot. The map keeps its own reference,
+      // which can be another copy of the same Spot (for example after the
+      // history view reloaded it). Point the map at the edited object so
+      // unsaved-change checks, Discard and boundary edits all see one Spot.
+      const spot = this.selectedSpot();
+      if (spot && this.spotMap && this.spotMap.selectedSpot() !== spot) {
+        this.spotMap.selectedSpot.set(spot);
+      }
       this.spotMap?.startEdit();
     } else {
       this.spotMap?.discardEdit();
     }
+  }
+
+  /**
+   * The details view follows live updates and swaps in a fresh copy of the
+   * open Spot. Adopt it, so the editor, the map and the unsaved-changes check
+   * all work on the object the person is actually editing.
+   */
+  onSpotPanelSpotReplaced(spot: Spot | LocalSpot | null) {
+    const current = this.selectedSpot();
+    if (!spot || !current || spot === current) return;
+    if (!(spot instanceof Spot) || !(current instanceof Spot) || spot.id !== current.id) return;
+    this.selectedSpot.set(spot);
   }
 
   onSpotPanelAddBounds() {
@@ -546,6 +577,12 @@ export class MapPageComponent
   );
   // CSS resolves navigation and safe-area clearance; the observer keeps the
   // sheet gesture geometry and map controls in the same coordinate space.
+  /**
+   * Height of the search field floating over the side panel. Sticky rows in
+   * the panel (such as the Spot editor's Save bar) stop below it.
+   */
+  readonly searchOverlayHeight = signal(0);
+
   // The server's markup already holds the measuring element, so the sheet can
   // take its real height at once instead of shifting when the observer fires.
   readonly mapSheetClosedHeight = signal(
@@ -656,6 +693,7 @@ export class MapPageComponent
    */
   selectedFilter = signal<string>("");
   selectedEventFilter = signal<MapEventFilter | "">("");
+  selectedCommunityFilter = signal<MapCommunityFilter | "">("");
 
   /**
    * Effect to apply filter when map becomes available or filter changes.
@@ -734,6 +772,8 @@ export class MapPageComponent
   /** The Spot nearest to the map centre from the last viewport search. */
   private _nearestSpotEvidence: CountryEvidence | undefined;
   private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
+  /** The same view with every country in it, for browsing communities. */
+  private _browsableMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
   private _mapWeatherRequestVersion = 0;
@@ -765,62 +805,70 @@ export class MapPageComponent
   );
   /** The Spot list loads separately and later, unless the area has no Spots. */
   readonly mapSpotListReady = computed(() => this._isMapSpotListReady());
+  readonly hideSidePanelLabel = $localize`:@@map.side_panel.hide:Hide side panel`;
+  readonly showSidePanelLabel = $localize`:@@map.side_panel.show:Show side panel`;
   mapObjectMode = signal<MapObjectMode>("all");
-  mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
+  /**
+   * Type chips double as counters for the visible area. "Everything" has no
+   * chip: it is the state with no type selected.
+   */
+  mapObjectTypeChips = computed<MapObjectTypeChip[]>(() => {
     const counts = this._displayMapObjectCounts();
     // Counts describe the map's viewport and arrive with its first search;
     // before that they would read 0 and then jump.
-    const withCount = (count: number, label: string) =>
-      this.mapObjectsLoaded() ? `${count} ${label}` : label;
-    return [
-      { value: "all", label: $localize`:@@map_objects_all_chip_label:All` },
+    const count = (value: number) =>
+      this.mapObjectsLoaded() ? value : undefined;
+    const mode = this.mapObjectMode();
+    const chips: MapObjectTypeChip[] = [
       {
         value: "spots",
-        label: withCount(
+        count: count(counts.spots),
+        label: this._pluralizeMapObjectCount(
           counts.spots,
-          this._pluralizeMapObjectCount(
-            counts.spots,
-            $localize`:@@map_objects_spot_singular:Spot`,
-            $localize`:@@map_objects_spot_plural:Spots`,
-          ),
+          $localize`:@@map_objects_spot_singular:Spot`,
+          $localize`:@@map_objects_spot_plural:Spots`,
         ),
       },
       {
         value: "events",
-        label: withCount(
+        count: count(counts.events),
+        label: this._pluralizeMapObjectCount(
           counts.events,
-          this._pluralizeMapObjectCount(
-            counts.events,
-            $localize`:@@map_objects_event_singular:Event`,
-            $localize`:@@map_objects_event_plural:Events`,
-          ),
+          $localize`:@@map_objects_event_singular:Event`,
+          $localize`:@@map_objects_event_plural:Events`,
         ),
       },
       {
         value: "communities",
-        label: withCount(
+        count: count(counts.communities),
+        label: this._pluralizeMapObjectCount(
           counts.communities,
-          this._pluralizeMapObjectCount(
-            counts.communities,
-            $localize`:@@map_objects_community_singular:Community`,
-            $localize`:@@map_objects_community_plural:Communities`,
-          ),
+          $localize`:@@map_objects_community_singular:Community`,
+          $localize`:@@map_objects_community_plural:Communities`,
         ),
       },
     ];
+    // A type with nothing in view is a dead choice; it stays only while it is
+    // the selected type, so it can be turned off.
+    return chips.filter((chip) => chip.count !== 0 || chip.value === mode);
   });
   showSpotFilterChips = computed(() => {
     const mode = this.mapObjectMode();
     return mode === "all" || mode === "spots";
   });
   showEventFilterChips = computed(() => this.mapObjectMode() === "events");
+  showCommunityFilterChips = computed(
+    () => this.mapObjectMode() === "communities",
+  );
   activeMapQueryParams = computed<Record<string, string> | null>(() => {
     const filter = this.selectedFilter();
     const eventFilter = this.selectedEventFilter();
+    const communityFilter = this.selectedCommunityFilter();
     const type = this.mapObjectMode();
     const params: Record<string, string> = {};
     if (filter) params["filter"] = filter;
     if (eventFilter) params["eventFilter"] = eventFilter;
+    if (communityFilter) params["communityFilter"] = communityFilter;
     if (type !== "all") params["type"] = type;
     return Object.keys(params).length > 0 ? params : null;
   });
@@ -839,6 +887,13 @@ export class MapPageComponent
       )}`;
     }
 
+    const communityFilter = this.selectedCommunityFilter();
+    if (communityFilter) {
+      return `${this._mapObjectModeLabel("communities")} ${this._communityFilterLabel(
+        communityFilter,
+      )}`;
+    }
+
     const mode = this.mapObjectMode();
     return mode === "all" ? null : this._mapObjectModeLabel(mode);
   });
@@ -849,7 +904,15 @@ export class MapPageComponent
     this._filterEvents(this.visibleMapEvents(), this.selectedEventFilter()),
   );
   visibleEventSeriesById = computed(() => this._visibleEventSeriesById());
-  visibleMapCommunities = computed(() => this._visibleMapCommunities());
+  /** Loaded communities narrowed by the Community scope filter, if any. */
+  visibleMapCommunities = computed(() =>
+    this._filterCommunities(
+      this.mapObjectMode() === "communities"
+        ? this._browsableMapCommunities()
+        : this._visibleMapCommunities(),
+      this.selectedCommunityFilter(),
+    ),
+  );
   private readonly _denseMapPerformanceMode = signal(false);
   private readonly _denseMapPerformanceVariant =
     signal<DenseMapPerformanceVariant>("full");
@@ -890,6 +953,26 @@ export class MapPageComponent
     },
   ];
   readonly eventFiltersLabel = $localize`:@@map_event_filters_aria_label:Event filters`;
+  readonly communityFilterOptions: ReadonlyArray<{
+    value: MapCommunityFilter;
+    urlParam: MapCommunityFilter;
+    label: string;
+    icon: string;
+  }> = [
+    {
+      value: "country",
+      urlParam: "country",
+      label: $localize`:@@map_community_filter.country:Countries`,
+      icon: "flag",
+    },
+    {
+      value: "locality",
+      urlParam: "locality",
+      label: $localize`:@@map_community_filter.locality:Cities`,
+      icon: "location_city",
+    },
+  ];
+  readonly communityFiltersLabel = $localize`:@@map_community_filters_aria_label:Community filters`;
 
   private _promotableCommunitiesRequested = false;
   /** Per-event promo dismissals persisted in localStorage. */
@@ -1043,7 +1126,7 @@ export class MapPageComponent
       null;
     if (selectedKey) return [];
 
-    return this._visibleMapCommunities()
+    return this.visibleMapCommunities()
       .filter(
         (c) =>
           c.communityKey !== selectedKey &&
@@ -1753,7 +1836,7 @@ export class MapPageComponent
    */
   onCommunityMarkerClick(communityKey: string): void {
     const preview =
-      this._visibleMapCommunities().find(
+      this._browsableMapCommunities().find(
         (c) => c.communityKey === communityKey,
       ) ??
       this._promotableCommunities().find(
@@ -1987,6 +2070,62 @@ export class MapPageComponent
 
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
+  private readonly _spotEditLeave = inject(SpotEditLeaveService);
+
+  /**
+   * Back or a link while editing a Spot: unchanged edits just close the
+   * editor; changed ones are discarded only after the person confirms.
+   */
+  /** The address of the Spot being edited, to return to when Back is undone. */
+  private _editingPath: string | null = null;
+
+  /**
+   * Name and description fields write to the Spot on `change`, i.e. when they
+   * lose focus. Blur the focused field first so text typed just before
+   * leaving counts as an unsaved change.
+   */
+  private _commitFocusedField(): void {
+    const active = this._document.activeElement;
+    if (active instanceof HTMLElement && active !== this._document.body) active.blur();
+  }
+
+  /**
+   * Browser Back while editing. Unchanged edits just close the editor and
+   * the navigation continues. Changed ones put the Spot's address back and
+   * ask whether to discard them; returns true when Back was held back.
+   */
+  private _handleBackWhileEditing(): boolean {
+    this._commitFocusedField();
+    if (!this.spotMap?.hasUnsavedEdit() || !this._editingPath) {
+      this.spotMap?.discardEdit();
+      return false;
+    }
+    // Restore the address once the router has handled the same popstate,
+    // which would otherwise write /map back over it.
+    const editingPath = this._editingPath;
+    setTimeout(() => this._location.go(editingPath));
+    // Discarding closes the editor and stays on the Spot; Back again leaves.
+    void confirmDiscardChanges(this._dialog).then((discard) => {
+      if (discard) this.spotMap?.discardEdit();
+    });
+    return true;
+  }
+
+  private readonly _confirmLeaveSpotEdit = async (): Promise<boolean> => {
+    if (!this.isEditing()) return true;
+    this._commitFocusedField();
+    if (this.spotMap?.hasUnsavedEdit() && !(await confirmDiscardChanges(this._dialog))) {
+      return false;
+    }
+    this.spotMap?.discardEdit();
+    return true;
+  };
+  /** Asks before the editor's Discard button throws away unsaved edits. */
+  private readonly _confirmDiscardSpotEdit = async (): Promise<boolean> => {
+    if (!this.isEditing()) return true;
+    this._commitFocusedField();
+    return !this.spotMap?.hasUnsavedEdit() || (await confirmDiscardChanges(this._dialog));
+  };
   private _weatherService = inject(WeatherService);
   private _searchPreviewRequestVersion = 0;
 
@@ -2266,9 +2405,15 @@ export class MapPageComponent
               result.communities,
               viewport,
             );
+            const browsableCommunities = this._mergeVisibleCommunities(
+              result.communities,
+              viewport,
+              true,
+            );
+            // The chip counts what selecting it shows: every country in view.
             const counts = {
               ...result.counts,
-              communities: visibleCommunities.length,
+              communities: browsableCommunities.length,
             };
 
             this._baseMapObjectCounts.set(counts);
@@ -2283,6 +2428,7 @@ export class MapPageComponent
             this._visibleMapEvents.set(result.events);
             this._promotableEvents.set(result.promoEvents);
             this._visibleMapCommunities.set(visibleCommunities);
+            this._browsableMapCommunities.set(browsableCommunities);
             if (result.counts.spots === 0) this._mapSpotsArrived.set(true);
             this._mapObjectsSearched.set(true);
           })
@@ -2436,6 +2582,7 @@ export class MapPageComponent
       this.showSpotEditHistory();
       this.selectedFilter(); // Include filter in URL sync
       this.selectedEventFilter();
+      this.selectedCommunityFilter();
       this.mapObjectMode();
 
       this.updateMapURL();
@@ -2743,20 +2890,27 @@ export class MapPageComponent
       this._mapCommunityCandidates,
       viewport,
     );
+    const browsableCommunities = this._mergeVisibleCommunities(
+      this._mapCommunityCandidates,
+      viewport,
+      true,
+    );
     this._visibleMapCommunities.set(visibleCommunities);
+    this._browsableMapCommunities.set(browsableCommunities);
     this._baseMapObjectCounts.update((counts) => ({
       ...counts,
-      communities: visibleCommunities.length,
+      communities: browsableCommunities.length,
     }));
     this.mapObjectCounts.update((counts) => ({
       ...counts,
-      communities: visibleCommunities.length,
+      communities: browsableCommunities.length,
     }));
   }
 
   private _mergeVisibleCommunities(
     searchCommunities: CommunitySearchPreview[],
     viewport: VisibleViewport,
+    everyCountryInView = false,
   ): CommunitySearchPreview[] {
     const visibleByKey = new Map<string, CommunitySearchPreview>();
 
@@ -2794,7 +2948,9 @@ export class MapPageComponent
       const key = country && (country.communityKey || country.id || country.slug);
       if (key && !visibleByKey.has(key)) visibleByKey.set(key, country);
     }
-    return relevantMapCommunities([...visibleByKey.values()], viewport, spotEvidence);
+    return relevantMapCommunities([...visibleByKey.values()], viewport, spotEvidence, {
+      everyCountryInView,
+    });
   }
 
   private _visibleCommunitiesFromLoadedList(
@@ -2888,6 +3044,8 @@ export class MapPageComponent
 
   ngOnInit() {
     console.debug("map page init");
+    this._spotEditLeave.register(this._confirmLeaveSpotEdit);
+    this._spotEditLeave.registerDiscardCheck(this._confirmDiscardSpotEdit);
 
     // Trigger Google Maps API loading since this page needs it
     // this.tryLoadMapsApi(); // TODO wtf
@@ -3062,6 +3220,12 @@ export class MapPageComponent
       this._locationSubscription = this._location.subscribe((event) => {
         const url = event.url || "";
         if (!url.startsWith("/map")) {
+          return;
+        }
+
+        // Spot panels change the address with Location.go(), so browser Back
+        // arrives here rather than through the router's leave guard.
+        if (this.isEditing() && this._handleBackWhileEditing()) {
           return;
         }
 
@@ -3257,7 +3421,7 @@ export class MapPageComponent
       const communityPreview =
         value.community ??
         [
-          ...this._visibleMapCommunities(),
+          ...this._browsableMapCommunities(),
           ...this._promotableCommunities(),
         ].find(
           (community) =>
@@ -3617,6 +3781,9 @@ export class MapPageComponent
     if (mode !== "events" && this.selectedEventFilter()) {
       this.selectedEventFilter.set("");
     }
+    if (mode !== "communities" && this.selectedCommunityFilter()) {
+      this.selectedCommunityFilter.set("");
+    }
 
     this.mapObjectMode.set(mode);
   }
@@ -3636,6 +3803,14 @@ export class MapPageComponent
       this.eventFilterChanged("");
     }
 
+    const communityFilterParam = params.get("communityFilter") ?? "";
+    const communityFilter = this._isMapCommunityFilter(communityFilterParam)
+      ? communityFilterParam
+      : "";
+    if (this.selectedCommunityFilter() !== communityFilter) {
+      this.selectedCommunityFilter.set(communityFilter);
+    }
+
     const typeParam = params.get("type");
     const mode = this._isMapObjectMode(typeParam)
       ? typeParam
@@ -3643,7 +3818,9 @@ export class MapPageComponent
         ? "spots"
         : eventFilterParam
           ? "events"
-          : "all";
+          : communityFilter
+            ? "communities"
+            : "all";
     if (this.mapObjectMode() !== mode) {
       this.mapObjectMode.set(mode);
     }
@@ -3653,6 +3830,30 @@ export class MapPageComponent
     if (mode !== "events" && this.selectedEventFilter()) {
       this.selectedEventFilter.set("");
     }
+    if (mode !== "communities" && this.selectedCommunityFilter()) {
+      this.selectedCommunityFilter.set("");
+    }
+  }
+
+  private _isMapCommunityFilter(
+    value: string | null,
+  ): value is MapCommunityFilter {
+    return value === "country" || value === "locality";
+  }
+
+  private _communityFilterLabel(filter: MapCommunityFilter): string {
+    return (
+      this.communityFilterOptions.find((option) => option.value === filter)
+        ?.label ?? ""
+    );
+  }
+
+  private _filterCommunities(
+    communities: CommunitySearchPreview[],
+    filter: MapCommunityFilter | "",
+  ): CommunitySearchPreview[] {
+    if (!filter) return communities;
+    return communities.filter((community) => community.scope === filter);
   }
 
   private _isMapObjectMode(value: string | null): value is MapObjectMode {
@@ -3711,13 +3912,19 @@ export class MapPageComponent
   private _displayMapObjectCounts(): MapObjectCounts {
     const counts = this.mapObjectCounts();
     const eventFilter = this.selectedEventFilter();
-    if (!eventFilter) {
+    const communityFilter = this.selectedCommunityFilter();
+    if (!eventFilter && !communityFilter) {
       return counts;
     }
 
     return {
       ...counts,
-      events: this.filteredVisibleMapEvents().length,
+      events: eventFilter
+        ? this.filteredVisibleMapEvents().length
+        : counts.events,
+      communities: communityFilter
+        ? this.visibleMapCommunities().length
+        : counts.communities,
     };
   }
 
@@ -3818,9 +4025,12 @@ export class MapPageComponent
     hits?: unknown[];
     found?: number;
   }): FilteredSpotSearchResult {
+    // Typesense sorts by rating only; rank like the unfiltered list so
+    // private and off-limits Spots do not lead the filtered results.
     const previews: SpotPreviewData[] = (result.hits || [])
       .filter((h: any) => !!h)
-      .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+      .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit))
+      .sort(compareSpotPreviewsByPriority);
     return { previews, found: result.found ?? previews.length };
   }
 
@@ -4119,6 +4329,27 @@ export class MapPageComponent
     void this._searchCustomFilter(bounds, params);
   }
 
+  onCommunityFilterChipSelected(selectedChip: string): void {
+    if (selectedChip) this.closeCommunityPanel();
+    this.communityFilterChanged(selectedChip);
+  }
+
+  communityFilterChanged(selectedFilter: string): void {
+    const filter = this._isMapCommunityFilter(selectedFilter)
+      ? selectedFilter
+      : "";
+    this._analytics.trackEvent("map_community_filter_changed", {
+      filter: filter || null,
+      previous_filter: this.selectedCommunityFilter() || null,
+    });
+    if (filter && this.mapObjectMode() !== "communities") {
+      this.mapObjectMode.set("communities");
+    }
+    this.selectedCommunityFilter.set(
+      this.selectedCommunityFilter() === filter ? "" : filter,
+    );
+  }
+
   eventFilterChanged(selectedFilter: string): void {
     const filter = this._isMapEventFilter(selectedFilter) ? selectedFilter : "";
     this._analytics.trackEvent("map_event_filter_changed", {
@@ -4152,10 +4383,14 @@ export class MapPageComponent
       selected_filter: this.selectedFilter() || null,
       has_existing_custom_filter: !!this.customFilterParams(),
     });
-    if (this.mapObjectMode() === "all") {
+    // Spot filters only apply to Spots, so the dialog previews the Spot
+    // results. Cancelling restores the previous result type and event filter.
+    const previousObjectMode = this.mapObjectMode();
+    const previousEventFilter = this.selectedEventFilter();
+    if (previousObjectMode === "all") {
       this.mapObjectMode.set("spots");
     }
-    if (this.selectedEventFilter()) {
+    if (previousEventFilter) {
       this.selectedEventFilter.set("");
     }
 
@@ -4172,8 +4407,9 @@ export class MapPageComponent
 
     dialogRef.afterClosed().subscribe((result: CustomFilterParams | null) => {
       if (!result) {
-        // User cancelled - do nothing
         this._analytics.trackEvent("map_custom_filter_cancelled");
+        this.mapObjectMode.set(previousObjectMode);
+        this.selectedEventFilter.set(previousEventFilter);
         return;
       }
 
@@ -4311,6 +4547,12 @@ export class MapPageComponent
       existingParams.set("eventFilter", activeEventFilter);
     } else {
       existingParams.delete("eventFilter");
+    }
+    const activeCommunityFilter = this.selectedCommunityFilter();
+    if (activeCommunityFilter) {
+      existingParams.set("communityFilter", activeCommunityFilter);
+    } else {
+      existingParams.delete("communityFilter");
     }
     if (mapObjectMode !== "all") {
       existingParams.set("type", mapObjectMode);
@@ -4617,7 +4859,7 @@ export class MapPageComponent
     });
     if (!this.locationAccess.enabled()) {
       this._dialog
-        .open(LocationAccessDialogComponent, {maxWidth: "min(420px, 92vw)"})
+        .open(LocationAccessDialogComponent, {maxWidth: "min(420px, 92vw)", panelClass: "reading-width-dialog"})
         .afterClosed()
         .subscribe((enabled) => {
           if (enabled) this.spotMap?.focusOnGeolocation();
@@ -5007,7 +5249,7 @@ export class MapPageComponent
     slug: string,
   ): CommunitySearchPreview | null {
     return (
-      [...this._visibleMapCommunities(), ...this._promotableCommunities()].find(
+      [...this._browsableMapCommunities(), ...this._promotableCommunities()].find(
         (community) =>
           community.slug === slug ||
           community.canonicalPath?.endsWith(`/${encodeURIComponent(slug)}`) ||
@@ -5413,6 +5655,38 @@ export class MapPageComponent
     }
   }
 
+  /**
+   * Escape closes an open Spot like its close button. Dialogs, menus and
+   * fields that handle Escape themselves, and unsaved edits, take precedence.
+   */
+  private _hasOpenOverlay(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return Array.from(
+      document.querySelectorAll(
+        ".cdk-overlay-container .cdk-overlay-pane:not(.mat-mdc-tooltip-panel)",
+      ),
+    ).some((pane) => pane.childElementCount > 0);
+  }
+
+  onEscapeKey(event: Event): void {
+    if (event.defaultPrevented || !this.selectedSpot() || this.isEditing()) {
+      return;
+    }
+    // Any open dialog, menu or sheet gets Escape first. Dialogs opened from
+    // inside the Spot panel use their own MatDialog, so check the overlay DOM
+    // as well as this page's dialogs. Tooltip panes do not count.
+    if (this._dialog.openDialogs.length > 0 || this._hasOpenOverlay()) return;
+    const target = event.target;
+    if (
+      target instanceof HTMLElement &&
+      (target.isContentEditable ||
+        target.closest("input, textarea, select, [role='combobox'], .cdk-overlay-container"))
+    ) {
+      return;
+    }
+    this.closeSpot();
+  }
+
   closeSpot(updateUrl: boolean = true) {
     this._spotLoadRequestVersion++;
     this.selectedSpot.set(null);
@@ -5684,6 +5958,8 @@ export class MapPageComponent
 
   ngOnDestroy() {
     console.debug("destroying map page");
+    this._spotEditLeave.unregister(this._confirmLeaveSpotEdit);
+    this._spotEditLeave.unregisterDiscardCheck(this._confirmDiscardSpotEdit);
     clearTimeout(this._panelLayoutSwitchTimer);
     if (this.checkInEnabled) {
       this.checkInService.showGlobalChip.set(true);

@@ -17,6 +17,7 @@ import {
 import { isPlatformBrowser } from "@angular/common";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
+import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { AmenityIcons } from "../../../db/schemas/Amenities";
 import { SpotFilterMode } from "../spot-map/spot-filter-config";
 
@@ -30,10 +31,11 @@ export interface PresetFilterChip {
   icon?: string;
   imageSrc?: string;
   imageBackground?: string;
+  /** Optional count shown before the label with the animated counter. */
+  count?: number;
 }
 
 export type FilterChipsBarAppearance = "glass" | "solid";
-export type FilterChipsBarSelectionRole = "primary" | "secondary";
 
 /**
  * Horizontally scrollable filter chips bar with preset filters
@@ -41,7 +43,7 @@ export type FilterChipsBarSelectionRole = "primary" | "secondary";
  */
 @Component({
   selector: "app-filter-chips-bar",
-  imports: [MatChipsModule, MatIconModule],
+  imports: [MatChipsModule, MatIconModule, FancyCounterComponent],
   templateUrl: "./filter-chips-bar.component.html",
   styleUrl: "./filter-chips-bar.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,14 +77,17 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   /** Whether clicking the active chip clears the selection. */
   allowDeselect = input(true);
 
+  /**
+   * Shows a close icon on the selected chip, for rows where clicking it again
+   * returns to "everything" and no separate clear chip is shown.
+   */
+  showDeselectIcon = input(false);
+
   /** Optional aria label override for non-spot filter bars. */
   ariaLabel = input<string | null>(null);
 
   /** Visual treatment for the chips. */
   appearance = input<FilterChipsBarAppearance>("glass");
-
-  /** Material color role used for the active selection. */
-  selectionRole = input<FilterChipsBarSelectionRole>("secondary");
 
   /** Emits when a preset filter is selected/deselected */
   filterChange = output<string>();
@@ -158,6 +163,7 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   readonly savedLabel = $localize`:@@saved_spots_chip_label:Saved`;
   readonly visitedLabel = $localize`:@@visited_spots_chip_label:Visited`;
   readonly clearLabel = $localize`:@@filter_clear:Clear`;
+  readonly deselectHint = $localize`:@@filter_chip_deselect_hint:Select again to show everything`;
   readonly quickFiltersLabel = $localize`:@@quick_filters_aria_label:Quick filters`;
   readonly scrollLeftLabel = $localize`:@@filter_scroll_left:Scroll filters left`;
   readonly scrollRightLabel = $localize`:@@filter_scroll_right:Scroll filters right`;
@@ -245,6 +251,8 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
+    this._revealChip(event);
+
     if (this.selectedFilters() !== null) {
       this.filterToggled.emit(value);
       return;
@@ -268,6 +276,20 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
     if (fallback && fallback !== this.selectedFilter()) {
       this.filterChange.emit(fallback);
     }
+  }
+
+  /** Scrolls a tapped chip fully into view so a selection is never half hidden under an arrow. */
+  private _revealChip(event?: Event): void {
+    const chip = event?.currentTarget;
+    if (!(chip instanceof HTMLElement) || typeof chip.scrollIntoView !== "function") {
+      return;
+    }
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    chip.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }
 
   onFiltersClick(): void {
@@ -390,7 +412,8 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       scrollElement.scrollWidth - scrollElement.clientWidth,
       0,
     );
-    const tolerance = 4;
+    // Small enough that a row cut off by a few pixels still shows its arrow.
+    const tolerance = 1;
 
     this.canScrollLeft.set(scrollElement.scrollLeft > tolerance);
     this.canScrollRight.set(

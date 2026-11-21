@@ -1,0 +1,29 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<mat-dialog-content>
+  <p class="mat-body-medium m-0">{{ data.message }}</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n="@@common.not_now">
+    Not now
+  </button>
+  <a
+    mat-stroked-button
+    routerLink="/sign-up"
+    [queryParams]="{ returnUrl: data.returnUrl }"
+    mat-dialog-close
+    i18n="@@sign_in_required.create_account"
+  >
+    Create account
+  </a>
+  <a
+    mat-flat-button
+    routerLink="/sign-in"
+    [queryParams]="{ returnUrl: data.returnUrl }"
+    mat-dialog-close
+  >
+    <mat-icon>login</mat-icon>
+    <span i18n="@@sign_in_required.sign_in">Sign in</span>
+  </a>
+</mat-dialog-actions>

@@ -1,6 +1,9 @@
 :host {
   display: block;
   min-width: 0;
+  // Queried in em below, so the query reacts to the text size, not only the
+  // screen width.
+  container: events-toolbar / inline-size;
 }
 
 .discovery-toolbar {
@@ -18,13 +21,39 @@
   gap: 0.5rem;
 }
 
-.detail-filters,
-.region-filters {
+.detail-filters {
   flex: 0 1 100%;
   min-width: 0;
 }
 
-mat-button-toggle-group {
-  --mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
-  --mat-button-toggle-selected-state-text-color: var(--mat-sys-on-primary-container);
+// With enlarged text the Upcoming/Past labels wrap instead of being cut off.
+// The 20px line plus 10px padding keeps the normal 40px height.
+.mat-button-toggle-group {
+  max-width: 100%;
+}
+
+.mat-button-toggle {
+  min-width: 0;
+}
+
+.mat-button-toggle ::ng-deep .mat-button-toggle-label-content {
+  padding-block: max(0px, calc((var(--mat-button-toggle-height, 40px) - 1.25rem) / 2));
+  line-height: 1.25rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+// At large text sizes (about 150 % and up on a phone) the two periods no
+// longer fit side by side as whole words, so they stack instead of
+// splitting words. At normal sizes a phone toolbar is about 22em wide.
+@container events-toolbar (max-width: 15em) {
+  .mat-button-toggle-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .mat-button-toggle + .mat-button-toggle {
+    border-left: none;
+    border-top: solid 1px var(--mat-button-toggle-divider-color, var(--mat-sys-outline));
+  }
 }

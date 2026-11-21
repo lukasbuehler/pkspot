@@ -39,7 +39,8 @@
     <div #scrollContainer class="contribution-graph__scroll" tabindex="0" role="region" aria-label="Scrollable training history" i18n-aria-label="@@trainingContributionGraph.scrollable">
       <div class="weeks" role="list">
         @for (week of visibleWeeks(); track week.key) {
-          <div class="week" role="listitem" [class.week-active]="week.hasActivity">
+          <!-- The week's summary is its accessible name; days with entries stay focusable. -->
+          <div class="week" role="listitem" [class.week-active]="week.hasActivity" [attr.aria-label]="weekLabel(week.key)">
             @for (day of week.days; track day.key) {
               @if (!day.isFuture && (day.activity || day.recoveryPause) && interactive()) {
                 <button

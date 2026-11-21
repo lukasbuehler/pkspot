@@ -3,6 +3,7 @@ import { FeatureTelemetryService } from "../../services/feature-telemetry.servic
 import {
   Component,
   Inject,
+  inject,
   LOCALE_ID,
   OnInit,
   ChangeDetectionStrategy,
@@ -34,11 +35,14 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { firstValueFrom, Observable, startWith, map } from "rxjs";
 import { countries } from "../../../scripts/Countries";
+import { localizedCountryName } from "../../../scripts/CommunityPlaceNames";
 import { Timestamp } from "firebase/firestore";
+// Not MatDatepickerModule: it provides its own English MatDatepickerIntl,
+// which would hide the translated one from app.config.
 import {
+  MatDatepicker,
   MatDatepickerInput,
   MatDatepickerToggle,
-  MatDatepickerModule,
 } from "@angular/material/datepicker";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
@@ -59,6 +63,7 @@ import {
   type ImageCropDialogData,
 } from "../crop-image/image-crop-dialog.component";
 import { PROFILE_IMAGE_CROP_POLICY } from "../crop-image/image-crop-policy";
+import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 
 @Component({
   selector: "app-edit-profile",
@@ -80,11 +85,12 @@ import { PROFILE_IMAGE_CROP_POLICY } from "../crop-image/image-crop-policy";
     MatButtonModule,
     MatDatepickerInput,
     MatDatepickerToggle,
-    MatDatepickerModule,
+    MatDatepicker,
     MatSuffix,
     MatProgressSpinner,
     MatExpansionModule,
     AutocompleteOverlayRepositionDirective,
+    AutoScrollOnFocusDirective,
   ],
 })
 export class EditProfileComponent implements OnInit {
@@ -114,7 +120,18 @@ export class EditProfileComponent implements OnInit {
 
   // Country Autocomplete
   countries = countries;
-  countryCodes = Object.keys(countries);
+  private readonly _appLocale = inject(LOCALE_ID);
+  /** Country names in the app language, e.g. "Deutschland" in German. */
+  readonly countryNames: Readonly<Record<string, string>> = Object.fromEntries(
+    Object.entries(countries).map(([code, country]) => [
+      code,
+      localizedCountryName(code, this._appLocale, country.name),
+    ])
+  );
+  /** Codes sorted by their name in the app language. */
+  countryCodes = Object.keys(countries).sort((a, b) =>
+    this.countryNames[a].localeCompare(this.countryNames[b], this._appLocale)
+  );
   filteredCountries: Observable<string[]> | null = null;
   countryControl = new FormControl("");
 
@@ -161,6 +178,7 @@ export class EditProfileComponent implements OnInit {
        */
       const code = this.countryCodes.find(
         (c) =>
+          this.countryNames[c].toLowerCase() === val ||
           this.countries[c].name.toLowerCase() === val ||
           c.toLowerCase() === val
       );
@@ -176,13 +194,31 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
+  /**
+   * Countries matching the typed text, those whose name starts with it first
+   * ("De" lists Deutschland before Bangladesch), otherwise alphabetical.
+   */
   private _filterCountries(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return this.countryCodes.filter(
-      (code) =>
-        this.countries[code].name.toLowerCase().includes(filterValue) ||
+    const rank = (code: string): number => {
+      const localName = this.countryNames[code].toLowerCase();
+      const englishName = this.countries[code].name.toLowerCase();
+      if (localName.startsWith(filterValue)) return 0;
+      if (englishName.startsWith(filterValue) || code.toLowerCase() === filterValue) return 1;
+      if (
+        localName.includes(filterValue) ||
+        englishName.includes(filterValue) ||
         code.toLowerCase().includes(filterValue)
-    );
+      ) {
+        return 2;
+      }
+      return -1;
+    };
+    return this.countryCodes
+      .map((code) => ({ code, rank: rank(code) }))
+      .filter((entry) => entry.rank >= 0)
+      .sort((a, b) => a.rank - b.rank)
+      .map((entry) => entry.code);
   }
 
   private _updateInfoOnView() {
@@ -198,7 +234,7 @@ export class EditProfileComponent implements OnInit {
       this.discordUrl = user.socials?.discord_url ?? "";
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
-        this.countryControl.setValue(this.countries[this.nationalityCode].name);
+        this.countryControl.setValue(this.countryNames[this.nationalityCode]);
       } else {
         this.countryControl.setValue("");
       }
@@ -267,7 +303,7 @@ export class EditProfileComponent implements OnInit {
     if (!this._ageAssuranceService.canParticipatePublicly()) {
       this._snackbar.open(
         this._ageAssuranceService.getRestrictionMessage(),
-        "Dismiss",
+        $localize`:@@common.dismiss:Dismiss`,
         {
           duration: 6000,
           horizontalPosition: "center",
@@ -406,8 +442,8 @@ export class EditProfileComponent implements OnInit {
     }
   }
 
+  /** Restores the saved profile values and drops a pending picture upload. */
   discardChanges() {
-    // TODO: Discard changes
     this._updateInfoOnView();
     this.cancelProfilePictureUpload();
     this.detectIfChanges();
@@ -419,7 +455,7 @@ export class EditProfileComponent implements OnInit {
     if (!this._ageAssuranceService.canParticipatePublicly()) {
       this._snackbar.open(
         this._ageAssuranceService.getRestrictionMessage(),
-        "Dismiss",
+        $localize`:@@common.dismiss:Dismiss`,
         {
           duration: 6000,
           horizontalPosition: "center",

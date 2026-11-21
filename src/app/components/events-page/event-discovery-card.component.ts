@@ -4,15 +4,21 @@ import {
   computed,
   inject,
   input,
+  LOCALE_ID,
 } from "@angular/core";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
+import { EventHostLineComponent } from "../event-host-line/event-host-line.component";
 import { RouterLink } from "@angular/router";
 import type { EventSearchPreview } from "../../services/search.service";
 import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { AnalyticsService } from "../../services/analytics.service";
-import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import {
+  eventCategoryIcon,
+  eventImageDisplaySrc,
+  eventStatusLabel,
+} from "../event-display/event-display.helpers";
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
@@ -20,6 +26,7 @@ import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
 @Component({
   selector: "app-event-discovery-card",
   imports: [
+    EventHostLineComponent,
     MatCardModule,
     MatIconModule,
     RouterLink,
@@ -36,6 +43,7 @@ import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
 export class EventDiscoveryCardComponent {
   private readonly _dateTime = inject(DateTimeFormatService);
   private readonly _analytics = inject(AnalyticsService);
+  private readonly _locale = inject(LOCALE_ID);
 
   readonly event = input.required<EventSearchPreview>();
   readonly seriesById = input<Record<string, SeriesDocument>>({});
@@ -141,9 +149,37 @@ export class EventDiscoveryCardComponent {
     const now = Date.now();
     if (now < start.getTime()) return "upcoming";
     if (now > end.getTime()) return "past";
-    if (this.event().timing?.mode === "date_only") return "upcoming";
     return "live";
   });
+  /** Green "Ongoing" line, shown only while the event is happening. */
+  readonly liveLabel = computed(() => {
+    const start = this.start();
+    const end = this.end();
+    if (this.status() !== "live" || !start || !end) return null;
+    if (this.event().lifecycleStatus === "cancelled") return null;
+    return eventStatusLabel(
+      { start, end, timing: this.event().timing },
+      "live",
+      this._locale,
+    );
+  });
+  /** Day and short month for the cover fallback, in the event's time zone. */
+  readonly coverDate = computed(() => {
+    const event = this.event();
+    const dateOnly = event.timing?.mode === "date_only";
+    const start = dateOnly
+      ? new Date(`${event.timing!.start_date}T12:00:00.000Z`)
+      : this.start();
+    const timeZone = dateOnly ? "UTC" : event.timeZone;
+    if (!start || !timeZone) return null;
+    return {
+      day: this._dateTime.format(start, { day: "numeric", timeZone }),
+      month: this._dateTime.format(start, { month: "short", timeZone }),
+    };
+  });
+  readonly coverIcon = computed(() =>
+    eventCategoryIcon(this.event().eventCategories[0] ?? "other"),
+  );
   readonly imageSrc = computed(() =>
     eventImageDisplaySrc(this.event().bannerSrc),
   );
@@ -151,6 +187,9 @@ export class EventDiscoveryCardComponent {
     this.event().seriesIds.map((id) => ({
       id,
       label: this.seriesById()[id]?.name ?? seriesFallbackLabel(id),
+      initials: seriesInitials(
+        this.seriesById()[id]?.name ?? seriesFallbackLabel(id),
+      ),
       logoSrc: eventImageDisplaySrc(this.seriesById()[id]?.logo_src),
       background:
         this.seriesById()[id]?.logo_background_color ??
@@ -162,11 +201,6 @@ export class EventDiscoveryCardComponent {
       .filter(Boolean)
       .join(", ") ||
     $localize`:@@event.venue_tba:Venue to be announced`,
-  );
-  readonly communityLabel = computed(() =>
-    this.event().listingTier === "community"
-      ? $localize`:@@event_listing.community:Community event`
-      : null,
   );
 
   trackClick(): void {
@@ -191,4 +225,14 @@ function seriesFallbackLabel(seriesId: string): string {
     .filter(Boolean)
     .map((word) => `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`)
     .join(" ");
+}
+
+/** Up to two initials, so a series without a logo still fits its badge. */
+function seriesInitials(label: string): string {
+  const words = label.split(/[\s-]+/u).filter(Boolean);
+  const letters =
+    words.length > 1
+      ? words.slice(0, 2).map((word) => word[0])
+      : [...(words[0] ?? "")].slice(0, 2);
+  return letters.join("").toUpperCase();
 }

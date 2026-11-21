@@ -1,3 +1,5 @@
+import { MatExpansionModule } from "@angular/material/expansion";
+import { MatMenuModule } from "@angular/material/menu";
 import { LocalLegendService } from "../../services/local-legend.service";
 import { LOCALE_ID } from "@angular/core";
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
@@ -78,7 +80,9 @@ interface TrainingTimelineGroup {
     SystemDatePipe,
     RouterLink,
     MatButtonModule,
+    MatExpansionModule,
     MatIconModule,
+    MatMenuModule,
     FabMenuComponent,
     MatProgressSpinnerModule,
     TrainingActivityContributionGraphComponent,
@@ -96,9 +100,10 @@ export class TrainingLogPageComponent {
   readonly spotNames = signal<ReadonlyMap<string, string>>(new Map());
   readonly loadingSpotLabel = $localize`:@@training.loadingSpot:Loading Spot…`;
   readonly addLabel = $localize`:@@trainingLog.add:Add to training log`;
+  readonly addText = $localize`:@@train.fab.text:Log training`;
   readonly addActions: readonly FabMenuAction[] = [
     ...(environment.features.plannedSessions ? [{ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` }] : []),
-    { id: "activity", icon: "add", label: $localize`:@@trainingLog.new:New training entry` },
+    { id: "activity", icon: "add", label: $localize`:@@train.fab.text:Log training` },
     { id: "recovery", icon: "event_busy", label: $localize`:@@recoveryPause.add:Log recovery pause` },
   ];
 

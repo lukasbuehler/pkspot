@@ -5,8 +5,8 @@
         mat-mini-fab
         type="button"
         color="primary"
-        i18n-matTooltip
-        matTooltip="Reset map orientation to north"
+        [matTooltip]="resetNorthLabel"
+        [attr.aria-label]="resetNorthLabel"
         matTooltipPosition="left"
         matTooltipShowDelay="500"
         (click)="resetNorth.emit()"
@@ -19,10 +19,8 @@
       mat-mini-fab
       type="button"
       color="primary"
-      i18n-matTooltip
-      [matTooltip]="
-        mapStyle() === 'roadmap' ? 'Show satellite map' : 'Show roadmap'
-      "
+      [matTooltip]="mapStyleLabel()"
+      [attr.aria-label]="mapStyleLabel()"
       matTooltipPosition="left"
       matTooltipShowDelay="500"
       (click)="toggleMapStyle.emit()"
@@ -37,6 +35,7 @@
       class="map-location-control"
       [class.map-location-control--disabled]="!locationEnabled()"
       [matTooltip]="geolocationTooltip()"
+      [attr.aria-label]="geolocationTooltip()"
       matTooltipPosition="left"
       matTooltipShowDelay="500"
       [showProgress]="geolocationLoading() && locationEnabled()"

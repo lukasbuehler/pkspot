@@ -1,4 +1,6 @@
 import { Params, Routes } from "@angular/router";
+import { unsavedChangesGuard } from "./guards/unsaved-changes.guard";
+import { spotEditLeaveGuard } from "./guards/spot-edit-leave.guard";
 import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
@@ -171,6 +173,7 @@ export const routes: Routes = [
         (m) => m.MapPageComponent,
       ),
     resolve: { content: contentResolver },
+    canDeactivate: [spotEditLeaveGuard],
     children: [
       {
         path: "spots/:spot",
@@ -179,6 +182,7 @@ export const routes: Routes = [
             (m) => m.MapPageComponent,
           ),
         resolve: { content: contentResolver },
+        canDeactivate: [spotEditLeaveGuard],
         children: [
           {
             path: "edits",
@@ -596,6 +600,7 @@ export const routes: Routes = [
         (m) => m.SettingsPageComponent,
       ),
     data: { routeName: "Settings" },
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: "settings/:tab",
@@ -604,6 +609,7 @@ export const routes: Routes = [
         (m) => m.SettingsPageComponent,
       ),
     data: { routeName: "Settings" },
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: "notifications",

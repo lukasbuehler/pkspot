@@ -12,6 +12,7 @@ import {
   WritableSignal,
   ChangeDetectionStrategy
 } from "@angular/core";
+import { TextFieldModule } from "@angular/cdk/text-field";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { LocaleCode, LocaleMap } from "../../../db/models/Interfaces";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
@@ -28,6 +29,7 @@ import { getBestLocale } from "../../../scripts/LanguageHelpers";
 @Component({
   selector: "app-locale-map-edit-field",
   imports: [
+    TextFieldModule,
     MatFormFieldModule,
     ReactiveFormsModule,
     MatInputModule,
@@ -74,10 +76,23 @@ export class LocaleMapEditFieldComponent {
     LocaleMap | undefined | null
   >({});
   isTextArea: InputSignal<boolean> = input(false);
+  /** When set, the text area starts at this many rows and grows with its text (up to 16). */
+  readonly autosizeMinRows = input<number | null>(null);
   placeholder: InputSignal<string> = input("");
+  /**
+   * What the field holds, e.g. "Description". The visible label shows only
+   * the language, so screen readers get "Description (Deutsch)".
+   */
+  fieldLabel: InputSignal<string> = input("");
   canRemoveLastTranslation: InputSignal<boolean> = input(true);
 
   languages = languageCodes;
+
+  /** Spoken name of a translation's delete button, e.g. "Deutsch-Übersetzung entfernen". */
+  removeTranslationLabel(locale: LocaleCode): string {
+    const language = this.localeLabel(locale);
+    return $localize`:@@locale_edit.remove_translation:Remove ${language}:language: translation`;
+  }
 
   localeLabel(locale: LocaleCode): string {
     const language = this.languages[locale];

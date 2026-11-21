@@ -9,19 +9,20 @@ h1 { margin: 0 0 6px; font: var(--mat-sys-headline-large); }
 .log-hero > div > p:last-child, .timeline__header p, .check-in-history__header p { margin: 0; color: var(--mat-sys-on-surface-variant); }
 
 
-.stats { display: block; margin: 28px 0 16px; }
+.stats { display: block; margin: 40px 0 0; }
 app-training-activity-contribution-graph { display: block; margin-top: 16px; }
-.timeline { margin-top: 40px; }
+.timeline { margin-top: 24px; }
 .timeline__header { align-items: flex-start; }
 .timeline__header .eyebrow { margin-top: 0; }
 .timeline h2, .check-in-history h2 { margin: 0 0 4px; font: var(--mat-sys-title-large); }
 .timeline__groups { display: grid; gap: 26px; margin-top: 26px; }
 .timeline__group h3 { margin: 0 0 12px; font: var(--mat-sys-title-medium); }
-.timeline__line { display: grid; gap: 10px; padding-left: 20px; border-left: 1px solid var(--mat-sys-outline-variant); }
-.session-card { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; margin-left: -31px; padding: 16px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 20px; background: var(--mat-sys-surface-container-low); color: inherit; text-decoration: none; transition: border-color 150ms ease, background 150ms ease, transform 150ms ease; }
+// Cards line up with the page margin; the date headings carry the timeline.
+.timeline__line { display: grid; gap: 10px; }
+.session-card { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 20px; background: var(--mat-sys-surface-container-low); color: inherit; text-decoration: none; transition: border-color 150ms ease, background 150ms ease, transform 150ms ease; }
 .session-card:hover { border-color: var(--mat-sys-primary); background: var(--mat-sys-surface-container); transform: translateX(2px); }
 .session-card:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 3px; }
-.session-card__marker { display: grid; width: 20px; height: 20px; place-items: center; border-radius: 50%; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); box-shadow: 0 0 0 5px var(--mat-sys-surface); }
+.session-card__marker { display: grid; width: 20px; height: 20px; place-items: center; border-radius: 50%; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
 .session-card__marker mat-icon { width: 13px; height: 13px; font-size: 13px; }
 .session-card__body { min-width: 0; }
 .session-card__topline, .session-card__stats, .visibility, .check-in-tag { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -34,11 +35,13 @@ app-training-activity-contribution-graph { display: block; margin-top: 16px; }
 .session-card__stats span { display: inline-flex; align-items: center; gap: 4px; }
 .session-card__stats mat-icon { width: 16px; height: 16px; font-size: 16px; color: var(--mat-sys-primary); }
 .session-card__arrow { color: var(--mat-sys-on-surface-variant); }
-.recovery-card { border-color: var(--mat-sys-tertiary); background: var(--mat-sys-tertiary-container); color: var(--mat-sys-on-tertiary-container); }
+// A pause stands apart through its outline and marker, not a full fill
+// that outweighs the training entries around it.
+.recovery-card { border-color: var(--mat-sys-tertiary); }
 .recovery-card .session-card__marker { background: var(--mat-sys-tertiary); color: var(--mat-sys-on-tertiary); }
 .recovery-card__range, .recovery-card__note { margin: 0; }
 .recovery-card__note { margin-top: 8px; white-space: pre-wrap; }
-.recovery-card button { color: var(--mat-sys-on-tertiary-container); }
+.recovery-card button { color: var(--mat-sys-tertiary); }
 .timeline__empty { margin-top: 20px; padding: 22px; border: 1px dashed var(--mat-sys-outline); border-radius: 18px; color: var(--mat-sys-on-surface-variant); text-align: center; }
 
 .check-in-history { margin: 24px 0 0; padding: 20px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 20px; background: var(--mat-sys-surface-container-low); }
@@ -64,22 +67,12 @@ app-training-activity-contribution-graph { display: block; margin-top: 16px; }
 }
 
 .log-hero h1 { margin-top: 12px; }
-.activity-details {
-  border-block: 1px solid var(--mat-sys-outline-variant);
-  summary { display: flex; align-items: center; gap: 10px; padding: 14px 4px; min-height: 48px; cursor: pointer; list-style: none; font: var(--mat-sys-label-large); color: var(--mat-sys-primary); }
-  summary::-webkit-details-marker { display: none; }
-  summary:focus-visible { outline: 2px solid var(--mat-sys-primary); }
-  .disclosure-arrow { margin-inline-start: auto; }
-  &[open] .disclosure-arrow { transform: rotate(180deg); }
+.activity-details { margin-top: 24px; }
+.activity-details mat-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.archive-actions {
-  position: relative;
-  flex: 0 0 auto;
-  summary { display: grid; place-items: center; width: 48px; height: 48px; list-style: none; cursor: pointer; border-radius: 50%; color: var(--mat-sys-primary); }
-  summary::-webkit-details-marker { display: none; }
-  summary:hover { background: var(--mat-sys-surface-container-high); }
-  summary:focus-visible { outline: 2px solid var(--mat-sys-primary); }
-  .actions { position: absolute; z-index: 2; inset-inline-end: 0; min-width: 180px; width: max-content; max-width: 75vw; padding: 12px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; background: var(--mat-sys-surface-container-high); }
-}
+.archive-actions { flex: 0 0 auto; color: var(--mat-sys-primary); }
 .check-in-history__header { flex-direction: row; }

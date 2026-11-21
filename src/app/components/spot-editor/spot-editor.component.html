@@ -1,5 +1,5 @@
 <!-- Saving actions -->
-<mat-card-actions class="mb-3 gap-2">
+<mat-card-actions class="editor-actions mb-3 gap-2">
   @if (editable()) {
     <button
       matButton="outlined"
@@ -49,6 +49,8 @@
       form
     "
     placeholder="Spot name"
+    fieldLabel="Spot name"
+    i18n-fieldLabel="@@spot.edit.name.field_label"
     [(localeMap)]="spotNameLocaleMap"
   >
   </app-locale-map-edit-field>
@@ -149,7 +151,10 @@
     description edit field
   "
   [isTextArea]="true"
+  [autosizeMinRows]="5"
   placeholder="Description of the spot, its features and more..."
+  fieldLabel="Description"
+  i18n-fieldLabel="@@spot.edit.description.field_label"
   [(localeMap)]="spotDescriptionLocaleMap"
 >
 </app-locale-map-edit-field>
@@ -184,6 +189,7 @@
           [value]="placeQuery()"
           (input)="searchPlaces($any($event.target).value)"
           placeholder="Type to search"
+          i18n-placeholder="@@spotEditor.typeToSearch.placeholder"
         />
       </mat-form-field>
 
@@ -506,7 +512,7 @@
 </div>
 
 <!-- Saving actions -->
-  <mat-card-actions class="mt-3 gap-2">
+  <mat-card-actions class="editor-actions editor-actions--end mt-3 gap-2">
     @if (editable()) {
       <button
         matButton="outlined"

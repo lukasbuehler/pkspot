@@ -14,11 +14,14 @@ import { MatIconModule } from "@angular/material/icon";
 import type { EventTicketOption } from "../../../db/models/Event";
 import type { LocaleCode } from "../../../db/models/Interfaces";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
+import { AnalyticsService } from "../../services/analytics.service";
 
 type TicketActionKind = "get_ticket" | "view_details" | null;
 
 interface TicketViewModel {
   ticket: EventTicketOption;
+  /** Ticket URL with the same UTM tags as the event page's other links. */
+  href: string | null;
   descriptionId: string;
   priceLabel: string;
   originalPriceLabel: string;
@@ -37,6 +40,7 @@ interface TicketViewModel {
 })
 export class EventTicketListComponent {
   private readonly _locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _analytics = inject(AnalyticsService);
   private readonly _expandedTicketIds = signal<ReadonlySet<string>>(new Set());
   private readonly _overflowingTicketIds = signal<ReadonlySet<string>>(
     new Set(),
@@ -50,6 +54,7 @@ export class EventTicketListComponent {
       const discount = this._ticketDiscount(ticket);
       return {
         ticket,
+        href: this._analytics.addUtmToUrl(ticket.url, "event_page"),
         descriptionId: `event-ticket-description-${index}`,
         priceLabel: this._formatTicketPrice(ticket),
         originalPriceLabel: discount?.originalPriceLabel ?? "",

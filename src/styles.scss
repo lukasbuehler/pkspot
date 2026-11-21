@@ -30,6 +30,39 @@ html {
   /* Keep document scrolling on the platform root while clipping only accidental overflow. */
   min-height: 100%;
   overflow-x: clip;
+
+  /* Material fills selected toggles with the green secondary container. Green is
+     the sparing live/active accent, so toggle selections use the blue highlight. */
+  /* Expansion headers grow with their text instead of clipping it. */
+  @include mat.expansion-overrides((
+    header-collapsed-state-height: auto,
+    header-expanded-state-height: auto,
+  ));
+
+  @include mat.button-toggle-overrides((
+    selected-state-background-color: var(--mat-sys-primary-container),
+    selected-state-text-color: var(--mat-sys-on-primary-container),
+  ));
+
+  // Tonal buttons default to the secondary container, which is green in this
+  // theme; green is reserved for live things, so tonal actions use blue.
+  @include mat.button-overrides((
+    tonal-container-color: var(--mat-sys-primary-container),
+    tonal-label-text-color: var(--mat-sys-on-primary-container),
+    tonal-state-layer-color: var(--mat-sys-on-primary-container),
+    tonal-ripple-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent),
+  ));
+
+  // Selected chips use the same blue highlight as selected toggles.
+  @include mat.chips-overrides((
+    elevated-selected-container-color: var(--mat-sys-primary-container),
+    selected-label-text-color: var(--mat-sys-on-primary-container),
+    selected-trailing-icon-color: var(--mat-sys-on-primary-container),
+    with-icon-selected-icon-color: var(--mat-sys-on-primary-container),
+    selected-focus-state-layer-color: var(--mat-sys-on-primary-container),
+    selected-hover-state-layer-color: var(--mat-sys-on-primary-container),
+    selected-trailing-action-state-layer-color: var(--mat-sys-on-primary-container),
+  ));
 }
 
 body {
@@ -62,6 +95,12 @@ body {
   --app-card-outline-color: var(--mat-sys-outline-variant);
   --app-card-radius: 18px;
   --app-card-background: var(--mat-sys-surface-container-low);
+  // Status notices (load errors, blocked permissions) sit on the neutral card
+  // surface. Their role colour is limited to the icon tile so a failure stays
+  // noticeable without a filled red or blue box dominating the page.
+  --app-notice-background: var(--mat-sys-surface-container-low);
+  --app-notice-outline: var(--mat-sys-outline-variant);
+  --app-notice-text: var(--mat-sys-on-surface);
 }
 
 // Shared treatment for card-like surfaces that are not Angular Material cards.
@@ -72,6 +111,38 @@ body {
   border-radius: var(--app-card-radius);
   background: var(--app-card-background);
   color: var(--mat-sys-on-surface);
+}
+
+// A single word longer than the line (German compounds, especially with
+// enlarged text) breaks instead of running off the screen. Words that fit
+// keep wrapping whole.
+h1,
+h2,
+h3,
+.mat-headline-large,
+.mat-headline-medium,
+.mat-headline-small {
+  overflow-wrap: break-word;
+}
+
+// With enlarged text, big titles grow at most to a size where a long German
+// word still fits a phone line (about 15 letters across the screen). At
+// normal text size these caps sit above the theme sizes and change nothing.
+// The rem values are the Material 3 type scale.
+h1.mat-headline-large,
+.mat-headline-large {
+  font-size: min(2rem, 10.5vw);
+  line-height: min(2.5rem, 13vw);
+}
+
+.mat-headline-medium {
+  font-size: min(1.75rem, 9.5vw);
+  line-height: min(2.25rem, 12vw);
+}
+
+.mat-display-small {
+  font-size: min(2.25rem, 11vw);
+  line-height: min(2.75rem, 13.5vw);
 }
 
 html.map-glass-blur-enabled {
@@ -139,6 +210,19 @@ html.native-platform.platform-ios:not(.running-on-macos-or-ipad) {
   z-index: 10;
 }
 
+// A page with a floating action reserves room for it at the end of the
+// document, so the last card is never hidden underneath.
+app-root:has(.app-page-fab) {
+  --page-fab-clearance: 5.5rem;
+}
+
+// Fields focused or scrolled to by the browser stop above the floating action
+// instead of underneath it, whichever element is the page's scroller.
+html:has(.app-page-fab),
+html:has(.app-page-fab) .main-content {
+  scroll-padding-block-end: calc(var(--page-fab-clearance, 5.5rem) + 1.5rem);
+}
+
 // Material's FAB base style sets `position: relative`; retain the reusable
 // page-level placement when the class is applied directly to a Material FAB.
 .app-page-fab.mat-mdc-fab {
@@ -190,6 +274,10 @@ body:has(#alainMenuButton) {
   @include mat.chips-color(theme.$dark-theme, $color-variant: primary);
 }
 
+// Keyboard focus shows a clear outline on every Material control, in the blue
+// highlight colour (the default would use green, which means "live").
+@include mat.strong-focus-indicators((border-color: var(--mat-sys-primary)));
+
 .secondary-chips {
   @include mat.chips-color(theme.$dark-theme, $color-variant: secondary);
 }
@@ -213,9 +301,59 @@ body:has(#alainMenuButton) {
   flex-shrink: 0;
 }
 
+// In a flex row, let neighbouring text wrap before a button label is cut off.
+// The ellipsis above remains the fallback for a button wider than its container.
+.mat-mdc-button-base {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+// Expansion headers: keep the default 48px rhythm, and move the description
+// below the title when both no longer fit on one line.
+.mat-expansion-panel .mat-expansion-panel-header {
+  padding-block: 12px;
+}
+
+:where(.mat-expansion-panel-header) {
+  min-height: 48px;
+}
+
+:where(.mat-expansion-panel-header) .mat-content {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.mat-expansion-panel-header .mat-expansion-panel-header-title {
+  flex-basis: auto;
+}
+
+.mat-expansion-panel-header .mat-expansion-panel-header-description {
+  flex-basis: 12rem;
+  margin-inline: 0 16px;
+}
+
+// Opt-in for long text buttons that should wrap onto more lines instead.
+.mat-mdc-button-base.wrap-label {
+  height: auto;
+  min-height: var(--mat-button-text-container-height, 40px);
+  padding-block: 8px;
+
+  .mdc-button__label,
+  .mdc-button__label span {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
 .cdk-overlay-pane.mat-mdc-dialog-panel {
   min-width: 0 !important;
   max-width: min(90vw, 100%) !important;
+}
+
+// Short decision dialogs keep a reading width on wide screens. The rule above
+// overrides Material's maxWidth option, so they opt in with this class.
+.cdk-overlay-pane.mat-mdc-dialog-panel.reading-width-dialog {
+  max-width: min(480px, 90vw) !important;
 }
 
 // Shrink the CDK overlay area from the bottom by the keyboard height so
@@ -302,6 +440,17 @@ body:has(#alainMenuButton) {
   margin-bottom: calc(
     var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) +
       var(--keyboard-offset, 0px)
+  );
+}
+
+// Snackbars live in the overlay container outside app-root, so they cannot read
+// its navigation variables. With the floating bottom navigation they sit above
+// it instead of covering it (same clearance as app-root's).
+body:has(app-root.has-floating-bottom-navigation) .mat-mdc-snack-bar-container {
+  margin-bottom: calc(
+    76px +
+      max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) +
+      var(--terms-footer-offset, 0px) + 8px + var(--keyboard-offset, 0px)
   );
 }
 
@@ -474,16 +623,6 @@ app-root.event-map-route .embedded-content {
   overflow: hidden;
 }
 
-// Scope system typography to these page hosts. Emit it once rather than
-// duplicating the same token set in each lazy component stylesheet.
-app-train-page,
-app-training-log-page,
-app-log-entry-editor,
-app-training-session-detail,
-app-notification-settings {
-  @include mat.theme((typography: Roboto));
-}
-
 // Every dialog uses the usable rectangle, including side cutouts on foldables.
 // Keep this after the keyboard rules so safe-area padding also survives typing.
 .cdk-global-overlay-wrapper:has(.mat-mdc-dialog-panel) {
@@ -505,4 +644,157 @@ app-notification-settings {
   .my-events-safe-dialog {
     max-width: min(760px, 100%) !important;
   }
+}
+
+// Auth pages (sign-in, sign-up, forgot password) share one card surface so the
+// flow looks like one place.
+.auth-page-narrow {
+  --keyboard-padding-base: 32px;
+
+  max-width: 520px;
+  margin: 0 auto;
+  padding: max(48px, var(--alain-menu-block-start-clearance, 48px)) 16px 32px;
+}
+
+.auth-card {
+  padding: 1.5rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 24px;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.auth-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.5rem;
+  margin: 1.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Scroll fades: dialog content fades out at an edge only while there is more
+// to scroll that way, so a cut-off option reads as "scroll for more" instead
+// of a layout bug. Driven by the content's own scroll position; browsers
+// without scroll-driven animations simply show no fade, and content that
+// does not scroll has no active timeline and stays unfaded.
+@property --dialog-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --dialog-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes dialog-fade-top {
+  from {
+    --dialog-fade-top: 0px;
+  }
+  8%,
+  to {
+    --dialog-fade-top: 28px;
+  }
+}
+
+@keyframes dialog-fade-bottom {
+  from,
+  92% {
+    --dialog-fade-bottom: 28px;
+  }
+  to {
+    --dialog-fade-bottom: 0px;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .mat-mdc-dialog-content {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--dialog-fade-top),
+      #000 calc(100% - var(--dialog-fade-bottom)),
+      transparent 100%
+    );
+    animation:
+      dialog-fade-top linear both,
+      dialog-fade-bottom linear both;
+    animation-timeline: scroll(self), scroll(self);
+    scroll-timeline: --dialog-content block;
+  }
+
+  // The fade alone is easy to miss, so a divider above the buttons also says
+  // "there is more": Material's scrolling-dialog divider. It shows while the
+  // content can scroll further and goes once the end is reached.
+  .mat-mdc-dialog-surface {
+    timeline-scope: --dialog-content;
+  }
+
+  .mat-mdc-dialog-actions {
+    border-block-start: 1px solid transparent;
+    animation: dialog-more-divider linear both;
+    animation-timeline: --dialog-content;
+  }
+}
+
+@keyframes dialog-more-divider {
+  from,
+  96% {
+    border-block-start-color: var(--mat-sys-outline-variant);
+  }
+  to {
+    border-block-start-color: transparent;
+  }
+}
+
+// Bootstrap's text colours are fixed greys and reds made for light pages and
+// fail contrast on the dark theme. Point the classes the templates still use
+// at the matching Material roles.
+.text-secondary {
+  color: var(--mat-sys-on-surface-variant) !important;
+}
+
+.text-danger {
+  color: var(--mat-sys-error) !important;
+}
+
+// Material's 32 % scrim is made for light pages. On this dark theme it barely
+// dims anything, so floating buttons and navigation still look usable behind
+// a dialog. A stronger scrim makes the dialog the only thing in play.
+.cdk-overlay-dark-backdrop.cdk-overlay-backdrop-showing {
+  background: rgb(0 0 0 / 60%);
+}
+
+// Destructive entries in a menu (delete) use the error colour, text and icon.
+.mat-mdc-menu-item.menu-item-destructive:not([disabled]) {
+  --mat-menu-item-label-text-color: var(--mat-sys-error);
+  --mat-menu-item-icon-color: var(--mat-sys-error);
+}
+
+// The current choice in a single-select menu: a trailing check in the
+// highlight colour. It is a span, since a mat-icon would take the leading
+// icon slot.
+.mat-mdc-menu-item:has(.menu-check) .mat-mdc-menu-item-text {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.mat-mdc-menu-item .menu-check {
+  margin-inline-start: auto;
+  padding-inline-start: 16px;
+  font-size: 24px;
+  color: var(--mat-sys-primary);
 }

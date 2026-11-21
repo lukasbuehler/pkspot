@@ -140,6 +140,20 @@ describe("UsersService", () => {
     expect(adapter.getDocument).toHaveBeenCalledWith("users/missing-user");
   });
 
+  it("answers profile views from the screenshot profile of that user only", async () => {
+    (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_USER_PROFILES__ = {
+      "visual-athlete": { display_name: "Alex Runner", verified_email: true },
+    };
+    functions.callPublic.mockResolvedValue({ uid: "other-user", display_name: "Other" });
+
+    const fixtureUser = await service.getAccessibleUserProfile("visual-athlete");
+    expect(fixtureUser?.displayName).toBe("Alex Runner");
+    expect(functions.callPublic).not.toHaveBeenCalled();
+
+    await service.getAccessibleUserProfile("other-user");
+    expect(functions.callPublic).toHaveBeenCalledWith("getUserProfile", { user_id: "other-user" });
+  });
+
   it("loads a viewer-redacted profile through the callable boundary", async () => {
     functions.callPublic.mockResolvedValue({
       uid: "private-user",
