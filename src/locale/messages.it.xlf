@@ -5358,8 +5358,8 @@
     </unit>
     <unit id="spot-type.natural-landscape">
       <segment state="translated">
-        <source>Nature Spot</source>
-        <target>Spot nella natura</target>
+        <source>Nature</source>
+        <target>Natura</target>
       </segment>
     </unit>
     <unit id="spot-type.other">
@@ -5430,8 +5430,8 @@
     </unit>
     <unit id="spot-type.urban-landscape">
       <segment state="translated">
-        <source>Street Spot</source>
-        <target>Spot urbano</target>
+        <source>Street</source>
+        <target>Urbano</target>
       </segment>
     </unit>
     <unit id="spot-type.water">

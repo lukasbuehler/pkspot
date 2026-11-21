@@ -492,7 +492,18 @@ div.google-img-container {
   }
 }
 
-.spot-locality { max-width: 100%; white-space: normal; }
+// A town name never breaks inside itself: it moves to the next line whole and
+// only truncates when it is wider than a full line.
+.spot-locality {
+  max-width: 100%;
+  white-space: nowrap;
+
+  > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 
 // The header rating is a quiet text button that jumps to the reviews.
 .header-rating-button {

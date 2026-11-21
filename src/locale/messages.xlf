@@ -16580,12 +16580,12 @@
     </unit>
     <unit id="spot-type.urban-landscape">
       <segment>
-        <source>Street Spot</source>
+        <source>Street</source>
       </segment>
     </unit>
     <unit id="spot-type.natural-landscape">
       <segment>
-        <source>Nature Spot</source>
+        <source>Nature</source>
       </segment>
     </unit>
     <unit id="spot-type.university-campus">
