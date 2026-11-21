@@ -8901,6 +8901,12 @@
         <target><ph id="0" equiv="PH" disp="start"/> · Fin ouverte</target>
       </segment>
     </unit>
+    <unit id="event.venue.directions">
+      <segment state="translated">
+        <source>Directions to the venue</source>
+        <target>Itinéraire vers le lieu</target>
+      </segment>
+    </unit>
     <unit id="event.venue_tba">
       <segment state="initial">
         <source>Venue to be announced</source>

@@ -147,7 +147,11 @@
           <div class="event-title-block">
             <h1 class="mat-heading-medium">{{ event.name }}</h1>
 
-            <app-event-summary-meta [event]="event"></app-event-summary-meta>
+            <app-event-summary-meta
+              [event]="event"
+              [showDirections]="!!eventLocationMarker()"
+              (directionsRequested)="openVenueDirections()"
+            ></app-event-summary-meta>
             <!-- The "Parkour event in <place>" heading stays in the page title,
                  meta description and structured data; the meta line above
                  already shows the place to people. -->

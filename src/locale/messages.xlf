@@ -3793,6 +3793,11 @@
         <source><ph id="0" equiv="PH" disp="start"/> · Open end</source>
       </segment>
     </unit>
+    <unit id="event.venue.directions">
+      <segment>
+        <source>Directions to the venue</source>
+      </segment>
+    </unit>
     <unit id="event.venue_tba">
       <segment>
         <source>Venue to be announced</source>

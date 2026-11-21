@@ -8,7 +8,20 @@
     >
       <mat-label>{{ localeLabel(locale) }}</mat-label>
 
-      @if(isTextArea()) {
+      @if(isTextArea() && autosizeMinRows(); as minRows) {
+      <!-- Grows with the text, so longer descriptions can be checked as a whole. -->
+      <textarea
+        cdkFocusInitial
+        matInput
+        [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
+        [placeholder]="placeholder()"
+        [attr.aria-label]="fieldLabel() ? fieldLabel() + ' (' + localeLabel(locale) + ')' : null"
+        (change)="valueChanged($event, locale)"
+        cdkTextareaAutosize
+        [cdkAutosizeMinRows]="minRows"
+        [cdkAutosizeMaxRows]="16"
+      ></textarea>
+      } @else if(isTextArea()) {
       <textarea
         cdkFocusInitial
         matInput

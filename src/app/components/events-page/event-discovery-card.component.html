@@ -8,6 +8,7 @@
     class="event-card"
     [attr.data-status]="status()"
     [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
+    [class.no-cover]="!imageSrc()"
   >
     <div class="image-wrap" [class.is-fallback]="!imageSrc()">
       @if (seriesBadges().length > 0) {

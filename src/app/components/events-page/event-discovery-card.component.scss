@@ -37,10 +37,53 @@
 }
 
 // In a grid every cover has the same height, so titles line up across a row.
-// Phones list one card per row, so there the date-only fallback is shorter.
+// Phones list one card per row: there an event without a photo becomes a row
+// with a narrow date strip on the left, so empty artwork no longer takes more
+// room than the event's details.
 @media (max-width: 599.98px) {
-  .image-wrap.is-fallback {
-    height: 120px;
+  .event-card.no-cover {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .event-card.no-cover > * {
+    grid-column: 2;
+  }
+
+  .event-card.no-cover > .image-wrap {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    height: auto;
+    min-height: 120px;
+  }
+
+  // Room for the date tile at the top and the series badge at the bottom.
+  .event-card.no-cover > .image-wrap:has(.series-badges) {
+    min-height: 144px;
+  }
+
+  .no-cover .image-wrap ::ng-deep .event-cover__watermark {
+    display: none;
+  }
+
+  .no-cover .image-wrap ::ng-deep .event-cover__date {
+    top: 14px;
+    bottom: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .no-cover .series-badges {
+    top: auto;
+    right: auto;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .no-cover mat-card-header {
+    padding-top: 0.875rem;
   }
 }
 

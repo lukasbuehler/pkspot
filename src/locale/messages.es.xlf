@@ -8901,6 +8901,12 @@
         <target><ph id="0" equiv="PH" disp="start"/> · Sin hora de fin</target>
       </segment>
     </unit>
+    <unit id="event.venue.directions">
+      <segment state="translated">
+        <source>Directions to the venue</source>
+        <target>Cómo llegar al lugar</target>
+      </segment>
+    </unit>
     <unit id="event.venue_tba">
       <segment state="initial">
         <source>Venue to be announced</source>

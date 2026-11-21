@@ -8901,6 +8901,12 @@
         <target><ph id="0" equiv="PH" disp="start"/> · Offenes Ende</target>
       </segment>
     </unit>
+    <unit id="event.venue.directions">
+      <segment state="translated">
+        <source>Directions to the venue</source>
+        <target>Route zum Veranstaltungsort</target>
+      </segment>
+    </unit>
     <unit id="event.venue_tba">
       <segment state="initial">
         <source>Venue to be announced</source>
@@ -11983,7 +11989,7 @@
     <unit id="follow_list.title_following">
       <segment state="translated">
         <source>Following</source>
-        <target>Folgt</target>
+        <target>Gefolgt</target>
       </segment>
     </unit>
     <unit id="for_parkour_spots_chip_label">
@@ -13638,7 +13644,7 @@
       </notes>
       <segment state="initial">
         <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Edit media report </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Report Media </pc></source>
-        <target><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Medienmeldung bearbeiten </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Medium melden </pc></target>
+        <target><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Medienmeldung bearbeiten </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Foto oder Video melden </pc></target>
       </segment>
     </unit>
     <unit id="6684903098036930968">

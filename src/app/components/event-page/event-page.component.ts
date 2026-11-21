@@ -644,6 +644,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ? []
       : this._eventPageData.spotPreviewMarkers(this.spots()),
   );
+  openVenueDirections(): void {
+    const marker = this.eventLocationMarker();
+    if (marker) {
+      this.mapsApiService.openDirectionsInMaps(marker.location);
+    }
+  }
+
   readonly eventLocationMarker = computed<MarkerSchema | null>(() =>
     this._eventPageData.eventLocationMarker(this.event()),
   );
