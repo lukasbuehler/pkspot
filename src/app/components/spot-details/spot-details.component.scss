@@ -415,6 +415,12 @@ div.google-img-container {
 }
 .spot-header-badges[data-collapsed] { margin-block: 0; }
 
+// The facts row can run to three lines plus the actions, so it gets more
+// room than the default collapsible limit before clipping.
+.spot-header-badges.collapsible-header-info {
+  max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 160px);
+}
+
 // The facts take the free width and wrap item by item (the place moves to a
 // third line first); the actions keep their width and never wrap below.
 .spot-header-info {
@@ -436,7 +442,7 @@ div.google-img-container {
   flex-shrink: 0;
   align-items: center;
   min-width: 0;
-  // Facts wrap whole; one only truncates when it is wider than a full line.
+  // Facts wrap whole; one only breaks inside when it is wider than a line.
   max-width: 100%;
 
   &::after {
@@ -492,16 +498,14 @@ div.google-img-container {
   }
 }
 
-// A town name never breaks inside itself: it moves to the next line whole and
-// only truncates when it is wider than a full line.
-.spot-locality {
-  max-width: 100%;
-  white-space: nowrap;
-
-  > span:first-child {
+// Header facts are never abbreviated: a fact moves to the next line whole,
+// and only a name longer than a full line wraps inside itself.
+.spot-locality,
+.spot-fact--type {
+  > span {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 
