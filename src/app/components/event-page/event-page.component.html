@@ -152,9 +152,8 @@
               [showDirections]="!!eventLocationMarker()"
               (directionsRequested)="openVenueDirections()"
             ></app-event-summary-meta>
-            <!-- The "Parkour event in <place>" heading stays in the page title,
-                 meta description and structured data; the meta line above
-                 already shows the place to people. -->
+            <!-- The "Parkour event in <place>" phrase titles the description
+                 section below instead of repeating the place here. -->
             @if (organizerName()) {
               <div class="event-organizer">
                 <span
@@ -213,6 +212,12 @@
         </section>
       }
 
+      <!-- "Parkour event in <place>" heads the details below (description,
+           tags, communities, links): people get a section heading between the
+           title and the details, and search engines keep the localized phrase. -->
+      @if (localizedCopy(); as copy) {
+        <h2 class="event-about-heading mat-title-large">{{ copy.heading }}</h2>
+      }
       @if (descriptionLanguageLabel()) {
         <p class="mat-body-small">{{ descriptionLanguageLabel() }}</p>
       }
