@@ -5305,6 +5305,12 @@
         <target>Gebruiksstatistieken</target>
       </segment>
     </unit>
+    <unit id="app.offline.named_page_unavailable">
+      <segment state="translated">
+        <source>You&apos;re offline. <ph id="0" equiv="PAGE" disp="pageName"/> opens once you&apos;re connected again.</source>
+        <target>Je bent offline. <ph id="0" equiv="PAGE" disp="pageName"/> opent zodra je weer verbinding hebt.</target>
+      </segment>
+    </unit>
     <unit id="app.offline.page_unavailable">
       <segment state="translated">
         <source>You&apos;re offline. The page you chose opens once you&apos;re connected again.</source>
@@ -19205,6 +19211,12 @@
       <segment state="initial">
         <source>Going</source>
         <target>Ik ga</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.going_remove_hint">
+      <segment state="translated">
+        <source>You&apos;re going – tap to take it back</source>
+        <target>Je gaat – tik om dit ongedaan te maken</target>
       </segment>
     </unit>
     <unit id="event_rsvp.group_label">

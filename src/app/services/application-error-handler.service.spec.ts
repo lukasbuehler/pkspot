@@ -9,6 +9,7 @@ import {
   FailedNavigationTarget,
   isAngularHmrModuleError,
   isDynamicImportLoadError,
+  offlinePageName,
 } from "./application-error-handler.service";
 
 function createSessionStorage() {
@@ -273,5 +274,12 @@ describe("ApplicationErrorHandler", () => {
     );
 
     expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("names a top-level page in the offline notice, with or without a locale", () => {
+    expect(offlinePageName("/de/events")).toBe("Events");
+    expect(offlinePageName("/train?tab=log")).toBe("Train");
+    expect(offlinePageName("https://pkspot.app/en/map/spots/rwi")).toBe("Map");
+    expect(offlinePageName("/de/settings/account")).toBeNull();
   });
 });

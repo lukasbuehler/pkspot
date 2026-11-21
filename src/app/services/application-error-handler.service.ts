@@ -124,7 +124,7 @@ export class ApplicationErrorHandler implements ErrorHandler {
     failedNavigation.url = null;
 
     if (view.navigator?.onLine === false) {
-      this.showOfflineNotice();
+      this.showOfflineNotice(target ? offlinePageName(target) : null);
       if (target) this.openWhenBackOnline(view, target);
       return;
     }
@@ -183,15 +183,49 @@ export class ApplicationErrorHandler implements ErrorHandler {
     );
   }
 
-  private showOfflineNotice(): void {
+  private showOfflineNotice(pageName: string | null): void {
     try {
       this.injector.get(MatSnackBar).open(
-        $localize`:@@app.offline.page_unavailable:You're offline. The page you chose opens once you're connected again.`,
+        pageName
+          ? $localize`:@@app.offline.named_page_unavailable:You're offline. ${pageName}:PAGE: opens once you're connected again.`
+          : $localize`:@@app.offline.page_unavailable:You're offline. The page you chose opens once you're connected again.`,
         $localize`:@@app.offline.page_unavailable.dismiss:OK`,
         { duration: 8000 },
       );
     } catch (error) {
       console.warn("Failed to show the offline notice", error);
     }
+  }
+}
+
+/**
+ * The navigation name of a top-level page, so the offline notice can say
+ * which page will open. Null for other pages; the notice then stays generic.
+ */
+export function offlinePageName(url: string): string | null {
+  let path: string;
+  try {
+    path = new URL(url, "https://pkspot.app").pathname;
+  } catch {
+    return null;
+  }
+  const segments = path.split("/").filter(Boolean);
+  // Localized builds prefix the path with the locale, e.g. /de/events.
+  if (segments[0] && /^[a-z]{2}(-[A-Za-z]{2})?$/.test(segments[0]) && segments.length > 1) {
+    segments.shift();
+  }
+  switch (segments[0]) {
+    case "map":
+      return $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`;
+    case "events":
+      return $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`;
+    case "train":
+      return $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`;
+    case "notifications":
+      return $localize`:@@navigation.notifications:Notifications`;
+    case "about":
+      return $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`;
+    default:
+      return null;
   }
 }

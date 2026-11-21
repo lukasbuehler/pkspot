@@ -2991,6 +2991,11 @@
         <source>Analytics</source>
       </segment>
     </unit>
+    <unit id="app.offline.named_page_unavailable">
+      <segment>
+        <source>You&apos;re offline. <ph id="0" equiv="PAGE" disp="pageName"/> opens once you&apos;re connected again.</source>
+      </segment>
+    </unit>
     <unit id="app.offline.page_unavailable">
       <segment>
         <source>You&apos;re offline. The page you chose opens once you&apos;re connected again.</source>
@@ -6531,6 +6536,11 @@
     <unit id="event_rsvp.going">
       <segment>
         <source>Going</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.going_remove_hint">
+      <segment>
+        <source>You&apos;re going – tap to take it back</source>
       </segment>
     </unit>
     <unit id="event_rsvp.group_label">

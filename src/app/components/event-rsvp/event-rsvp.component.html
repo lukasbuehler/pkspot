@@ -79,6 +79,8 @@
             [class.is-active]="activeRsvp === 'going'"
             [disabled]="isLoading() || isSaving()"
             [attr.aria-pressed]="activeRsvp === 'going'"
+            [matTooltip]="activeRsvp === 'going' ? leaveGoingHint : ''"
+            [matTooltipDisabled]="activeRsvp !== 'going'"
             (click)="toggleGoing()"
           >
             <!-- A check only once you are going; before that, "+" invites joining. -->

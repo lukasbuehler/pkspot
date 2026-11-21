@@ -74,6 +74,8 @@ export class EventRsvpComponent {
   readonly disclaimerText = $localize`:@@event_rsvp.disclaimer:These numbers show PK Spot user intent, not tickets bought.`;
   readonly myEventsGroupLabel = $localize`:@@event_rsvp.group_label:Save to My Events`;
   readonly signInToGoLabel = $localize`:@@event_add.sign_in:Sign in to mark Going`;
+  /** Once going, the same button takes it back; the tooltip says so. */
+  readonly leaveGoingHint = $localize`:@@event_rsvp.going_remove_hint:You're going – tap to take it back`;
 
   readonly isSignedIn = computed(() => !!this.userId());
   readonly myEventsRsvp = computed<"going" | "interested" | null>(() => {
