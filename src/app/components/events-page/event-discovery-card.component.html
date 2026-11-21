@@ -1,5 +1,7 @@
 <a
   [routerLink]="route()"
+  [target]="linkTarget() ?? undefined"
+  [attr.rel]="linkTarget() ? 'noopener' : null"
   class="event-card-action"
   [attr.aria-label]="accessibleLabel()"
   (click)="trackClick()"

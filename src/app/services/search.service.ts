@@ -38,6 +38,12 @@ import type {
 import type { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
 import {
+  eventCountryCommunityKey,
+  eventCountryTypesenseFilter,
+  mergeEventCountryFacets,
+  parseEventCountryCodes,
+} from "../shared/event-calendar-filters";
+import {
   compareEventsByTiming,
   readTextMatch,
   reorderWithinTiers,
@@ -1553,6 +1559,7 @@ export class SearchService {
     const categories = SearchService._uniqueFilterValues(options.categories);
     const regionKeys = SearchService._uniqueFilterValues(options.regionKeys);
     const seriesIds = SearchService._uniqueFilterValues(options.seriesIds);
+    const countryCodes = parseEventCountryCodes(options.countryCodes ?? []);
     const sortDirection =
       options.sort === "past" ? "desc" : "asc";
     const screenshotFixture = readScreenshotTrainPageFixture();
@@ -1572,6 +1579,7 @@ export class SearchService {
           communities: [],
           listingTiers: [],
           regions: [],
+          countries: [],
         },
         invalidItems: [],
         invalidItemCount: 0,
@@ -1595,6 +1603,7 @@ export class SearchService {
         ? SearchService._arrayFilter("listing_tier", options.listingTiers)
         : undefined,
       SearchService._arrayFilter("region_keys", regionKeys),
+      eventCountryTypesenseFilter(countryCodes),
     ]);
     const chronologicalSort = `start_seconds:${sortDirection}`;
 
@@ -1622,12 +1631,17 @@ export class SearchService {
                   SearchService._arrayFilter("community_keys", areaKeys),
                   SearchService._arrayFilter("event_categories", categories),
                   SearchService._arrayFilter("series_ids", seriesIds),
+                  // The legacy schema lacks `country_code`; every event still has its country key.
+                  SearchService._arrayFilter(
+                    "community_keys",
+                    countryCodes.map(eventCountryCommunityKey),
+                  ),
                 ])
               : filters,
             sort_by: chronologicalSort,
             facet_by: legacySchema
               ? "event_categories,series_ids,community_keys"
-              : "event_categories,series_ids,community_keys,listing_tier,region_keys",
+              : "event_categories,series_ids,community_keys,listing_tier,region_keys,country_code",
             max_facet_values: 100,
             per_page: perPage,
             page,
@@ -2604,6 +2618,10 @@ export class SearchService {
       communities: values("community_keys"),
       listingTiers: values("listing_tier"),
       regions: values("region_keys"),
+      countries: mergeEventCountryFacets(
+        values("community_keys"),
+        values("country_code"),
+      ),
     };
   }
 
@@ -2623,7 +2641,7 @@ export class SearchService {
     return (
       (message.includes("Could not find a facet field") ||
         message.includes("Could not find a filter field")) &&
-      ["listing_tier", "region_keys"].some(
+      ["listing_tier", "region_keys", "country_code"].some(
         (field) => message.includes(field),
       )
     );
@@ -2950,6 +2968,8 @@ export interface EventDiscoverySearchOptions {
   categories?: readonly EventCategory[];
   listingTiers?: readonly EventListingTier[];
   regionKeys?: readonly EventRegionKey[];
+  /** ISO 3166-1 alpha-2 codes; matches `country_code` or the `country:xx` key. */
+  countryCodes?: readonly string[];
   seriesIds?: readonly string[];
   sort?: EventDiscoverySort;
   page?: number;
@@ -2968,6 +2988,8 @@ export interface EventDiscoveryFacets {
   communities: EventDiscoveryFacetValue[];
   listingTiers: EventDiscoveryFacetValue[];
   regions: EventDiscoveryFacetValue[];
+  /** Uppercase ISO codes merged from `country_code` and `country:xx` keys. */
+  countries: EventDiscoveryFacetValue[];
 }
 
 export interface EventDiscoveryItem extends EventSearchPreview {

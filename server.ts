@@ -11,6 +11,11 @@ import { LOCALE_ID, REQUEST, RESPONSE_INIT } from "@angular/core";
 import { getLegacySsrRedirectTarget } from "./src/server-redirects";
 
 import { prepareSsrDocument } from "./src/ssr-document";
+import {
+  EVENT_CALENDAR_FEED_PATH,
+  handleEventCalendarFeed,
+} from "./src/event-calendar-feed";
+import { environment } from "./src/environments/environment.default";
 
 function getAllowedHosts(): string[] {
   const defaultHosts = ["localhost", "127.0.0.1", "[::1]"];
@@ -57,6 +62,20 @@ export function app(): express.Express {
       return;
     }
     next();
+  });
+
+  // iCal subscription feed. Production serves it from the Cloudflare Worker;
+  // this route keeps local SSR and the build smoke test equivalent.
+  server.get(EVENT_CALENDAR_FEED_PATH, (req, res, next) => {
+    handleEventCalendarFeed(createWebRequestFromNodeRequest(req), {
+      typesense: environment.keys.typesense,
+    })
+      .then(async (response) => {
+        res.status(response.status);
+        response.headers.forEach((value, name) => res.setHeader(name, value));
+        res.send(await response.text());
+      })
+      .catch(next);
   });
 
   // Serve static files from /browser

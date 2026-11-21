@@ -103,7 +103,8 @@ async function buildFrontWorker(buildId) {
     stdin: {
       contents: [
         'import { createFrontWorker } from "./src/cloudflare-front-worker";',
-        `export default createFrontWorker(${JSON.stringify(buildId)});`,
+        `import { environment } from ${JSON.stringify(`./${profile.environmentFile.replace(/\.ts$/u, "")}`)};`,
+        `export default createFrontWorker(${JSON.stringify(buildId)}, { typesense: environment.keys.typesense });`,
       ].join("\n"),
       resolveDir: repoRoot,
       sourcefile: "front-worker-entry.ts",

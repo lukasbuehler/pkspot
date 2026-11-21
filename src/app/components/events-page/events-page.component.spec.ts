@@ -37,6 +37,7 @@ const EMPTY_RESULT: EventDiscoverySearchResult = {
     communities: [],
     listingTiers: [],
     regions: [],
+    countries: [],
   },
   invalidItems: [],
   invalidItemCount: 0,
@@ -490,6 +491,56 @@ describe("EventsPageComponent", () => {
     await flushResources();
     expect(searchService.searchEventDiscovery).toHaveBeenCalledTimes(calls + 1);
     expect(searchService.searchEventDiscovery.mock.calls.filter(([request]) => request.perPage === 1)).toHaveLength(1);
+  });
+
+  it("filters by country from the URL and offers countries of the selected continent", async () => {
+    const { component, searchService, router } = createComponent({
+      queryParams: { view: "list", country: "ch,xx", region: "europe" },
+    });
+    searchService.searchEventDiscovery.mockResolvedValue({
+      ...EMPTY_RESULT,
+      facets: {
+        ...EMPTY_RESULT.facets,
+        countries: [
+          { value: "CH", count: 10 },
+          { value: "AU", count: 3 },
+          { value: "DE", count: 2 },
+        ],
+      },
+    });
+    await flushResources();
+
+    expect(component.selectedCountries()).toEqual(["CH"]);
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledWith(
+      expect.objectContaining({ countryCodes: ["CH"], regionKeys: ["europe"] }),
+    );
+    expect(component.countryFilterOptions().map((option) => [option.id, option.count]))
+      .toEqual([["CH", 10], ["DE", 2]]);
+
+    component.toggleCountry("DE");
+    expect(router.navigate).toHaveBeenLastCalledWith([], expect.objectContaining({
+      queryParams: { country: "ch,de" },
+    }));
+  });
+
+  it("opens the subscription dialog with a feed URL for the active filters", async () => {
+    const { component, dialog } = createComponent({
+      queryParams: { view: "list", country: "ch", category: "jam" },
+    });
+    await flushResources();
+
+    component.openSubscribeDialog();
+
+    const data = dialog.open.mock.calls.at(-1)?.[1]?.data;
+    expect(data.links.feedUrl).toBe(
+      "https://pkspot.app/calendar/events.ics?country=ch&category=jam",
+    );
+    expect(data.filterSummary).toContain("Switzerland");
+    expect(data.embedQueryParams).toEqual({
+      embedType: "events",
+      country: "ch",
+      category: "jam",
+    });
   });
 
   it("keeps an unavailable selected filter removable", async () => {

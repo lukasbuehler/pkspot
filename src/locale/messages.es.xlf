@@ -72,6 +72,12 @@
         <target>Subir</target>
       </segment>
     </unit>
+    <unit id="6936987768041636688">
+      <segment state="translated">
+        <source>Outlook</source>
+        <target>Outlook</target>
+      </segment>
+    </unit>
     <unit id="about.crew.contact_button">
       <segment state="initial">
         <source>Join us</source>
@@ -190,6 +196,12 @@
       <segment state="initial">
         <source>Edit this spot</source>
         <target>Editar este spot</target>
+      </segment>
+    </unit>
+    <unit id="7570264910966501409">
+      <segment state="translated">
+        <source> Paste this link into any calendar app that can subscribe to a calendar from a URL. </source>
+        <target> Pega este enlace en cualquier app de calendario que pueda suscribirse a un calendario desde una URL. </target>
       </segment>
     </unit>
     <unit id="7578499311504842568">
@@ -2837,6 +2849,12 @@
         <target>Creaciones reales</target>
       </segment>
     </unit>
+    <unit id="3072510910221601904">
+      <segment state="translated">
+        <source>Upcoming parkour events</source>
+        <target>Próximos eventos de parkour</target>
+      </segment>
+    </unit>
     <unit id="3076687427621376223">
       <segment state="initial">
         <source>Organization</source>
@@ -2861,10 +2879,22 @@
         <target>Usa la comprobación 18+ de OneID, que protege tu privacidad, cuando esté disponible para tu cuenta.</target>
       </segment>
     </unit>
+    <unit id="309477929600270309">
+      <segment state="translated">
+        <source>Events could not be loaded.</source>
+        <target>No se pudieron cargar los eventos.</target>
+      </segment>
+    </unit>
     <unit id="6849734841047073254">
       <segment state="initial">
         <source>App &amp; Technical</source>
         <target>App y aspectos técnicos</target>
+      </segment>
+    </unit>
+    <unit id="6855811936010626961">
+      <segment state="translated">
+        <source> Add the events for <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ data.filterSummary }}"/></pc> to your calendar app. New and changed events appear automatically. </source>
+        <target> Añade los eventos de <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ data.filterSummary }}"/></pc> a tu app de calendario. Los eventos nuevos o modificados aparecen automáticamente. </target>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -3077,6 +3107,12 @@
         <target>Antes</target>
       </segment>
     </unit>
+    <unit id="1222333919375451195">
+      <segment state="translated">
+        <source>Subscribe to events</source>
+        <target>Suscribirse a los eventos</target>
+      </segment>
+    </unit>
     <unit id="1231404040125306617">
       <segment state="initial">
         <source> Review every scanned upload over time. Approved media is shown from its released public location; flagged media remains hidden in quarantine. </source>
@@ -3279,6 +3315,12 @@
       <segment state="initial">
         <source>Could not create account!</source>
         <target>¡No se pudo crear la cuenta!</target>
+      </segment>
+    </unit>
+    <unit id="3606116150235638472">
+      <segment state="translated">
+        <source>Could not copy the link. Select it and copy it manually.</source>
+        <target>No se pudo copiar el enlace. Selecciónalo y cópialo manualmente.</target>
       </segment>
     </unit>
     <unit id="3614817395578126884">
@@ -3788,6 +3830,12 @@
         <target>No se pudo guardar tu denuncia. Comprueba tu conexión e inténtalo de nuevo.</target>
       </segment>
     </unit>
+    <unit id="8453653872283557622">
+      <segment state="translated">
+        <source>Calendar link</source>
+        <target>Enlace del calendario</target>
+      </segment>
+    </unit>
     <unit id="8453764144686440551">
       <segment state="translated">
         <source>Could not prepare shared photos. Share up to 8 JPEG, PNG or WebP photos and try again.</source>
@@ -3902,6 +3950,12 @@
         <target>No necesaria</target>
       </segment>
     </unit>
+    <unit id="1144407473317535723">
+      <segment state="translated">
+        <source>Subscribe</source>
+        <target>Suscribirse</target>
+      </segment>
+    </unit>
     <unit id="1147358182484006761">
       <segment state="initial">
         <source>Shop</source>
@@ -4002,6 +4056,12 @@
       <segment state="initial">
         <source>Quarantined media revealed for moderation</source>
         <target>Contenido en cuarentena mostrado para moderación</target>
+      </segment>
+    </unit>
+    <unit id="8611517726861102036">
+      <segment state="translated">
+        <source>Event calendar</source>
+        <target>Calendario de eventos</target>
       </segment>
     </unit>
     <unit id="8613763801282551204">
@@ -4106,6 +4166,12 @@
         <target> Bloquear también a este usuario después de reportarlo </target>
       </segment>
     </unit>
+    <unit id="6782077395930235254">
+      <segment state="translated">
+        <source>Countries</source>
+        <target>Países</target>
+      </segment>
+    </unit>
     <unit id="678566336962698407">
       <segment state="initial">
         <source>Which Spot is this a duplicate of?</source>
@@ -4188,6 +4254,12 @@
       <segment state="initial">
         <source>False positive recorded</source>
         <target>Falso positivo registrado</target>
+      </segment>
+    </unit>
+    <unit id="2309237488614023099">
+      <segment state="translated">
+        <source>Calendar link copied</source>
+        <target>Enlace del calendario copiado</target>
       </segment>
     </unit>
     <unit id="2312227289513761859">
@@ -6637,6 +6709,12 @@
         <target>Programado</target>
       </segment>
     </unit>
+    <unit id="9177420670276562985">
+      <segment state="translated">
+        <source> No upcoming events right now. </source>
+        <target> Ahora mismo no hay próximos eventos. </target>
+      </segment>
+    </unit>
     <unit id="profile.actions.unfollow">
       <segment state="initial">
         <source>Unfollow</source>
@@ -8029,6 +8107,12 @@
       <segment state="initial">
         <source>List view</source>
         <target>Vista de lista</target>
+      </segment>
+    </unit>
+    <unit id="7684169081752734503">
+      <segment state="translated">
+        <source>Filter by country</source>
+        <target>Filtrar por país</target>
       </segment>
     </unit>
     <unit id="7686689894059927472">
@@ -12683,6 +12767,12 @@
         <target>Madrugador</target>
       </segment>
     </unit>
+    <unit id="8786247520842004283">
+      <segment state="translated">
+        <source>Embed on a website</source>
+        <target>Insertar en un sitio web</target>
+      </segment>
+    </unit>
     <unit id="8790355239373900199">
       <segment state="initial">
         <source>Publish warning</source>
@@ -13280,6 +13370,12 @@
         <target>Datos meteorológicos actuales</target>
       </segment>
     </unit>
+    <unit id="3831299753843916160">
+      <segment state="translated">
+        <source> Loading events… </source>
+        <target> Cargando eventos… </target>
+      </segment>
+    </unit>
     <unit id="3837011087922351865">
       <segment state="initial">
         <source>Only Event Updates</source>
@@ -13365,6 +13461,12 @@
       <segment state="initial">
         <source>Data by</source>
         <target>Datos de</target>
+      </segment>
+    </unit>
+    <unit id="4151827756390243904">
+      <segment state="translated">
+        <source>Apple Calendar</source>
+        <target>Calendario de Apple</target>
       </segment>
     </unit>
     <unit id="4152341800436198728">
@@ -13671,6 +13773,12 @@
         <target>Google Place desvinculado</target>
       </segment>
     </unit>
+    <unit id="2787484985100780700">
+      <segment state="translated">
+        <source>Google Calendar</source>
+        <target>Google Calendar</target>
+      </segment>
+    </unit>
     <unit id="2788894705152239347">
       <segment state="initial">
         <source> This location on Google Maps® </source>
@@ -13729,6 +13837,12 @@
       <segment state="initial">
         <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
         <target>Última información de <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</target>
+      </segment>
+    </unit>
+    <unit id="8064270541640704396">
+      <segment state="translated">
+        <source>Show subscribe button</source>
+        <target>Mostrar el botón de suscripción</target>
       </segment>
     </unit>
     <unit id="8072434875780801374">
@@ -15208,6 +15322,12 @@
         <target>Compartir</target>
       </segment>
     </unit>
+    <unit id="5400268572285807517">
+      <segment state="translated">
+        <source>Continents</source>
+        <target>Continentes</target>
+      </segment>
+    </unit>
     <unit id="5400391042453835180">
       <segment state="initial">
         <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
@@ -15380,6 +15500,12 @@
       <segment state="initial">
         <source>Error saving profile access settings.</source>
         <target>Error al guardar la configuración de acceso al perfil.</target>
+      </segment>
+    </unit>
+    <unit id="8894682062042872593">
+      <segment state="translated">
+        <source>Leave empty to show events from every country.</source>
+        <target>Déjalo vacío para mostrar eventos de todos los países.</target>
       </segment>
     </unit>
     <unit id="5007909911776062380">
@@ -15566,6 +15692,12 @@
       <segment state="initial">
         <source> We don&apos;t have a PK Spot community page for this route yet. </source>
         <target>Todavía no tenemos una página de comunidad de PK Spot para esta ruta.</target>
+      </segment>
+    </unit>
+    <unit id="8396242606501636340">
+      <segment state="translated">
+        <source> Add all PK Spot events to your calendar app. New and changed events appear automatically. </source>
+        <target> Añade todos los eventos de PK Spot a tu app de calendario. Los eventos nuevos o modificados aparecen automáticamente. </target>
       </segment>
     </unit>
     <unit id="spot_picker.limit_hint">
@@ -17914,6 +18046,12 @@
       <segment state="initial">
         <source> The report could not be submitted. Please check your connection and try again. </source>
         <target> No se pudo enviar el reporte. Comprueba tu conexión e inténtalo de nuevo. </target>
+      </segment>
+    </unit>
+    <unit id="4620583414893138856">
+      <segment state="translated">
+        <source>Copy calendar link</source>
+        <target>Copiar el enlace del calendario</target>
       </segment>
     </unit>
     <unit id="4626291526592310042">

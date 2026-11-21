@@ -242,6 +242,15 @@ const routeVisualCases: RouteVisualCase[] = [
     fixedTime: "2026-07-20T12:00:00.000Z",
   },
   {
+    name: "events-filtered-country",
+    path: "/events?view=list&country=ch",
+    viewport: mobileViewport,
+    fullPage: true,
+    maxDiffPixels: 2_000,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
     name: "events-community-europe",
     path: "/events?view=list&tier=community&region=europe",
     fullPage: true,
@@ -726,6 +735,81 @@ test.describe("Route visual regression @visual", () => {
     await expect(player).toBeVisible();
     await expect(player.locator("iframe")).toHaveCount(0);
     expect(requests).toHaveLength(count);
+  });
+
+  test("embeds a country event calendar for partner websites", async ({ page }) => {
+    const searches: URL[] = [];
+    const event = (id: string, name: string, start: string, end: string, extra: Record<string, unknown> = {}) => ({
+      document: {
+        id, slug: id, name, published: true, venue_string: "Grandstand Parkour Park",
+        locality_string: "Luzern, CH", community_keys: ["country:ch", "locality:ch:lu:luzern"],
+        start_seconds: Date.parse(start) / 1000, end_seconds: Date.parse(end) / 1000,
+        time_zone: "Europe/Zurich", listing_tier: "formal", event_categories: ["jam"],
+        lifecycle_status: "planned", ...extra,
+      },
+    });
+    // The browser reloads discovery after hydration; answer it with stable fixture data.
+    await page.route("https://search.pkspot.app/collections/events_v1/documents/search?**", async (route) => {
+      searches.push(new URL(route.request().url()));
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          found: 2, page: 1, facet_counts: [],
+          hits: [
+            event("visual-santa-jam", "Visual Santa Jam", "2026-12-05T10:00:00Z", "2026-12-05T17:00:00Z", {
+              timing: { mode: "open_end", start_date: "2026-12-05", start_time: "11:00" },
+            }),
+            event("visual-winter-camp", "Visual Winter Camp", "2026-12-27T23:00:00Z", "2026-12-29T23:00:00Z", {
+              timing: { mode: "date_only", start_date: "2026-12-28", end_date: "2026-12-29" },
+              event_categories: ["camp"],
+            }),
+          ],
+        }),
+      });
+    });
+    await prepareRoute(page, {
+      name: "embedded-events", path: "/embedded/events?country=ch",
+      viewport: mobileViewport, fixedTime: "2026-11-21T12:00:00.000Z",
+    });
+
+    const embed = page.locator("app-embedded-events-page");
+    await expect(embed).toContainText("Visual Santa Jam");
+    await expect(embed).toContainText("Visual Winter Camp");
+    expect(searches.some((url) =>
+      (url.searchParams.get("filter_by") ?? "").includes(
+        "(community_keys:=[`country:ch`] || country_code:=[`CH`])",
+      ),
+    )).toBe(true);
+    await expect(embed.locator("a.event-card-action").first()).toHaveAttribute("target", "_blank");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expect(page).toHaveScreenshot("embedded-events-mobile.png", { fullPage: true, maxDiffPixels: 2_000 });
+
+    await expect(page.locator("[ngh]")).toHaveCount(0);
+    await embed.locator(".embedded-events__actions button").click();
+    // The app-wide dialog defaults currently omit role="dialog", so locate the container.
+    const dialog = page.locator("mat-dialog-container");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("Schweiz");
+    await expect(dialog.locator('a[href*="/embed"]')).toHaveCount(0);
+    await expect(dialog.getByRole("textbox")).toHaveValue(
+      "https://pkspot.app/calendar/events.ics?country=ch&lang=de",
+    );
+    await expect(dialog.locator('a[href^="webcal://"]')).toHaveAttribute(
+      "href", "webcal://pkspot.app/calendar/events.ics?country=ch&lang=de",
+    );
+    await expect(dialog).toHaveScreenshot("embedded-events-subscribe-dialog.png");
+
+    // The configurator keeps the filters from the Events page "Embed on a website" link.
+    await page.setViewportSize(desktopViewport);
+    await page.goto("/de/embed?embedType=events&country=ch", { waitUntil: "domcontentloaded" });
+    const preview = page.locator(".embed-preview iframe");
+    await expect(preview).toHaveAttribute("src", /\/embedded\/events\?country=ch$/u);
+    await expect(page.locator("app-code-block")).toContainText("/embedded/events?country=ch");
+    await expect(page.frameLocator(".embed-preview iframe").locator("app-embedded-events-page"))
+      .toContainText("Visual Santa Jam");
+    await expect(page.locator("#alainMenuButton")).toHaveCount(0);
+    // A full-page capture resizes the viewport, which briefly switches the shell to Alain mode.
+    await expect(page).toHaveScreenshot("embed-event-calendar.png", { maxDiffPixels: 2_000 });
   });
 
   for (const route of routeVisualCases) {

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import {
+  deriveEventCountryCode,
   eventRegionsForCountry,
   normalizeEventCountryCode,
 } from "./EventGeography";
@@ -17,5 +18,12 @@ describe("event geography", () => {
     expect(normalizeEventCountryCode("Zurich")).toBeUndefined();
     expect(eventRegionsForCountry("Zurich, Switzerland")).toEqual([]);
     expect(eventRegionsForCountry("XX")).toEqual([]);
+  });
+
+  it("derives the discovery country from the explicit code or the country key", () => {
+    expect(deriveEventCountryCode("es", ["country:ch"])).toBe("ES");
+    expect(deriveEventCountryCode(undefined, ["locality:ch:lu:luzern", "country:ch"])).toBe("CH");
+    expect(deriveEventCountryCode(undefined, ["locality:ch:lu:luzern"])).toBeUndefined();
+    expect(deriveEventCountryCode(undefined, undefined)).toBeUndefined();
   });
 });

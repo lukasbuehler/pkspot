@@ -37,6 +37,19 @@ import { AnalyticsService } from "../../../services/analytics.service";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
+  EMPTY_EVENT_CALENDAR_FILTERS,
+  type EventCalendarFilters,
+  eventCalendarFilterParams,
+  eventCountryFlag,
+  eventCountryName,
+  readEventCalendarFilters,
+} from "../../../shared/event-calendar-filters";
+import { EVENT_COUNTRY_CODES } from "../../../../db/schemas/EventGeography";
+import {
+  EVENT_REGION_KEYS,
+  type EventRegionKey,
+} from "../../../../db/schemas/EventSchema";
+import {
   buildEmbedPageQueryParams,
   defaultEmbedType as defaultEmbedTypeValue,
   embedCreditTextForLanguage,
@@ -118,11 +131,12 @@ export class EmbedPageComponent {
   });
 
   defaultEmbedType: EmbedType = defaultEmbedTypeValue;
-  embedTypes: EmbedType[] = ["spot", "community", "event", "event-map", "map"];
+  embedTypes: EmbedType[] = ["spot", "community", "events", "event", "event-map", "map"];
   embedTypeName: Record<EmbedType, string> = {
     spot: $localize`Spots`,
     community: $localize`Community`,
     map: $localize`Map`,
+    events: $localize`Event calendar`,
     event: $localize`Event info`,
     "event-map": $localize`Event map`,
   };
@@ -141,13 +155,26 @@ export class EmbedPageComponent {
 
   tab = signal<EmbedType>(this.defaultEmbedType);
 
+  /** Filters for the event calendar embed, shared with the iCal feed. */
+  eventFilters = signal<EventCalendarFilters>(EMPTY_EVENT_CALENDAR_FILTERS);
+  showSubscribeButton = signal(true);
+  readonly countryOptions = EVENT_COUNTRY_CODES.map((code) => ({
+    code,
+    label: `${eventCountryFlag(code)} ${eventCountryName(code, this._locale)}`,
+    name: eventCountryName(code, this._locale),
+  })).sort((left, right) => left.name.localeCompare(right.name, this._locale));
+  readonly regionOptions = EVENT_REGION_KEYS.map((region) => ({
+    value: region,
+    label: this._regionLabel(region),
+  }));
+
   effectiveEmbedLanguage = computed<SupportedEmbedLanguage>(() => {
     const language = this.embedLanguage();
     return language === "auto" ? normalizeEmbedLanguage(this._locale) : language;
   });
 
   embedCreditText = computed(() => {
-    if (this.tab() === "event" || this.tab() === "event-map") return embedCreditTextForLanguage(this.effectiveEmbedLanguage());
+    if (this.tab() === "event" || this.tab() === "event-map" || this.tab() === "events") return embedCreditTextForLanguage(this.effectiveEmbedLanguage());
     return { iframeTitle: $localize`PK Spot embedded content`, interactiveLabel: this.embedTypeName[this.tab()], dataByLabel: $localize`Data by` };
   });
 
@@ -169,6 +196,14 @@ export class EmbedPageComponent {
         if (!this.communitySlug()) return "";
         url += "results?" + embedSelectionQuery([{ kind: "community", id: this.communitySlug() }], false);
         break;
+      case "events": {
+        const params = new URLSearchParams(
+          eventCalendarFilterParams(this.eventFilters()),
+        );
+        if (!this.showSubscribeButton()) params.set("showSubscribe", "false");
+        url += "events" + (params.size ? `?${params}` : "");
+        break;
+      }
       case "map":
         url += "map?" + new URLSearchParams({ showSatelliteToggle: String(this.showSatelliteToggle()), showGeolocation: String(this.showGeolocation()) });
         break;
@@ -244,6 +279,8 @@ export class EmbedPageComponent {
         embedType: this.tab(),
         language: this.embedLanguage(),
         spotIds: this.spotIds(), communityId: this.communityId(), communitySlug: this.communitySlug(), showMap: this.showSelectionMap(),
+        eventFilters: this.eventFilters(),
+        showSubscribe: this.showSubscribeButton(),
       });
 
       if (this._queryParamsMatch(queryParams)) {
@@ -265,13 +302,57 @@ export class EmbedPageComponent {
   }
 
   onEmbedTypeChange(value: string | null): void {
-    if (value === "map" || value === "event" || value === "event-map" || value === "spot" || value === "community") {
+    if (value === "map" || value === "event" || value === "event-map" || value === "events" || value === "spot" || value === "community") {
       this.tab.set(value);
       this._analytics.trackEvent("embed_option_changed", {
         ...this.embedAnalyticsProperties(),
         option: "embed_type",
         value,
       });
+    }
+  }
+
+  onEventCountriesChange(countries: string[]): void {
+    this.eventFilters.update((filters) => ({ ...filters, countries }));
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "event_countries",
+      value: countries.join(","),
+    });
+  }
+
+  onEventRegionsChange(regions: EventRegionKey[]): void {
+    this.eventFilters.update((filters) => ({ ...filters, regions }));
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "event_regions",
+      value: regions.join(","),
+    });
+  }
+
+  onShowSubscribeChange(event: MatSlideToggleChange): void {
+    this.showSubscribeButton.set(event.checked);
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "show_subscribe",
+      value: event.checked,
+    });
+  }
+
+  private _regionLabel(region: EventRegionKey): string {
+    switch (region) {
+      case "africa":
+        return $localize`:@@event_region.africa:Africa`;
+      case "asia":
+        return $localize`:@@event_region.asia:Asia`;
+      case "europe":
+        return $localize`:@@event_region.europe:Europe`;
+      case "north-america":
+        return $localize`:@@event_region.north_america:North America`;
+      case "south-america":
+        return $localize`:@@event_region.south_america:South America`;
+      case "oceania":
+        return $localize`:@@event_region.oceania:Oceania`;
     }
   }
 
@@ -359,6 +440,8 @@ export class EmbedPageComponent {
     this.communityId.set(paramMap.get("communityId") ?? "");
     this.communitySlug.set(paramMap.get("communitySlug") ?? "");
     this.showSelectionMap.set(paramMap.get("showMap") !== "false");
+    this.eventFilters.set(readEventCalendarFilters((key) => paramMap.getAll(key)));
+    this.showSubscribeButton.set(paramMap.get("showSubscribe") !== "false");
     const language = readEmbedPageLanguage(paramMap);
     this.embedLanguage.set(language ?? "auto");
 

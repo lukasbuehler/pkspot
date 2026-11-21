@@ -63,6 +63,7 @@ import {
 } from "./event-discovery-issues-dialog.component";
 import {
   type EventCategoryFilterOption,
+  type EventCountryFilterOption,
   EventDiscoveryToolbarComponent,
   type EventListingTierFilterOption,
   type EventRegionFilterOption,
@@ -85,6 +86,25 @@ import { EventNotificationMigrationService } from "../../services/event-notifica
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
+import {
+  type EventCalendarFilters,
+  eventCalendarFilterParams,
+  eventCountryCommunityKey,
+  eventCountryFlag,
+  eventCountryName,
+  mergeEventCountryFacets,
+  parseEventCountryCodes,
+} from "../../shared/event-calendar-filters";
+import { eventCalendarSubscribeLinks } from "../../shared/event-calendar-subscribe";
+import { eventCalendarFeedName } from "../../shared/event-calendar-feed-name";
+import {
+  deriveEventCountryCode,
+  eventRegionsForCountry,
+} from "../../../db/schemas/EventGeography";
+import {
+  EventCalendarSubscribeDialogComponent,
+  type EventCalendarSubscribeDialogData,
+} from "../event-calendar-subscribe-dialog/event-calendar-subscribe-dialog.component";
 
 type EventCreateAction = "event" | "community" | "suggest" | "session";
 
@@ -118,6 +138,7 @@ interface DiscoveryRequest {
   categories: EventCategory[];
   listingTiers: EventListingTier[];
   regionKeys: EventRegionKey[];
+  countryCodes: string[];
   seriesIds: string[];
   period: EventsListPeriod;
   month: string;
@@ -256,6 +277,10 @@ export class EventsPageComponent {
   readonly selectedRegions = signal<EventRegionKey[]>([], {
     equal: sameOrderedValues,
   });
+  /** Uppercase ISO country codes from the `country` URL parameter. */
+  readonly selectedCountries = signal<string[]>([], {
+    equal: sameOrderedValues,
+  });
   readonly period = signal<EventsListPeriod>("upcoming");
   readonly month = signal(currentMonthKey());
   readonly requestedDay = signal("");
@@ -299,6 +324,7 @@ export class EventsPageComponent {
       categories: this.selectedCategories(),
       listingTiers: this.selectedListingTiers(),
       regionKeys: this.selectedRegions(),
+      countryCodes: this.selectedCountries(),
       seriesIds: this.selectedSeriesIds(),
       period: this.period(),
       month: this.month(),
@@ -314,6 +340,7 @@ export class EventsPageComponent {
         categories: params.categories,
         listingTiers: params.listingTiers,
         regionKeys: params.regionKeys,
+        countryCodes: params.countryCodes,
         seriesIds: params.seriesIds,
         abortSignal,
       };
@@ -389,7 +416,7 @@ export class EventsPageComponent {
         view: "list",
         month: "",
         limit: Number.POSITIVE_INFINITY,
-        categories: [], listingTiers: [], regionKeys: [], seriesIds: [],
+        categories: [], listingTiers: [], regionKeys: [], countryCodes: [], seriesIds: [],
       }, params.period === null);
       if (screenshot) return screenshot.facets;
 
@@ -502,6 +529,40 @@ export class EventsPageComponent {
     },
   );
 
+  /**
+   * Countries with matching events. With a continent selected, only its
+   * countries are offered so the two filters cannot exclude each other.
+   */
+  readonly countryFilterOptions = computed<EventCountryFilterOption[]>(() => {
+    const regions = this.selectedRegions();
+    const selected = this.selectedCountries();
+    const facets = this.availableFacets()?.countries ?? [];
+    const counts = new Map(facets.map((facet) => [facet.value, facet.count]));
+    const codes = [
+      ...facets.map((facet) => facet.value),
+      ...selected.filter((code) => !counts.has(code)),
+    ].filter((code) =>
+      selected.includes(code) ||
+      regions.length === 0 ||
+      eventRegionsForCountry(code).some((region) => regions.includes(region)),
+    );
+    return codes.map((code) => ({
+      id: code,
+      label: eventCountryName(code, this._locale),
+      flag: eventCountryFlag(code),
+      count: counts.get(code) ?? 0,
+    }));
+  });
+
+  /** Filters shared with the iCal feed and the calendar embed. */
+  readonly calendarFilters = computed<EventCalendarFilters>(() => ({
+    countries: this.selectedCountries(),
+    regions: this.selectedRegions(),
+    categories: this.selectedCategories(),
+    listingTiers: this.selectedListingTiers(),
+    seriesIds: this.selectedSeriesIds(),
+  }));
+
   readonly regionFilterOptions = computed<EventRegionFilterOption[]>(() => {
     const counts = new Map(
       (this.availableFacets()?.regions ?? []).map((facet) => [
@@ -545,6 +606,7 @@ export class EventsPageComponent {
       categories: request.categories,
       listingTiers: request.listingTiers,
       regionKeys: request.regionKeys,
+      countryCodes: request.countryCodes,
       seriesIds: request.seriesIds,
       period: this.period(),
       month: this.month(),
@@ -560,6 +622,7 @@ export class EventsPageComponent {
       categories: request.categories,
       listingTiers: request.listingTiers,
       regionKeys: request.regionKeys,
+      countryCodes: request.countryCodes,
       seriesIds: request.seriesIds,
       startsBeforeSeconds: request.startsBeforeSeconds,
       endsAfterSeconds: request.endsAfterSeconds,
@@ -682,6 +745,17 @@ export class EventsPageComponent {
     });
   }
 
+  toggleCountry(countryCode: string): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({
+      country: serializeList(
+        toggleValue(this.selectedCountries(), countryCode).map((code) =>
+          code.toLowerCase(),
+        ),
+      ),
+    });
+  }
+
   clearFilters(): void {
     this.areaAliases.set([]);
     this.resultLimit.set(LIST_PAGE_SIZE);
@@ -692,6 +766,7 @@ export class EventsPageComponent {
       series: null,
       tier: null,
       region: null,
+      country: null,
     });
   }
 
@@ -735,6 +810,42 @@ export class EventsPageComponent {
   retry(): void {
     this.discoveryResource.reload();
     this.availableFiltersResource.reload();
+  }
+
+  openSubscribeDialog(): void {
+    const filters = this.calendarFilters();
+    const summary = [
+      ...filters.countries.map((code) => eventCountryName(code, this._locale)),
+      ...filters.regions.map(regionLabel),
+      ...filters.categories.map(categoryLabel),
+      ...filters.seriesIds.map(
+        (id) => this.seriesById()[id]?.name ?? seriesFallbackLabel(id),
+      ),
+    ].join(" · ");
+    this._analytics.trackEvent("event_calendar_subscribe_opened", {
+      filtered: summary.length > 0,
+    });
+    const language = this._locale.split("-")[0];
+    this._dialog.open<
+      EventCalendarSubscribeDialogComponent,
+      EventCalendarSubscribeDialogData
+    >(EventCalendarSubscribeDialogComponent, {
+      data: {
+        links: eventCalendarSubscribeLinks(
+          environment.baseUrl || "https://pkspot.app",
+          filters,
+          eventCalendarFeedName(filters, language),
+          language,
+        ),
+        filterSummary: summary,
+        embedQueryParams: {
+          embedType: "events",
+          ...eventCalendarFilterParams(filters),
+        },
+      },
+      width: "560px",
+      maxWidth: "calc(100vw - 32px)",
+    });
   }
 
   openInvalidEventsDialog(): void {
@@ -793,6 +904,7 @@ export class EventsPageComponent {
       parseList(params, "tier").filter(isEventListingTier),
     );
     this.selectedRegions.set(parseList(params, "region").filter(isEventRegionKey));
+    this.selectedCountries.set(parseEventCountryCodes(parseList(params, "country")));
     this.period.set(params.get("when") === "past" ? "past" : "upcoming");
     const month = params.get("month") ?? "";
     this._hasValidMonthParam = isMonthKey(month);
@@ -930,6 +1042,16 @@ export class EventsPageComponent {
         if (
           request.regionKeys.length > 0 &&
           !event.regionKeys.some((region) => request.regionKeys.includes(region))
+        ) {
+          return false;
+        }
+        if (
+          request.countryCodes.length > 0 &&
+          !request.countryCodes.some(
+            (code) =>
+              event.countryCode?.toUpperCase() === code ||
+              event.communityKeys.includes(eventCountryCommunityKey(code)),
+          )
         ) {
           return false;
         }
@@ -1244,5 +1366,13 @@ function buildFixtureFacets(
     communities: count(items.flatMap((event) => event.communityKeys)),
     listingTiers: count(items.map((event) => event.listingTier)),
     regions: count(items.flatMap((event) => event.regionKeys)),
+    // Mirrors Functions, which materialize `country_code` from the country key.
+    countries: mergeEventCountryFacets(
+      [],
+      count(items.flatMap((event) => {
+        const country = deriveEventCountryCode(event.countryCode, event.communityKeys);
+        return country ? [country] : [];
+      })),
+    ),
   };
 }

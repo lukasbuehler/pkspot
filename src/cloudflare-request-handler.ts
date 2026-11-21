@@ -11,6 +11,7 @@ import {
   type SsrCacheStore,
   type WorkerExecutionContext,
 } from "./cloudflare-ssr-cache";
+import { isEventCalendarFeedPath } from "./event-calendar-feed";
 
 export interface CloudflareAssets {
   fetch(request: Request): Promise<Response>;
@@ -40,6 +41,8 @@ export function createCloudflareRequestHandler(
   ssrCacheStore: () => SsrCacheStore | undefined = defaultSsrCacheStore,
   /** Set when a separate renderer Worker renders; see `renderWithSsrCache`. */
   renderBuildId?: string,
+  /** Serves the iCal subscription feed; see `event-calendar-feed.ts`. */
+  handleCalendarFeed?: (request: Request) => Promise<Response>,
 ) {
   return async (
     request: Request,
@@ -65,6 +68,7 @@ export function createCloudflareRequestHandler(
       environment.PKSPOT_APP_HOSTING_ASSET_FALLBACK === "route-origin" &&
       url.hostname === "pkspot.app" && !request.headers.has(LEGACY_ASSET_HEADER)
         ? fetchLegacyAsset : undefined,
+      handleCalendarFeed,
     );
     const headers = new Headers(response.headers);
     if (
@@ -88,6 +92,7 @@ async function routeRequest(
   assets: CloudflareAssets,
   render: (request: Request) => Promise<{ response: Response; status: SsrCacheStatus }>,
   fetchLegacyAsset?: (request: Request) => Promise<Response>,
+  handleCalendarFeed?: (request: Request) => Promise<Response>,
 ): Promise<Response> {
   // Apply the shared policy before redirects, asset lookups or Angular SSR.
   if (isSensitiveProbePath(url.pathname)) {
@@ -104,6 +109,11 @@ async function routeRequest(
       status: 405,
       headers: { Allow: "GET, HEAD" },
     });
+  }
+  // The feed has no locale prefix and a file extension, so it must be routed
+  // before the locale redirect and the static asset lookup.
+  if (handleCalendarFeed && isEventCalendarFeedPath(url.pathname)) {
+    return handleCalendarFeed(request);
   }
   const [, first] = url.pathname.split("/");
   const retired = Object.hasOwn(LEGACY_UI_LOCALE_REDIRECTS, first)

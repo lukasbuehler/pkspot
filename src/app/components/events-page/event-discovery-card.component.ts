@@ -40,6 +40,8 @@ export class EventDiscoveryCardComponent {
   readonly event = input.required<EventSearchPreview>();
   readonly seriesById = input<Record<string, SeriesDocument>>({});
   readonly compact = input(false);
+  /** `_blank` opens PK Spot in a new tab, as embeds on partner sites need. */
+  readonly linkTarget = input<"_blank" | null>(null);
 
   readonly route = computed(() => [
     "/events",

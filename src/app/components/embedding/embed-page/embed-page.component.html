@@ -24,6 +24,33 @@
         <app-entity-reference-autocomplete kind="community" [value]="communityId()"
           (selectionChange)="onCommunitySelection($event)" />
       }
+      @if (tab() === "events") {
+        <mat-form-field class="w-100 mb-3" appearance="outline">
+          <mat-label i18n>Countries</mat-label>
+          <mat-select
+            multiple
+            [ngModel]="eventFilters().countries"
+            (ngModelChange)="onEventCountriesChange($event)"
+          >
+            @for (country of countryOptions; track country.code) {
+              <mat-option [value]="country.code">{{ country.label }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint i18n>Leave empty to show events from every country.</mat-hint>
+        </mat-form-field>
+        <mat-form-field class="w-100 mb-3" appearance="outline">
+          <mat-label i18n>Continents</mat-label>
+          <mat-select
+            multiple
+            [ngModel]="eventFilters().regions"
+            (ngModelChange)="onEventRegionsChange($event)"
+          >
+            @for (region of regionOptions; track region.value) {
+              <mat-option [value]="region.value">{{ region.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
       @if(tab() == "event" || tab() == "event-map") {
         <mat-form-field class="w-100 mb-3" appearance="outline">
           <mat-label i18n>Event</mat-label>
@@ -76,6 +103,13 @@
           (change)="onShowGeolocationChange($event)"
           i18n
           >Show geolocation</mat-slide-toggle
+        >
+        } @case ("events") {
+        <mat-slide-toggle
+          [checked]="showSubscribeButton()"
+          (change)="onShowSubscribeChange($event)"
+          i18n
+          >Show subscribe button</mat-slide-toggle
         >
         } @case ("event") {
         <mat-slide-toggle

@@ -22,42 +22,30 @@ import { AnalyticsService } from "../../services/analytics.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
 import { PushNotificationsService } from "../../services/push-notifications.service";
+import { buildIcsCalendar } from "../../shared/event-ics";
 
-const escapeCalendarText = (value: string): string =>
-  value
-    .replace(/\\/gu, "\\\\")
-    .replace(/\r?\n/gu, "\\n")
-    .replace(/,/gu, "\\,")
-    .replace(/;/gu, "\\;");
-
-const calendarTimestamp = (date: Date): string =>
-  date.toISOString().replace(/[-:]/gu, "").replace(/\.\d{3}Z$/u, "Z");
-
-export const buildEventCalendar = (event: PkEvent): string => {
-  const location = [event.venueString, event.localityLabel]
-    .filter(Boolean)
-    .join(", ");
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//PK Spot//Events//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    "BEGIN:VEVENT",
-    `UID:event-${event.id}@pkspot.app`,
-    `DTSTAMP:${calendarTimestamp(new Date())}`,
-    `DTSTART:${calendarTimestamp(event.start)}`,
-    `DTEND:${calendarTimestamp(event.end)}`,
-    `SUMMARY:${escapeCalendarText(event.name)}`,
-    ...(location ? [`LOCATION:${escapeCalendarText(location)}`] : []),
-    ...(event.description
-      ? [`DESCRIPTION:${escapeCalendarText(event.description)}`]
-      : []),
-    "END:VEVENT",
-    "END:VCALENDAR",
-    "",
-  ].join("\r\n");
-};
+/** Single-event download. Uses the same serializer as the subscription feed. */
+export const buildEventCalendar = (event: PkEvent, origin = "https://pkspot.app"): string =>
+  buildIcsCalendar([
+    {
+      id: event.id,
+      name: event.name,
+      description: event.description,
+      venue: event.venueString,
+      locality: event.localityLabel,
+      startSeconds: Math.floor(event.start.getTime() / 1000),
+      endSeconds: Math.floor(event.end.getTime() / 1000),
+      dateOnly:
+        event.timing?.mode === "date_only"
+          ? {
+              startDate: event.timing.start_date,
+              endDate: event.timing.end_date ?? event.timing.start_date,
+            }
+          : undefined,
+      cancelled: event.lifecycleStatus === "cancelled",
+      url: `${origin}/events/${encodeURIComponent(event.slug ?? event.id)}`,
+    },
+  ]);
 
 @Component({
   selector: "app-event-live-update-controls",

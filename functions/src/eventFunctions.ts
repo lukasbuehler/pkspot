@@ -12,8 +12,8 @@ import {
   EventSchema,
 } from "../../src/db/schemas/EventSchema";
 import {
+  deriveEventCountryCode,
   eventRegionsForCountry,
-  normalizeEventCountryCode,
 } from "../../src/db/schemas/EventGeography";
 import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 import { normalizeEventModel } from "../../src/db/schemas/EventNormalization";
@@ -683,14 +683,15 @@ const _addTypesenseFields = async (
   // Missing tier data is deliberately materialized as formal so a new
   // `listing_tier:=formal` Typesense filter keeps legacy events discoverable.
   out.listing_tier = eventData.listing_tier ?? "formal";
-  const countryFromCommunityKey = (eventData.community_keys ?? [])
-    .map((key) => /^country:([a-z]{2})$/iu.exec(key)?.[1])
-    .find((country): country is string => !!country);
-  const country = normalizeEventCountryCode(
-    eventData.country_code ?? countryFromCommunityKey,
+  const country = deriveEventCountryCode(
+    eventData.country_code,
+    eventData.community_keys,
   );
   if (country) {
-    if (eventData.country_code) out.country_code = country;
+    // Materialize the country for events that only carry a `country:xx`
+    // community key, so the `country_code` facet counts every event once.
+    // The field is platform-controlled; clients cannot write it.
+    out.country_code = country;
     out.region_keys = eventRegionsForCountry(country);
   }
 
