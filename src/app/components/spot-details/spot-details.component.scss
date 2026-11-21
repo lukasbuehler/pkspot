@@ -406,11 +406,12 @@ div.google-img-container {
   background: var(--mat-sys-surface-variant);
 }
 
+// Line 2 of the header: the actions float at the end and the facts flow
+// beside them, then continue at full width below. So the facts use all the
+// room next to the actions, and only what does not fit moves to line 3; the
+// actions never move down.
 .spot-header-badges {
-  container-type: inline-size;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 2px 8px;
+  display: block;
   margin-block: 4px;
 }
 .spot-header-badges[data-collapsed] { margin-block: 0; }
@@ -421,16 +422,20 @@ div.google-img-container {
   max-height: calc(var(--sheet-open-progress, var(--open-progress, 1)) * 160px);
 }
 
-// The facts take the free width and wrap item by item (the place moves to a
-// third line first); the actions keep their width and never wrap below.
+// Lines are 32px; the 40px buttons overhang by 4px above and below, so their
+// float covers exactly one line and line 3 gets the full width.
+.spot-header-badges .spot-button-row {
+  float: inline-end;
+  margin-block: -4px;
+  margin-inline-start: 8px;
+}
+
+// A plain block (no flex, no new formatting context) so the facts wrap
+// around the floated actions.
 .spot-header-info {
-  display: flex;
-  flex: 1 1 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 0;
+  display: block;
   min-width: 0;
-  min-height: 40px;
+  line-height: 32px;
 }
 
 // One fact (rating, type, amenities, access, place). Each fact is plain
@@ -440,9 +445,10 @@ div.google-img-container {
 // only at spaces. The trailing dot is hidden at line ends; its space stays
 // at the line end, so nothing visible moves.
 .spot-fact {
-  flex: 0 0 auto;
-  min-width: 0;
+  display: inline-block;
   max-width: 100%;
+  line-height: 24px;
+  vertical-align: middle;
   white-space: nowrap;
 
   > *,
@@ -479,43 +485,6 @@ div.google-img-container {
   flex-shrink: 0;
 }
 
-.spot-header-badges .spot-button-row {
-  flex-shrink: 0;
-  margin-inline-start: auto;
-}
-
-.spot-header-break {
-  display: none;
-}
-
-// Narrow sheets: the facts column would get only a sliver next to the
-// actions, so the rating sits beside the actions and the other facts wrap
-// from line 3.
-@container (max-width: 479.98px) {
-  .spot-header-info {
-    display: contents;
-  }
-
-  .spot-fact {
-    order: 3;
-  }
-
-  .spot-fact--rating {
-    order: 0;
-    align-self: center;
-  }
-
-  .spot-header-badges .spot-button-row {
-    order: 1;
-  }
-
-  .spot-header-break {
-    display: block;
-    order: 2;
-    flex-basis: 100%;
-    height: 0;
-  }
-}
 
 
 // The header rating is a quiet text button that jumps to the reviews.

@@ -412,7 +412,8 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       scrollElement.scrollWidth - scrollElement.clientWidth,
       0,
     );
-    const tolerance = 4;
+    // Small enough that a row cut off by a few pixels still shows its arrow.
+    const tolerance = 1;
 
     this.canScrollLeft.set(scrollElement.scrollLeft > tolerance);
     this.canScrollRight.set(
