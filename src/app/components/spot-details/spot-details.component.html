@@ -661,22 +661,10 @@
                     <span class="property-value">{{
                       spotAccessNames[spot()!.access()]
                     }}</span>
-                    <button
-                      mat-icon-button
-                      type="button"
-                      class="spot-help-button flex-shrink-0"
-                      [matTooltip]="spotAccessDescriptions[spot()!.access()]"
-                      matTooltipTouchGestures="on"
-                      #spotAccessTooltip="matTooltip"
-                      [attr.aria-label]="
-                        spotAccessDescriptions[spot()!.access()]
-                      "
-                      (click)="
-                        spotAccessTooltip.show(0); $event.stopPropagation()
-                      "
-                    >
-                      <mat-icon class="help-icon">help_outline</mat-icon>
-                    </button>
+                  </p>
+                  <!-- The rule decides whether people can train here, so it is always shown. -->
+                  <p class="access-description mat-body-medium m-0">
+                    {{ spotAccessDescriptions[spot()!.access()] }}
                   </p>
                 </div>
               }

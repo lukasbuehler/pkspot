@@ -251,6 +251,8 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
+    this._revealChip(event);
+
     if (this.selectedFilters() !== null) {
       this.filterToggled.emit(value);
       return;
@@ -274,6 +276,20 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
     if (fallback && fallback !== this.selectedFilter()) {
       this.filterChange.emit(fallback);
     }
+  }
+
+  /** Scrolls a tapped chip fully into view so a selection is never half hidden under an arrow. */
+  private _revealChip(event?: Event): void {
+    const chip = event?.currentTarget;
+    if (!(chip instanceof HTMLElement) || typeof chip.scrollIntoView !== "function") {
+      return;
+    }
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    chip.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }
 
   onFiltersClick(): void {

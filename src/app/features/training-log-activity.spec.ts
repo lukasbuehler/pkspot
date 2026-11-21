@@ -169,7 +169,7 @@ describe("training log activity helpers", () => {
       "entry-2",
       "entry-1",
     ]);
-    expect(formatDuration(135)).toBe("2h 15m");
+    expect(formatDuration(135)).toBe("2 h 15 min");
   });
 
   it("filters a month by session date and falls back to the legacy activity time", () => {

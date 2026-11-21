@@ -80,6 +80,8 @@ export class EventDiscoveryToolbarComponent {
   readonly selectedListingTiers = input<readonly EventListingTier[]>([]);
   readonly selectedRegions = input<readonly EventRegionKey[]>([]);
   readonly dateRange = input<EventDateRange | null>(null);
+  /** Off while the page shows an empty state that carries its own reset button. */
+  readonly showClearFilters = input(true);
   /** Date windows only make sense for the upcoming list. */
   readonly showDateRange = computed(
     () => this.view() === "list" && this.period() === "upcoming",

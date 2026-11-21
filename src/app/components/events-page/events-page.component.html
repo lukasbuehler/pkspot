@@ -69,6 +69,7 @@
     [selectedListingTiers]="selectedListingTiers()"
     [selectedRegions]="selectedRegions()"
     [dateRange]="dateRange()"
+    [showClearFilters]="!showsEmptyState()"
     (periodChange)="onPeriodChange($event)"
     (categoryToggled)="toggleCategory($event)"
     (seriesToggled)="toggleSeries($event)"

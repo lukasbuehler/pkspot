@@ -77,6 +77,11 @@ mat-tab-group {
   hyphens: auto;
 }
 
+.access-description {
+  max-width: 48ch;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .spot-title-text {
   min-width: 0;
   white-space: nowrap;

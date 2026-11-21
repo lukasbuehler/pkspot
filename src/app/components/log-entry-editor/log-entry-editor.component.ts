@@ -17,7 +17,7 @@ import type {
   SessionRecordDocument,
 } from "../../../db/schemas/SessionRecordSchema";
 import { localDateKey, sessionMinutes } from "../../../db/utils/training-summary";
-import { formatDuration } from "../../features/training-log-activity";
+import { formatDurationPreset } from "../../features/training-log-activity";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { StoreReviewService } from "../../reviews/store-review.service";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
@@ -83,7 +83,7 @@ export class LogEntryEditorComponent {
 
   readonly durationOptions = DURATION_PRESETS.map((minutes) => ({
     minutes,
-    label: formatDuration(minutes),
+    label: formatDurationPreset(minutes),
   }));
   readonly entryId = this.route.snapshot.paramMap.get("entryId");
   readonly title = this.entryId

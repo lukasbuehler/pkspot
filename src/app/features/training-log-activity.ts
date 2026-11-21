@@ -347,11 +347,17 @@ export function dateKeyToMs(key: string): number {
   return new Date(`${key}T12:00:00`).getTime();
 }
 
+/** Duration with the unit symbols "h" and "min", spaced as in every app language. */
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
-  return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
+  return remainder ? `${hours} h ${remainder} min` : `${hours} h`;
+}
+
+/** Short preset label: whole hours as "2 h", anything else in minutes ("90 min"). */
+export function formatDurationPreset(minutes: number): string {
+  return minutes % 60 === 0 ? `${minutes / 60} h` : `${minutes} min`;
 }
 
 function isDateKey(value: string): boolean {

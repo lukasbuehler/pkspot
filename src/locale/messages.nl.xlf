@@ -8294,6 +8294,12 @@
         <target>Bron:</target>
       </segment>
     </unit>
+    <unit id="weather.attribution">
+      <segment state="translated">
+        <source>Weather: <ph id="0" equiv="PROVIDER" disp="name"/></source>
+        <target>Weer: <ph id="0" equiv="PROVIDER" disp="name"/></target>
+      </segment>
+    </unit>
     <unit id="weather.button.range">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="label"/>, high <ph id="1" equiv="PH_1" disp="formatTemperature(high, unit)"/>, low <ph id="2" equiv="PH_2" disp="formatTemperature(low, unit)"/></source>

@@ -93,7 +93,7 @@ describe("TrainingStatsComponent", () => {
     const headline = element.querySelector(".training-stats__headline")!.textContent!;
     expect(headline).toContain("3");
     expect(headline).toContain("+2");
-    expect(headline).toContain("2h");
+    expect(headline).toContain("2 h");
     expect(headline).toContain("Logged for 2 of 3 sessions");
     expect(headline).toContain("1 new");
 

@@ -369,6 +369,13 @@ export class EventsPageComponent {
       : this.discoveryResult(),
   );
   readonly events = computed(() => this.discoveryResult()?.items ?? []);
+  /** True while the "No matching events" state, with its own reset button, is shown. */
+  readonly showsEmptyState = computed(
+    () =>
+      !this.usesContinuousCalendar() &&
+      !!this.discoveryResult() &&
+      this.events().length === 0,
+  );
   readonly invalidEventsResource = resource({
     params: () => (this.isAdmin() ? true : undefined),
     loader: async ({ abortSignal }) =>

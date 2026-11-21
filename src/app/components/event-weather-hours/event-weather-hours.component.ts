@@ -29,6 +29,7 @@ import {
   HourlyForecastStripComponent,
   type HourlyForecastColumn,
 } from "../hourly-forecast-strip/hourly-forecast-strip.component";
+import { weatherAttribution } from "../../weather/weather-attribution";
 
 @Component({
   selector: "app-event-weather-hours",
@@ -71,12 +72,8 @@ export class EventWeatherHoursComponent {
       ? "https://open-meteo.com/"
       : "https://developers.google.com/maps/documentation/weather",
   );
-  protected readonly attribution = computed(
-    () =>
-      this.response().attribution ??
-      (this.response().provider === "open-meteo"
-        ? "Weather: Open-Meteo"
-        : "Weather: Google Weather"),
+  protected readonly attribution = computed(() =>
+    weatherAttribution(this.response().provider),
   );
 
   constructor() {

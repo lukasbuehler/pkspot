@@ -14729,6 +14729,11 @@
         <source>Source:</source>
       </segment>
     </unit>
+    <unit id="weather.attribution">
+      <segment>
+        <source>Weather: <ph id="0" equiv="PROVIDER" disp="name"/></source>
+      </segment>
+    </unit>
     <unit id="weather.button.range">
       <segment>
         <source><ph id="0" equiv="PH" disp="label"/>, high <ph id="1" equiv="PH_1" disp="formatTemperature(high, unit)"/>, low <ph id="2" equiv="PH_2" disp="formatTemperature(low, unit)"/></source>

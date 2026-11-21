@@ -62,10 +62,13 @@
   color: var(--mat-sys-primary);
 }
 
+// Capped to the row minus the 16px icon and 6px gap, so with large text the
+// words wrap beside the icon instead of the icon ending up alone on a line.
 .host-text {
   display: inline-flex;
   flex-wrap: wrap;
   min-width: 0;
+  max-width: calc(100% - 22px);
   column-gap: 0.25em;
 }
 
