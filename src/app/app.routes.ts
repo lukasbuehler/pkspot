@@ -426,6 +426,15 @@ export const routes: Routes = [
     data: { routeName: "Embedded Event" },
   },
   {
+    path: "embedded/events",
+    pathMatch: "full",
+    loadComponent: () =>
+      import("./components/embedding/embedded-events-page/embedded-events-page.component").then(
+        (m) => m.EmbeddedEventsPageComponent,
+      ),
+    data: { routeName: "Embedded Events" },
+  },
+  {
     path: "embedded/results",
     loadComponent: () => import("./components/embedding/embedded-results-page/embedded-results-page.component").then(m => m.EmbeddedResultsPageComponent),
     data: { routeName: "Embedded selection", discoverable: false },

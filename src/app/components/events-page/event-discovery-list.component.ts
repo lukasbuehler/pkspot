@@ -21,5 +21,6 @@ export class EventDiscoveryListComponent {
   readonly found = input(0);
   readonly loading = input(false);
   readonly seriesById = input<Record<string, SeriesDocument>>({});
+  readonly linkTarget = input<"_blank" | null>(null);
   readonly loadMore = output<void>();
 }

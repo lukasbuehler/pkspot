@@ -36,9 +36,13 @@ describe("app link rules", () => {
       exclude: true,
     });
     expect(components[4]).toMatchObject({
-      "/": "/",
+      "/": "/calendar/*",
+      exclude: true,
     });
     expect(components[5]).toMatchObject({
+      "/": "/",
+    });
+    expect(components[6]).toMatchObject({
       "/": "/*",
     });
   });
@@ -55,6 +59,7 @@ describe("app link rules", () => {
     expect(manifest).not.toMatch(/android:pathPrefix="\/qr(?:\/|")/u);
     expect(manifest).not.toMatch(/android:pathPrefix="\/embed(?:\/|")/u);
     expect(manifest).not.toMatch(/android:pathPrefix="\/embedded(?:\/|")/u);
+    expect(manifest).not.toMatch(/android:pathPrefix="\/calendar(?:\/|")/u);
     expect(manifest).toContain('android:path="/"');
     expect(manifest).toContain('android:pathPrefix="/map"');
     expect(manifest).toContain('android:pathPrefix="/organizations"');

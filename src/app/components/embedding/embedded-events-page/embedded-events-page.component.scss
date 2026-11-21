@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  min-height: 100%;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.embedded-events {
+  padding: 16px;
+}
+
+.embedded-events__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.embedded-events__status {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}

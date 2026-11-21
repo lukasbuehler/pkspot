@@ -1,0 +1,36 @@
+<section class="embedded-events" aria-label="Upcoming parkour events" i18n-aria-label>
+  @if (showSubscribe()) {
+    <div class="embedded-events__actions">
+      <button mat-stroked-button type="button" (click)="openSubscribe()">
+        <mat-icon>event_repeat</mat-icon>
+        <span i18n>Subscribe</span>
+      </button>
+    </div>
+  }
+
+  @if (eventsResource.error()) {
+    <div class="embedded-events__status" role="alert">
+      <p class="mat-body-medium" i18n>Events could not be loaded.</p>
+      <button mat-button type="button" (click)="eventsResource.reload()" i18n>
+        Try again
+      </button>
+    </div>
+  } @else if (eventsResource.isLoading() && !result()) {
+    <p class="embedded-events__status mat-body-medium" role="status" i18n>
+      Loading events…
+    </p>
+  } @else if (events().length === 0) {
+    <p class="embedded-events__status mat-body-medium" role="status" i18n>
+      No upcoming events right now.
+    </p>
+  } @else {
+    <app-event-discovery-list
+      [events]="events()"
+      [found]="result()?.found ?? 0"
+      [loading]="eventsResource.isLoading()"
+      [seriesById]="seriesById()"
+      linkTarget="_blank"
+      (loadMore)="loadMore()"
+    />
+  }
+</section>

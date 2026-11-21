@@ -26,6 +26,11 @@
             "comment": "Embedded content pages stay browser-first."
           },
           {
+            "/": "/calendar/*",
+            "exclude": true,
+            "comment": "Calendar subscription feeds are files for calendar apps, not app screens."
+          },
+          {
             "/": "/",
             "comment": "The bare host should still open the app."
           },

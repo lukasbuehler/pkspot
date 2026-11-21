@@ -1,0 +1,76 @@
+<h2 mat-dialog-title i18n>Subscribe to events</h2>
+
+<mat-dialog-content>
+  <p class="mat-body-medium intro">
+    @if (data.filterSummary) {
+      <ng-container i18n>
+        Add the events for <strong>{{ data.filterSummary }}</strong> to your
+        calendar app. New and changed events appear automatically.
+      </ng-container>
+    } @else {
+      <ng-container i18n>
+        Add all PK Spot events to your calendar app. New and changed events
+        appear automatically.
+      </ng-container>
+    }
+  </p>
+
+  <div class="subscribe-actions">
+    <a
+      mat-flat-button
+      [href]="data.links.googleUrl"
+      target="_blank"
+      rel="noopener"
+      (click)="track('google')"
+      i18n
+    >Google Calendar</a>
+    <a
+      mat-stroked-button
+      [href]="data.links.webcalUrl"
+      (click)="track('apple')"
+      i18n
+    >Apple Calendar</a>
+    <a
+      mat-stroked-button
+      [href]="data.links.outlookUrl"
+      target="_blank"
+      rel="noopener"
+      (click)="track('outlook')"
+      i18n
+    >Outlook</a>
+  </div>
+
+  <mat-form-field appearance="outline" class="feed-field" subscriptSizing="dynamic">
+    <mat-label i18n>Calendar link</mat-label>
+    <input #feedInput matInput readonly [value]="data.links.feedUrl" (focus)="feedInput.select()" />
+    <button
+      mat-icon-button
+      matSuffix
+      type="button"
+      (click)="copyFeedUrl()"
+      aria-label="Copy calendar link"
+      i18n-aria-label
+    >
+      <mat-icon>content_copy</mat-icon>
+    </button>
+    <mat-hint i18n>
+      Paste this link into any calendar app that can subscribe to a calendar
+      from a URL.
+    </mat-hint>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (data.embedQueryParams) {
+    <a
+      mat-button
+      routerLink="/embed"
+      [queryParams]="data.embedQueryParams"
+      mat-dialog-close
+    >
+      <mat-icon>code</mat-icon>
+      <span i18n>Embed on a website</span>
+    </a>
+  }
+  <button mat-button type="button" mat-dialog-close i18n>Close</button>
+</mat-dialog-actions>

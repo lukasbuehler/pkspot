@@ -58,6 +58,32 @@ describe("embed page helpers", () => {
     });
   });
 
+  it("keeps event calendar filters in the configurator URL", () => {
+    expect(
+      buildEmbedPageQueryParams({
+        eventId: "",
+        embedType: "events",
+        language: "auto",
+        eventFilters: {
+          countries: ["CH"],
+          regions: ["europe"],
+          categories: [],
+          listingTiers: [],
+          seriesIds: [],
+        },
+        showSubscribe: false,
+      }),
+    ).toEqual({
+      country: "ch",
+      region: "europe",
+      showSubscribe: "false",
+      eventId: null,
+      embedType: "events",
+      language: null,
+    });
+    expect(readEmbedPageType(convertToParamMap({ embedType: "events" }))).toBe("events");
+  });
+
   it("normalizes locale variants for embed credit text", () => {
     expect(normalizeEmbedLanguage("fr-CH")).toBe("fr");
     expect(normalizeEmbedLanguage("pt-BR")).toBe("en");

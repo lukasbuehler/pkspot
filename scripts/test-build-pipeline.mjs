@@ -997,6 +997,39 @@ async function main() {
     const robotsText = await robotsResponse.text();
     assert.match(robotsText, /User-agent/i, "robots.txt should have content");
 
+    // The iCal feed is served without a locale prefix and never by Angular.
+    // Search may be unreachable in CI, so accept the feed's own error response.
+    const calendarFeedResponse = await fetchWithTimeout(
+      `${baseUrl}/calendar/events.ics?country=ch`,
+      { redirect: "manual" },
+      "event calendar feed"
+    );
+    const calendarFeedType = calendarFeedResponse.headers.get("content-type") ?? "";
+    const calendarFeedBody = await calendarFeedResponse.text();
+    if (calendarFeedResponse.status === 200) {
+      assert.match(calendarFeedType, /^text\/calendar/, "Calendar feed should be text/calendar");
+      assert.match(calendarFeedBody, /^BEGIN:VCALENDAR\r\n/, "Calendar feed should be an iCalendar document");
+      assert.match(calendarFeedBody, /X-WR-CALNAME:PK Spot events · Switzerland/, "Calendar feed should be named after the country filter");
+    } else {
+      assert.ok(
+        [502, 503].includes(calendarFeedResponse.status),
+        `Calendar feed should succeed or return a retryable error, got ${calendarFeedResponse.status}`
+      );
+      assert.doesNotMatch(calendarFeedBody, /<!doctype html>/i, "Calendar feed must not fall through to Angular");
+    }
+
+    const embeddedEventsResponse = await fetchWithTimeout(
+      `${baseUrl}/en/embedded/events?country=ch`,
+      { redirect: "manual" },
+      "embedded events SSR route"
+    );
+    assert.equal(embeddedEventsResponse.status, 200, "Embedded events page should render");
+    assert.match(
+      await embeddedEventsResponse.text(),
+      /<app-embedded-events-page/,
+      "Embedded events SSR should render the embed component"
+    );
+
     const messagingWorkerResponse = await fetchWithTimeout(
       `${baseUrl}/firebase-messaging-sw.js`,
       {},

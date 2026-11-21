@@ -700,6 +700,11 @@
         <source>Upload</source>
       </segment>
     </unit>
+    <unit id="6936987768041636688">
+      <segment>
+        <source>Outlook</source>
+      </segment>
+    </unit>
     <unit id="3031673576218082316">
       <segment>
         <source>The selected file was too big. It must be smaller than <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</source>
@@ -720,6 +725,11 @@
         <source>Actual creations</source>
       </segment>
     </unit>
+    <unit id="3072510910221601904">
+      <segment>
+        <source>Upcoming parkour events</source>
+      </segment>
+    </unit>
     <unit id="3076687427621376223">
       <segment>
         <source>Organization</source>
@@ -738,6 +748,11 @@
     <unit id="309182425721385503">
       <segment>
         <source>Use OneID’s privacy-preserving 18+ check when it is available for your account.</source>
+      </segment>
+    </unit>
+    <unit id="309477929600270309">
+      <segment>
+        <source>Events could not be loaded.</source>
       </segment>
     </unit>
     <unit id="8337024335699759741">
@@ -1655,6 +1670,11 @@
         <source> — We never sell your data. No tracking cookies, no shady ad networks. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot; (click)=&quot; trackInternalCtaClick( &apos;about_privacy_policy&apos;, &apos;/privacy-policy&apos; ) &quot; &gt;" dispEnd="&lt;/a &gt;">Privacy Policy</pc>. </source>
       </segment>
     </unit>
+    <unit id="7570264910966501409">
+      <segment>
+        <source> Paste this link into any calendar app that can subscribe to a calendar from a URL. </source>
+      </segment>
+    </unit>
     <unit id="7578499311504842568">
       <segment>
         <source>Events could not be loaded</source>
@@ -1948,6 +1968,11 @@
         <source>Current weather details</source>
       </segment>
     </unit>
+    <unit id="3831299753843916160">
+      <segment>
+        <source> Loading events… </source>
+      </segment>
+    </unit>
     <unit id="3837011087922351865">
       <segment>
         <source>Only Event Updates</source>
@@ -1979,6 +2004,11 @@
     <unit id="8392044408171513189">
       <segment>
         <source> We don&apos;t have a PK Spot community page for this route yet. </source>
+      </segment>
+    </unit>
+    <unit id="8396242606501636340">
+      <segment>
+        <source> Add all PK Spot events to your calendar app. New and changed events appear automatically. </source>
       </segment>
     </unit>
     <unit id="7150227608403439982">
@@ -9101,6 +9131,11 @@
         <source>Quarantined media revealed for moderation</source>
       </segment>
     </unit>
+    <unit id="8611517726861102036">
+      <segment>
+        <source>Event calendar</source>
+      </segment>
+    </unit>
     <unit id="8613763801282551204">
       <segment>
         <source>Letters, numbers, underscores, and hyphens only.</source>
@@ -9561,6 +9596,11 @@
         <source>Settings - </source>
       </segment>
     </unit>
+    <unit id="5400268572285807517">
+      <segment>
+        <source>Continents</source>
+      </segment>
+    </unit>
     <unit id="5400391042453835180">
       <segment>
         <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
@@ -9604,6 +9644,11 @@
     <unit id="805182578389935261">
       <segment>
         <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
+      </segment>
+    </unit>
+    <unit id="8064270541640704396">
+      <segment>
+        <source>Show subscribe button</source>
       </segment>
     </unit>
     <unit id="8072434875780801374">
@@ -10255,6 +10300,11 @@
     <unit id="6849734841047073254">
       <segment>
         <source>App &amp; Technical</source>
+      </segment>
+    </unit>
+    <unit id="6855811936010626961">
+      <segment>
+        <source> Add the events for <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ data.filterSummary }}"/></pc> to your calendar app. New and changed events appear automatically. </source>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -11025,6 +11075,11 @@
         <source>Before</source>
       </segment>
     </unit>
+    <unit id="1222333919375451195">
+      <segment>
+        <source>Subscribe to events</source>
+      </segment>
+    </unit>
     <unit id="1231404040125306617">
       <segment>
         <source> Review every scanned upload over time. Approved media is shown from its released public location; flagged media remains hidden in quarantine. </source>
@@ -11153,6 +11208,11 @@
     <unit id="3601523967492159201">
       <segment>
         <source>Could not create account!</source>
+      </segment>
+    </unit>
+    <unit id="3606116150235638472">
+      <segment>
+        <source>Could not copy the link. Select it and copy it manually.</source>
       </segment>
     </unit>
     <unit id="3614817395578126884">
@@ -12448,6 +12508,11 @@
         <source> Your report could not be saved. Please check your connection and try again. </source>
       </segment>
     </unit>
+    <unit id="8453653872283557622">
+      <segment>
+        <source>Calendar link</source>
+      </segment>
+    </unit>
     <unit id="8453764144686440551">
       <segment>
         <source>Could not prepare shared photos. Share up to 8 JPEG, PNG or WebP photos and try again.</source>
@@ -12476,6 +12541,11 @@
     <unit id="2781971407154812080">
       <segment>
         <source>Unlinked Google Place</source>
+      </segment>
+    </unit>
+    <unit id="2787484985100780700">
+      <segment>
+        <source>Google Calendar</source>
       </segment>
     </unit>
     <unit id="2788894705152239347">
@@ -12528,6 +12598,11 @@
         <source>Error saving profile access settings.</source>
       </segment>
     </unit>
+    <unit id="8894682062042872593">
+      <segment>
+        <source>Leave empty to show events from every country.</source>
+      </segment>
+    </unit>
     <unit id="6663339750681146068">
       <segment>
         <source>Meet-up time</source>
@@ -12571,6 +12646,11 @@
     <unit id="4616666625375010169">
       <segment>
         <source> The report could not be submitted. Please check your connection and try again. </source>
+      </segment>
+    </unit>
+    <unit id="4620583414893138856">
+      <segment>
+        <source>Copy calendar link</source>
       </segment>
     </unit>
     <unit id="4626291526592310042">
@@ -13441,6 +13521,11 @@
         <source> Also block this user after reporting </source>
       </segment>
     </unit>
+    <unit id="6782077395930235254">
+      <segment>
+        <source>Countries</source>
+      </segment>
+    </unit>
     <unit id="678566336962698407">
       <segment>
         <source>Which Spot is this a duplicate of?</source>
@@ -13550,6 +13635,11 @@
     <unit id="5823022281127676839">
       <segment>
         <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
+      </segment>
+    </unit>
+    <unit id="2309237488614023099">
+      <segment>
+        <source>Calendar link copied</source>
       </segment>
     </unit>
     <unit id="2312227289513761859">
@@ -13682,6 +13772,11 @@
         <source>Not required</source>
       </segment>
     </unit>
+    <unit id="1144407473317535723">
+      <segment>
+        <source>Subscribe</source>
+      </segment>
+    </unit>
     <unit id="1147358182484006761">
       <segment>
         <source>Shop</source>
@@ -13778,6 +13873,11 @@
     <unit id="9172233176401579786">
       <segment>
         <source>Scheduled</source>
+      </segment>
+    </unit>
+    <unit id="9177420670276562985">
+      <segment>
+        <source> No upcoming events right now. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -14948,6 +15048,11 @@
         <source>Early Bird</source>
       </segment>
     </unit>
+    <unit id="8786247520842004283">
+      <segment>
+        <source>Embed on a website</source>
+      </segment>
+    </unit>
     <unit id="8790355239373900199">
       <segment>
         <source>Publish warning</source>
@@ -15016,6 +15121,11 @@
     <unit id="4148975909996198269">
       <segment>
         <source>Data by</source>
+      </segment>
+    </unit>
+    <unit id="4151827756390243904">
+      <segment>
+        <source>Apple Calendar</source>
       </segment>
     </unit>
     <unit id="4152341800436198728">
@@ -15255,6 +15365,11 @@
     <unit id="1774760996053367231">
       <segment>
         <source>Preview notification</source>
+      </segment>
+    </unit>
+    <unit id="7684169081752734503">
+      <segment>
+        <source>Filter by country</source>
       </segment>
     </unit>
     <unit id="7686689894059927472">

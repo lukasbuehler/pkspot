@@ -1,6 +1,16 @@
 import { ParamMap } from "@angular/router";
+import {
+  type EventCalendarFilters,
+  eventCalendarFilterParams,
+} from "../../../shared/event-calendar-filters";
 
-export type EmbedType = "map" | "event" | "event-map" | "spot" | "community";
+export type EmbedType =
+  | "map"
+  | "event"
+  | "event-map"
+  | "events"
+  | "spot"
+  | "community";
 
 export type SupportedEmbedLanguage =
   | "en"
@@ -66,7 +76,14 @@ export const embedCreditTextByLanguage: Record<
 };
 
 export function coerceEmbedType(value: string | null): EmbedType | null {
-  if (value === "map" || value === "event" || value === "event-map" || value === "spot" || value === "community") {
+  if (
+    value === "map" ||
+    value === "event" ||
+    value === "event-map" ||
+    value === "events" ||
+    value === "spot" ||
+    value === "community"
+  ) {
     return value;
   }
 
@@ -125,10 +142,19 @@ export function buildEmbedPageQueryParams(input: {
   communityId?: string;
   communitySlug?: string;
   showMap?: boolean;
+  /** Event calendar filters; only used by the `events` embed type. */
+  eventFilters?: EventCalendarFilters;
+  showSubscribe?: boolean;
 }): Record<string, string | null> {
   const eventId = input.eventId.trim();
 
   return {
+    ...(input.embedType === "events" && input.eventFilters
+      ? eventCalendarFilterParams(input.eventFilters)
+      : {}),
+    ...(input.embedType === "events" && input.showSubscribe === false
+      ? { showSubscribe: "false" }
+      : {}),
     eventId: eventId || null,
     ...(input.spotIds?.length ? { spotIds: input.spotIds.join(",") } : {}),
     ...(input.communityId ? { communityId: input.communityId } : {}),

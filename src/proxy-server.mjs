@@ -135,8 +135,9 @@ function isKnownAngularRoute(pathname) {
   if (first === "embedded") {
     return (
       second === "map" ||
+      second === "results" ||
       (second === "event" && Boolean(third)) ||
-      (second === "events" && Boolean(third))
+      second === "events"
     );
   }
 
@@ -188,6 +189,10 @@ function run() {
 
     return res.redirect(301, redirectTarget);
   });
+
+  // The iCal subscription feed has no locale prefix. Each localized app
+  // serves the same feed, so the default one answers it.
+  server.get("/calendar/events.ics", serverExpressApps[defaultLanguage]());
 
   server.get("/qr/:slug", async (req, res, next) => {
     return handleQrStickerRequest(req, res, next);

@@ -3,6 +3,9 @@ const profiles = {
     workerName: "pkspot-web-staging",
     rendererName: "pkspot-ssr-staging",
     configuration: "cloudflare",
+    // The Angular file replacement for this configuration; the front Worker
+    // bundles it directly because esbuild does not apply Angular replacements.
+    environmentFile: "src/environments/environment.staging.ts",
     outputDirectory: "dist/pkspot-cloudflare-worker",
     firebaseConfigPath: "src/environments/firebase.staging.json",
     publicUrls: true,
@@ -12,6 +15,7 @@ const profiles = {
     workerName: "pkspot-web-production",
     rendererName: "pkspot-ssr-production",
     configuration: "cloudflare,cloudflare-production",
+    environmentFile: "src/environments/environment.production.ts",
     outputDirectory: "dist/pkspot-cloudflare-production-worker",
     firebaseConfigPath: "src/environments/firebase.production.json",
     // Domain attachment is a separately approved cutover. Keep this Worker

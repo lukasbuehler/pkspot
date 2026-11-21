@@ -44,6 +44,14 @@ export interface EventRegionFilterOption {
   count: number;
 }
 
+export interface EventCountryFilterOption {
+  /** Uppercase ISO 3166-1 alpha-2 code. */
+  id: string;
+  label: string;
+  flag: string;
+  count: number;
+}
+
 @Component({
   selector: "app-event-discovery-toolbar",
   imports: [
@@ -71,6 +79,19 @@ export class EventDiscoveryToolbarComponent {
     urlParam: region.id,
     label: `${region.label} ${region.count}`,
   })));
+
+  readonly countryOptions = input<readonly EventCountryFilterOption[]>([]);
+  readonly selectedCountries = input<readonly string[]>([]);
+  readonly countryChips = computed(() => this.countryOptions().map(country => ({
+    urlParam: country.id,
+    label: `${country.flag} ${country.label} ${country.count}`.trim(),
+  })));
+
+  toggleCountry(value: string): void {
+    if (this.countryOptions().some(option => option.id === value)) {
+      this.countryToggled.emit(value);
+    }
+  }
 
   toggleRegion(value: string): void {
     const region = this.regionOptions().find(option => option.id === value);
@@ -113,7 +134,9 @@ export class EventDiscoveryToolbarComponent {
   readonly seriesToggled = output<string>();
   readonly listingTierToggled = output<EventListingTier>();
   readonly regionToggled = output<EventRegionKey>();
+  readonly countryToggled = output<string>();
   readonly filtersCleared = output<void>();
+  readonly subscribeRequested = output<void>();
 
   hasFilters(): boolean {
     return (
@@ -122,6 +145,7 @@ export class EventDiscoveryToolbarComponent {
       this.selectedSeriesIds().length > 0 ||
       this.selectedListingTiers().length > 0 ||
       this.selectedRegions().length > 0 ||
+      this.selectedCountries().length > 0 ||
       !!this.query()
     );
   }

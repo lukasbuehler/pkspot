@@ -27,6 +27,33 @@ function setup(host = "test.pkspot.app") {
 }
 
 describe("Cloudflare request routing", () => {
+  it("serves the iCal feed without a locale redirect, asset lookup or render", async () => {
+    const render = vi.fn(async () => new Response("page"));
+    const assets = { fetch: vi.fn(async () => new Response("asset")) };
+    const feed = vi.fn(async () =>
+      new Response("BEGIN:VCALENDAR", { headers: { "Content-Type": "text/calendar" } }),
+    );
+    const handle = createCloudflareRequestHandler(render, undefined, undefined, undefined, feed);
+
+    const response = await handle(
+      new Request("https://pkspot.app/calendar/events.ics?country=ch"),
+      { ASSETS: assets },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("BEGIN:VCALENDAR");
+    expect(feed).toHaveBeenCalledOnce();
+    expect(render).not.toHaveBeenCalled();
+    expect(assets.fetch).not.toHaveBeenCalled();
+
+    const head = await handle(
+      new Request("https://pkspot.app/calendar/events.ics", { method: "HEAD" }),
+      { ASSETS: assets },
+    );
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+  });
+
   it.each([
     "test.pkspot.app", "branch.test.pkspot.app", "pkspot-web.workers.dev", "pkspot.app",
   ])("rejects probes on %s before rendering, assets or redirects", async (host) => {

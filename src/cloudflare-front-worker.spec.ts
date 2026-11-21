@@ -104,4 +104,45 @@ describe("Cloudflare front Worker", () => {
     expect((await request("/en/main-ABC12345.js")).status).toBe(404);
     expect(renderer).toHaveBeenCalledTimes(1);
   });
+
+  it("serves the iCal feed itself without waking the renderer", async () => {
+    const { renderer, environment } = setup("build-2");
+    const search = vi.fn(async () =>
+      Response.json({
+        hits: [
+          {
+            document: {
+              id: "jam-1",
+              name: "Santa Jam",
+              start_seconds: 1_796_000_000,
+              end_seconds: 1_796_010_000,
+            },
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", search);
+    const worker = createFrontWorker("build-2", {
+      typesense: { host: "search.example.test", apiKey: "search-only" },
+    });
+
+    const response = await worker.fetch(
+      new Request("https://pkspot.app/calendar/events.ics?country=ch"),
+      environment,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toContain("text/calendar");
+    expect(await response.text()).toContain("SUMMARY:Santa Jam");
+    expect(String(search.mock.calls[0]?.[0])).toContain("search.example.test");
+    expect(renderer).not.toHaveBeenCalled();
+    expect(environment.ASSETS.fetch).not.toHaveBeenCalled();
+  });
+
+  it("answers the feed with 503 when the build has no search key", async () => {
+    const { request, renderer } = setup("build-2");
+    const response = await request("/calendar/events.ics");
+    expect(response.status).toBe(503);
+    expect(renderer).not.toHaveBeenCalled();
+  });
 });

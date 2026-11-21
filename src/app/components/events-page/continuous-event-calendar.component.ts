@@ -48,6 +48,7 @@ export interface ContinuousEventCalendarLoadRequest {
   categories: EventCategory[];
   listingTiers: EventListingTier[];
   regionKeys: EventRegionKey[];
+  countryCodes: string[];
   seriesIds: string[];
   startsBeforeSeconds: number;
   endsAfterSeconds: number;
@@ -90,6 +91,7 @@ export class ContinuousEventCalendarComponent {
   readonly categories = input<readonly EventCategory[]>([]);
   readonly listingTiers = input<readonly EventListingTier[]>([]);
   readonly regionKeys = input<readonly EventRegionKey[]>([]);
+  readonly countryCodes = input<readonly string[]>([]);
   readonly seriesIds = input<readonly string[]>([]);
   readonly seriesById = input<Record<string, SeriesDocument>>({});
   readonly loadEvents = input.required<ContinuousEventCalendarLoader>();
@@ -123,6 +125,7 @@ export class ContinuousEventCalendarComponent {
       categories: [...this.categories()],
       listingTiers: [...this.listingTiers()],
       regionKeys: [...this.regionKeys()],
+      countryCodes: [...this.countryCodes()],
       seriesIds: [...this.seriesIds()],
       startsBeforeSeconds: this.queryCalendar().queryEndSeconds,
       endsAfterSeconds: this.queryCalendar().queryStartSeconds,
@@ -134,6 +137,7 @@ export class ContinuousEventCalendarComponent {
         categories: params.categories,
         listingTiers: params.listingTiers,
         regionKeys: params.regionKeys,
+        countryCodes: params.countryCodes,
         seriesIds: params.seriesIds,
         startsBeforeSeconds: params.startsBeforeSeconds,
         endsAfterSeconds: params.endsAfterSeconds,

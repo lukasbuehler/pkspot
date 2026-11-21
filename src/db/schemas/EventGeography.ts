@@ -62,6 +62,22 @@ export function normalizeEventCountryCode(value: unknown): string | undefined {
     : undefined;
 }
 
+/**
+ * Country for discovery: the explicit `country_code`, or else the country of
+ * the server-assigned `country:xx` community key that older events carry.
+ */
+export function deriveEventCountryCode(
+  countryCode: unknown,
+  communityKeys: readonly string[] | undefined,
+): string | undefined {
+  return normalizeEventCountryCode(
+    countryCode ??
+      (communityKeys ?? [])
+        .map((key) => /^country:([a-z]{2})$/iu.exec(key)?.[1])
+        .find((country): country is string => !!country),
+  );
+}
+
 /** A country belongs to one initial discovery region. */
 export function eventRegionsForCountry(value: unknown): EventRegionKey[] {
   const country = normalizeEventCountryCode(value);

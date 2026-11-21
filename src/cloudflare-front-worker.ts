@@ -4,6 +4,10 @@ import {
   type CloudflareWorkerEnvironment,
 } from "./cloudflare-request-handler";
 import type { WorkerExecutionContext } from "./cloudflare-ssr-cache";
+import {
+  type EventCalendarFeedConfig,
+  handleEventCalendarFeed,
+} from "./event-calendar-feed";
 
 /** Marks a renderer request that asks for one of its own build's assets. */
 export const RENDERER_ASSET_HEADER = "X-PKSpot-Renderer-Asset";
@@ -18,15 +22,24 @@ export interface CloudflareFrontEnvironment extends CloudflareWorkerEnvironment 
   SSR: { fetch(request: Request): Promise<Response> };
 }
 
+export interface FrontWorkerOptions {
+  /** Public search-only Typesense access for the iCal feed. */
+  typesense?: EventCalendarFeedConfig["typesense"];
+}
+
 /**
- * The front Worker answers redirects, static assets and cached pages without
- * loading Angular, so a cold isolate starts in milliseconds. Only cache misses
- * reach the renderer Worker, through a service binding with no public route.
+ * The front Worker answers redirects, static assets, cached pages and the iCal
+ * feed without loading Angular, so a cold isolate starts in milliseconds. Only
+ * cache misses reach the renderer Worker, through a service binding with no
+ * public route.
  *
  * Keep this module and its imports free of Angular: everything it imports is
  * loaded on every cold start.
  */
-export function createFrontWorker(buildId: string) {
+export function createFrontWorker(buildId: string, options: FrontWorkerOptions = {}) {
+  const typesense = options.typesense ?? { host: "", apiKey: "" };
+  const handleCalendarFeed = (request: Request) =>
+    handleEventCalendarFeed(request, { typesense });
   return {
     fetch(
       request: Request,
@@ -38,6 +51,7 @@ export function createFrontWorker(buildId: string) {
         undefined,
         undefined,
         buildId,
+        handleCalendarFeed,
       );
       return handle(
         request,

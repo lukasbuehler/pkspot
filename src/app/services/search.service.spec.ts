@@ -1598,7 +1598,7 @@ describe("SearchService", () => {
           sort_by: "start_seconds:desc",
           facet_by:
             "event_categories,series_ids,community_keys,listing_tier," +
-            "region_keys",
+            "region_keys,country_code",
           page: 2,
           per_page: 40,
         }),
@@ -1616,7 +1616,36 @@ describe("SearchService", () => {
         communities: [{ value: "country:ch", count: 1 }],
         listingTiers: [],
         regions: [],
+        countries: [{ value: "CH", count: 1 }],
       });
+    });
+
+    it("filters countries through the country key or the explicit country code", async () => {
+      typesenseSearchMock.mockResolvedValueOnce({
+        hits: [],
+        found: 0,
+        page: 1,
+        facet_counts: [
+          { field_name: "community_keys", counts: [{ value: "country:ch", count: 3 }] },
+          { field_name: "country_code", counts: [{ value: "CH", count: 1 }, { value: "DE", count: 2 }] },
+        ],
+      });
+
+      const result = await service.searchEventDiscovery({
+        countryCodes: ["ch", "xx", "CH"],
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter_by:
+            "published:=true && (community_keys:=[`country:ch`] || country_code:=[`CH`])",
+        }),
+        expect.anything(),
+      );
+      expect(result.facets.countries).toEqual([
+        { value: "CH", count: 3 },
+        { value: "DE", count: 2 },
+      ]);
     });
 
     it("falls back safely when the deployed schema cannot filter discovery tiers", async () => {
