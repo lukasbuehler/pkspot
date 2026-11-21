@@ -1077,6 +1077,126 @@ describe("SearchService", () => {
       expect(service.getEventFromHit(hit)?.livestreamLive).toBe(live === true);
     });
 
+    const eventHit = (fields: Record<string, unknown>) => ({
+      document: {
+        id: "hosted",
+        name: "Hosted jam",
+        start_seconds: 1792750000,
+        end_seconds: 1792850000,
+        ...fields,
+      },
+    });
+
+    it("maps indexed organization organizer fields", () => {
+      const hit = eventHit({
+        has_organization: true,
+        organizer_kind: "organization",
+        organizer_display_name: "Parkour Zurich",
+        organizer_organization_id: "org-1",
+        organizer_organization_slug: "parkour-zurich",
+        organizer_logo_url: "https://example.test/logo.png",
+        organizer_logo_background_color: "#ffffff",
+      });
+
+      expect(service.getEventPreviewFromHit(hit)).toEqual(
+        expect.objectContaining({
+          hasOrganization: true,
+          organizerKind: "organization",
+          organizerName: "Parkour Zurich",
+          organizerOrganizationId: "org-1",
+          organizerSlug: "parkour-zurich",
+          organizerLogoSrc: "https://example.test/logo.png",
+          organizerLogoBackgroundColor: "#ffffff",
+        }),
+      );
+      expect(service.getEventFromHit(hit)?.organizerName).toBe(
+        "Parkour Zurich",
+      );
+    });
+
+    it("maps an indexed community organizer", () => {
+      const hit = eventHit({
+        listing_tier: "community",
+        organizer_kind: "user",
+        organizer_display_name: "Alex",
+        organizer_user_id: "user-1",
+        organizer_user_avatar_url: "https://example.test/alex.jpg",
+      });
+      const preview = service.getEventPreviewFromHit(hit);
+
+      expect(preview).toEqual(
+        expect.objectContaining({
+          listingTier: "community",
+          hasOrganization: false,
+          organizerKind: "user",
+          organizerName: "Alex",
+          organizerUserId: "user-1",
+          organizerAvatarSrc: "https://example.test/alex.jpg",
+        }),
+      );
+      expect(preview.organizerSlug).toBeUndefined();
+      expect(service.getEventFromHit(hit)?.organizerName).toBe("Alex");
+    });
+
+    it("maps a plain organizer name", () => {
+      const hit = eventHit({
+        organizer_kind: "name",
+        organizer_display_name: "Jam crew",
+      });
+
+      expect(service.getEventPreviewFromHit(hit)).toEqual(
+        expect.objectContaining({
+          organizerKind: "name",
+          organizerName: "Jam crew",
+        }),
+      );
+      expect(service.getEventFromHit(hit)?.organizerName).toBe("Jam crew");
+    });
+
+    it("falls back to nested organizer fields on documents not yet reindexed", () => {
+      const preview = service.getEventPreviewFromHit(
+        eventHit({
+          has_organization: true,
+          organizer: {
+            type: "organization",
+            organization: {
+              id: "org-1",
+              name: "Parkour Zurich",
+              slug: "parkour-zurich",
+            },
+          },
+        }),
+      );
+
+      expect(preview).toEqual(
+        expect.objectContaining({
+          hasOrganization: true,
+          organizerKind: "organization",
+          organizerName: "Parkour Zurich",
+          organizerSlug: "parkour-zurich",
+        }),
+      );
+    });
+
+    it("leaves organizer fields empty for an unindexed legacy document", () => {
+      const preview = service.getEventPreviewFromHit(
+        eventHit({ has_organization: true }),
+      );
+
+      expect(preview.hasOrganization).toBe(true);
+      expect(preview.organizerKind).toBeUndefined();
+      expect(preview.organizerName).toBeUndefined();
+      expect(service.getEventFromHit(eventHit({}))?.organizerName).toBeUndefined();
+    });
+
+    it("ignores an unknown organizer kind", () => {
+      const preview = service.getEventPreviewFromHit(
+        eventHit({ organizer_kind: "sponsor", organizer_display_name: "X" }),
+      );
+      expect(preview.organizerKind).toBeUndefined();
+      expect(preview.organizerName).toBeUndefined();
+    });
+
     it("maps Typesense event hits to lightweight previews with resolved media and geo fields", () => {
       const preview = service.getEventPreviewFromHit({
         document: {
