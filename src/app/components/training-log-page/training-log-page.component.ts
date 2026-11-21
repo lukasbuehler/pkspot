@@ -103,7 +103,7 @@ export class TrainingLogPageComponent {
   readonly addText = $localize`:@@train.fab.text:Log training`;
   readonly addActions: readonly FabMenuAction[] = [
     ...(environment.features.plannedSessions ? [{ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` }] : []),
-    { id: "activity", icon: "add", label: $localize`:@@trainingLog.new:New training entry` },
+    { id: "activity", icon: "add", label: $localize`:@@train.fab.text:Log training` },
     { id: "recovery", icon: "event_busy", label: $localize`:@@recoveryPause.add:Log recovery pause` },
   ];
 

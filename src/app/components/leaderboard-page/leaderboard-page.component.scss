@@ -215,11 +215,14 @@
     gap: 0.5rem;
   }
 
+  // Long names wrap to a second line instead of being cut; three lines at most.
   .user-name {
     min-width: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 }
 

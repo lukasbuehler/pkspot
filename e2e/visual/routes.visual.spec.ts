@@ -1325,8 +1325,9 @@ test.describe("Route visual regression @visual", () => {
   });
 
   test("scrolls the chip row horizontally without dragging the bottom sheet", async ({ page }) => {
-    // The three type chips fit a 390px phone, so a narrow phone makes the row scroll.
-    await prepareRoute(page, { name: "sheet-chip-gesture", path: "/map", viewport: { width: 320, height: 650 } });
+    // The type chips fit a phone (types with nothing in view are hidden), so a
+    // very narrow screen makes the row scroll.
+    await prepareRoute(page, { name: "sheet-chip-gesture", path: "/map", viewport: { width: 240, height: 650 } });
     const sheet = page.locator(".map-bottom-sheet .sheet");
     await sheet.locator(".handle-region").click();
     await expect.poll(() => sheet.evaluate(el => getComputedStyle(el).transform)).toBe("matrix(1, 0, 0, 1, 0, 0)");

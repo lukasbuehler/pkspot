@@ -782,3 +782,19 @@ app-root.event-map-route .embedded-content {
   --mat-menu-item-label-text-color: var(--mat-sys-error);
   --mat-menu-item-icon-color: var(--mat-sys-error);
 }
+
+// The current choice in a single-select menu: a trailing check in the
+// highlight colour. It is a span, since a mat-icon would take the leading
+// icon slot.
+.mat-mdc-menu-item:has(.menu-check) .mat-mdc-menu-item-text {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.mat-mdc-menu-item .menu-check {
+  margin-inline-start: auto;
+  padding-inline-start: 16px;
+  font-size: 24px;
+  color: var(--mat-sys-primary);
+}

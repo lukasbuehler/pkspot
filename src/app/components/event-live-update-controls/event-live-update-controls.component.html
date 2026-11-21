@@ -46,40 +46,60 @@
           mat-menu-item
           type="button"
           (click)="notificationPreferenceChanged('all')"
+          role="menuitemradio"
+          [attr.aria-checked]="notificationLevel() === 'all'"
         >
           <mat-icon>notifications_active</mat-icon>
           <span i18n>All</span>
+        @if (notificationLevel() === 'all') {
+          <span class="menu-check material-symbols-rounded" aria-hidden="true">check</span>
+        }
         </button>
       }
       <button
         mat-menu-item
         type="button"
         (click)="notificationPreferenceChanged('event_updates')"
+        role="menuitemradio"
+        [attr.aria-checked]="notificationLevel() === 'event_updates'"
       >
         <mat-icon class="material-symbols-rounded-outline"
           >notifications</mat-icon
         >
         <span i18n>Only Event Updates</span>
+        @if (notificationLevel() === 'event_updates') {
+          <span class="menu-check material-symbols-rounded" aria-hidden="true">check</span>
+        }
       </button>
       @if (event().lifecycleStatus !== "cancelled") {
         <button
           mat-menu-item
           type="button"
           (click)="notificationPreferenceChanged('reminders')"
+          role="menuitemradio"
+          [attr.aria-checked]="notificationLevel() === 'reminders'"
         >
           <mat-icon class="material-symbols-rounded-outline"
             >notifications</mat-icon
           >
           <span i18n>Only Reminders</span>
+        @if (notificationLevel() === 'reminders') {
+          <span class="menu-check material-symbols-rounded" aria-hidden="true">check</span>
+        }
         </button>
       }
       <button
         mat-menu-item
         type="button"
         (click)="notificationPreferenceChanged('none')"
+        role="menuitemradio"
+        [attr.aria-checked]="notificationLevel() === 'none'"
       >
         <mat-icon>notifications_off</mat-icon>
         <span i18n>None</span>
+        @if (notificationLevel() === 'none') {
+          <span class="menu-check material-symbols-rounded" aria-hidden="true">check</span>
+        }
       </button>
     </mat-menu>
   }

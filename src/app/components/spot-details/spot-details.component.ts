@@ -549,6 +549,8 @@ export class SpotDetailsComponent
   isBookmarkUpdating = signal<boolean>(false);
   isVisitedUpdating = signal<boolean>(false);
   /** Tooltips say what a tap does now, so a saved Spot is not unsaved by surprise. */
+  // The name says the state and what a tap does, so nobody removes a saved
+  // Spot by tapping "Save" (a fixed name with aria-pressed read that way).
   readonly bookmarkTooltip = computed(() =>
     this.bookmarked()
       ? $localize`:@@spot.bookmark.tooltip_saved:Saved – tap to remove`

@@ -430,15 +430,6 @@
         <source>Spots</source>
       </segment>
     </unit>
-    <unit id="mark_this_spot_as_visited_aria_label">
-      <notes>
-        <note category="description">The aria label of the mark this spot as visited icon button</note>
-        <note category="meaning">Mark this spot as visited aria label</note>
-      </notes>
-      <segment>
-        <source>Mark Spot as visited</source>
-      </segment>
-    </unit>
     <unit id="mark_this_spot_as_visited_tooltip">
       <segment>
         <source>Mark this spot as visited</source>
@@ -2205,15 +2196,6 @@
     <unit id="5092563105818406233">
       <segment>
         <source>Remove draft</source>
-      </segment>
-    </unit>
-    <unit id="bookmark_spot_aria_label">
-      <notes>
-        <note category="description">The aria label of the bookmark spot icon button</note>
-        <note category="meaning">Bookmark spot aria label</note>
-      </notes>
-      <segment>
-        <source>Save Spot</source>
       </segment>
     </unit>
     <unit id="bookmark_spot_tooltip">
@@ -7270,6 +7252,11 @@
         <source>Report photo</source>
       </segment>
     </unit>
+    <unit id="img_carousel.viewer_label">
+      <segment>
+        <source>Photo viewer</source>
+      </segment>
+    </unit>
     <unit id="indoor_spots_chip_label">
       <segment>
         <source>Indoor</source>
@@ -10502,14 +10489,6 @@
     <unit id="account.app_check.status.skipped">
       <segment>
         <source>Skipped</source>
-      </segment>
-    </unit>
-    <unit id="account.auth.kicker">
-      <notes>
-        <note category="description">account auth kicker</note>
-      </notes>
-      <segment>
-        <source> Sign in </source>
       </segment>
     </unit>
     <unit id="account.auth.title">

@@ -155,28 +155,6 @@ export class CustomFilterDialogComponent {
     this._initialParams = this._snapshotParams();
   }
 
-  toggleType(type: SpotTypes): void {
-    this.selectedTypes = this.selectedTypes.includes(type)
-      ? this.selectedTypes.filter((selectedType) => selectedType !== type)
-      : [...this.selectedTypes, type];
-  }
-
-  isTypeSelected(type: SpotTypes): boolean {
-    return this.selectedTypes.includes(type);
-  }
-
-  toggleAccess(access: SpotAccess): void {
-    this.selectedAccesses = this.selectedAccesses.includes(access)
-      ? this.selectedAccesses.filter(
-          (selectedAccess) => selectedAccess !== access
-        )
-      : [...this.selectedAccesses, access];
-  }
-
-  isAccessSelected(access: SpotAccess): boolean {
-    return this.selectedAccesses.includes(access);
-  }
-
   getAmenityState(amenity: keyof AmenitiesMap): AmenityState {
     return this.amenityStates[amenity] || "any";
   }

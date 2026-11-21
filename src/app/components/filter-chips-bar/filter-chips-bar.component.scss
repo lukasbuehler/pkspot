@@ -56,6 +56,23 @@
   }
 }
 
+// The scroll buttons get their own gutter, so chip text ends cleanly beside
+// them instead of running underneath. (A fade mask would break the chips'
+// backdrop blur on the map.)
+.chips-scroll-shell.can-scroll-left .chips-scroll-area {
+  margin-inline-start: 38px;
+  width: calc(100% - 38px);
+}
+
+.chips-scroll-shell.can-scroll-right .chips-scroll-area {
+  margin-inline-end: 38px;
+  width: calc(100% - 38px);
+}
+
+.chips-scroll-shell.can-scroll-left.can-scroll-right .chips-scroll-area {
+  width: calc(100% - 76px);
+}
+
 .scroll-button {
   position: absolute;
   top: 50%;

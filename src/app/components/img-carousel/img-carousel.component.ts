@@ -732,6 +732,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       maxWidth: "95vw",
       maxHeight: "95vh",
       panelClass: "dialog",
+      ariaLabel: $localize`:@@img_carousel.viewer_label:Photo viewer`,
     });
 
     dialogRef.afterClosed().subscribe((result) => {

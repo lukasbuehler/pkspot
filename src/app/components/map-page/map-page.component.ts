@@ -818,7 +818,8 @@ export class MapPageComponent
     // before that they would read 0 and then jump.
     const count = (value: number) =>
       this.mapObjectsLoaded() ? value : undefined;
-    return [
+    const mode = this.mapObjectMode();
+    const chips: MapObjectTypeChip[] = [
       {
         value: "spots",
         count: count(counts.spots),
@@ -847,6 +848,9 @@ export class MapPageComponent
         ),
       },
     ];
+    // A type with nothing in view is a dead choice; it stays only while it is
+    // the selected type, so it can be turned off.
+    return chips.filter((chip) => chip.count !== 0 || chip.value === mode);
   });
   showSpotFilterChips = computed(() => {
     const mode = this.mapObjectMode();

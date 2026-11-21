@@ -274,11 +274,7 @@
                     color="primary"
                     [disabled]="isBookmarkUpdating()"
                     [matTooltip]="bookmarkTooltip()"
-                    aria-label="Save Spot"
-                    i18n-aria-label="
-                      Bookmark spot aria label|The aria label of the bookmark
-                      spot icon button@@bookmark_spot_aria_label"
-                    [attr.aria-pressed]="bookmarked()"
+                    [attr.aria-label]="bookmarkTooltip()"
                     (click)="bookmarkClick($event)"
                   >
                     <mat-icon
@@ -291,15 +287,10 @@
 
                   <button
                     mat-icon-button
-                    [color]="visited() ? 'accent' : 'white'"
+                    [color]="visited() ? 'primary' : 'white'"
                     [disabled]="isVisitedUpdating()"
                     [matTooltip]="visitedTooltip()"
-                    aria-label="Mark Spot as visited"
-                    i18n-aria-label="
-                      Mark this spot as visited aria label|The aria label of the
-                      mark this spot as visited icon
-                      button@@mark_this_spot_as_visited_aria_label"
-                    [attr.aria-pressed]="visited()"
+                    [attr.aria-label]="visitedTooltip()"
                     (click)="visitedClick($event)"
                   >
                     <mat-icon>beenhere</mat-icon>
@@ -352,6 +343,15 @@
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #spotMoreMenu="matMenu" xPosition="before">
+                  @if (canParticipatePublicly()) {
+                    <button mat-menu-item type="button" (click)="editButtonClick()">
+                      <mat-icon>edit</mat-icon>
+                      <span
+                        i18n="Edit button label|Label of the button to edit the spot"
+                        >Edit Spot</span
+                      >
+                    </button>
+                  }
                   <a
                     mat-menu-item
                     [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']"

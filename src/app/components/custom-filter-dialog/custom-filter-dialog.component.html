@@ -15,36 +15,42 @@
 
   <!-- Spot Types Section -->
   <section class="filter-section">
-    <h3>{{ typesSectionLabel }}</h3>
-    <div class="chips-grid">
+    <h3 id="spot-filter-type">{{ typesSectionLabel }}</h3>
+    <mat-chip-listbox
+      class="chips-grid"
+      multiple
+      aria-labelledby="spot-filter-type"
+      [value]="selectedTypes"
+      (change)="selectedTypes = $event.value ?? []"
+    >
       @for (type of allTypes; track type) {
-      <mat-chip-option
-        [selected]="isTypeSelected(type)"
-        (click)="toggleType(type)"
-      >
+      <mat-chip-option [value]="type">
         <mat-icon matChipAvatar>{{ typeIcons[type] }}</mat-icon>
         <span>{{ typeNames[type] }}</span>
       </mat-chip-option>
       }
-    </div>
+    </mat-chip-listbox>
   </section>
 
   <mat-divider></mat-divider>
 
   <!-- Access Types Section -->
   <section class="filter-section">
-    <h3>{{ accessSectionLabel }}</h3>
-    <div class="chips-grid">
+    <h3 id="spot-filter-access">{{ accessSectionLabel }}</h3>
+    <mat-chip-listbox
+      class="chips-grid"
+      multiple
+      aria-labelledby="spot-filter-access"
+      [value]="selectedAccesses"
+      (change)="selectedAccesses = $event.value ?? []"
+    >
       @for (access of allAccesses; track access) {
-      <mat-chip-option
-        [selected]="isAccessSelected(access)"
-        (click)="toggleAccess(access)"
-      >
+      <mat-chip-option [value]="access">
         <mat-icon matChipAvatar>{{ accessIcons[access] }}</mat-icon>
         <span>{{ accessNames[access] }}</span>
       </mat-chip-option>
       }
-    </div>
+    </mat-chip-listbox>
   </section>
 
   <mat-divider></mat-divider>

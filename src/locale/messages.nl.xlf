@@ -2351,16 +2351,6 @@
         <target>Spots</target>
       </segment>
     </unit>
-    <unit id="mark_this_spot_as_visited_aria_label">
-      <notes>
-        <note category="description">The aria label of the mark this spot as visited icon button</note>
-        <note category="meaning">Mark this spot as visited aria label</note>
-      </notes>
-      <segment state="initial">
-        <source>Mark Spot as visited</source>
-        <target>Spot als bezocht markeren</target>
-      </segment>
-    </unit>
     <unit id="mark_this_spot_as_visited_tooltip">
       <segment state="initial">
         <source>Mark this spot as visited</source>
@@ -2913,15 +2903,6 @@
       <segment state="initial">
         <source>Skipped</source>
         <target>Overgeslagen</target>
-      </segment>
-    </unit>
-    <unit id="account.auth.kicker">
-      <notes>
-        <note category="description">account auth kicker</note>
-      </notes>
-      <segment state="initial">
-        <source> Sign in </source>
-        <target> Inloggen </target>
       </segment>
     </unit>
     <unit id="account.auth.title">
@@ -12263,6 +12244,12 @@
         <target>Foto melden</target>
       </segment>
     </unit>
+    <unit id="img_carousel.viewer_label">
+      <segment state="translated">
+        <source>Photo viewer</source>
+        <target>Fotoweergave</target>
+      </segment>
+    </unit>
     <unit id="indoor_spots_chip_label">
       <segment state="initial">
         <source>Indoor</source>
@@ -18220,16 +18207,6 @@
       <segment state="initial">
         <source>Open this on PK Spot</source>
         <target>Open dit op PK Spot</target>
-      </segment>
-    </unit>
-    <unit id="bookmark_spot_aria_label">
-      <notes>
-        <note category="description">The aria label of the bookmark spot icon button</note>
-        <note category="meaning">Bookmark spot aria label</note>
-      </notes>
-      <segment state="initial">
-        <source>Save Spot</source>
-        <target>Spot opslaan</target>
       </segment>
     </unit>
     <unit id="bookmark_spot_tooltip">

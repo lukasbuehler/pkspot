@@ -21,9 +21,10 @@
       [attr.aria-label]="
         isOpen()
           ? closeLabel()
-          : (directAction()?.ariaLabel ??
-            directAction()?.label ??
-            launcherLabel())
+          : launcherText() ||
+            (directAction()?.ariaLabel ??
+              directAction()?.label ??
+              launcherLabel())
       "
       [matTooltip]="
         isOpen() ? closeLabel() : (directAction()?.label ?? launcherLabel())
