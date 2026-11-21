@@ -88,17 +88,18 @@
             <span i18n="@@event_rsvp.going">Going</span>
           </button>
         } @else {
-          <a
+          <button
             class="rsvp-action"
             data-rsvp="going"
+            type="button"
             matButton="outlined"
-            routerLink="/sign-in"
             [attr.aria-label]="signInToGoLabel"
-            (click)="trackRsvpSignInClicked()"
+            aria-haspopup="dialog"
+            (click)="openSignInToGo()"
           >
             <mat-icon>add</mat-icon>
             <span i18n="@@event_rsvp.going">Going</span>
-          </a>
+          </button>
         }
       </div>
     }

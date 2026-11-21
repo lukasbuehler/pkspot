@@ -2565,6 +2565,18 @@
         <target>solo letras minúsculas, números y guiones</target>
       </segment>
     </unit>
+    <unit id="sign_in_required.create_account">
+      <segment state="translated">
+        <source> Create account </source>
+        <target>Crear cuenta</target>
+      </segment>
+    </unit>
+    <unit id="sign_in_required.sign_in">
+      <segment state="translated">
+        <source>Sign in</source>
+        <target>Iniciar sesión</target>
+      </segment>
+    </unit>
     <unit id="signin.about.kicker">
       <notes>
         <note category="description">about link kicker</note>
@@ -19187,6 +19199,24 @@
       <segment state="initial">
         <source>Couldn&apos;t save your response. Try again in a moment.</source>
         <target>No se pudo guardar tu respuesta. Inténtalo de nuevo en un momento.</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.saved_on_device">
+      <segment state="translated">
+        <source>Saved on this device</source>
+        <target>Guardado en este dispositivo</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.saved_on_device_sign_in">
+      <segment state="translated">
+        <source>Sign in</source>
+        <target>Iniciar sesión</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.sign_in_to_go_message">
+      <segment state="translated">
+        <source>Going shows the organizer and others that you will be there, so it needs a PK Spot account. Interested works without one and is saved on this device.</source>
+        <target>«Voy» muestra al organizador y a los demás que asistirás, por eso necesitas una cuenta de PK Spot. «Me interesa» funciona sin cuenta y se guarda en este dispositivo.</target>
       </segment>
     </unit>
     <unit id="event_rsvp.clear_failed">

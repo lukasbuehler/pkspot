@@ -433,27 +433,46 @@ div.google-img-container {
   min-height: 40px;
 }
 
-// One fact (rating, type, amenities, access, place) that wraps as a unit with
-// its trailing dot. A fact that ends a line keeps the dot's space but hides
-// the dot; that space is at the line end, so nothing visible moves.
+// One fact (rating, type, amenities, access, place). Each fact is plain
+// inline content sized to its text (no nested flex box, whose intrinsic
+// width Chrome can under-measure), so it moves to the next line whole and
+// never squeezes its text. Only a name wider than a full line wraps, and
+// only at spaces. The trailing dot is hidden at line ends; its space stays
+// at the line end, so nothing visible moves.
 .spot-fact {
-  --spot-fact-dot: 16px;
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
+  flex: 0 0 auto;
   min-width: 0;
-  // Facts wrap whole; one only breaks inside when it is wider than a line.
   max-width: 100%;
+  white-space: nowrap;
+
+  > *,
+  &::after {
+    vertical-align: middle;
+  }
 
   &::after {
     content: "⸱";
-    flex: 0 0 var(--spot-fact-dot);
+    display: inline-block;
+    width: 16px;
     text-align: center;
   }
 
   &.is-line-end::after {
     visibility: hidden;
   }
+}
+
+// The place may wrap at spaces when it is longer than a whole line.
+.spot-locality {
+  white-space: normal;
+
+  .flag-emoji {
+    margin-inline-start: 4px;
+  }
+}
+
+.spot-fact .amenity-icon + .amenity-icon {
+  margin-inline-start: 4px;
 }
 
 .spot-iconic-mark {
@@ -498,16 +517,6 @@ div.google-img-container {
   }
 }
 
-// Header facts are never abbreviated: a fact moves to the next line whole,
-// and only a name longer than a full line wraps inside itself.
-.spot-locality,
-.spot-fact--type {
-  > span {
-    min-width: 0;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-}
 
 // The header rating is a quiet text button that jumps to the reviews.
 .header-rating-button {

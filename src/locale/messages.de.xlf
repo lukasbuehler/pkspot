@@ -2565,6 +2565,18 @@
         <target>Nur Kleinbuchstaben, Zahlen und Bindestriche</target>
       </segment>
     </unit>
+    <unit id="sign_in_required.create_account">
+      <segment state="translated">
+        <source> Create account </source>
+        <target>Konto erstellen</target>
+      </segment>
+    </unit>
+    <unit id="sign_in_required.sign_in">
+      <segment state="translated">
+        <source>Sign in</source>
+        <target>Anmelden</target>
+      </segment>
+    </unit>
     <unit id="signin.about.kicker">
       <notes>
         <note category="description">about link kicker</note>
@@ -19187,6 +19199,24 @@
       <segment state="initial">
         <source>Couldn&apos;t save your response. Try again in a moment.</source>
         <target>Deine Antwort konnte nicht gespeichert werden. Versuch es gleich noch einmal.</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.saved_on_device">
+      <segment state="translated">
+        <source>Saved on this device</source>
+        <target>Auf diesem Gerät gespeichert</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.saved_on_device_sign_in">
+      <segment state="translated">
+        <source>Sign in</source>
+        <target>Anmelden</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.sign_in_to_go_message">
+      <segment state="translated">
+        <source>Going shows the organizer and others that you will be there, so it needs a PK Spot account. Interested works without one and is saved on this device.</source>
+        <target>„Dabei“ zeigt dem Veranstalter und anderen, dass du kommst, deshalb brauchst du dafür ein PK Spot Konto. „Interessiert“ geht auch ohne Konto und wird auf diesem Gerät gespeichert.</target>
       </segment>
     </unit>
     <unit id="event_rsvp.clear_failed">

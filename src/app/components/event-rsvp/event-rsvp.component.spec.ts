@@ -12,6 +12,10 @@ import { PushNotificationsService } from "../../services/push-notifications.serv
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { MyEventsService } from "../../services/my-events.service";
+import { MatDialog } from "@angular/material/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { EMPTY } from "rxjs";
+import { SignInRequiredDialogComponent } from "../sign-in-required-dialog/sign-in-required-dialog.component";
 import { EventRsvpComponent } from "./event-rsvp.component";
 
 type ScreenshotGlobal = typeof globalThis & {
@@ -420,6 +424,46 @@ describe("EventRsvpComponent", () => {
         ?.getAttribute("aria-label"),
     ).toBe(
       "These numbers show PK Spot user intent, not tickets bought.",
+    );
+  });
+
+  it("tells signed-out users that Interested was saved on this device", async () => {
+    const snackBar = TestBed.inject(MatSnackBar);
+    const open = vi
+      .spyOn(snackBar, "open")
+      .mockReturnValue({ onAction: () => EMPTY } as never);
+    authState$.next(null);
+    fixture.componentRef.setInput("eventId", "event-1");
+    await fixture.whenStable();
+
+    await component.selectInterested();
+
+    expect(open).toHaveBeenCalledWith(
+      "Saved on this device",
+      "Sign in",
+      expect.objectContaining({ duration: 6000 }),
+    );
+  });
+
+  it("explains why Going needs an account and returns to the event after sign-in", async () => {
+    const dialog = TestBed.inject(MatDialog);
+    const open = vi.spyOn(dialog, "open").mockReturnValue({} as never);
+    authState$.next(null);
+    fixture.componentRef.setInput("eventId", "event-1");
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector(
+        '.rsvp-action[data-rsvp="going"]',
+      ) as HTMLButtonElement
+    ).click();
+
+    expect(open).toHaveBeenCalledWith(
+      SignInRequiredDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({ returnUrl: "/" }),
+      }),
     );
   });
 

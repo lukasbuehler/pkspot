@@ -11,7 +11,10 @@ import {
   output,
   signal,
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router } from "@angular/router";
+import { MatDialog } from "@angular/material/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { SignInRequiredDialogComponent, type SignInRequiredDialogData } from "../sign-in-required-dialog/sign-in-required-dialog.component";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
@@ -34,7 +37,6 @@ type ScreenshotGlobal = typeof globalThis & {
 @Component({
   selector: "app-event-rsvp",
   imports: [
-    RouterLink,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -53,6 +55,9 @@ export class EventRsvpComponent {
   private _myEventsService?: MyEventsService;
   private _notificationOptInService?: NotificationOptInService;
   private _analytics = inject(AnalyticsService);
+  private _dialog = inject(MatDialog);
+  private _snackBar = inject(MatSnackBar);
+  private _router = inject(Router);
   private _loadVersion = 0;
 
   readonly eventId = input<string | null>(null);
@@ -250,6 +255,7 @@ export class EventRsvpComponent {
         rsvp: "interested",
         storage: "device",
       });
+      this._confirmSavedOnDevice();
     } catch (err) {
       this.featureTelemetry.failure("event-rsvp", "selectInterested", err);
       console.error("Failed to save event locally", err);
@@ -338,15 +344,46 @@ export class EventRsvpComponent {
     });
   }
 
-  trackRsvpSignInClicked(): void {
+  /**
+   * Going is public and tied to an account, so signed-out people get a short
+   * explanation and a way to sign in or sign up that brings them back here.
+   */
+  openSignInToGo(): void {
     const eventId = this.eventId();
-    if (!eventId) {
-      return;
+    if (eventId) {
+      this._analytics.trackEvent("event_rsvp_sign_in_clicked", {
+        event_id: eventId,
+      });
     }
+    this._dialog.open<SignInRequiredDialogComponent, SignInRequiredDialogData>(
+      SignInRequiredDialogComponent,
+      {
+        data: {
+          title: this.signInToGoLabel,
+          message: $localize`:@@event_rsvp.sign_in_to_go_message:Going shows the organizer and others that you will be there, so it needs a PK Spot account. Interested works without one and is saved on this device.`,
+          returnUrl: this._router.url,
+        },
+        width: "480px",
+        maxWidth: "calc(100vw - 2rem)",
+      },
+    );
+  }
 
-    this._analytics.trackEvent("event_rsvp_sign_in_clicked", {
-      event_id: eventId,
-    });
+  /** Signed-out "Interested" is kept on this device; say so once it is. */
+  private _confirmSavedOnDevice(): void {
+    const returnUrl = this._router.url;
+    this._snackBar
+      .open(
+        $localize`:@@event_rsvp.saved_on_device:Saved on this device`,
+        $localize`:@@event_rsvp.saved_on_device_sign_in:Sign in`,
+        { duration: 6000 },
+      )
+      .onAction()
+      .subscribe(() => {
+        void this._router.navigate(["/sign-in"], {
+          queryParams: { returnUrl },
+        });
+      });
   }
 
   retryLoad(): void {

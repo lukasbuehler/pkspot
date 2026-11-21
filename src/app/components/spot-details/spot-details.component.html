@@ -233,7 +233,7 @@
                 <span class="spot-fact spot-fact--rating">
                   <button
                     type="button"
-                    class="header-rating-button d-flex align-items-center gap-1 flex-shrink-0"
+                    class="header-rating-button d-inline-flex align-items-center gap-1"
                     [attr.aria-label]="ratingJumpLabel()"
                     [matTooltip]="ratingJumpLabel()"
                     (click)="scrollToRatings()"
@@ -271,7 +271,7 @@
               }
               <!-- The dots are visual only; each icon carries its own name. -->
               @if (spot()!.importantAmenitiesArray().length > 0) {
-                <span class="spot-fact gap-1">
+                <span class="spot-fact">
                   @for (
                     amenity of spot()!.importantAmenitiesArray();
                     track $index
@@ -302,7 +302,7 @@
                 </span>
               }
               @if (spot()?.address()) {
-                <span class="spot-fact spot-locality gap-1">
+                <span class="spot-fact spot-locality">
                   @if (displayLocation()) {
                     <span>{{ displayLocation() }}</span>
                   }

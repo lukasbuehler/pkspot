@@ -6563,6 +6563,21 @@
         <source>Couldn&apos;t save your response. Try again in a moment.</source>
       </segment>
     </unit>
+    <unit id="event_rsvp.saved_on_device">
+      <segment>
+        <source>Saved on this device</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.saved_on_device_sign_in">
+      <segment>
+        <source>Sign in</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.sign_in_to_go_message">
+      <segment>
+        <source>Going shows the organizer and others that you will be there, so it needs a PK Spot account. Interested works without one and is saved on this device.</source>
+      </segment>
+    </unit>
     <unit id="event_series_role.championship">
       <segment>
         <source>Championship</source>
@@ -10594,6 +10609,16 @@
       </notes>
       <segment>
         <source> Enter your password. </source>
+      </segment>
+    </unit>
+    <unit id="sign_in_required.create_account">
+      <segment>
+        <source> Create account </source>
+      </segment>
+    </unit>
+    <unit id="sign_in_required.sign_in">
+      <segment>
+        <source>Sign in</source>
       </segment>
     </unit>
     <unit id="signin.about.kicker">
