@@ -495,6 +495,212 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
     expect(restoredTotalSpots).toBe(5);
   }, 180_000);
 
+  it("absorbs and releases nearby localities with a region radius", async () => {
+    const uid = auth.currentUser?.uid;
+    expect(uid).toBeTruthy();
+    const targetKey = "locality:au:nsw:sydney";
+    const nearKey = "locality:au:nsw:cronulla";
+    const farKey = "locality:au:nsw:newcastle";
+    const laterKey = "locality:au:nsw:penrith";
+    const places: Record<string, { lat: number; lng: number }> = {
+      Sydney: { lat: -33.8688, lng: 151.2093 },
+      Cronulla: { lat: -34.0587, lng: 151.1526 },
+      Newcastle: { lat: -32.9283, lng: 151.7817 },
+      Penrith: { lat: -33.7507, lng: 150.6877 },
+    };
+    const spotDocument = (locality: string, index: number, deferred = true) => ({
+      name: { en: `${locality} spot ${index}` },
+      address: {
+        locality,
+        localityLocal: locality,
+        region: { code: "NSW", name: "New South Wales" },
+        country: { code: "AU", name: "Australia", localName: "Australia" },
+      },
+      landing: {
+        countryCode: "AU",
+        countryNameEn: "Australia",
+        countrySlug: "australia",
+        regionCode: "NSW",
+        regionName: "New South Wales",
+        regionSlug: "nsw",
+        localityName: locality,
+        localitySlug: locality.toLowerCase(),
+        isDry: false,
+        organizationVerified: false,
+      },
+      location_raw: {
+        lat: places[locality]!.lat + index / 10_000,
+        lng: places[locality]!.lng,
+      },
+      type: "parkour park",
+      access: "public",
+      rating: 0,
+      num_reviews: 0,
+      media: [],
+      ...(deferred ? { community_rebuild_deferred: true } : {}),
+    });
+    const setupSpots: [string, number][] = [
+      ...Array.from({ length: 5 }, (_, index): [string, number] => ["Sydney", index]),
+      ...Array.from({ length: 3 }, (_, index): [string, number] => ["Cronulla", index]),
+      ["Newcastle", 0],
+    ];
+    const spotId = (locality: string, index: number) =>
+      `au-${locality.toLowerCase()}-${uid}-${index}`;
+    await Promise.all(
+      setupSpots.map(([locality, index]) =>
+        adminDb().doc(`spots/${spotId(locality, index)}`).set(
+          spotDocument(locality, index),
+        ),
+      ),
+    );
+    await Promise.all(
+      setupSpots.map(([locality, index]) =>
+        waitForAdminDocument(
+          `spots/${spotId(locality, index)}`,
+          (data) => data?.["duplicate_check"] ?? null,
+        ),
+      ),
+    );
+    await Promise.all(
+      setupSpots.map(([locality, index]) =>
+        adminDb()
+          .doc(`spots/${spotId(locality, index)}`)
+          .set(spotDocument(locality, index), { merge: true }),
+      ),
+    );
+    await adminDb().doc(`community_pages/${targetKey}`).set({
+      communityKey: targetKey,
+      scope: "locality",
+      displayName: "Sydney",
+      preferredSlug: "sydney",
+      allSlugs: ["sydney"],
+      canonicalPath: "/map/communities/sydney",
+      title: "Parkour in Sydney, Australia | PK Spot Community",
+      description: "Sydney community",
+      geography: {
+        countryCode: "AU",
+        countryName: "Australia",
+        countrySlug: "australia",
+        regionCode: "NSW",
+        regionName: "New South Wales",
+        regionSlug: "nsw",
+        localityName: "Sydney",
+        localitySlug: "sydney",
+      },
+      breadcrumbs: [],
+      relationships: { parentKeys: ["country:au"], childKeys: [], relatedKeys: [] },
+      counts: { totalSpots: 5, topRated: 0, dry: 0 },
+      spots: [],
+      topRatedSpots: [],
+      drySpots: [],
+      links: {},
+      infoCards: [],
+      resources: [],
+      organisations: [],
+      athletes: [],
+      events: [],
+      image: { type: "default", url: "assets/banner_1200x630.png" },
+      published: true,
+      bounds_center: [-33.8688, 151.2093],
+      bounds_radius_m: 1000,
+    });
+
+    await expect(
+      functionsAdapter.call("setCommunityRegionOverride", {
+        targetCommunityKey: targetKey,
+        radiusKm: 60,
+      }),
+    ).rejects.toThrow();
+    await adminDb().doc(`users/${uid}`).set({ is_admin: true });
+
+    type AdminState = {
+      regionOverride: {
+        radiusKm: number | null;
+        localities: { communityKey: string; status: string; distanceKm: number }[];
+      } | null;
+    };
+    const before = await functionsAdapter.call<
+      { targetCommunityKey: string },
+      AdminState
+    >("getCommunityMergeAdminState", { targetCommunityKey: targetKey });
+    expect(before.regionOverride?.radiusKm).toBeNull();
+    expect(before.regionOverride?.localities).toEqual([
+      expect.objectContaining({ communityKey: nearKey, status: "available" }),
+      expect.objectContaining({ communityKey: farKey, status: "available" }),
+    ]);
+
+    await expect(
+      functionsAdapter.call("setCommunityRegionOverride", {
+        targetCommunityKey: targetKey,
+        radiusKm: 500,
+      }),
+    ).rejects.toThrow();
+    const saved = await functionsAdapter.call<
+      { targetCommunityKey: string; radiusKm: number },
+      { addedLocalityCount: number; removedLocalityCount: number }
+    >("setCommunityRegionOverride", { targetCommunityKey: targetKey, radiusKm: 60 });
+    expect(saved).toEqual(
+      expect.objectContaining({ addedLocalityCount: 1, removedLocalityCount: 0 }),
+    );
+
+    const [nearMerge, farMerge, nearPage, targetPage] = await Promise.all([
+      adminDb().doc(`community_merges/${nearKey}`).get(),
+      adminDb().doc(`community_merges/${farKey}`).get(),
+      adminDb().doc(`community_pages/${nearKey}`).get(),
+      adminDb().doc(`community_pages/${targetKey}`).get(),
+    ]);
+    expect(nearMerge.data()).toEqual(
+      expect.objectContaining({
+        source_origin: "region_override",
+        source_placeholder_created: true,
+        target_community_key: targetKey,
+      }),
+    );
+    expect(farMerge.exists).toBe(false);
+    expect(nearPage.data()).toEqual(
+      expect.objectContaining({
+        published: false,
+        redirect_to_community_key: targetKey,
+      }),
+    );
+    expect(targetPage.data()?.["counts"]?.totalSpots).toBe(8);
+    expect(targetPage.data()?.["merged_community_keys"]).toEqual([nearKey]);
+
+    // A spot in a suburb with no page yet joins Sydney on its first write.
+    await adminDb()
+      .doc(`spots/${spotId("Penrith", 0)}`)
+      .set(spotDocument("Penrith", 0, false));
+    const laterTarget = await waitForAdminDocument(
+      `community_merges/${laterKey}`,
+      (data) => (data?.["target_community_key"] as string | undefined) ?? null,
+      60_000,
+    );
+    expect(laterTarget).toBe(targetKey);
+    await waitForAdminDocument(
+      `community_pages/${targetKey}`,
+      (data) => (data?.["counts"]?.totalSpots === 9 ? true : null),
+      60_000,
+    );
+
+    const removed = await functionsAdapter.call<
+      { targetCommunityKey: string },
+      { addedLocalityCount: number; removedLocalityCount: number }
+    >("removeCommunityRegionOverride", { targetCommunityKey: targetKey });
+    expect(removed.removedLocalityCount).toBe(2);
+    const [releasedMerge, releasedPage, restoredTarget, overrideDoc] =
+      await Promise.all([
+        adminDb().doc(`community_merges/${nearKey}`).get(),
+        adminDb().doc(`community_pages/${nearKey}`).get(),
+        adminDb().doc(`community_pages/${targetKey}`).get(),
+        adminDb().doc(`community_region_overrides/${targetKey}`).get(),
+      ]);
+    expect(releasedMerge.exists).toBe(false);
+    expect(releasedPage.exists).toBe(false);
+    expect(overrideDoc.exists).toBe(false);
+    expect(restoredTarget.data()?.["counts"]?.totalSpots).toBe(5);
+    expect(restoredTarget.data()?.["merged_community_keys"]).toBeUndefined();
+  }, 240_000);
+
   it("backfills edit targets and migrates legacy community suggestions", async () => {
     const uid = auth.currentUser?.uid;
     expect(uid).toBeTruthy();

@@ -876,6 +876,101 @@
                       </div>
                     }
                   </div>
+
+                  @if (regionOverride(); as override) {
+                    <div class="community-locality-merge-section">
+                      <div>
+                        <h3 class="mat-title-medium m-0">
+                          Include nearby localities from
+                          {{ override.regionName }}
+                        </h3>
+                        <p class="mat-body-medium m-0">
+                          For places where addresses name suburbs instead of
+                          the city. Localities in {{ override.regionName }}
+                          whose spots centre within the radius join
+                          {{ dialogData.displayName }}, including localities
+                          that get their first spot later. Localities with
+                          their own published page keep it.
+                        </p>
+                      </div>
+
+                      <div class="community-region-override-controls">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Radius (km)</mat-label>
+                          <input
+                            matInput
+                            type="number"
+                            step="1"
+                            [min]="override.minRadiusKm"
+                            [max]="override.maxRadiusKm"
+                            [value]="regionOverrideRadiusKm() ?? ''"
+                            [disabled]="isSavingRegionOverride()"
+                            (input)="setRegionOverrideRadius($event)"
+                          />
+                          <mat-hint>
+                            @if (override.radiusKm !== null) {
+                              Active at {{ override.radiusKm }} km
+                            } @else {
+                              Not active
+                            }
+                          </mat-hint>
+                        </mat-form-field>
+                        <button
+                          mat-flat-button
+                          type="button"
+                          [disabled]="
+                            !canSaveRegionOverride() || isSavingRegionOverride()
+                          "
+                          (click)="saveRegionOverride()"
+                        >
+                          <mat-icon>merge_type</mat-icon>
+                          <span>
+                            {{
+                              isSavingRegionOverride()
+                                ? "Updating…"
+                                : "Save radius"
+                            }}
+                          </span>
+                        </button>
+                        @if (override.radiusKm !== null) {
+                          <button
+                            mat-stroked-button
+                            type="button"
+                            [disabled]="isSavingRegionOverride()"
+                            (click)="removeRegionOverride()"
+                          >
+                            <mat-icon>undo</mat-icon>
+                            <span>Remove</span>
+                          </button>
+                        }
+                      </div>
+
+                      @if (regionOverridePreview(); as preview) {
+                        <p class="mat-body-small m-0">
+                          Within {{ preview.radiusKm }} km,
+                          {{ preview.joiningLocalityCount }}
+                          {{
+                            preview.joiningLocalityCount === 1
+                              ? "locality"
+                              : "localities"
+                          }}
+                          with {{ preview.joiningSpotCount }}
+                          {{ preview.joiningSpotCount === 1 ? "spot" : "spots" }}
+                          belong to {{ dialogData.displayName }} through this
+                          radius. {{ preview.outsideSpotCount }}
+                          {{ preview.outsideSpotCount === 1 ? "spot" : "spots" }}
+                          in {{ override.regionName }} stay outside.
+                        </p>
+                        @if (preview.keepPageNames) {
+                          <p class="mat-body-small m-0">
+                            Keep their own page: {{ preview.keepPageNames }}.
+                            Merge them with the control above if they belong
+                            here.
+                          </p>
+                        }
+                      }
+                    </div>
+                  }
                 }
               </div>
             </mat-expansion-panel>

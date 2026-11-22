@@ -10,8 +10,13 @@ import type {
   CommunityMergeActionResponse,
   CommunityMergeAdminStateSchema,
   CommunityMergeLocalityOptionSchema,
+  CommunityRegionOverrideActionResponse,
+  CommunityRegionOverrideAdminSchema,
+  CommunityRegionOverrideLocalitySchema,
   GetCommunityMergeAdminStateRequest,
   MergeUnpublishedLocalityRequest,
+  RemoveCommunityRegionOverrideRequest,
+  SetCommunityRegionOverrideRequest,
   UnmergeUnpublishedLocalityRequest,
 } from "../../src/db/schemas/CommunityMergeAdminSchema";
 import { CommunityPageSchema } from "../../src/db/schemas/CommunityPageSchema";
@@ -43,7 +48,17 @@ import {
 import {
   computeCommunityBounds,
   getDistanceMeters,
+  getSpotPoint,
 } from "../../src/scripts/CommunityBoundsHelpers";
+import type { CommunityRegionOverrideSchema } from "../../src/db/schemas/CommunityRegionOverrideSchema";
+import {
+  COMMUNITY_REGION_OVERRIDE_MAX_RADIUS_KM,
+  COMMUNITY_REGION_OVERRIDE_MIN_RADIUS_KM,
+  communityGeographyMatchesRegionOverride,
+  getRegionOverrideDistanceKm,
+  isValidRegionOverrideRadiusKm,
+  pickRegionOverrideForLocality,
+} from "../../src/scripts/CommunityRegionOverrideHelpers";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 import { isDrySpotCandidate } from "../../src/scripts/SpotLandingHelpers";
 import {
@@ -63,6 +78,7 @@ const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
 const IMPORT_PROVENANCE_TRANSACTION_SIZE = 200;
 const COMMUNITY_MERGES_COLLECTION = "community_merges";
+const COMMUNITY_REGION_OVERRIDES_COLLECTION = "community_region_overrides";
 const MAINTENANCE_COLLECTION = "maintenance";
 const SPOTS_COLLECTION = "spots";
 const MANUAL_REBUILD_DOC = `${MAINTENANCE_COLLECTION}/run-rebuild-community-pages`;
@@ -78,6 +94,12 @@ const COMMUNITY_MERGE_CALLABLE_OPTIONS = {
   cors: true,
   invoker: "public" as const,
   timeoutSeconds: 540,
+};
+// Saving an override merges every qualifying locality and then rebuilds all
+// community pages, which loads the full Spot inventory like the manual rebuild.
+const COMMUNITY_REGION_OVERRIDE_CALLABLE_OPTIONS = {
+  ...COMMUNITY_MERGE_CALLABLE_OPTIONS,
+  memory: "1GiB" as const,
 };
 const warnedInvalidCommunityMergeChains = new Set<string>();
 type CommunityInfoCards = NonNullable<CommunityPageSchema["infoCards"]>;
@@ -1494,6 +1516,18 @@ const rebuildCommunityPagesForImportedSpots = async (
   const importedSpots = spotsSnapshot.docs
     .filter((doc) => isSpotRuntimeDoc(doc.id))
     .map((doc) => ({ id: doc.id, data: doc.data() as SpotSchema }));
+  const importCountryCodes = [
+    ...new Set(
+      importedSpots
+        .flatMap(({ data }) => getSpotCommunityCandidates(data))
+        .map((candidate) => candidate.geography.countryCode ?? "")
+        .filter(Boolean)
+    ),
+  ];
+  await reconcileCommunityRegionOverrides(db, {
+    countryCodes: importCountryCodes,
+    addOnly: true,
+  });
   const activeMerges = await getActiveCommunityMerges(db);
   const communities = collectGeneratedCommunities(importedSpots, activeMerges);
 
@@ -1579,6 +1613,17 @@ export const rebuildCommunityPagesForSpotWrite = async (
     )
   ) {
     return;
+  }
+
+  try {
+    await ensureRegionOverrideMergeForSpot(db, afterData);
+  } catch (error) {
+    // The spot still lands in its address locality; the next override save
+    // or manual rebuild absorbs it.
+    console.warn("Failed to apply community region override for spot", {
+      spotId,
+      message: error instanceof Error ? error.message : String(error),
+    });
   }
 
   const impactedCandidates = new Map<string, CommunityCandidate>();
@@ -2038,6 +2083,9 @@ const applyCommunityMergePatch = async (
   options: {
     sourceOrigin?: CommunityMergeSchema["source_origin"];
     mergedBy?: string;
+    sourcePlaceholderCreated?: boolean;
+    /** Overrides the mode requested on the source page's `merge_into`. */
+    infoCardMode?: "move" | "copy" | "skip";
   } = {}
 ): Promise<void> => {
   if (source_community_key !== sourcePage.communityKey) {
@@ -2089,7 +2137,9 @@ const applyCommunityMergePatch = async (
     target_community_key
   );
 
-  const infoCardMode = getInfoCardMergeMode(sourcePage.merge_into?.info_cards);
+  const infoCardMode =
+    options.infoCardMode ??
+    getInfoCardMergeMode(sourcePage.merge_into?.info_cards);
   const sourceCandidate = buildCommunityCandidateFromPage(sourcePage);
   const source_slugs = await getSourceCommunitySlugs(
     db,
@@ -2161,6 +2211,7 @@ const applyCommunityMergePatch = async (
       source_search_aliases,
       info_cards: infoCardMode,
       source_origin: options.sourceOrigin,
+      source_placeholder_created: options.sourcePlaceholderCreated || undefined,
       merged_at: FieldValue.serverTimestamp(),
       merged_by: options.mergedBy,
     }) as CommunityMergeSchema
@@ -2399,6 +2450,9 @@ export const rebuildAllCommunityPages = onDocumentCreated(
     );
 
     try {
+      // Heal region override merges first, for example after an override
+      // document was edited by hand or a spot write could not apply one.
+      await reconcileCommunityRegionOverrides(db);
       const result = await rebuildAllCommunityPagesForDb(db);
 
       await request.ref.set(
@@ -2598,6 +2652,676 @@ const buildUnpublishedLocalityPlaceholder = (
   };
 };
 
+// ---------------------------------------------------------------------------
+// Region overrides
+//
+// Address localities are the default community unit, but some countries
+// geocode a metro area into dozens of suburb localities. A region override on
+// a locality community absorbs every locality of the same first-level region
+// whose spots centre within a radius. Each absorbed locality becomes an
+// ordinary active merge with `source_origin: "region_override"`, so slugs,
+// redirects, search aliases, follows, notifications, and spot details keep
+// using the existing merge machinery. Explicit merges and localities with
+// their own published page are never changed by an override.
+// ---------------------------------------------------------------------------
+
+type CommunityRegionOverrideDoc = CommunityRegionOverrideSchema;
+
+const isPoint = (value: unknown): value is { lat: number; lng: number } =>
+  !!value &&
+  typeof value === "object" &&
+  Number.isFinite((value as { lat?: unknown }).lat) &&
+  Number.isFinite((value as { lng?: unknown }).lng);
+
+const getCommunityRegionOverrides = async (
+  db: admin.firestore.Firestore,
+  countryCode?: string
+): Promise<CommunityRegionOverrideDoc[]> => {
+  const collection = db.collection(COMMUNITY_REGION_OVERRIDES_COLLECTION);
+  const snapshot = countryCode
+    ? await collection.where("country_code", "==", countryCode.toUpperCase()).get()
+    : await collection.get();
+  return snapshot.docs
+    .map((doc) => ({
+      ...(doc.data() as CommunityRegionOverrideSchema),
+      target_community_key: doc.id,
+    }))
+    .filter(
+      (override) =>
+        !!override.country_code &&
+        isPoint(override.center) &&
+        isValidRegionOverrideRadiusKm(override.radius_km)
+    );
+};
+
+const getLocalityGroupCenter = (
+  group: RawLocalityGroup | undefined
+): { lat: number; lng: number } | null => {
+  const bounds = group
+    ? computeCommunityBounds(group.spots.map(({ data }) => data))
+    : null;
+  return bounds
+    ? { lat: bounds.bounds_center[0], lng: bounds.bounds_center[1] }
+    : null;
+};
+
+/**
+ * The default override centre is the target locality's own spots, ignoring
+ * merges, so already-merged suburbs do not pull the centre away from the city.
+ */
+const getDefaultRegionOverrideCenter = (
+  target: CommunityPageSchema,
+  targetGroup: RawLocalityGroup | undefined
+): { lat: number; lng: number } | null => {
+  const ownCenter = getLocalityGroupCenter(targetGroup);
+  if (ownCenter) {
+    return ownCenter;
+  }
+  const [lat, lng] = target.bounds_center ?? [];
+  return isPoint({ lat, lng }) ? { lat: lat!, lng: lng! } : null;
+};
+
+const isActiveCommunityPage = (page: CommunityPageSchema | undefined): boolean =>
+  !!page && page.published !== false && !page.redirect_to_community_key;
+
+/**
+ * Whether an override may own a locality's merge. Explicit merges stay with
+ * the admin who made them, and published pages keep their own community.
+ * A dormant page (unpublished, no redirect) may be absorbed and is restored
+ * when the override releases it.
+ */
+const isRegionOverrideSourceEligible = (
+  page: CommunityPageSchema | undefined,
+  merge: CommunityMergeDoc | undefined
+): boolean => {
+  if (merge) {
+    return merge.source_origin === "region_override";
+  }
+  return !page || (page.published === false && !page.redirect_to_community_key);
+};
+
+const getCommunityPagesByKey = async (
+  db: admin.firestore.Firestore,
+  communityKeys: string[]
+): Promise<Map<string, CommunityPageSchema>> => {
+  const pages = new Map<string, CommunityPageSchema>();
+  for (let index = 0; index < communityKeys.length; index += 300) {
+    const refs = communityKeys
+      .slice(index, index + 300)
+      .map((key) => db.collection(COMMUNITY_PAGES_COLLECTION).doc(key));
+    if (refs.length === 0) continue;
+    for (const snapshot of await db.getAll(...refs)) {
+      if (snapshot.exists) {
+        pages.set(snapshot.id, snapshot.data() as CommunityPageSchema);
+      }
+    }
+  }
+  return pages;
+};
+
+const planRegionOverrideMerges = (
+  groups: Map<string, RawLocalityGroup>,
+  pagesByKey: Map<string, CommunityPageSchema>,
+  activeMerges: Map<string, CommunityMergeDoc>,
+  overrides: CommunityRegionOverrideDoc[]
+): Map<string, { group: RawLocalityGroup; override: CommunityRegionOverrideDoc }> => {
+  const plan = new Map<
+    string,
+    { group: RawLocalityGroup; override: CommunityRegionOverrideDoc }
+  >();
+  if (overrides.length === 0) {
+    return plan;
+  }
+  for (const [communityKey, group] of groups) {
+    if (
+      !isRegionOverrideSourceEligible(
+        pagesByKey.get(communityKey),
+        activeMerges.get(communityKey)
+      )
+    ) {
+      continue;
+    }
+    const override = pickRegionOverrideForLocality(
+      {
+        communityKey,
+        geography: group.candidate.geography,
+        center: getLocalityGroupCenter(group),
+      },
+      overrides
+    );
+    if (override) {
+      plan.set(communityKey, { group, override });
+    }
+  }
+  return plan;
+};
+
+const createRegionOverrideMerge = async (
+  db: admin.firestore.Firestore,
+  group: RawLocalityGroup,
+  target: CommunityPageSchema,
+  mergedBy: string | undefined
+): Promise<boolean> => {
+  const sourceKey = group.candidate.communityKey;
+  const sourceRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(sourceKey);
+  let placeholderCreated = false;
+  const sourcePage = await db.runTransaction(async (transaction) => {
+    placeholderCreated = false;
+    const snapshot = await transaction.get(sourceRef);
+    if (snapshot.exists) {
+      return snapshot.data() as CommunityPageSchema;
+    }
+    const placeholder = buildUnpublishedLocalityPlaceholder(group, target);
+    transaction.create(sourceRef, placeholder);
+    placeholderCreated = true;
+    return placeholder;
+  });
+
+  // A concurrent rebuild may have published the page in the meantime.
+  if (
+    !placeholderCreated &&
+    (sourcePage.published !== false || sourcePage.redirect_to_community_key)
+  ) {
+    return false;
+  }
+
+  try {
+    await applyCommunityMergePatch(
+      db,
+      sourceKey,
+      sourcePage,
+      target.communityKey,
+      {
+        sourceOrigin: "region_override",
+        mergedBy,
+        sourcePlaceholderCreated: placeholderCreated,
+        // Keep a dormant page's authored cards where they are, so releasing
+        // the locality later restores it unchanged.
+        infoCardMode: "skip",
+      }
+    );
+  } catch (error) {
+    if (placeholderCreated) {
+      const mergeExists = (
+        await db.collection(COMMUNITY_MERGES_COLLECTION).doc(sourceKey).get()
+      ).exists;
+      if (!mergeExists) {
+        await sourceRef.delete().catch(() => undefined);
+      }
+    }
+    throw error;
+  }
+  return true;
+};
+
+const removeRegionOverrideMerge = async (
+  db: admin.firestore.Firestore,
+  merge: CommunityMergeDoc
+): Promise<void> => {
+  const sourceKey = merge.source_community_key;
+  const sourceRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(sourceKey);
+  const [sourceSnapshot, ...slugSnapshots] = await Promise.all([
+    sourceRef.get(),
+    ...(merge.source_slugs ?? []).map((slug) =>
+      db.collection(COMMUNITY_SLUGS_COLLECTION).doc(slug).get()
+    ),
+  ]);
+  const sourcePage = sourceSnapshot.data() as CommunityPageSchema | undefined;
+  const deletePlaceholder =
+    merge.source_placeholder_created === true || !sourcePage;
+  const batch = db.batch();
+  batch.delete(db.collection(COMMUNITY_MERGES_COLLECTION).doc(sourceKey));
+
+  if (deletePlaceholder) {
+    batch.delete(sourceRef);
+    batch.delete(privateCommunityInfoDoc(db, sourceKey));
+  } else {
+    batch.set(
+      sourceRef,
+      {
+        published: false,
+        redirect_to_community_key: FieldValue.delete(),
+        redirect_to_path: FieldValue.delete(),
+        merge_into: FieldValue.delete(),
+      },
+      { merge: true }
+    );
+  }
+
+  for (const slugSnapshot of slugSnapshots) {
+    const data = slugSnapshot.data() as CommunitySlugSchema | undefined;
+    if (
+      data?.alias_for_community_key !== sourceKey ||
+      data.communityKey !== merge.target_community_key
+    ) {
+      continue;
+    }
+    if (deletePlaceholder) {
+      batch.delete(slugSnapshot.ref);
+    } else {
+      batch.set(
+        slugSnapshot.ref,
+        {
+          communityKey: sourceKey,
+          isPreferred: slugSnapshot.id === sourcePage?.preferredSlug,
+          alias_for_community_key: FieldValue.delete(),
+        },
+        { merge: true }
+      );
+    }
+  }
+  await batch.commit();
+};
+
+/** Rewrites the merge summary fields that a full page rebuild only adds to. */
+const syncMergeSummariesOnTargets = async (
+  db: admin.firestore.Firestore,
+  targetKeys: Iterable<string>
+): Promise<void> => {
+  const keys = [...new Set(targetKeys)];
+  if (keys.length === 0) return;
+  const activeMerges = await getActiveCommunityMerges(db);
+  const pagesByKey = await getCommunityPagesByKey(db, keys);
+  const batch = db.batch();
+  for (const key of keys) {
+    if (!pagesByKey.has(key)) continue;
+    const mergedKeys = getMergedCommunityKeysForTarget(activeMerges, key);
+    const searchAliases = getSearchAliasesForTarget(activeMerges, key);
+    const redirectedSlugs = getRedirectedSlugsForTarget(activeMerges, key);
+    batch.set(
+      db.collection(COMMUNITY_PAGES_COLLECTION).doc(key),
+      {
+        merged_community_keys:
+          mergedKeys.length > 0 ? mergedKeys : FieldValue.delete(),
+        search_aliases:
+          searchAliases.length > 0 ? searchAliases : FieldValue.delete(),
+        redirected_from_slugs:
+          redirectedSlugs.length > 0 ? redirectedSlugs : FieldValue.delete(),
+      },
+      { merge: true }
+    );
+  }
+  await batch.commit();
+};
+
+/**
+ * Brings `region_override` merges in line with the saved overrides.
+ *
+ * `addOnly` is for spot and import writes: it absorbs new localities without
+ * releasing any, because a released locality needs a full rebuild to get its
+ * own page back. Admin changes run the full reconcile and then a rebuild.
+ */
+const reconcileCommunityRegionOverrides = async (
+  db: admin.firestore.Firestore,
+  options: { countryCodes?: string[]; addOnly?: boolean; mergedBy?: string } = {}
+): Promise<{ added: string[]; removed: string[] }> => {
+  const allOverrides = await getCommunityRegionOverrides(db);
+  let activeMerges = await getActiveCommunityMerges(db);
+  const regionMerges = [...activeMerges.values()].filter(
+    (merge) => merge.source_origin === "region_override"
+  );
+  const countryOf = (value: string | undefined) => value?.toUpperCase() ?? "";
+  const countryCodes = new Set(
+    (options.countryCodes ?? [
+      ...allOverrides.map((override) => override.country_code),
+      ...regionMerges.map((merge) => merge.source_geography?.countryCode ?? ""),
+    ])
+      .map(countryOf)
+      .filter(Boolean)
+  );
+  const added: string[] = [];
+  const removed: string[] = [];
+  const touchedTargets = new Set<string>();
+
+  for (const countryCode of countryCodes) {
+    const overrides = allOverrides.filter(
+      (override) => countryOf(override.country_code) === countryCode
+    );
+    const countryRegionMerges = regionMerges.filter(
+      (merge) => countryOf(merge.source_geography?.countryCode) === countryCode
+    );
+    if (overrides.length === 0 && countryRegionMerges.length === 0) {
+      continue;
+    }
+
+    const targetPages = await getCommunityPagesByKey(
+      db,
+      overrides.map((override) => override.target_community_key)
+    );
+    // An override whose target is temporarily not an active locality page
+    // neither absorbs nor releases anything until the target is back.
+    const activeOverrides = overrides.filter((override) => {
+      const page = targetPages.get(override.target_community_key);
+      return isActiveCommunityPage(page) && page?.scope === "locality";
+    });
+    const pausedTargets = new Set(
+      overrides
+        .filter((override) => !activeOverrides.includes(override))
+        .map((override) => override.target_community_key)
+    );
+
+    const groups =
+      activeOverrides.length > 0
+        ? await getRawLocalityGroupsForCountry(db, countryCode)
+        : new Map<string, RawLocalityGroup>();
+    const pagesByKey = await getCommunityPagesByKey(db, [...groups.keys()]);
+    const plan = planRegionOverrideMerges(
+      groups,
+      pagesByKey,
+      activeMerges,
+      activeOverrides
+    );
+
+    if (!options.addOnly) {
+      for (const merge of countryRegionMerges) {
+        if (pausedTargets.has(merge.target_community_key)) continue;
+        const desired = plan.get(merge.source_community_key);
+        if (
+          desired?.override.target_community_key === merge.target_community_key
+        ) {
+          continue;
+        }
+        await removeRegionOverrideMerge(db, merge);
+        removed.push(merge.source_community_key);
+        touchedTargets.add(merge.target_community_key);
+      }
+      if (removed.length > 0) {
+        activeMerges = await getActiveCommunityMerges(db);
+      }
+    }
+
+    for (const [sourceKey, { group, override }] of plan) {
+      if (activeMerges.has(sourceKey)) continue;
+      const target = targetPages.get(override.target_community_key)!;
+      if (await createRegionOverrideMerge(db, group, target, options.mergedBy)) {
+        added.push(sourceKey);
+        touchedTargets.add(override.target_community_key);
+      }
+    }
+  }
+
+  if (!options.addOnly) {
+    await syncMergeSummariesOnTargets(db, touchedTargets);
+  }
+  return { added, removed };
+};
+
+/**
+ * Absorbs a written spot's new locality into a region override before its
+ * community pages are rebuilt. The cheap checks come first so ordinary spot
+ * writes only read the overrides of their own country.
+ */
+const ensureRegionOverrideMergeForSpot = async (
+  db: admin.firestore.Firestore,
+  spot: SpotSchema | null
+): Promise<void> => {
+  if (!spot) return;
+  const locality = getSpotCommunityCandidates(spot).find(
+    (candidate) => candidate.scope === "locality"
+  );
+  const countryCode = locality?.geography.countryCode;
+  const point = getSpotPoint(spot);
+  if (!locality || !countryCode || !point) return;
+
+  const overrides = await getCommunityRegionOverrides(db, countryCode);
+  if (
+    !pickRegionOverrideForLocality(
+      {
+        communityKey: locality.communityKey,
+        geography: locality.geography,
+        center: point,
+      },
+      overrides
+    )
+  ) {
+    return;
+  }
+
+  const [mergeSnapshot, pageSnapshot] = await Promise.all([
+    db.collection(COMMUNITY_MERGES_COLLECTION).doc(locality.communityKey).get(),
+    db.collection(COMMUNITY_PAGES_COLLECTION).doc(locality.communityKey).get(),
+  ]);
+  if (
+    mergeSnapshot.exists ||
+    !isRegionOverrideSourceEligible(
+      pageSnapshot.data() as CommunityPageSchema | undefined,
+      undefined
+    )
+  ) {
+    return;
+  }
+
+  // The reconcile decides by the locality's spot centre, so a spot just
+  // inside the radius cannot pull a locality that mostly lies outside it.
+  await reconcileCommunityRegionOverrides(db, {
+    countryCodes: [countryCode],
+    addOnly: true,
+  });
+};
+
+const buildRegionOverrideAdminState = async (
+  db: admin.firestore.Firestore,
+  target: CommunityPageSchema,
+  groups: Map<string, RawLocalityGroup>,
+  pagesByKey: Map<string, CommunityPageSchema>,
+  activeMerges: Map<string, CommunityMergeDoc>
+): Promise<CommunityRegionOverrideAdminSchema | null> => {
+  const { geography } = target;
+  const regionName =
+    geography.regionLocalName || geography.regionName || geography.regionCode;
+  if (!geography.countryCode || !regionName) {
+    return null;
+  }
+
+  const saved = (
+    await db
+      .collection(COMMUNITY_REGION_OVERRIDES_COLLECTION)
+      .doc(target.communityKey)
+      .get()
+  ).data() as CommunityRegionOverrideSchema | undefined;
+  const scope = saved ?? buildRegionOverrideScope(target);
+  const center = isPoint(saved?.center)
+    ? saved.center
+    : getDefaultRegionOverrideCenter(target, groups.get(target.communityKey));
+  if (!scope || !center) {
+    return null;
+  }
+
+  const localities: CommunityRegionOverrideLocalitySchema[] = [];
+  for (const [communityKey, group] of groups) {
+    if (
+      communityKey === target.communityKey ||
+      !communityGeographyMatchesRegionOverride(group.candidate.geography, scope)
+    ) {
+      continue;
+    }
+    const groupCenter = getLocalityGroupCenter(group);
+    if (!groupCenter) continue;
+
+    const merge = activeMerges.get(communityKey);
+    const page = pagesByKey.get(communityKey);
+    let status: CommunityRegionOverrideLocalitySchema["status"];
+    if (isRegionOverrideSourceEligible(page, merge)) {
+      status =
+        merge && merge.target_community_key !== target.communityKey
+          ? "other_community"
+          : "available";
+    } else if (merge) {
+      status =
+        resolveCommunityCandidate(group.candidate, activeMerges)
+          .communityKey === target.communityKey
+          ? "already_merged"
+          : "other_community";
+    } else {
+      status = "has_page";
+    }
+
+    localities.push({
+      communityKey,
+      displayName: group.candidate.displayName,
+      geography: group.candidate.geography,
+      spotCount: group.spots.length,
+      distanceKm:
+        Math.round(getRegionOverrideDistanceKm({ center }, groupCenter) * 10) /
+        10,
+      status,
+    });
+  }
+  localities.sort(
+    (left, right) =>
+      left.distanceKm - right.distanceKm ||
+      left.displayName.localeCompare(right.displayName)
+  );
+
+  return {
+    regionName,
+    center,
+    radiusKm: saved?.radius_km ?? null,
+    minRadiusKm: COMMUNITY_REGION_OVERRIDE_MIN_RADIUS_KM,
+    maxRadiusKm: COMMUNITY_REGION_OVERRIDE_MAX_RADIUS_KM,
+    localities,
+  };
+};
+
+const buildRegionOverrideScope = (
+  target: CommunityPageSchema
+): Omit<CommunityRegionOverrideSchema, "center" | "radius_km"> | null => {
+  const { geography } = target;
+  if (
+    !geography.countryCode ||
+    !(geography.regionCode || geography.regionName || geography.regionSlug)
+  ) {
+    return null;
+  }
+  return removeUndefinedValues({
+    target_community_key: target.communityKey,
+    country_code: geography.countryCode.toUpperCase(),
+    region_code: geography.regionCode,
+    region_name: geography.regionName,
+    region_slug: geography.regionSlug,
+  });
+};
+
+const recordRegionOverrideRun = async (
+  db: admin.firestore.Firestore,
+  targetCommunityKey: string,
+  result: { added: string[]; removed: string[] },
+  rebuild: { generatedCount: number; warnings: OverlapWarning[] }
+): Promise<void> => {
+  await db.collection(MAINTENANCE_COLLECTION).doc("last-community-region-override").set(
+    {
+      target_community_key: targetCommunityKey,
+      status: "DONE",
+      added_locality_count: result.added.length,
+      removed_locality_count: result.removed.length,
+      generated_count: rebuild.generatedCount,
+      warnings: rebuild.warnings.length ? rebuild.warnings : null,
+      completed_at: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+};
+
+const setCommunityRegionOverrideImpl = async (
+  request: CallableRequest<SetCommunityRegionOverrideRequest>
+): Promise<CommunityRegionOverrideActionResponse> => {
+  const uid = await assertCommunityMergeAdmin(request.auth?.uid);
+  const targetCommunityKey = requiredCallableString(
+    request.data?.targetCommunityKey,
+    "targetCommunityKey"
+  );
+  const radiusKm = request.data?.radiusKm;
+  if (!isValidRegionOverrideRadiusKm(radiusKm)) {
+    throw new HttpsError(
+      "invalid-argument",
+      `radiusKm must be between ${COMMUNITY_REGION_OVERRIDE_MIN_RADIUS_KM} and ${COMMUNITY_REGION_OVERRIDE_MAX_RADIUS_KM}.`
+    );
+  }
+
+  const db = admin.firestore();
+  const target = await getActiveLocalityMergeTarget(db, targetCommunityKey);
+  const scope = buildRegionOverrideScope(target);
+  if (!scope) {
+    throw new HttpsError(
+      "failed-precondition",
+      "The target community has no country or region."
+    );
+  }
+  const overrideRef = db
+    .collection(COMMUNITY_REGION_OVERRIDES_COLLECTION)
+    .doc(targetCommunityKey);
+  const existing = (await overrideRef.get()).data() as
+    | CommunityRegionOverrideSchema
+    | undefined;
+  const center = isPoint(existing?.center)
+    ? existing.center
+    : getDefaultRegionOverrideCenter(
+        target,
+        (await getRawLocalityGroupsForCountry(db, scope.country_code)).get(
+          targetCommunityKey
+        )
+      );
+  if (!center) {
+    throw new HttpsError(
+      "failed-precondition",
+      "The target community has no spots to centre the radius on."
+    );
+  }
+
+  await overrideRef.set(
+    removeUndefinedValues({
+      ...scope,
+      center,
+      radius_km: Math.round(radiusKm * 10) / 10,
+      updated_at: FieldValue.serverTimestamp(),
+      updated_by: uid,
+    })
+  );
+  const result = await reconcileCommunityRegionOverrides(db, {
+    countryCodes: [scope.country_code],
+    mergedBy: uid,
+  });
+  const rebuild = await rebuildAllCommunityPagesForDb(db);
+  await recordRegionOverrideRun(db, targetCommunityKey, result, rebuild);
+  return {
+    ok: true,
+    addedLocalityCount: result.added.length,
+    removedLocalityCount: result.removed.length,
+  };
+};
+
+const removeCommunityRegionOverrideImpl = async (
+  request: CallableRequest<RemoveCommunityRegionOverrideRequest>
+): Promise<CommunityRegionOverrideActionResponse> => {
+  await assertCommunityMergeAdmin(request.auth?.uid);
+  const targetCommunityKey = requiredCallableString(
+    request.data?.targetCommunityKey,
+    "targetCommunityKey"
+  );
+  const db = admin.firestore();
+  const overrideRef = db
+    .collection(COMMUNITY_REGION_OVERRIDES_COLLECTION)
+    .doc(targetCommunityKey);
+  const existing = (await overrideRef.get()).data() as
+    | CommunityRegionOverrideSchema
+    | undefined;
+  if (!existing) {
+    return { ok: true, addedLocalityCount: 0, removedLocalityCount: 0 };
+  }
+
+  await overrideRef.delete();
+  const result = await reconcileCommunityRegionOverrides(db, {
+    countryCodes: [existing.country_code],
+  });
+  const rebuild = await rebuildAllCommunityPagesForDb(db);
+  await recordRegionOverrideRun(db, targetCommunityKey, result, rebuild);
+  return {
+    ok: true,
+    addedLocalityCount: result.added.length,
+    removedLocalityCount: result.removed.length,
+  };
+};
+
 const getCommunityMergeAdminStateImpl = async (
   request: CallableRequest<GetCommunityMergeAdminStateRequest>
 ): Promise<CommunityMergeAdminStateSchema> => {
@@ -2627,6 +3351,11 @@ const getCommunityMergeAdminStateImpl = async (
     : [];
   const existingPageKeys = new Set(
     pageSnapshots.filter((snapshot) => snapshot.exists).map((snapshot) => snapshot.id)
+  );
+  const pagesByKey = new Map(
+    pageSnapshots
+      .filter((snapshot) => snapshot.exists)
+      .map((snapshot) => [snapshot.id, snapshot.data() as CommunityPageSchema])
   );
   const candidates = groupEntries
     .filter(
@@ -2661,8 +3390,15 @@ const getCommunityMergeAdminStateImpl = async (
           };
     })
     .sort((left, right) => left.displayName.localeCompare(right.displayName));
+  const regionOverride = await buildRegionOverrideAdminState(
+    db,
+    target,
+    groups,
+    pagesByKey,
+    activeMerges
+  );
 
-  return { candidates, mergedLocalities };
+  return { candidates, mergedLocalities, regionOverride };
 };
 
 const mergeUnpublishedLocalityImpl = async (
@@ -2865,6 +3601,16 @@ export const getCommunityMergeAdminState = onCall(
 export const mergeUnpublishedLocality = onCall(
   COMMUNITY_MERGE_CALLABLE_OPTIONS,
   mergeUnpublishedLocalityImpl
+);
+
+export const setCommunityRegionOverride = onCall(
+  COMMUNITY_REGION_OVERRIDE_CALLABLE_OPTIONS,
+  setCommunityRegionOverrideImpl
+);
+
+export const removeCommunityRegionOverride = onCall(
+  COMMUNITY_REGION_OVERRIDE_CALLABLE_OPTIONS,
+  removeCommunityRegionOverrideImpl
 );
 
 export const unmergeUnpublishedLocality = onCall(
