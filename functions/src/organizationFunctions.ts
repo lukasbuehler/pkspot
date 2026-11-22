@@ -4,6 +4,7 @@ import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import {
   makeManagedSpotIndexData,
   makeOrganizationReference,
+  organizationReferenceMatches,
   makeVerifiedSpotIndexData,
   SpotManagementData,
   SpotStewardshipData,
@@ -123,6 +124,61 @@ export const syncVerifiedSpotOrganizationSnapshots = onDocumentUpdated(
     await commitIfNeeded(true);
     console.log(
       `Synced organization snapshots for ${organizationId}: ${stewardedCount} stewarded, ${managedCount} managed.`
+    );
+  }
+);
+
+/**
+ * Keep the organizer snapshot on events fresh when an organization changes its
+ * public identity fields. Each event write then refreshes the event's derived
+ * organizer search fields through `updateEventFieldsOnWrite`.
+ */
+export const syncEventOrganizationSnapshots = onDocumentUpdated(
+  "organizations/{organizationId}",
+  async (event) => {
+    const before = event.data?.before.data() as Record<string, unknown> | undefined;
+    const after = event.data?.after.data() as Record<string, unknown> | undefined;
+    const organizationId = event.params.organizationId;
+
+    if (!before || !after || !organizationSnapshotFieldsChanged(before, after)) {
+      return;
+    }
+
+    const db = admin.firestore();
+    const organization = makeOrganizationReference(organizationId, after);
+    const events = await db
+      .collection("events")
+      .where("organizer.organization.id", "==", organizationId)
+      .get();
+
+    let batch = db.batch();
+    let batchWrites = 0;
+    let updatedCount = 0;
+
+    for (const eventDoc of events.docs) {
+      const organizer = eventDoc.data()["organizer"] as
+        | { type?: unknown; organization?: unknown }
+        | undefined;
+      if (organizer?.type !== "organization") continue;
+      if (organizationReferenceMatches(organizer.organization, organization)) {
+        continue;
+      }
+
+      batch.update(eventDoc.ref, {
+        organizer: { type: "organization", organization },
+      });
+      batchWrites++;
+      updatedCount++;
+      if (batchWrites >= BATCH_LIMIT) {
+        await batch.commit();
+        batch = db.batch();
+        batchWrites = 0;
+      }
+    }
+
+    if (batchWrites > 0) await batch.commit();
+    console.log(
+      `Synced organization snapshots for ${organizationId}: ${updatedCount} events.`
     );
   }
 );

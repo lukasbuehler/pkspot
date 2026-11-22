@@ -5,6 +5,7 @@ import type { MediaSchema } from "./Media";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import { EventRSVPCountsSchema } from "./EventRSVPSchema";
 import type { UserReferenceSchema } from "./UserSchema";
+import type { EventOrganizerSearchFields } from "./EventOrganizerSearchFields";
 
 export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
@@ -561,7 +562,12 @@ export interface EventLifecycleUpdateSchema {
   changed_by: string;
 }
 
-export interface EventSchema {
+/**
+ * `EventSchema` also carries the server-derived organizer search fields
+ * (`organizer_kind`, `organizer_display_name`, ...) from
+ * `EventOrganizerSearchFields`. Do not set them directly.
+ */
+export interface EventSchema extends EventOrganizerSearchFields {
   /** Display name (plain string; LocaleMap can be added later if needed). */
   name: string;
   /** Server-derived from `description_i18n` for search and old clients. */

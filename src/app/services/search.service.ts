@@ -20,6 +20,12 @@ import {
 } from "../components/spot-map/spot-filter-config";
 import { Event as PkEvent } from "../../db/models/Event";
 import { AssetUrlService } from "./asset-url.service";
+import {
+  EVENT_ORGANIZER_KINDS,
+  deriveEventOrganizerSearchFields,
+  type EventOrganizerKind,
+  type EventOrganizerSearchFields,
+} from "../../db/schemas/EventOrganizerSearchFields";
 import type { EventRSVPCountsSchema } from "../../db/schemas/EventRSVPSchema";
 import type {
   EventCategory,
@@ -34,6 +40,7 @@ import type {
   EventTicketBadge,
   EventTicketOptionSchema,
   EventTimingSchema,
+  EventSchema as PkEventSchema,
 } from "../../db/schemas/EventSchema";
 import type { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
@@ -1328,6 +1335,7 @@ export class SearchService {
       hasOrganization:
         doc?.has_organization === true ||
         doc?.organizer?.type === "organization",
+      ...this._readEventOrganizer(doc),
       hasVenueSpot: doc?.has_venue_spot === true || venueSpotCount > 0,
       venueSpotCount,
       startSeconds: SearchService._readInt(doc?.start_seconds),
@@ -1392,6 +1400,60 @@ export class SearchService {
         ? doc.required_qualifier_keys
         : [],
       textMatch: readTextMatch(hit),
+    };
+  }
+
+  /**
+   * Read the flat organizer fields of an `events_v1` hit. A document that
+   * has not been reindexed yet has no `organizer_kind`; it falls back to the
+   * nested `organizer`, `organizer_user` and `organizer_name` fields when the
+   * hit still carries them, and otherwise yields no organizer.
+   */
+  private _readEventOrganizer(
+    doc: Record<string, unknown> | undefined,
+  ): Pick<
+    EventSearchPreview,
+    | "organizerKind"
+    | "organizerName"
+    | "organizerOrganizationId"
+    | "organizerSlug"
+    | "organizerLogoSrc"
+    | "organizerLogoBackgroundColor"
+    | "organizerUserId"
+    | "organizerAvatarSrc"
+  > {
+    const fields: EventOrganizerSearchFields = isEventOrganizerKind(
+      doc?.["organizer_kind"],
+    )
+      ? (doc as EventOrganizerSearchFields)
+      : deriveEventOrganizerSearchFields({
+          organizer: isRecord(doc?.["organizer"])
+            ? (doc["organizer"] as unknown as PkEventSchema["organizer"])
+            : undefined,
+          organizer_user: isRecord(doc?.["organizer_user"])
+            ? (doc["organizer_user"] as unknown as UserReferenceSchema)
+            : undefined,
+          organizer_name: readString(doc?.["organizer_name"]),
+        });
+    const kind = isEventOrganizerKind(fields.organizer_kind)
+      ? fields.organizer_kind
+      : undefined;
+    if (!kind) return {};
+
+    const logoUrl = readString(fields.organizer_logo_url);
+    return {
+      organizerKind: kind,
+      organizerName: readString(fields.organizer_display_name),
+      organizerOrganizationId: readString(fields.organizer_organization_id),
+      organizerSlug: readString(fields.organizer_organization_slug),
+      organizerLogoSrc: logoUrl
+        ? this._assetUrls.resolveBundledAssetUrl(logoUrl)
+        : undefined,
+      organizerLogoBackgroundColor: readString(
+        fields.organizer_logo_background_color,
+      ),
+      organizerUserId: readString(fields.organizer_user_id),
+      organizerAvatarSrc: readString(fields.organizer_user_avatar_url),
     };
   }
 
@@ -1493,6 +1555,7 @@ export class SearchService {
       is_promoted: preview.isSponsored,
       is_sponsored: preview.isSponsored,
       has_organization: preview.hasOrganization,
+      ...SearchService._organizerSchemaFromPreview(preview),
       has_venue_spot: preview.hasVenueSpot,
       venue_spot_count: preview.venueSpotCount,
       external_source: preview.externalProvider
@@ -1957,6 +2020,14 @@ export class SearchService {
       "is_promoted",
       "is_sponsored",
       "has_organization",
+      "organizer_kind",
+      "organizer_display_name",
+      "organizer_organization_id",
+      "organizer_organization_slug",
+      "organizer_logo_url",
+      "organizer_logo_background_color",
+      "organizer_user_id",
+      "organizer_user_avatar_url",
       "has_venue_spot",
       "venue_spot_count",
       "start_seconds",
@@ -2591,6 +2662,49 @@ export class SearchService {
     };
   }
 
+  /**
+   * Rebuild the event-document organizer fields from a preview so the
+   * `Event` model built from a hit resolves `organizerName` as usual.
+   */
+  private static _organizerSchemaFromPreview(
+    preview: EventSearchPreview,
+  ): Pick<PkEventSchema, "organizer" | "organizer_user" | "organizer_name"> {
+    switch (preview.organizerKind) {
+      case "organization":
+        return preview.organizerOrganizationId
+          ? {
+              organizer: {
+                type: "organization",
+                organization: {
+                  id: preview.organizerOrganizationId,
+                  name: preview.organizerName ?? "",
+                  slug:
+                    preview.organizerSlug ?? preview.organizerOrganizationId,
+                  logo_url: preview.organizerLogoSrc,
+                  logo_background_color: preview.organizerLogoBackgroundColor,
+                },
+              },
+            }
+          : {};
+      case "user":
+        return preview.organizerUserId
+          ? {
+              organizer_user: {
+                uid: preview.organizerUserId,
+                display_name: preview.organizerName,
+                profile_picture: preview.organizerAvatarSrc,
+              },
+            }
+          : {};
+      case "name":
+        return preview.organizerName
+          ? { organizer_name: preview.organizerName }
+          : {};
+      default:
+        return {};
+    }
+  }
+
   private static _emptyRsvpCounts(): EventRSVPCountsSchema {
     return { going: 0, interested: 0, notgoing: 0, total: 0 };
   }
@@ -2718,6 +2832,10 @@ export class SearchService {
       places: null,
     };
   }
+}
+
+function isEventOrganizerKind(value: unknown): value is EventOrganizerKind {
+  return (EVENT_ORGANIZER_KINDS as readonly unknown[]).includes(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -2900,7 +3018,23 @@ export interface EventSearchPreview {
   sponsorLogoFit?: "cover" | "contain";
   sponsorLogoBackgroundColor?: string;
   isSponsored: boolean;
+  /** Legacy flag; true for an organization organizer. */
   hasOrganization: boolean;
+  /**
+   * Who hosts the event. Undefined when the event names no organizer; a
+   * community-tier event without one reads as organized by the community.
+   */
+  organizerKind?: EventOrganizerKind;
+  /** Organization name, community member name, or plain organizer name. */
+  organizerName?: string;
+  organizerOrganizationId?: string;
+  /** Organization slug, for linking to the organization page. */
+  organizerSlug?: string;
+  organizerLogoSrc?: string;
+  organizerLogoBackgroundColor?: string;
+  /** Community organizer's user id, for linking to the profile. */
+  organizerUserId?: string;
+  organizerAvatarSrc?: string;
   hasVenueSpot: boolean;
   venueSpotCount: number;
   /** Unix seconds; undefined only if the indexer hasn't run yet. */

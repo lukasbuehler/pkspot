@@ -107,7 +107,10 @@ export {
   previewSpotDuplicateResolution,
   resolveSpotDuplicate,
 } from "./spotDuplicateFunctions";
-export { syncVerifiedSpotOrganizationSnapshots } from "./organizationFunctions";
+export {
+  syncEventOrganizationSnapshots,
+  syncVerifiedSpotOrganizationSnapshots,
+} from "./organizationFunctions";
 export {
   processImportChunkOnCreate,
   retryFailedImportChunksOnCreate,

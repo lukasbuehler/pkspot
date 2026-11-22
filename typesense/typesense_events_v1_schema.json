@@ -258,6 +258,44 @@
       "index": false
     },
     {
+      "name": "organizer_kind",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    { "name": "organizer_display_name", "type": "string", "optional": true },
+    {
+      "name": "organizer_organization_id",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "organizer_organization_slug",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "organizer_logo_url",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "organizer_logo_background_color",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    { "name": "organizer_user_id", "type": "string", "optional": true },
+    {
+      "name": "organizer_user_avatar_url",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
       "name": "has_venue_spot",
       "type": "bool",
       "optional": true,
