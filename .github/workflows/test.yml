@@ -192,26 +192,14 @@ jobs:
           npm ci --ignore-scripts --omit=dev --prefix "$tmp_dir"
           node -e "require('$tmp_dir/lib/functions/src/index.js'); console.log('functions module loaded')"
 
-      - name: Run Firestore rules security tests
-        run: npm run test:emulator:rules
+      - name: Install Playwright Chromium
+        # The profile privacy suite drives the app in a browser.
+        run: npx playwright install --with-deps chromium
 
-      - name: Run check-in callable and privacy tests
-        run: npm run test:emulator:check-ins
-
-      - name: Run statistics expiry and concurrency tests
-        run: npm run test:emulator:check-in-rollups
-
-      - name: Run share-card privacy and rendering tests
-        run: npm run test:emulator:share-cards && npm run test:share-cards
-
-      - name: Run community edit emulator tests
-        run: npm run test:emulator:community-edits
-
-      - name: Run spot edit emulator tests
-        run: npm run test:emulator:spot-edits
-
-      - name: Run community emulator tests
-        run: npm run emulators:test:community
+      - name: Run the full emulator suite
+        # The same aggregate the removed pre-push hook ran, so every
+        # emulator suite in package.json runs on every PR and push.
+        run: npm run test:emulator
 
       - name: Upload emulator logs
         if: failure()
