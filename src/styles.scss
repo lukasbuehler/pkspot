@@ -12,7 +12,7 @@ button:focus {
 
 html {
   /* Space pages reserve above their content for the Alain menu FAB in short
-     layouts (see AGENTS.md, "Floating navigation clearance"). */
+     layouts (see .agents/ui.md, "Floating navigation clearance"). */
   --alain-menu-block-start: max(
     80px,
     calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))

@@ -21,7 +21,7 @@ reviews:
     enabled: true
     drafts: false
 
-  # AGENTS.md is discovered automatically as a code-guidelines file. These
+  # AGENTS.md and the .agents/ guides are code guidelines (see knowledge_base). These
   # instructions add review focus for PK Spot's most fragile contracts.
   path_instructions:
     - path: "src/app/**/*.ts"
@@ -63,3 +63,23 @@ reviews:
 
 chat:
   auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    # AGENTS.md and CLAUDE.md are found automatically. A guide applies only to
+    # its own directory by default, so map each .agents/ topic guide to the
+    # code it governs.
+    filePatterns:
+      - files: ".agents/angular.md"
+        applyTo: "src/**/*.{ts,html,scss}"
+      - files: ".agents/ui.md"
+        applyTo: "src/**/*.{html,scss,css}, src/app/**/*.ts"
+      - files: ".agents/translations.md"
+        applyTo: "src/locale/**, src/**/*.html, scripts/translation_analyzer.js"
+      - files: ".agents/backend.md"
+        applyTo: "functions/**, firestore.rules, storage.rules, firestore.indexes.json, typesense/**, src/db/**, src/app/services/firebase/**"
+      - files: ".agents/native.md"
+        applyTo: "ios/**, android/**, capacitor.config.*"
+      - files: ".agents/releases.md"
+        applyTo: ".github/**, DEPLOYMENT_TASKS.md, wrangler*, scripts/cloudflare*, src/cloudflare*, package.json"
