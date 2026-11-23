@@ -43,8 +43,15 @@ import { EventsService } from "./events.service";
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
 const authHost = process.env["FIREBASE_AUTH_EMULATOR_HOST"];
 const runWithEmulator = firestoreHost && authHost ? describe : describe.skip;
-const rsvpIntegrationTimeoutMs = 45_000;
-const eventTypesenseIntegrationTimeoutMs = 20_000;
+/**
+ * Trigger-driven fields can lag well behind the write on a busy emulator: in
+ * CI the full suite queues over a thousand trigger runs before this file, and
+ * the emulator runs them one by one. Poll for up to 30 s (120 × 250 ms).
+ */
+const TRIGGER_WAIT_ATTEMPTS = 120;
+// Test budgets cover up to five sequential trigger waits on a busy emulator.
+const rsvpIntegrationTimeoutMs = 180_000;
+const eventTypesenseIntegrationTimeoutMs = 180_000;
 let adminApp: admin.app.App | undefined;
 
 function adminDb(): admin.firestore.Firestore {
@@ -69,7 +76,7 @@ async function waitForRsvpCounts(
     total: number;
   },
 ): Promise<void> {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
     const counts = snapshot.data()?.["rsvp_counts"];
     if (
@@ -90,7 +97,7 @@ async function waitForSpotEventRsvpCounts(
   eventId: string,
   expectedGoing: number,
 ): Promise<void> {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb().doc(`spots/${spotId}`).get();
     const previews = snapshot.data()?.["upcoming_events"];
     const preview = Array.isArray(previews)
@@ -108,7 +115,7 @@ async function waitForNotificationIntent(
   intentId: string,
   status: "pending" | "cancelled",
 ): Promise<admin.firestore.DocumentData> {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb()
       .doc(`notification_intents/${intentId}`)
       .get();
@@ -127,7 +134,7 @@ async function waitForInAppNotification(
   notificationId: string,
   active: boolean,
 ): Promise<admin.firestore.DocumentData> {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb()
       .doc(`users/${userId}/notifications/${notificationId}`)
       .get();
@@ -140,7 +147,7 @@ async function waitForInAppNotification(
 }
 
 async function waitForEventTypesenseFields(eventId: string): Promise<void> {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
     const data = snapshot.data();
     if (
@@ -168,7 +175,7 @@ async function waitForEventTypesenseFields(eventId: string): Promise<void> {
 }
 
 async function waitForNoAreaEventBounds(eventId: string): Promise<void> {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
     const data = snapshot.data();
     if (
@@ -193,7 +200,7 @@ async function waitForEventField(
   field: string,
   expected: unknown,
 ): Promise<admin.firestore.DocumentData> {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
     if (snapshot.data()?.[field] === expected) return snapshot.data()!;
     await sleep(250);
@@ -208,7 +215,7 @@ async function waitForEventDiscovery(
   exists: boolean,
   matches: (data: admin.firestore.DocumentData | undefined) => boolean = () => true,
 ): Promise<admin.firestore.DocumentData | undefined> {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb().doc(`event_discovery/${eventId}`).get();
     const data = snapshot.data();
     if (snapshot.exists === exists && matches(data)) return data;
@@ -223,7 +230,7 @@ async function waitForMaintenanceStatus(
   documentId: string,
   status: "DONE" | "DONE_WITH_ERRORS" | "ERROR",
 ): Promise<admin.firestore.DocumentData> {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  for (let attempt = 0; attempt < TRIGGER_WAIT_ATTEMPTS; attempt += 1) {
     const snapshot = await adminDb().doc(`maintenance/${documentId}`).get();
     if (snapshot.data()?.["status"] === status) return snapshot.data()!;
     await sleep(250);
@@ -991,7 +998,7 @@ runWithEmulator("EventsService emulator integration", () => {
     expect(updated.projected?.["organizer_logo_url"]).toBe(
       "https://example.test/crew-2.png",
     );
-  }, 30_000);
+  }, eventTypesenseIntegrationTimeoutMs);
 
   it("materializes only public events into the disposable discovery projection", async () => {
     const eventId = `event-discovery-${Date.now()}`;

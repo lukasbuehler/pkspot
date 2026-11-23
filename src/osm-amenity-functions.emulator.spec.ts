@@ -5,7 +5,7 @@ import type {CallableRequest} from "../functions/node_modules/firebase-functions
 const functionsRequire = createRequire(resolve("functions/package.json"));
 const functionAdmin: typeof admin = functionsRequire("firebase-admin");
 import { Timestamp } from "firebase-admin/firestore";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi, type Mock } from "vitest";
 import {
   OSM_AMENITY_CACHE_COLLECTION,
   OSM_AMENITY_TILE_ZOOM,
@@ -18,6 +18,20 @@ import {
   recordOsmAmenityCacheFailure,
   writeOsmAmenityCacheSuccess,
 } from "../functions/src/osmAmenityFunctions";
+
+/**
+ * Stubs only the Overpass requests. Other fetches, such as the Google auth
+ * metadata-server probe that runs where no credentials exist (CI), go to the
+ * real fetch, so they neither break auth nor count as Overpass calls.
+ */
+const realFetch = globalThis.fetch;
+function stubOverpass<T extends Mock>(overpass: T): T {
+  vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = input instanceof Request ? input.url : String(input);
+    return url.includes("/interpreter") ? overpass(input, init) : realFetch(input, init);
+  });
+  return overpass;
+}
 
 const runWithEmulator = process.env["FIRESTORE_EMULATOR_HOST"]
   ? describe
@@ -51,7 +65,7 @@ runWithEmulator("OSM amenity cache emulator integration", () => {
 
   it("calls Overpass, persists a cold result and serves the next request from cache", async () => {
     const fetch = vi.fn().mockImplementation(async () => upstreamSuccess());
-    vi.stubGlobal("fetch", fetch);
+    stubOverpass(fetch);
     const tile = uniqueTile(10);
     expect((await invoke({...tile, acceptUnavailable: true})).amenities).toHaveLength(1);
     expect((await invoke(tile)).amenities).toHaveLength(1);
@@ -61,14 +75,14 @@ runWithEmulator("OSM amenity cache emulator integration", () => {
   it("uses the second endpoint when the first returns 504", async () => {
     const fetch = vi.fn().mockResolvedValueOnce(new Response("timeout", {status: 504}))
       .mockImplementationOnce(async () => upstreamSuccess());
-    vi.stubGlobal("fetch", fetch);
+    stubOverpass(fetch);
     expect((await invoke({...uniqueTile(11), acceptUnavailable: true})).amenities).toHaveLength(1);
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it("returns explicit cold outages, respects backoff, preserves legacy retries, then recovers", async () => {
     const fetch = vi.fn().mockImplementation(async () => new Response("timeout", {status: 503}));
-    vi.stubGlobal("fetch", fetch);
+    stubOverpass(fetch);
     const tile = uniqueTile(12);
     const outage = await invoke({...tile, acceptUnavailable: true});
     expect(outage).toMatchObject({status: "unavailable", amenities: []});
@@ -85,13 +99,13 @@ runWithEmulator("OSM amenity cache emulator integration", () => {
     const tile = uniqueTile(13);
     const ref = db.collection(OSM_AMENITY_CACHE_COLLECTION).doc(getOsmAmenityTileCacheKey(tile));
     await writeOsmAmenityCacheSuccess(ref, tile, {amenities: [{id: 42, type: "drinking_water", lat: 47.37, lng: 8.54}]}, Date.now() - OSM_CACHE_FRESH_MS - 1000);
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("timeout", "AbortError")));
+    stubOverpass(vi.fn().mockRejectedValue(new DOMException("timeout", "AbortError")));
     expect(await invoke(tile)).toMatchObject({stale: true, amenities: [{id: 42}]});
   });
 
   it("does not hide invalid requests or a broken Overpass query", async () => {
     const fetch = vi.fn().mockResolvedValue(new Response("bad query", {status: 400}));
-    vi.stubGlobal("fetch", fetch);
+    stubOverpass(fetch);
     await expect(invoke({zoom: 1})).rejects.toMatchObject({code: "invalid-argument"});
     expect(fetch).not.toHaveBeenCalled();
     await expect(invoke({...uniqueTile(14), acceptUnavailable: true})).rejects.toMatchObject({status: 400});
