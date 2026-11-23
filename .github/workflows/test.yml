@@ -200,6 +200,9 @@ jobs:
         # The same aggregate the removed pre-push hook ran, so every
         # emulator suite in package.json runs on every PR and push.
         run: npm run test:emulator
+        env:
+          # The profile privacy suite starts the app, which needs the CI web config.
+          PKSPOT_CI_FIREBASE_API_KEY: ${{ secrets.PKSPOT_CI_FIREBASE_API_KEY }}
 
       - name: Upload emulator logs
         if: failure()
