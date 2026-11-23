@@ -10,6 +10,13 @@ import {
   type CreatedEmulatorUser,
 } from "../fixtures/firebase-emulators";
 
+
+/**
+ * The baselines come from macOS, while CI renders on Ubuntu with different
+ * font antialiasing (about 4 % of the action row's pixels). These shots guard
+ * the button layout, which the bounding-box checks below also cover.
+ */
+const FONT_RENDERING_TOLERANCE = 0.06;
 const screenshotDir = "output/playwright";
 
 test.describe("profile privacy follow request workflows", () => {
@@ -83,6 +90,7 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Request follow|Folgeanfrage senden/u);
     await expect(actions).toHaveScreenshot("profile-follow-action-ready.png", {
       animations: "disabled",
+      maxDiffPixelRatio: FONT_RENDERING_TOLERANCE,
     });
 
     const devtools = await context.newCDPSession(page);
@@ -98,6 +106,7 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(spinner).toBeVisible();
     await expect(actions).toHaveScreenshot("profile-follow-action-loading.png", {
       animations: "disabled",
+      maxDiffPixelRatio: FONT_RENDERING_TOLERANCE,
     });
 
     const [buttonBox, spinnerBox] = await Promise.all([
@@ -148,6 +157,7 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Requested|Angefragt/u);
     await expect(actions).toHaveScreenshot("profile-follow-action-requested.png", {
       animations: "disabled",
+      maxDiffPixelRatio: FONT_RENDERING_TOLERANCE,
     });
 
     await page.screenshot({
