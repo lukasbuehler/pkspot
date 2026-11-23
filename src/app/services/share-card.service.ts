@@ -195,7 +195,8 @@ export class ShareCardService {
     const response = await fetch(url, { signal: AbortSignal.timeout(4000) });
     if (!response.ok) throw new Error("Preview download failed");
     const blob = await response.blob();
-    if (blob.size > 3 * 1024 * 1024 || blob.type !== "image/png") throw new Error("Invalid preview image");
+    // Cards are JPEG since the WhatsApp size fix; cards prepared before it stay PNG.
+    if (blob.size > 3 * 1024 * 1024 || !["image/jpeg", "image/png"].includes(blob.type)) throw new Error("Invalid preview image");
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result).split(",")[1]);

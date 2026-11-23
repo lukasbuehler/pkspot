@@ -50,7 +50,9 @@ async function run(){
   assert.equal(publicImage.status,200);
   assert.equal(publicImage.headers.get('cache-control'),'private, no-store');
   assert.equal(publicImage.headers.get('x-content-type-options'),'nosniff');
-  assert.ok(publicImage.headers.get('content-type').startsWith('image/png'));
+  assert.ok(card.path.endsWith('.jpg'));
+  assert.equal(metadata.contentType,'image/jpeg');
+  assert.ok(publicImage.headers.get('content-type').startsWith('image/jpeg'));
   const head=await fetch(`${endpoint}?kind=spot&id=${id}`,{method:'HEAD'});
   assert.equal(head.status,200); assert.equal((await head.arrayBuffer()).byteLength,0);
   assert.equal((await call(id)).reused,true);
@@ -185,7 +187,9 @@ async function run(){
     await cardRef.set({kind,id:entityId,path,revision,media:kind==='spot'?[{path:legacyPhotoPath,generation:String(legacyPhotoMetadata.generation)}]:[]});
     const before=(await cardRef.get()).updateTime.toMillis();
     const query=`${endpoint}?kind=${kind}&id=${entityId}`;
-    assert.deepEqual(Buffer.from(await (await fetch(query)).arrayBuffer()),legacyBytes,`${kind}: legacy card survives renderer/projection changes`);
+    const legacyResponse=await fetch(query);
+    assert.ok(legacyResponse.headers.get('content-type').startsWith('image/png'),`${kind}: legacy PNG keeps its content type`);
+    assert.deepEqual(Buffer.from(await legacyResponse.arrayBuffer()),legacyBytes,`${kind}: legacy card survives renderer/projection changes`);
     assert.equal((await cardRef.get()).updateTime.toMillis(),before,'GET never migrates or rewrites cache records');
     const invalidate=require('../../functions/lib/functions/src/shareCards/functions.js')[`invalidate${kind[0].toUpperCase()+kind.slice(1)}ShareCard`];
     await invalidate.run({params:{id:entityId},data:{before:{data:()=>undefined},after:await entity.get()}});

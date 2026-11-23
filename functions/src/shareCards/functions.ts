@@ -8,7 +8,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { DEFAULT_STORAGE_BUCKET } from "../storageBucket";
-import { renderShareCard } from "./render";
+import { renderShareCard, shareCardImageType } from "./render";
 import { cachedContentMatches, cachedMediaReferences, contentFingerprint, legacyRevisions } from "./cache";
 import { collections, EntityKind, projectCard, resolveCardSource, sourceFingerprint, storageMediaPath, shareCardMediaCandidates } from "./source";
 
@@ -124,11 +124,11 @@ export const prepareShareCard = onCall({ region: "europe-west1", cors: true, enf
       const [bytes] = await bucket().file(item.path, { generation: item.generation }).download();
       photos.push(bytes);
     }
-    const png = await renderShareCard({ ...current.source.input, photos }, {
+    const jpeg = await renderShareCard({ ...current.source.input, photos }, {
       fontFile: resolve(assets, "font.ttf"), logo: await readFile(resolve(assets, "logo.png")),
     });
-    const path = `share_cards/${collections[kind]}/${keyFor(kind, id)}/${lease}.png`;
-    await bucket().file(path).save(png, { resumable: false, metadata: { contentType: "image/png", cacheControl: "private, no-store" } });
+    const path = `share_cards/${collections[kind]}/${keyFor(kind, id)}/${lease}.jpg`;
+    await bucket().file(path).save(jpeg, { resumable: false, metadata: { contentType: "image/jpeg", cacheControl: "private, no-store" } });
     let published = false;
     try {
       // Recheck privacy/content and lease in one transaction before publication.
@@ -175,8 +175,8 @@ export const shareCardImage = onRequest({ region: "europe-west1", cors: true, in
     const card = (await cardRef(kind, id).get()).data();
     if (card && await canServeCard(card, current)) {
       try {
-        const [png] = await bucket().file(card.path as string).download();
-        response.type("png").send(png); return;
+        const [image] = await bucket().file(card.path as string).download();
+        response.type(shareCardImageType(card.path as string)).send(image); return;
       } catch (error) {
         // Cleanup or replacement can remove a prepared image before its record.
         // GET remains read-only and uses the same fallback as an unprepared card.
