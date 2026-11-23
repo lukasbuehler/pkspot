@@ -36,10 +36,13 @@ deploy step.
   the handoff.
 - A change that needs a deploy step (indexes, Typesense schemas, Functions or
   rules, migrations, backfills, sitemaps, cleanup, external checks) updates its
-  owning checklist in the same change: order, exact commands, success checks,
-  and when compatibility code may go.
+  owning checklist while the change is made: order, exact commands, success
+  checks, and when compatibility code may go. The checklists are local to the
+  maintainer's checkout, so the PR does not carry them; say in the PR and the
+  handoff which checklist was updated.
 - Keep the reusable procedure in `DEPLOYMENT_TASKS.md` in line with the real
   scripts and infrastructure. One-off work belongs in a checklist.
 - A checklist entry is not permission to deploy. Only remove an item after the
   action ran and its success check passed; rewrite partly done items to what
-  remains, and drop empty sections. Git history is the record.
+  remains, and drop empty sections. The merged PRs and the deploy history
+  are the record.

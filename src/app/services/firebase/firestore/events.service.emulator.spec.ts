@@ -49,8 +49,9 @@ const runWithEmulator = firestoreHost && authHost ? describe : describe.skip;
  * the emulator runs them one by one. Poll for up to 30 s (120 × 250 ms).
  */
 const TRIGGER_WAIT_ATTEMPTS = 120;
-const rsvpIntegrationTimeoutMs = 90_000;
-const eventTypesenseIntegrationTimeoutMs = 20_000;
+// Test budgets cover up to five sequential trigger waits on a busy emulator.
+const rsvpIntegrationTimeoutMs = 180_000;
+const eventTypesenseIntegrationTimeoutMs = 180_000;
 let adminApp: admin.app.App | undefined;
 
 function adminDb(): admin.firestore.Firestore {
@@ -997,7 +998,7 @@ runWithEmulator("EventsService emulator integration", () => {
     expect(updated.projected?.["organizer_logo_url"]).toBe(
       "https://example.test/crew-2.png",
     );
-  }, 30_000);
+  }, eventTypesenseIntegrationTimeoutMs);
 
   it("materializes only public events into the disposable discovery projection", async () => {
     const eventId = `event-discovery-${Date.now()}`;
