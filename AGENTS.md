@@ -1,213 +1,83 @@
-# Agent Instructions (Repository Root)
+# Agent instructions
 
-These instructions apply to all work in this repository.
+These rules apply to all work in this repository. Topic guides in `.agents/`
+hold the details; read the ones your task touches before you start.
+
+| Guide | Read it when you |
+| --- | --- |
+| [.agents/angular.md](.agents/angular.md) | write or review Angular code in `src/app` |
+| [.agents/ui.md](.agents/ui.md) | change colours, cards, panels, menus, icons or page layout |
+| [.agents/translations.md](.agents/translations.md) | add or change user-facing text, or translate |
+| [.agents/backend.md](.agents/backend.md) | touch Functions, rules, Firestore data, Typesense or client writes |
+| [.agents/native.md](.agents/native.md) | work in `ios/` or `android/`, on Capacitor, or add a first-level route |
+| [.agents/releases.md](.agents/releases.md) | prepare a release or a change that needs a deploy step |
 
 ## Private documents
 
-- Keep product ideas and feature plans in ignored `docs/planning/`, submission
-  preparation in `docs/release/`, and deployment checklists in `docs/deployment/`.
-- These are local maintainer records. Do not force-add ignored documents or copy
-  private planning/assessment contents into tracked files without explicit approval.
-- Keep contributor setup and implementation documentation in Git when useful,
-  but do not include unpublished roadmap details by default.
+- Product ideas and plans live in `docs/planning/`, submission work in
+  `docs/release/`, and deployment checklists in `docs/deployment/`. `docs/` is
+  git-ignored and maintainer-only.
+- Never force-add ignored documents, and never copy private plans into tracked
+  files, PRs or issues without explicit approval. The repository is public.
 
-## Angular standards
+## Branches, PRs and permissions
 
-- This repository uses Angular 22. For Angular-specific work, prefer the official `angular-developer` Codex skill when available and check the installed Angular version before applying version-sensitive guidance.
-- Write clean, readable, and well-documented code.
-- Do not create separate Markdown documentation files for code changes. Keep durable explanations in code comments when needed, and use chat for temporary explanation.
-- Use strict TypeScript settings and prefer type inference when the type is obvious.
-- Avoid `any`; use `unknown` when the type is uncertain.
-- Use the Angular CLI for scaffolding components, services, directives, pipes, and routes when it fits the task, then adapt the generated code to the repository's conventions.
-- Always use standalone Angular components rather than NgModules.
-- Do not set `standalone: true` inside Angular decorators. It is the default.
-- Use signals for local state and `computed()` for derived state.
-- Angular 22 uses zoneless change detection by default. Do not add ZoneJS or
-  `provideZoneChangeDetection()` without a documented compatibility reason.
-- Async callbacks that update rendered state must write to a template-read
-  signal, emit through an Angular output/listener, use `AsyncPipe`, or call
-  `ChangeDetectorRef.markForCheck()` explicitly.
-- Do not use `NgZone.onStable`, `onUnstable`, or `onMicrotaskEmpty`; use render
-  hooks such as `afterNextRender()` or direct browser observers instead.
-- Expose writable service state as readonly signals with `.asReadonly()` unless callers intentionally need to write to it.
-- Do not use `mutate` on signals; use `update` or `set` instead.
-- Do not use `effect()` to propagate state from one signal into another. Use `computed()` for purely derived state and `linkedSignal()` when derived state also needs user overrides.
-- Use `resource()` / `httpResource()` for signal-driven async loading when it fits the data flow, and pass the provided abort signal to cancellable fetches.
-- Implement lazy loading for feature routes where appropriate.
-- Do not use `@HostBinding` or `@HostListener`; put host bindings in the `host` object of the `@Component` or `@Directive` decorator instead.
-- Use `NgOptimizedImage` for static images when compatible.
-  `NgOptimizedImage` does not work for inline base64 images.
-- Keep components focused on a single responsibility.
-- Before building entity search, autocomplete, or picker UI, inspect and reuse the shared picker components (for example `app-search-field`, `app-spot-picker`, and `app-entity-reference-autocomplete`). If the required behavior cannot be expressed by an existing component, extend it or extract a reusable focused component instead of implementing an inline one-off picker.
-- Use `input()` and `output()` instead of decorator-based inputs and outputs.
-- Set `changeDetection: ChangeDetectionStrategy.OnPush` in component decorators.
-- Create a separate `.html` template file for every new component, including
-  small components. Keep component TypeScript focused on state and behavior.
-- Prefer signal forms for new isolated forms on Angular 21+ when the surrounding feature can support them. For existing form-heavy features, keep using typed reactive forms unless a broader migration is intentional.
-- Avoid template-driven forms for complex flows.
-- Do not use `ngClass`; use `class` bindings instead.
-- Do not use `ngStyle`; use `style` bindings instead.
-- Keep templates simple and avoid complex logic. Do not call expensive methods from templates; move filtering, sorting, grouping, formatting, or allocation-heavy work into `computed()` signals, memoized helpers, or pure pipes.
-- Template method calls are acceptable only for cheap event handlers, stable `track` functions, or trivial reads. If a method allocates arrays/objects, filters data, searches collections, reads layout, or touches services, do not call it from interpolation or bindings.
-- Prefer modern Angular template control flow (`@if`, `@for`, `@switch`) instead of structural directives (`*ngIf`, `*ngFor`, `*ngSwitch`) unless explicitly required by framework/tooling constraints.
-- Always use a stable identity in `@for` `track` expressions when the list can be reordered, inserted into, or removed from. Use `$index` only for truly static lists.
-- Use the async pipe to handle observables in templates.
-- Design services around a single responsibility.
-- Use `providedIn: 'root'` for singleton services.
-- Use `inject()` instead of constructor injection where practical.
+- Do each task on its own branch in its own Git worktree. Name branches by
+  purpose: `feat/<topic>`, `bugfix/<topic>`, `perf/<topic>`, `docs/<topic>`.
+  Leave uncommitted changes in other worktrees, including the main checkout,
+  alone.
+- Branch from `origin/development`, the default branch, and open PRs against
+  `development`. When a feature needs another unmerged branch, branch from it,
+  say so, and retarget the PR once that base merges. Branch from `origin/main`
+  only for a fix that must ship without the rest of `development`.
+- Ask the user before every GitHub action: pushing, creating or editing a PR,
+  commenting, requesting reviews, closing, reopening or merging. Local commits
+  and verification need no approval.
+- Pushing or merging into `development` deploys staging, and `main` is
+  production. Never push or merge to `main` unless the user asks for that
+  release. Details in [.agents/releases.md](.agents/releases.md).
+- Never rebase or rewrite a branch after it was merged into `development`.
 
-If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside the sandbox in the terminal.
+## Testing and pushing
 
-## Angular runtime debugging
+- Before you push, run the tests relevant to your change and say in the PR
+  which ones ran:
+  - `npm run test:unit` for every code change.
+  - The matching `npm run test:emulator:*` suite when you touch Firestore
+    rules, Functions or a client write path.
+  - `npm run test:build` (build and SSR smoke test) when you touch routes, SSR,
+    server code, translations or the build.
+  - The relevant Playwright spec when you change a page's behaviour or look.
+- GitHub CI runs the full suite on every PR from a branch in this repository
+  and on every push to `development` and `main`. Merge only when it is green.
+  `npm run test:all` runs everything locally when you need it.
+- Do not report work as done while a test you ran or the build fails. Fix it or
+  name the blocker.
 
-- For bugs involving runtime signal state, computed/effect dependencies,
-  dependency injection, browser-only behavior, rendering, network requests, or
-  performance, use Chrome DevTools MCP when its tools are available. Combine
-  runtime evidence with source inspection and regression tests; do not treat a
-  runtime graph alone as proof of the root cause.
-- Angular's in-page AI debugging tools are development-mode only. Run a local
-  development build and inspect that page rather than expecting the tools in a
-  production build.
-- In Chrome DevTools MCP, call `list_3p_developer_tools` after loading the app.
-  Angular 22 should expose `angular:signal_graph` and `angular:di_graph`.
-  Execute them with `execute_3p_developer_tool`:
-  - Use `angular:signal_graph` for a specific Angular component host element to
-    inspect signals, computeds, effects, template consumers, and dependency
-    edges.
-  - Use `angular:di_graph` to inspect application injector relationships and
-    provider resolution. Confirm important findings against the relevant
-    providers and injector scopes in source.
-- Use the regular Chrome DevTools MCP console, network, DOM snapshot, script
-  evaluation, and performance tools alongside the Angular-specific graphs when
-  they materially narrow the diagnosis.
-- Prefer an isolated browser profile and local fixtures. Do not inspect a
-  signed-in production session or expose tokens, cookies, personal data, or
-  other secrets unless the user explicitly authorizes that production scope.
-- If Chrome DevTools MCP or the Angular third-party tools are unavailable,
-  report the missing capability briefly and continue with Playwright, the
-  in-app browser, unit tests, and source-level debugging as appropriate.
+## Code rules
 
-## Translation workflow
+- Never special-case one event, Spot, user, slug or ID in app code, server
+  code, SEO or meta tags. Every entity takes the same data-driven path. Test
+  fixtures belong in specs, fixture files or seed data. If a test only passes
+  for one fixture, fix the code.
+- SEO metadata is derived for any entity by the resolver or server render, and
+  checked against more than one entity.
+- Treat Firestore, Typesense and Function payloads as versioned contracts:
+  prefer additive fields and keep legacy fields filled. Details in
+  [.agents/backend.md](.agents/backend.md).
+- Keep explanations in code comments. Do not add Markdown files that document
+  a code change.
 
-- The project uses Angular XLIFF 2.0 files in `src/locale`. `src/locale/messages.xlf` is the English source file; translated files are `messages.<locale>.xlf`.
-- To refresh translation keys, run `npm run ng -- extract-i18n` from the repository root. This invokes the Angular `extract-i18n` target, which uses `ng-extract-i18n-merge` from `angular.json` to update `messages.xlf`, merge new keys into each configured locale, update changed source text, and remove stale IDs.
-- If extraction fails with a sandbox/toolchain trap while Angular is building, rerun the same command outside the sandbox. This is the same class of issue as the `"Abort trap: 6"` note above.
-- After extracting, edit the XLIFF locale files directly. The XLIFF files are the source of truth for translations; do not maintain a second translation dictionary in scripts.
-- Then run `node scripts/translation_analyzer.js` to find untranslated targets and accidental translations of the product term `Spot`. The analyzer currently checks `de`, `es`, `fr`, `it`, and `nl`; if a new locale should be audited, update the script's `files` list.
-- When translating manually, preserve all XLIFF placeholder tags exactly (`<ph .../>`, `<pc ...>...</pc>`) and translate only the human-readable text around them. Do not translate the product term `Spot`; keep it as `Spot` in every language.
-- When adding a new app language, update all of these together: `angular.json` `i18n.locales`, the `extract-i18n` `targetFiles` list, `scripts/translation_analyzer.js` `files` list and `INCORRECT_SPOT_TRANSLATIONS`, and any language picker/UI locale list in the app.
-- Before considering translation work complete, verify that the XLIFF parses, run `git diff --check`, run `node scripts/translation_analyzer.js`, and run `npm run test:build` so Angular localization and SSR smoke coverage both pass. If `npm run test:build` hits the sandbox trap, rerun it outside the sandbox and report that detail.
+## Dependencies
 
-## Dependency updates
+- No broad updates unless the user asks. Keep `package.json` and lockfile diffs
+  small and targeted.
+- Wait 24 to 72 hours before adopting a newly published version, except for
+  urgent security fixes.
+- Never run `npm audit fix --force` without reviewing the major changes.
+- Install with `npm ci --ignore-scripts` and run only the scripts you need.
 
-- Avoid broad dependency updates unless the user explicitly asks for them. Prefer targeted updates with a small, reviewable `package.json` and `package-lock.json` diff.
-- For routine non-urgent npm updates, wait 24-72 hours before adopting newly published package versions. This gives the ecosystem time to catch compromised or mistakenly published releases. Treat urgent security fixes case-by-case instead of waiting automatically.
-- Do not run `npm audit fix --force` unless the semver-major changes and replacement versions have been reviewed.
-- Prefer install commands that avoid lifecycle scripts in CI or inspection contexts, such as `npm ci --ignore-scripts`, then run only the explicit build/test commands needed for verification.
+## Tooling
 
-## Deep links
-
-- When adding a new first-level app route that should open in the Android app, update `android/app/src/main/AndroidManifest.xml` with the matching App Link path rule. Android App Links are intentionally path-scoped so reserved browser-first URLs such as `/qr/*` are not claimed by the app.
-
-## iOS and Capacitor
-
-- App-local iOS Capacitor plugins are not available to JavaScript just because the Swift file is in the Xcode target. Register them from `ios/App/App/AppViewController.swift` with `bridge?.registerPluginInstance(...)` so Capacitor exports the plugin header before the web app loads.
-- Do not rely on `ios/App/App/capacitor.config.json` for manual plugin registration. It is generated by Capacitor sync and can be overwritten. Put durable manual registration in Swift instead.
-- When adding Swift files for app-local plugins or bridge code, add them to both `ios/App/App.xcodeproj` and `ios/App/PK Spot.xcodeproj` if both project files are still present. Builds may use either project.
-- If a native plugin method appears to do nothing from Angular, check the iOS console for `To Native -> PluginName methodName`. If that line is missing, suspect missing Capacitor registration before debugging the plugin implementation.
-- When adding a Swift Package that app target Swift files import directly, add the package product to the app target's package dependencies and Frameworks phase. A dependency inside `CapApp-SPM/Package.swift` does not automatically make the module importable from `AppDelegate.swift` or other app target Swift files.
-- `ios/App/CapApp-SPM/Package.swift` is managed by Capacitor CLI commands. Avoid manual durable changes there unless there is no better option, and expect `cap sync` to rewrite it.
-- Google Places photo URLs from Maps JS may produce WebP payloads that fail to decode in iOS WebKit. Native iOS image workarounds should use the Google Places SDK and return displayable image data, then show required Google/photo attribution before release.
-- Firebase App Check initialization from the Capacitor plugin does not automatically attach App Check tokens to the native Google Places SDK. If Google Places iOS calls return HTTP 403 while the API key itself is accepted, check that `GMSPlacesClient.setAppCheckTokenProvider(...)` is wired and that simulator/debug App Check is configured when testing locally.
-- Native iOS Google Places SDK calls should use a separate `PLACES_API_KEY` in `ios/App/App/GoogleService-Info.plist`, restricted to the iOS bundle ID. The Firebase/web `API_KEY` may be website-restricted for Capacitor webview and Maps JS requests, which does not authorize native SDK requests.
-
-## Firebase region preference
-
-- Prefer deploying new Firebase Cloud Functions in `europe-west1`.
-- The Angular app initializes callable functions against `europe-west1`, and `functions/src/index.ts` sets global v2 function options to that region.
-- If you add or modify a function that does not inherit those global options, set the region explicitly instead of relying on Firebase's `us-central1` default.
-- Existing `us-central1` functions should only stay there intentionally. When migrating an existing function to `europe-west1`, remember that Firebase treats regional functions as separate resources, so the old `us-central1` function may need to be deleted after the Europe deployment is verified.
-- Prefer gen 2 Cloud Functions APIs (`firebase-functions/v2/*`). The only current exception is basic Firebase Auth lifecycle triggers that the SDK does not offer in gen 2; keep any such exception isolated and covered by the functions generation policy test.
-
-## Deployment and hosting
-
-- All web hosting runs on Cloudflare Workers. Firebase Hosting and Firebase App Hosting are no longer used; Firebase still provides Firestore, Functions, Auth, Storage and App Check. Any new web surface, such as an admin console, gets its own Worker.
-- Pushing `development` to `origin/development` automatically deploys Cloudflare staging at `https://test.pkspot.app`. Treat this push as a staging deployment and obtain explicit user authorization. Further local work must not be pushed under an earlier one-time push authorization.
-- Do each task on its own feature branch in a separate Git worktree, so several tasks can be shipped independently. Name branches by purpose, for example `feat/<topic>`, `fix/<topic>` or `perf/<topic>`. Leave uncommitted changes in other worktrees, including the main checkout, untouched.
-- Branch new features from `origin/development`, the default branch, and open their PRs against `development`. When a feature needs another unmerged feature branch, branch from that branch, say so, and retarget the PR to `development` once the base merges.
-- Branch from `origin/main` only for a fix that must ship without the rest of `development`, and say so. Such a branch may get its own PR to `main`.
-- Merging a PR into `development` deploys staging like a push does, so it needs the same explicit authorization. To test on staging before the PR merges, merge the feature branch into local `development` with `git merge --no-ff <branch>` and push `development`. Do not rebase or rewrite a feature branch after it has been merged into `development`.
-- A tested feature reaches production with the next `development` to `main` release PR, which needs the user's approval. A fix branched from `main` may ship with its own PR to `main` instead. Merge such PRs with a merge commit, never squash or rebase, so `development` and `main` keep the same commits and later releases do not conflict. After a direct release, merge `origin/main` back into `development`.
-- Small fixes for an open release PR, such as review findings, may be committed on the PR's head branch directly.
-- Before creating or changing any PR, or pushing commits that would update one, ask the user for explicit approval. This includes editing PR metadata, commenting, requesting reviews, closing, reopening, or merging. Local commits and verification may proceed when otherwise authorized, but the user must have the final say over every GitHub action.
-- The user deploys the production web app by updating the `main` branch; Cloudflare Workers Builds then deploys `https://pkspot.app`. Do not deploy, roll back, or change the production Workers or their build settings manually unless the user explicitly asks.
-- Do not push or merge changes to `main` unless the user explicitly asks for that release. Local testing and backend-compatible development can remain on feature branches and `development` while production clients and the production web app stay on their previous version.
-- Treat a request to deploy Firebase rules, functions, extensions, or other backend resources as separate from a web release. It never implies permission to update `main` or operate the production Workers.
-- Treat `DEPLOYMENT_TASKS.md` and its linked `docs/deployment/*.md` checklists as the maintainer-facing source of truth for pre-deployment, deployment, and post-deployment work. Review it before release-related work and surface any applicable unchecked items in the handoff.
-- When a change requires release coordination—such as updating Firestore indexes or Typesense schemas, deploying functions or rules, running a migration or backfill, regenerating a sitemap, cleaning up old resources, or completing an external-service check—update the single owning checklist under `docs/deployment/` in the same change. Keep `DEPLOYMENT_TASKS.md` as the index and shared procedure. Add pending actions with the required order, exact commands or targets where practical, success checks, and any condition for retaining or removing compatibility behavior.
-- Keep the reusable release procedure in `DEPLOYMENT_TASKS.md` aligned with the repository's actual scripts and infrastructure. Put one-off work in its owning linked checklist, not in the reusable procedure.
-- Never mark a deployment-note item complete unless the action was actually performed and its result verified. A checklist entry documents pending work; it does not grant permission to deploy, mutate production data, or operate the production Workers.
-- Once a deployment action and its success condition are performed and verified, remove that item from its owning deployment checklist; remove the entire section when it has no pending work. Git history is the completion record. If only part of an item is complete, rewrite it to describe only the remaining action and success condition.
-
-## Backwards compatibility
-
-- Treat Firestore, Typesense, and Cloud Function payload changes as app-versioned contracts. Mobile apps and older web builds may keep reading existing fields after a deploy, so prefer additive fields and keep legacy fields populated until all supported clients have migrated.
-- When adding, renaming, or indexing Firestore fields that should be available in Typesense, update the real `typesense/*.json` schema and the matching `src/db/schemas/typesense-alignment.spec.ts` contract together. Do not update only the alignment test.
-- When replacing a UI data shape, map new data back into the previous fields or provide client fallbacks so older app versions degrade gracefully instead of showing empty states.
-- Coordinate fields are a mobile compatibility contract. Because some Capacitor Firestore versions have trouble serializing/deserializing `GeoPoint`, client-writeable location data should always include a raw plain-object field such as `location_raw: { lat, lng }` and bounds should include mobile-safe raw forms where available. Browser code may also write the matching `GeoPoint` field, but native/mobile-safe code must not rely on GeoPoint serialization. Cloud Functions should normalize/backfill either shape into both the raw field and GeoPoint field when possible. Derived helper fields such as `bounds_center` and `bounds_radius_m` stay server-owned. Readers should keep fallbacks for both shapes.
-
-## Theme colors
-
-- Use Material 3 system tokens (`var(--mat-sys-primary)`, `var(--mat-sys-secondary)`, etc.) — never hardcoded hex unless used as a fallback.
-- Style colored information and status cards as tonal cards: use the matching Material 3 container/on-container colors with a one-pixel role-color outline, an 18px radius, and a separate 40px tonal icon tile with a 13px radius. Keep this structure consistent across primary information, warnings, errors, and other semantic color roles.
-- **Green (`--mat-sys-secondary`) is reserved for live / "happening now" things**: active check-ins, live events, the active nav-rail item, "ongoing" status badges, anything indicating a real-time presence.
-- **Blue (`--mat-sys-primary`) is the highlight color**: spot pins, primary CTAs ("Sign in", "Add Spot"), important buttons, active selections, links inside body copy.
-- **Red (`--mat-sys-error`) is reserved for destructive / past / error states**: past-event banners, validation errors, delete confirmations.
-- Tertiary, surface variants, and outline tokens are general-purpose and can be used freely for UI structure.
-- Do not use the green accent for static decoration — overuse breaks the "this is happening live" signal.
-
-## Expansion panels
-
-- Use Angular Material `mat-expansion-panel` for expandable panels. Do not build custom disclosure panels or use native `details`/`summary` as substitutes.
-
-## FAB menus
-
-- Use the shared `app-fab-menu` (`src/app/components/fab-menu`) for FABs that open multiple actions, as on the Events page. Do not attach a `mat-menu` or introduce another speed-dial implementation for these launchers.
-- Use `direction="down"` and `alignment="start"` for top-left navigation; page-action FABs use the default upward menu. Keep viewport scrolling, safe-area clearance, accessible labels, and existing navigation/actions intact.
-
-## Floating navigation clearance
-
-- Alain Mode replaces the usual navigation with the app-level `#alainMenuButton` FAB in the top-left whenever the viewport is under 500px high, or is under 768px wide and under 700px high. A scrolling page whose content begins at the top must reserve this space in its own styles; use the same media condition and `padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))))`.
-- Do not move or restyle the shared menu FAB to solve a page collision. Add an Alain-mode visual route using `assertAlainClearance` against the page header or first interactive content so the menu has at least an 8px gap.
-
-## Icon workflow
-
-- When introducing a new Material Symbols icon name in templates or code:
-  - Ensure the icon name exists in `/Users/lukas/development/personal/pkspot/src/assets/fonts/icons_list.txt`.
-  - If missing, add it to `icons_list.txt` (one icon name per line).
-  - Run `npm run icons:optimize` from repo root after updating the list.
-- The default Material Symbols font is the filled rounded subset from `icons_list.txt`.
-- Empty/outlined icons use a second tiny rounded-outline subset:
-  - Add only the needed base/alias names to `src/assets/fonts/icons_outline_list.txt` (for example `star`, `star_border`, `mobile`, `mobile_border`).
-  - Add an alias in `scripts/optimize_icons.py` when the icon name is not a real Google glyph name (for example `mobile_border` maps to `mobile`).
-  - In the template/CSS, select the outline font with `material-symbols-rounded-outline` or `font-family: "Material Symbols Rounded Outlined"`. Adding a name to `icons_outline_list.txt` only makes the glyph available; it does not automatically switch a `<mat-icon>` away from the default filled font.
-  - Run `npm run icons:optimize` after changing either icon list.
-
-## No hardcoded content or test-fixture exceptions
-
-- Never special-case a specific event, spot, user, slug, or ID in app code (resolvers, routes, services, components, templates, proxy/server code, SEO, or meta tags). Everything must be driven by real data loaded for the requested entity, so every event and spot behaves identically.
-- Do not hardcode titles, descriptions, images, redirects, or static fallback records for one entity to make a test, demo, or screenshot pass. Fix the generic code path instead.
-- Test fixtures belong in spec files, fixtures, or seed data, never in production code. If a test only passes for one fixture ID, the code is wrong, not the test.
-- SEO metadata (title, description, canonical, structured data) must be derived for any event or spot by the route resolver/server render, and verified against more than one entity. If you find an existing entity-specific exception, remove it rather than extending it.
-
-## Testing
-
-- Before considering work complete, both the relevant tests and the build/SSR smoke test must pass. Do not report a change as done if `npm run test:unit` passes but `npm run test:build` is failing; either fix the build or clearly call out the blocker.
-- When adding a new user-facing app route or first-level page, add or update route-level visual coverage in `e2e/visual/routes.visual.spec.ts`. Include stable fixture data for dynamic pages and cover authenticated route states with the screenshot auth fixture instead of relying on live Firebase data.
-- For Firestore write-path changes, especially event editing or payload serialization, add or run an emulator integration test that performs the real client write through the app service and adapter. Do not rely only on mocked adapter tests or Firestore rules tests for changes involving `Timestamp`, `GeoPoint`, `deleteField()`, nested arrays/objects, or client/server-owned fields.
-- Use `npm run test:unit` for the Vitest unit suite.
-- Keep Angular component tests zoneless via the shared Analog TestBed setup so
-  tests exercise the same notification model as production.
-- Use `npm run test:build` for the build and SSR smoke test. This verifies `npm run build`, copied proxy server files, generated `dist/pkspot/server/build-info.mjs`, localized build output, and that SSR serves real HTML without falling back to client-side rendering.
-- Use `npm run test:all` for the main local verification pass before shipping changes. It runs the unit suite and the build/SSR smoke test.
-- End-to-end browser coverage remains available via `npm run test:e2e` when needed.
+- If the Codex sandbox fails with "Abort trap: 6", run the command outside the
+  sandbox.

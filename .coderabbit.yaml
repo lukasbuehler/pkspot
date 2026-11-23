@@ -21,7 +21,7 @@ reviews:
     enabled: true
     drafts: false
 
-  # AGENTS.md is discovered automatically as a code-guidelines file. These
+  # AGENTS.md and the .agents/ guides are code guidelines (see knowledge_base). These
   # instructions add review focus for PK Spot's most fragile contracts.
   path_instructions:
     - path: "src/app/**/*.ts"
@@ -63,3 +63,11 @@ reviews:
 
 chat:
   auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    # AGENTS.md and CLAUDE.md are found automatically; the topic guides they
+    # link to live in .agents/.
+    filePatterns:
+      - ".agents/*.md"
