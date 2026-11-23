@@ -31,7 +31,6 @@
     "test": "npm run test:all",
     "test:all": "npm run test:unit && npm run test:build && npm run test:crawler-render -- --skip-build-express && npm run test:emulator && npm run test:e2e && npm run test:visual",
     "test:ci": "npm run test:unit && npm run lint && npm run test:build && npm --prefix functions run build && npm run test:emulator:training-logs && npm run test:emulator:check-ins && npm run test:emulator:check-in-rollups && npm run test:emulator:share-cards && npm run test:share-cards && npm run test:emulator:spot-edits && npm run test:emulator:spot-saves && npm run test:emulator:spot-creation && npm run test:emulator:import-provenance && npm run test:emulator:community-edits && npm run emulators:test:community && npm run test:e2e -- --project=chromium && npm run test:visual -- --project=chromium",
-    "test:prepush": "npm run test:unit && npm run build:dev && npm run test:emulator",
     "test:unit": "node scripts/run-vitest.mjs run",
     "test:unit:watch": "node scripts/run-vitest.mjs",
     "test:unit:coverage": "node scripts/run-vitest.mjs run --coverage",

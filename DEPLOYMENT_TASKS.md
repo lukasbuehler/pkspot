@@ -115,7 +115,8 @@ one owning document, grouped by purpose:
 ## Maintenance contract
 
 - Read this index and the relevant owning checklist before release-related work.
-- Update the owning task in the same commit as a release-coordinated change.
+- Update the owning task while making a release-coordinated change. The
+  checklists are git-ignored, so the PR names the checklist it updated.
 - Keep deployment, live verification and native-device verification distinct.
   Local passing tests do not prove any of them.
 - Record the dependency order, exact target or command, backwards-compatibility
