@@ -20,6 +20,7 @@
     "build:android:prod": "node scripts/build-mobile.js android && npx cap sync android",
     "build:android:dev": "node scripts/build-mobile.js androiddev && npx cap sync android",
     "icons:optimize": ".venv/bin/python3 scripts/optimize_icons.py",
+    "badges:generate": "node scripts/generate-badges.mjs",
     "build:ios:prod": "node scripts/build-mobile.js ios && npx cap sync ios",
     "build:ios:dev": "node scripts/build-mobile.js iosdev && npx cap sync ios",
     "build:mobile:prod": "node scripts/build-mobile.js ios && npx cap sync ios && node scripts/build-mobile.js android && npx cap sync android",

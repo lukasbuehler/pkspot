@@ -17,7 +17,7 @@ export interface BadgeCategory {
   id: string;
   name: string;
   description: string;
-  iconPrefix: string; // e.g., 'early_' -> 'early_5.png' for tier 5
+  iconPrefix: string; // e.g. "early_" -> "early_5.svg" for tier 5
   stat?: keyof import("../../db/schemas/UserSchema").UserSchema; // For stat-based
   tiers: BadgeTier[];
 }
@@ -62,7 +62,7 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     id: "spots_created",
     name: "Spot Creator",
     description: "Created spots on the map",
-    iconPrefix: "spot_", // Reusing early_ icons for now
+    iconPrefix: "spot_",
     stat: "spot_creates_count",
     tiers: [
       {
@@ -130,7 +130,7 @@ export const SPECIAL_BADGES: Record<string, Badge> = {
   // beta_tester: {
   //   id: "beta_tester",
   //   name: "Beta Tester",
-  //   icon: "assets/badges/early_3.png",
+  //   icon: "assets/badges/early_3.svg",
   //   tier: 3,
   //   category: "special",
   // },
