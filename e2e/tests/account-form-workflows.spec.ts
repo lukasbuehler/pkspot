@@ -63,10 +63,11 @@ test.describe("account form workflows", () => {
     await page.locator('button[type="submit"]').click();
 
     await expectRoute(page, /\/de\/sign-up$/u);
-    await expect(page.locator(".alert-danger")).toBeVisible();
-    await expect(page.locator(".alert-danger")).toContainText(
-      /password|Passwörter/i,
-    );
+    // The mismatch shows as an inline field error under the repeat field.
+    const mismatchError = page.locator("mat-error", {
+      hasText: /password|Passwörter/i,
+    });
+    await expect(mismatchError).toBeVisible();
   });
 
   test("sign-up requires terms agreement before account creation", async ({
@@ -83,6 +84,7 @@ test.describe("account form workflows", () => {
     await page.locator('button[type="submit"]').click();
 
     await expectRoute(page, /\/de\/sign-up$/u);
-    await expect(page.locator(".alert-danger")).toBeVisible();
+    // The missing agreement shows as an inline error under the checkbox.
+    await expect(page.locator("#sign-up-terms-error")).toBeVisible();
   });
 });
