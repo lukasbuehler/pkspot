@@ -13,10 +13,12 @@ import {
 
 /**
  * The baselines come from macOS, while CI renders on Ubuntu with different
- * font antialiasing (about 4 % of the action row's pixels). These shots guard
- * the button layout, which the bounding-box checks below also cover.
+ * font antialiasing (491 of the action row's ~12,000 pixels). The global
+ * limit of 100 pixels would win over a ratio, so raise the pixel limit here.
+ * These shots guard the button layout, which the bounding-box checks below
+ * also cover.
  */
-const FONT_RENDERING_TOLERANCE = 0.06;
+const FONT_RENDERING_MAX_DIFF_PIXELS = 750;
 const screenshotDir = "output/playwright";
 
 test.describe("profile privacy follow request workflows", () => {
@@ -90,7 +92,7 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Request follow|Folgeanfrage senden/u);
     await expect(actions).toHaveScreenshot("profile-follow-action-ready.png", {
       animations: "disabled",
-      maxDiffPixelRatio: FONT_RENDERING_TOLERANCE,
+      maxDiffPixels: FONT_RENDERING_MAX_DIFF_PIXELS,
     });
 
     const devtools = await context.newCDPSession(page);
@@ -106,7 +108,7 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(spinner).toBeVisible();
     await expect(actions).toHaveScreenshot("profile-follow-action-loading.png", {
       animations: "disabled",
-      maxDiffPixelRatio: FONT_RENDERING_TOLERANCE,
+      maxDiffPixels: FONT_RENDERING_MAX_DIFF_PIXELS,
     });
 
     const [buttonBox, spinnerBox] = await Promise.all([
@@ -157,7 +159,7 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Requested|Angefragt/u);
     await expect(actions).toHaveScreenshot("profile-follow-action-requested.png", {
       animations: "disabled",
-      maxDiffPixelRatio: FONT_RENDERING_TOLERANCE,
+      maxDiffPixels: FONT_RENDERING_MAX_DIFF_PIXELS,
     });
 
     await page.screenshot({
