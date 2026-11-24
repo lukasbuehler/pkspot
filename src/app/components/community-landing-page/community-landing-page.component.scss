@@ -11,8 +11,7 @@
   padding: 0 0 24px;
 }
 
-.community-page-panel .content-section,
-.community-page-panel .panel-disclaimer {
+.community-page-panel .content-section {
   padding: 0 16px;
 }
 
@@ -329,18 +328,6 @@
   min-width: 0;
 }
 
-.community-knowledge-dialog-title-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 15px;
-  color: var(--mat-sys-on-primary-container);
-  background: var(--mat-sys-primary-container);
-}
-
 .community-knowledge-dialog-content {
   display: flex;
   flex-direction: column;
@@ -455,8 +442,6 @@
 .stat-label,
 .local-info-body,
 .community-link-meta,
-.venue-line,
-.panel-disclaimer,
 .page-updated-text {
   color: var(--mat-sys-on-surface-variant);
 }

@@ -196,15 +196,10 @@ h2 {
 .spot-preview-grid,
 .coming-up-cards {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-// Spot cards keep a readable minimum width: four across on wide screens, two on
-// tablets, so names and localities are not cut down to a few letters.
-.spot-preview-grid,
-.coming-up-cards {
+  // Spot cards keep a readable minimum width: four across on wide screens, two
+  // on tablets, so names and localities are not cut down to a few letters.
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
 }
 
 .spot-preview-link {
@@ -261,10 +256,7 @@ h2 {
   font: var(--mat-sys-label-large);
 }
 
-.coming-up__community {
-  color: var(--mat-sys-primary);
-}
-
+.coming-up__community,
 .coming-up__relationship {
   color: var(--mat-sys-primary);
 }

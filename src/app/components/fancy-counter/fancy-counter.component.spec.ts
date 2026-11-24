@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { FancyCounterComponent } from "./fancy-counter.component";
@@ -15,7 +14,6 @@ describe("FancyCounterComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FancyCounterComponent],
-      providers: [provideNoopAnimations()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FancyCounterComponent);
@@ -33,6 +31,28 @@ describe("FancyCounterComponent", () => {
     const nextDigit = digitElements()[0];
     expect(nextDigit).not.toBe(initialDigit);
     expect(nextDigit.textContent?.trim()).toBe("2");
+  });
+
+  it("removes old digits at once so they cannot pile up", async () => {
+    for (const value of [1419, 1414, 1168]) {
+      fixture.componentRef.setInput("number", value);
+      await fixture.whenStable();
+    }
+
+    expect(digitElements().map((digit) => digit.textContent).join("")).toBe(
+      "1168",
+    );
+  });
+
+  it("slides new digits in from above when the number grows", async () => {
+    fixture.componentRef.setInput("number", 3);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.style.getPropertyValue("--digit-enter-offset")).toBe("-1rem");
+
+    fixture.componentRef.setInput("number", 2);
+    await fixture.whenStable();
+    expect(host.style.getPropertyValue("--digit-enter-offset")).toBe("1rem");
   });
 
   it("reads the number as one value instead of separate digits", async () => {

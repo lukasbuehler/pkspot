@@ -2901,6 +2901,24 @@ test("dialogs respect Duo side cutouts after rotation and with a keyboard @visua
   }
 });
 
+test("event calendar fits the Duo outer display in landscape @visual", async ({ page }) => {
+  const viewport = { width: 678, height: 466 };
+  await prepareRoute(page, { name: "duo-calendar-landscape", path: "/events?view=calendar&month=2026-08&day=2026-08-01",
+    viewport, eventIndexFixture: true, fixedTime: "2026-07-20T12:00:00.000Z" });
+  // The insets iOS reports for the outer display in landscape.
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-area-inset-left", "84px");
+    document.documentElement.style.setProperty("--safe-area-inset-bottom", "34px");
+  });
+  const scroll = page.locator(".calendar-scroll");
+  await scroll.scrollIntoViewIfNeeded();
+  const weekdays = (await page.locator(".weekday-row").boundingBox())!;
+  const box = (await scroll.boundingBox())!;
+  // The weekday row and the scrolling weeks share one screen above the inset.
+  expect(box.y + box.height - weekdays.y).toBeLessThanOrEqual(viewport.height - 34);
+  await expect(page).toHaveScreenshot("duo-calendar-landscape.png");
+});
+
 for (const viewport of [{width: 466, height: 678}, {width: 1040, height: 768}]) {
   test(`About background and carousel respect Duo layout ${viewport.width} @visual`, async ({page}) => {
     await prepareRoute(page, {name: "duo-about", path: "/about", viewport});
