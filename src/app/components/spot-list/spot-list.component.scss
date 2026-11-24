@@ -3,7 +3,6 @@
 .spot-container {
   display: grid;
   gap: 10px;
-  grid-auto-rows: 1fr;
   max-width: 100%;
 
   > * {
@@ -15,6 +14,15 @@
 }
 .spot-container.compact {
   grid-template-columns: repeat(1, 1fr);
+}
+
+// Each row is as tall as its tallest card, and every card fills its row. A
+// Spot without media beside one with a photo shows a full placeholder; a row
+// of only such Spots (or a single one) keeps them short.
+.spot-container:not(.compact) > * > a,
+.spot-container:not(.compact) app-spot-preview-card {
+  display: block;
+  height: 100%;
 }
 
 // auto-fill keeps empty columns, so one or two results stay normal-sized
