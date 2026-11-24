@@ -8,14 +8,31 @@ const { renderShareCard, shareCardFingerprint } = require('../../functions/lib/f
 const { shouldPrepareShareCard } = require('../../functions/lib/functions/src/shareCards/policy.js');
 const assets = { fontFile: resolve('src/assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf') };
 const input = { kind:'spot', audience:'public', title:'A <Spot> & friends', subtitle:'Zürich, Switzerland' };
-test('all local fixtures produce a real 1200x630 PNG, including long titles', async () => {
+// WhatsApp drops link-preview images above roughly 300 KB.
+const WHATSAPP_PREVIEW_LIMIT = 300 * 1024;
+test('all local fixtures produce an opaque 1200x630 JPEG within the WhatsApp preview limit', async () => {
   const { fixtures } = await import('./fixtures.mjs');
+  const logo = await readFile('src/assets/brand/pkspot/pkspot_logo_oneline_dark.png');
+  // Includes the 16-photo community collage and three-photo Spot collages.
+  assert.ok(fixtures.some(fixture => fixture.kind === 'community' && fixture.photos.length === 16));
   for (const fixture of fixtures) {
     const photos = await Promise.all(fixture.photos.map(path => readFile(path)));
-    const png = await renderShareCard({...fixture, audience:'public', photos}, assets);
-    const metadata = await sharp(png).metadata();
-    assert.equal(metadata.format,'png'); assert.equal(metadata.width,1200); assert.equal(metadata.height,630);
+    const jpeg = await renderShareCard({...fixture, audience:'public', photos}, {...assets, logo});
+    const metadata = await sharp(jpeg).metadata();
+    assert.equal(metadata.format,'jpeg',fixture.id); assert.equal(metadata.width,1200); assert.equal(metadata.height,630);
+    assert.equal(metadata.hasAlpha,false,fixture.id);
+    assert.ok(jpeg.length < WHATSAPP_PREVIEW_LIMIT, `${fixture.id}: ${jpeg.length} bytes`);
   }
+});
+test('lossless PNG output remains available for the checked-in fallback', async () => {
+  const png = await renderShareCard(input, assets, {format:'png'});
+  const metadata = await sharp(png).metadata();
+  assert.equal(metadata.format,'png'); assert.equal(metadata.width,1200); assert.equal(metadata.height,630);
+});
+test('stored cards are served with the type of their format', () => {
+  const { shareCardImageType } = require('../../functions/lib/functions/src/shareCards/render.js');
+  assert.equal(shareCardImageType('share_cards/events/key/lease.jpg'),'image/jpeg');
+  assert.equal(shareCardImageType('share_cards/events/key/legacy.png'),'image/png');
 });
 test('unreadable photos use the designed fallback; restricted data is rejected', async () => {
   const plain = await renderShareCard(input,assets);
@@ -195,7 +212,8 @@ test('event cards include localized locality alongside the date and venue', () =
 
 test('type labels have no accent bar and place context leaves the supporting row intact', async () => {
   for(const kind of ['spot','event','community']) {
-    const png=await renderShareCard({...input,kind,title:'Zürich',locationLabel:'Switzerland',subtitle:'141 Spots'},assets);
+    // Lossless output, so the exact background colour is not JPEG-rounded.
+    const png=await renderShareCard({...input,kind,title:'Zürich',locationLabel:'Switzerland',subtitle:'141 Spots'},assets,{format:'png'});
     const {data,info}=await sharp(png).raw().toBuffer({resolveWithObject:true});
     const offset=(62*info.width+58)*info.channels;
     assert.deepEqual([...data.subarray(offset,offset+3)],[24,25,31]);

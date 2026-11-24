@@ -408,8 +408,11 @@ runWithEmulator("private check-in callables", () => {
     const url = `http://${functionsHost}/${client.app.options.projectId}/europe-west1/shareCardImage?kind=spot&id=${id}`;
     const image = await fetch(url);
     expect(image.status).toBe(200);
-    expect(image.headers.get("content-type")).toContain("image/png");
-    expect([...new Uint8Array(await image.arrayBuffer()).slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+    expect(image.headers.get("content-type")).toContain("image/jpeg");
+    const bytes = new Uint8Array(await image.arrayBuffer());
+    // JPEG start-of-image marker; prepared cards stay within WhatsApp's ~300 KB preview limit.
+    expect([...bytes.slice(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
+    expect(bytes.length).toBeLessThan(300 * 1024);
     await db().doc(`spots/${id}`).update({visibility: "private"});
     expect((await fetch(url)).status).toBe(404);
   }, 90_000);

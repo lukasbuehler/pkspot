@@ -24,13 +24,20 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-13";
+/** JPEG keeps photo cards well below the roughly 300 KB limit that WhatsApp
+ * applies to link-preview images. PNG remains available for lossless design
+ * assets, such as the checked-in fallback, and pixel-exact layout tests. */
+export type ShareCardFormat = "jpeg" | "png";
+export interface ShareCardRenderOptions { format?: ShareCardFormat }
+// Bumped for the JPEG output, so the next explicit Share replaces a cached PNG.
+export const SHARE_CARD_VERSION = "prototype-14";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 
 /** No network, Firebase, or filesystem writes. The local lab and future worker
  * call this exact renderer with resolved, publication-approved asset buffers.
  * Raster artwork has a fixed palette independent of the viewer's app theme. */
-export async function renderShareCard(input: ShareCardInput, assets: ShareCardAssets): Promise<Buffer> {
+export async function renderShareCard(input: ShareCardInput, assets: ShareCardAssets,
+  options: ShareCardRenderOptions = {}): Promise<Buffer> {
   if (input.audience !== "public") throw new Error("Restricted content cannot produce a public share card");
   if (!input.title.trim() || input.title.length > 240 || input.subtitle.length > 240 || (input.detail?.length ?? 0) > 160 || (input.locationLabel?.length ?? 0) > 240) {
     throw new Error("Share card text is missing or too long");
@@ -113,8 +120,21 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
     layers.push({ input: shadow, left: 912, top: 555 });
     layers.push({ input: logo, left: 924, top: 565 });
   } else await addText("PK SPOT", 924, 565, 220, 42, 36, "#f4f3ff", true);
-  return sharp({ create: { ...SHARE_CARD_SIZE, channels: 4, background: "#18191f" } })
-    .composite(layers).png().toBuffer();
+  // Flatten the composite first: chaining composite() and flatten() on one
+  // pipeline would flatten the base canvas before the layers are applied.
+  const { data, info } = await sharp({ create: { ...SHARE_CARD_SIZE, channels: 4, background: "#18191f" } })
+    .composite(layers).raw().toBuffer({ resolveWithObject: true });
+  const opaque = sharp(data, { raw: info }).flatten({ background: "#18191f" });
+  // Full chroma keeps the coloured label and rating text crisp; photo-heavy
+  // cards still stay near 150 KB at this quality.
+  return options.format === "png" ? opaque.png().toBuffer()
+    : opaque.jpeg({ quality: 82, mozjpeg: true, chromaSubsampling: "4:4:4" }).toBuffer();
+}
+
+/** Cards prepared before the JPEG renderer are stored as `.png` and remain
+ * valid until the next explicit Share replaces them. */
+export function shareCardImageType(path: string): "image/jpeg" | "image/png" {
+  return /\.jpe?g$/i.test(path) ? "image/jpeg" : "image/png";
 }
 
 /** Content-based keys let callers coalesce work and retain an old card until a

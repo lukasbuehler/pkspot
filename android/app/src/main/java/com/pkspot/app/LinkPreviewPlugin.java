@@ -36,8 +36,11 @@ public class LinkPreviewPlugin extends Plugin {
       }
       String encoded = call.getString("imageBase64", "");
       if (!encoded.isEmpty() && encoded.length() <= 4 * 1024 * 1024) {
-        File file = new File(directory, UUID.randomUUID() + ".png");
-        try (FileOutputStream output = new FileOutputStream(file)) { output.write(Base64.decode(encoded, Base64.DEFAULT)); }
+        byte[] image = Base64.decode(encoded, Base64.DEFAULT);
+        // Name the file by its format: FileProvider derives the MIME type from the extension.
+        boolean jpeg = image.length > 2 && (image[0] & 0xff) == 0xff && (image[1] & 0xff) == 0xd8;
+        File file = new File(directory, UUID.randomUUID() + (jpeg ? ".jpg" : ".png"));
+        try (FileOutputStream output = new FileOutputStream(file)) { output.write(image); }
         Uri thumbnail = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", file);
         // ClipData supplies the Sharesheet thumbnail. Deliberately no EXTRA_STREAM
         // and no image MIME type: the payload remains a text link, not an attachment.

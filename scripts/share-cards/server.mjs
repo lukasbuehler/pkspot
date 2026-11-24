@@ -62,10 +62,10 @@ createServer(async (request, response) => {
         input[field] = data[field];
       }
       input.rating = input.kind === 'spot' ? data.rating ?? undefined : undefined;
-      const png = await renderShareCard(input, assets);
-      response.setHeader('Content-Type', 'image/png');
+      const jpeg = await renderShareCard(input, assets);
+      response.setHeader('Content-Type', 'image/jpeg');
       response.setHeader('X-Card-Fingerprint', shareCardFingerprint(input));
-      return response.end(png);
+      return response.end(jpeg);
     }
     response.writeHead(404); response.end('Not found');
   } catch (error) {

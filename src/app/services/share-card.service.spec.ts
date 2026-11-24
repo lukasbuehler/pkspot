@@ -98,6 +98,12 @@ describe("ShareCardService failure isolation", () => {
     expect(close).toHaveBeenCalledOnce();
     expect(service.preparing()).toBe(false);
   });
+  it("hands a validated JPEG card to the native preview bridge", async () => {
+    call.mockResolvedValue({imageUrl: endpoint, reused: false});
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ok: true, blob: async () => new Blob(["jpeg-fixture"], {type: "image/jpeg"})}));
+    await TestBed.inject(ShareCardService).share({kind: "spot", id: "spot"}, link, "Spot");
+    expect(nativeShare).toHaveBeenCalledWith({url: link, title: "Spot", imageBase64: btoa("jpeg-fixture")});
+  });
   it("rejects an unexpected preview host without fetching it", async () => {
     call.mockResolvedValue({imageUrl: "https://attacker.invalid/image.png", reused: false});
     const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
