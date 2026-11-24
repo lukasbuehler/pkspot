@@ -1,10 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { computeCommunityBounds } from "./CommunityBoundsHelpers";
+import {
+  COMMUNITY_RADIUS_EDGE_MARGIN_M,
+  MIN_COMMUNITY_RADIUS_M,
+  computeCommunityBounds,
+  getDistanceMeters,
+} from "./CommunityBoundsHelpers";
 
 describe("computeCommunityBounds", () => {
-  // Radius algorithm: 80th-percentile distance from centroid + 5 % cushion,
-  // floor 1 km. Numbers below are the expected output of that math; if the
+  // Radius algorithm: 80th-percentile distance from centroid + 5 % cushion
+  // + 100 m edge margin, floor 250 m. Numbers below are the expected output of that math; if the
   // algorithm changes (e.g. percentile dial moves), update here.
 
   it("computes the centroid and 80th-percentile radius from raw spot locations", () => {
@@ -17,7 +22,7 @@ describe("computeCommunityBounds", () => {
     expect(bounds).not.toBeNull();
     expect(bounds?.bounds_center[0]).toBeCloseTo(47.37, 6);
     expect(bounds?.bounds_center[1]).toBeCloseTo(8.54, 6);
-    expect(bounds?.bounds_radius_m).toBe(1410);
+    expect(bounds?.bounds_radius_m).toBe(1510);
   });
 
   it("supports Firestore GeoPoint-like location fields", () => {
@@ -28,7 +33,7 @@ describe("computeCommunityBounds", () => {
 
     expect(bounds?.bounds_center[0]).toBeCloseTo(47.37, 6);
     expect(bounds?.bounds_center[1]).toBeCloseTo(8.54, 6);
-    expect(bounds?.bounds_radius_m).toBe(1410);
+    expect(bounds?.bounds_radius_m).toBe(1510);
   });
 
   it("ignores a single far-flung outlier spot via the 80th percentile", () => {
@@ -99,6 +104,41 @@ describe("computeCommunityBounds", () => {
     expect(bounds?.bounds_center[0]).toBeCloseTo(47.385, 6);
     expect(bounds?.bounds_center[1]).toBeCloseTo(8.56, 6);
     expect(bounds!.bounds_radius_m).toBeGreaterThan(1_000);
+  });
+
+  it("fits a small town tightly instead of using a 1 km disc", () => {
+    // Five Spots within a few hundred metres, like a small old town.
+    const spots = [
+      { lat: 47.2268, lng: 8.8166 },
+      { lat: 47.2262, lng: 8.8189 },
+      { lat: 47.2251, lng: 8.8204 },
+      { lat: 47.2239, lng: 8.8178 },
+      { lat: 47.2236, lng: 8.8160 },
+    ].map((location_raw) => ({ location_raw }));
+    const bounds = computeCommunityBounds(spots, { radiusPercentile: 1 });
+
+    expect(bounds).not.toBeNull();
+    const center = {
+      lat: bounds!.bounds_center[0],
+      lng: bounds!.bounds_center[1],
+    };
+    const furthest = Math.max(
+      ...spots.map((spot) => getDistanceMeters(center, spot.location_raw)),
+    );
+    // Every Spot stays inside the circle with the edge margin to spare.
+    expect(bounds!.bounds_radius_m).toBeGreaterThanOrEqual(
+      furthest + COMMUNITY_RADIUS_EDGE_MARGIN_M,
+    );
+    // ...but the circle stays town-sized, well under the old 1 km floor.
+    expect(bounds!.bounds_radius_m).toBeLessThan(500);
+  });
+
+  it("gives a single Spot the minimum radius", () => {
+    const bounds = computeCommunityBounds([
+      { location_raw: { lat: 47.2268, lng: 8.8166 } },
+    ]);
+
+    expect(bounds?.bounds_radius_m).toBe(MIN_COMMUNITY_RADIUS_M);
   });
 
   it("returns null when no spot has a usable location", () => {

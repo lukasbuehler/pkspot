@@ -23,6 +23,11 @@ interface RouteVisualCase {
   openTrainWeatherDialog?: boolean;
   openInvalidEventsDialog?: boolean;
   openProfilePrivacySelect?: boolean;
+  /**
+   * Gives the signed-in user badge stats (no level 5, whose holo shine is
+   * animated) and opens the Spot Creator badge dialog.
+   */
+  openBadgeDialog?: boolean;
   invalidEventFixture?: boolean;
   expectedPath?: RegExp;
   fullPage?: boolean;
@@ -626,6 +631,19 @@ const routeVisualCases: RouteVisualCase[] = [
     fixedTime: "2026-07-20T12:00:00.000Z",
     assertCenteredProfile: true,
   },
+  ...[
+    { name: "profile-badge-dialog", viewport: desktopViewport },
+    { name: "profile-badge-dialog-mobile", viewport: mobileViewport },
+  ].map(({ name, viewport }): RouteVisualCase => ({
+    name,
+    viewport,
+    path: "/profile",
+    signedIn: true,
+    expectedPath: /\/de\/u\/visual-route-user$/u,
+    openBadgeDialog: true,
+    maxDiffPixels: 1_500,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  })),
   { name: "account-mobile", path: "/account", viewport: mobileViewport, fullPage: true },
   { name: "account", path: "/account", fullPage: true, maxDiffPixels: 1_000 },
   ...[
@@ -1456,6 +1474,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       invalidEventFixture,
       liveEventFixture,
       myEventsDialogFixture,
+      openBadgeDialog,
       publicProfile,
       signedIn,
       trainFixture,
@@ -2053,6 +2072,14 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
           following_count: 8,
           // Matches the visited list in __PKSPOT_SCREENSHOT_PRIVATE_DATA__ below.
           visited_spots_count: 4,
+          ...(openBadgeDialog
+            ? {
+                signup_number: 300,
+                spot_creates_count: 37,
+                spot_edits_count: 8,
+                media_added_count: 120,
+              }
+            : {}),
           start_date: {
             seconds: Date.UTC(2019, 3, 12) / 1_000,
             nanoseconds: 0,
@@ -2415,6 +2442,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       invalidEventFixture: route.invalidEventFixture === true,
       liveEventFixture: route.liveEventFixture === true,
       myEventsDialogFixture: route.myEventsDialogFixture === true,
+      openBadgeDialog: route.openBadgeDialog === true,
       publicProfile: route.publicProfile === true,
       signedIn: route.signedIn === true,
       trainFixture: route.trainFixture === true,
@@ -2531,6 +2559,32 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       .nth(1)
       .click();
     await expect(page.locator("app-recovery-pause-dialog")).toBeVisible();
+  }
+
+  if (route.openBadgeDialog) {
+    const badges = page.locator("app-profile-page .badge-item");
+    await expect(badges).toHaveCount(4);
+    await badges.filter({ has: page.locator('img[src$="spot_3.svg"]') }).click();
+    const dialog = page.locator("app-badge-category-dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("img.level__sticker")).toHaveCount(3);
+    await expect(dialog.locator(".level__sticker.silhouette")).toHaveCount(2);
+    await expect(dialog.locator("mat-progress-bar")).toBeVisible();
+    await expect
+      .poll(() =>
+        dialog.locator("img").evaluateAll((images) =>
+          images.every((image) => (image as HTMLImageElement).complete),
+        ),
+      )
+      .toBe(true);
+    await page.locator(".cdk-overlay-container").evaluate(async (container) => {
+      await Promise.all(
+        container
+          .getAnimations({ subtree: true })
+          .filter((animation) => animation.timeline instanceof DocumentTimeline)
+          .map((animation) => animation.finished.catch(() => undefined)),
+      );
+    });
   }
 
   if (route.openInvalidEventsDialog) {

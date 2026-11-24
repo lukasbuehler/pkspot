@@ -3,9 +3,17 @@ import { UserSchema } from "../../db/schemas/UserSchema";
 import {
   Badge,
   BadgeCategory,
+  BadgeCategoryProgress,
+  BadgeTier,
+  BadgeTierProgress,
   BADGE_CATEGORIES,
   SPECIAL_BADGES,
 } from "../shared/badge-definitions";
+
+/** Sticker file for one level of a category (see scripts/generate-badges.mjs). */
+function badgeIcon(category: BadgeCategory, tier: BadgeTier["tier"]): string {
+  return `assets/badges/${category.iconPrefix}${tier}.svg`;
+}
 
 @Injectable({
   providedIn: "root",
@@ -69,7 +77,7 @@ export class BadgeService {
         return {
           id: tier.id,
           name: tier.name,
-          icon: `assets/badges/${category.iconPrefix}${tier.tier}.png`,
+          icon: badgeIcon(category, tier.tier),
           tier: tier.tier,
           category: category.id,
         };
@@ -96,7 +104,7 @@ export class BadgeService {
           badges.push({
             id: tier.id,
             name: tier.name,
-            icon: `assets/badges/${category.iconPrefix}${tier.tier}.png`,
+            icon: badgeIcon(category, tier.tier),
             tier: tier.tier,
             category: category.id,
           });
@@ -141,6 +149,51 @@ export class BadgeService {
       // Neither pinned: sort by tier
       return b.tier - a.tier;
     });
+  }
+
+  /**
+   * Every level of one category, with what the user has earned so far and how
+   * close they are to the next level. Returns null for unknown categories,
+   * such as special badges.
+   */
+  getCategoryProgress(
+    userData: UserSchema | null | undefined,
+    categoryId: string,
+  ): BadgeCategoryProgress | null {
+    const category = BADGE_CATEGORIES.find((c) => c.id === categoryId);
+    if (!category) return null;
+
+    const value = category.stat
+      ? ((userData?.[category.stat] as number | undefined) ?? 0)
+      : (userData?.signup_number ?? null);
+
+    const tiers: BadgeTierProgress[] = [...category.tiers]
+      .sort((a, b) => a.tier - b.tier)
+      .map((tier) => {
+        const requirement = (category.stat ? tier.threshold : tier.maxSignup) ?? 0;
+        const earned =
+          value !== null &&
+          (category.stat ? value >= requirement : value > 0 && value <= requirement);
+        return {
+          tier: tier.tier,
+          id: tier.id,
+          name: tier.name,
+          icon: badgeIcon(category, tier.tier),
+          earned,
+          requirement,
+        };
+      });
+
+    const earnedTier = Math.max(0, ...tiers.filter((t) => t.earned).map((t) => t.tier));
+    // Signup numbers never change, so only stat categories have a next level.
+    const next = category.stat ? (tiers.find((t) => !t.earned) ?? null) : null;
+    const percent = next
+      ? Math.min(100, Math.round(((value ?? 0) / next.requirement) * 100))
+      : earnedTier === 5
+        ? 100
+        : 0;
+
+    return { category, value, tiers, earnedTier, next, percent };
   }
 
   /**
