@@ -639,12 +639,14 @@
                 <mat-card-content class="profile-section__content">
                   <div class="badge-grid">
                     @for (badge of badges; track badge.id) {
-                      <div
+                      <button
+                        type="button"
                         class="badge-item"
-                        [title]="badge.name"
+                        matRipple
                         [matTooltip]="
                           badge.name + ' (Level ' + badge.tier + ')'
                         "
+                        (click)="openBadgeDialog(badge)"
                       >
                         <img
                           [src]="badge.icon"
@@ -654,7 +656,7 @@
                         <span class="badge-name mat-body-small">{{
                           badge.name
                         }}</span>
-                      </div>
+                      </button>
                     }
                   </div>
                 </mat-card-content>

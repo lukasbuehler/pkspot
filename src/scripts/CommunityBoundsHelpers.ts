@@ -17,6 +17,11 @@ type CommunityBoundsSpot = {
   }>;
 };
 
+/** Smallest radius a community circle gets, e.g. for a single Spot. */
+export const MIN_COMMUNITY_RADIUS_M = 250;
+/** Fixed margin added beyond the furthest counted Spot footprint point. */
+export const COMMUNITY_RADIUS_EDGE_MARGIN_M = 100;
+
 export interface CommunityBounds {
   bounds_center: [number, number];
   bounds_radius_m: number;
@@ -153,8 +158,11 @@ export function getDistanceMeters(
  *    spot that would otherwise stretch France's circle across half of
  *    Europe. 80 % covers the vast majority of the community without
  *    chasing extremes.
- *  - Floor of 1 km so single-spot or tightly-clustered communities still
- *    have a visible footprint.
+ *  - Plus a fixed edge margin, so pins near the edge sit inside the line
+ *    rather than on it.
+ *  - Floor of 250 m so single-spot communities still have a visible
+ *    footprint. Keep the floor small: a town whose Spots lie within a few
+ *    hundred metres should get a circle of that size, not a 2 km disc.
  */
 export function computeCommunityBounds(
   spots: CommunityBoundsSpot[],
@@ -198,6 +206,9 @@ export function computeCommunityBounds(
 
   return {
     bounds_center: [center.lat, center.lng],
-    bounds_radius_m: Math.max(1000, Math.round(percentileDistance * 1.05)),
+    bounds_radius_m: Math.max(
+      MIN_COMMUNITY_RADIUS_M,
+      Math.round(percentileDistance * 1.05 + COMMUNITY_RADIUS_EDGE_MARGIN_M),
+    ),
   };
 }

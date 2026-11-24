@@ -52,6 +52,10 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { NgOptimizedImage } from "@angular/common";
 import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
+import {
+  BadgeCategoryDialogComponent,
+  BadgeCategoryDialogData,
+} from "../badge-category-dialog/badge-category-dialog.component";
 import { AnalyticsService } from "../../services/analytics.service";
 import {
   ProfileReportDialogComponent,
@@ -887,6 +891,28 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         maxHeight: "95dvh",
         panelClass: "profile-picture-dialog-panel",
       });
+    });
+  }
+
+  /** Opens every level of the clicked badge's category, with progress. */
+  openBadgeDialog(badge: Badge) {
+    const progress = this._badgeService.getCategoryProgress(
+      this.user?.data,
+      badge.category,
+    );
+    if (!progress) {
+      return;
+    }
+
+    this.followListDialog.open<
+      BadgeCategoryDialogComponent,
+      BadgeCategoryDialogData
+    >(BadgeCategoryDialogComponent, {
+      ...this.dialogConfig,
+      width: "min(560px, 96vw)",
+      maxWidth: "96vw",
+      maxHeight: "92dvh",
+      data: { progress },
     });
   }
 

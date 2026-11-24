@@ -16,10 +16,37 @@ export interface BadgeTier {
 export interface BadgeCategory {
   id: string;
   name: string;
+  /** One line under the name in the badge dialog. */
   description: string;
   iconPrefix: string; // e.g. "early_" -> "early_5.svg" for tier 5
   stat?: keyof import("../../db/schemas/UserSchema").UserSchema; // For stat-based
   tiers: BadgeTier[];
+}
+
+/** One level of a category, as shown in the badge dialog. */
+export interface BadgeTierProgress {
+  tier: BadgeTier["tier"];
+  id: string;
+  name: string;
+  icon: string;
+  earned: boolean;
+  /** Stat threshold, or the highest signup number for early adopter levels. */
+  requirement: number;
+}
+
+/** How far a user is through one badge category. */
+export interface BadgeCategoryProgress {
+  category: BadgeCategory;
+  /** The stat value, or the signup number for early adopter badges. */
+  value: number | null;
+  /** Levels from 1 to 5. */
+  tiers: BadgeTierProgress[];
+  /** The highest level earned, or 0. */
+  earnedTier: number;
+  /** The next level to earn. Always null for early adopter badges. */
+  next: BadgeTierProgress | null;
+  /** Progress towards `next` from 0 to 100; 100 when every level is earned. */
+  percent: number;
 }
 
 export interface Badge {
@@ -37,8 +64,8 @@ export interface Badge {
 export const BADGE_CATEGORIES: BadgeCategory[] = [
   {
     id: "early_adopter",
-    name: "Early Adopter",
-    description: "Joined PK Spot early",
+    name: $localize`:@@badges.category.early_adopter.name:Early Adopter`,
+    description: $localize`:@@badges.category.early_adopter.description:One of the first people to join PK Spot.`,
     iconPrefix: "early_",
     tiers: [
       { tier: 5, id: "founder", name: $localize`Founder`, maxSignup: 100 },
@@ -60,8 +87,8 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
   },
   {
     id: "spots_created",
-    name: "Spot Creator",
-    description: "Created spots on the map",
+    name: $localize`:@@badges.category.spots_created.name:Spot Creator`,
+    description: $localize`:@@badges.category.spots_created.description:Adds new Spots to the map.`,
     iconPrefix: "spot_",
     stat: "spot_creates_count",
     tiers: [
@@ -84,8 +111,8 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
   },
   {
     id: "spots_edited",
-    name: "Spot Editor",
-    description: "Made edits to spots",
+    name: $localize`:@@badges.category.spots_edited.name:Spot Editor`,
+    description: $localize`:@@badges.category.spots_edited.description:Keeps Spot details up to date.`,
     iconPrefix: "update_",
     stat: "spot_edits_count",
     tiers: [
@@ -103,8 +130,8 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
   },
   {
     id: "media_added",
-    name: "Media Contributor",
-    description: "Added photos and videos",
+    name: $localize`:@@badges.category.media_added.name:Media Contributor`,
+    description: $localize`:@@badges.category.media_added.description:Adds photos and videos to Spots.`,
     iconPrefix: "media_",
     stat: "media_added_count",
     tiers: [
