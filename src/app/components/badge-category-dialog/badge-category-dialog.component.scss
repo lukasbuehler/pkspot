@@ -1,0 +1,122 @@
+:host {
+  display: block;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-block-end: 24px;
+}
+
+.summary__sticker {
+  flex: none;
+  width: 96px;
+  height: 96px;
+}
+
+.summary__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary__description,
+.summary__value,
+.summary__next {
+  margin: 0;
+}
+
+.summary__description,
+.summary__next {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.summary__next {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.summary__fraction {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.levels {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  min-width: 0;
+}
+
+.level__sticker {
+  width: 64px;
+  height: 64px;
+  margin-block-end: 4px;
+}
+
+.level__name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.level__requirement {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.level--locked .level__name {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// A missing level shows only the outline of its sticker, so the shape hints
+// at what comes next without giving the artwork away.
+.silhouette {
+  display: block;
+  background-color: var(--mat-sys-outline-variant);
+  -webkit-mask: var(--badge-icon) center / contain no-repeat;
+  mask: var(--badge-icon) center / contain no-repeat;
+}
+
+// Five columns are too narrow for level names on phones, so the levels
+// become rows: sticker, name, requirement.
+@media (max-width: 480px) {
+  .summary__sticker {
+    width: 72px;
+    height: 72px;
+  }
+
+  .levels {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .level {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    text-align: start;
+  }
+
+  .level__sticker {
+    width: 48px;
+    height: 48px;
+    margin: 0;
+  }
+}

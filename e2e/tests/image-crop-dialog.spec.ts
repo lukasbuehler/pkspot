@@ -45,7 +45,7 @@ test.describe("authenticated image crop dialog", () => {
     await expect(profileEditor).toBeVisible({ timeout: 15_000 });
     await profileEditor
       .locator('input[type="file"]')
-      .setInputFiles(resolve("src/assets/badges/spot_4.png"));
+      .setInputFiles(resolve("src/assets/icons/icon-512.png"));
 
     const dialog = page.locator("app-image-crop-dialog");
     await expect(dialog).toBeVisible();
