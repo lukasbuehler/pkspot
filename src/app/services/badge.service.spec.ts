@@ -40,3 +40,57 @@ describe("BadgeService icons", () => {
     }
   }
 });
+
+describe("BadgeService.getCategoryProgress", () => {
+  const service = new BadgeService();
+
+  it("marks earned levels and measures the way to the next one", () => {
+    const progress = service.getCategoryProgress(
+      { spot_creates_count: 37 } as UserSchema,
+      "spots_created",
+    )!;
+
+    expect(progress.tiers.map((t) => [t.tier, t.earned])).toEqual([
+      [1, true],
+      [2, true],
+      [3, true],
+      [4, false],
+      [5, false],
+    ]);
+    expect(progress.earnedTier).toBe(3);
+    expect(progress.next?.tier).toBe(4);
+    expect(progress.next?.requirement).toBe(50);
+    expect(progress.percent).toBe(74);
+  });
+
+  it("reports a finished category as complete", () => {
+    const progress = service.getCategoryProgress(
+      { media_added_count: 500 } as UserSchema,
+      "media_added",
+    )!;
+    expect(progress.next).toBeNull();
+    expect(progress.percent).toBe(100);
+  });
+
+  it("starts at zero when the stat is missing", () => {
+    const progress = service.getCategoryProgress({} as UserSchema, "spots_edited")!;
+    expect(progress.value).toBe(0);
+    expect(progress.earnedTier).toBe(0);
+    expect(progress.next?.tier).toBe(1);
+    expect(progress.percent).toBe(0);
+  });
+
+  it("earns every early adopter level the signup number fits, with no next level", () => {
+    const progress = service.getCategoryProgress(
+      { signup_number: 300 } as UserSchema,
+      "early_adopter",
+    )!;
+    expect(progress.tiers.filter((t) => t.earned).map((t) => t.tier)).toEqual([1, 2, 3]);
+    expect(progress.earnedTier).toBe(3);
+    expect(progress.next).toBeNull();
+  });
+
+  it("returns null for categories it does not know", () => {
+    expect(service.getCategoryProgress({} as UserSchema, "special")).toBeNull();
+  });
+});

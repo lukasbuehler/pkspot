@@ -2193,6 +2193,86 @@
         <source>Remove draft</source>
       </segment>
     </unit>
+    <unit id="badges.amount.early_adopter">
+      <segment>
+        <source>First <ph id="0" equiv="INTERPOLATION" disp="{{ n | number }}"/> members</source>
+      </segment>
+    </unit>
+    <unit id="badges.amount.media_added">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {1 photo or video} other {<ph id="0" equiv="INTERPOLATION"/> photos or videos}}</source>
+      </segment>
+    </unit>
+    <unit id="badges.amount.spots_created">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
+      </segment>
+    </unit>
+    <unit id="badges.amount.spots_edited">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {1 edit} other {<ph id="0" equiv="INTERPOLATION"/> edits}}</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.early_adopter.description">
+      <segment>
+        <source>One of the first people to join PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.early_adopter.name">
+      <segment>
+        <source>Early Adopter</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.media_added.description">
+      <segment>
+        <source>Adds photos and videos to Spots.</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.media_added.name">
+      <segment>
+        <source>Media Contributor</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_created.description">
+      <segment>
+        <source>Adds new Spots to the map.</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_created.name">
+      <segment>
+        <source>Spot Creator</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_edited.description">
+      <segment>
+        <source>Keeps Spot details up to date.</source>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_edited.name">
+      <segment>
+        <source>Spot Editor</source>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.all_levels">
+      <segment>
+        <source> Every level collected </source>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.member_number">
+      <segment>
+        <source> Member #<ph id="0" equiv="INTERPOLATION" disp="{{ progress.value | number }}"/> </source>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.next_level">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ remaining | number }}"/> more to reach <ph id="1" equiv="INTERPOLATION_1" disp="{{ next.name }}"/></source>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.not_earned">
+      <segment>
+        <source>Not earned yet</source>
+      </segment>
+    </unit>
     <unit id="bookmark_spot_tooltip">
       <segment>
         <source>Bookmark this spot</source>

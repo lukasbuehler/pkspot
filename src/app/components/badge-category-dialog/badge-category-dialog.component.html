@@ -1,0 +1,106 @@
+<!-- Category-specific amounts, e.g. "5 Spots" or "First 100 members". -->
+<ng-template #amount let-n>
+  @switch (progress.category.id) {
+    @case ("early_adopter") {
+      <ng-container i18n="@@badges.amount.early_adopter">First {{ n | number }} members</ng-container>
+    }
+    @case ("spots_created") {
+      <ng-container i18n="@@badges.amount.spots_created">{n, plural, =1 {1 Spot} other {{{ n | number }} Spots}}</ng-container>
+    }
+    @case ("spots_edited") {
+      <ng-container i18n="@@badges.amount.spots_edited">{n, plural, =1 {1 edit} other {{{ n | number }} edits}}</ng-container>
+    }
+    @case ("media_added") {
+      <ng-container i18n="@@badges.amount.media_added">{n, plural, =1 {1 photo or video} other {{{ n | number }} photos or videos}}</ng-container>
+    }
+    @default {
+      {{ n | number }}
+    }
+  }
+</ng-template>
+
+<h2 mat-dialog-title>{{ progress.category.name }}</h2>
+
+<mat-dialog-content>
+  <div class="summary">
+    @if (current) {
+      <img class="summary__sticker" [src]="current.icon" alt="" width="96" height="96" />
+    } @else {
+      <span
+        class="summary__sticker silhouette"
+        [style.--badge-icon]="'url(' + progress.tiers[0].icon + ')'"
+      ></span>
+    }
+
+    <div class="summary__text">
+      <p class="mat-body-medium summary__description">
+        {{ progress.category.description }}
+      </p>
+
+      @if (progress.category.stat) {
+        <p class="mat-title-large summary__value">
+          <ng-container
+            [ngTemplateOutlet]="amount"
+            [ngTemplateOutletContext]="{ $implicit: progress.value ?? 0 }"
+          />
+        </p>
+
+        @if (progress.next; as next) {
+          <mat-progress-bar
+            mode="determinate"
+            [value]="progress.percent"
+            [attr.aria-label]="next.name"
+          />
+          <p class="mat-body-small summary__next">
+            <span i18n="@@badges.dialog.next_level"
+              >{{ remaining | number }} more to reach {{ next.name }}</span
+            >
+            <span class="summary__fraction"
+              >{{ progress.value ?? 0 | number }} / {{ next.requirement | number }}</span
+            >
+          </p>
+        } @else {
+          <mat-progress-bar mode="determinate" [value]="100" />
+          <p class="mat-body-small summary__next" i18n="@@badges.dialog.all_levels">
+            Every level collected
+          </p>
+        }
+      } @else if (progress.value) {
+        <p class="mat-title-large summary__value" i18n="@@badges.dialog.member_number">
+          Member #{{ progress.value | number }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <ol class="levels">
+    @for (tier of progress.tiers; track tier.id) {
+      <li class="level" [class.level--locked]="!tier.earned">
+        @if (tier.earned) {
+          <img class="level__sticker" [src]="tier.icon" alt="" width="64" height="64" />
+        } @else {
+          <span
+            class="level__sticker silhouette"
+            [style.--badge-icon]="'url(' + tier.icon + ')'"
+          ></span>
+        }
+        <span class="mat-label-large level__name">{{ tier.name }}</span>
+        <span class="mat-body-small level__requirement">
+          <ng-container
+            [ngTemplateOutlet]="amount"
+            [ngTemplateOutletContext]="{ $implicit: tier.requirement }"
+          />
+        </span>
+        @if (!tier.earned) {
+          <span class="cdk-visually-hidden" i18n="@@badges.dialog.not_earned"
+            >Not earned yet</span
+          >
+        }
+      </li>
+    }
+  </ol>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton mat-dialog-close i18n="@@common.close">Close</button>
+</mat-dialog-actions>

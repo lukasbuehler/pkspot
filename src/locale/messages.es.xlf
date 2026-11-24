@@ -4226,9 +4226,9 @@
       </segment>
     </unit>
     <unit id="3268843240047650795">
-      <segment state="initial">
+      <segment state="translated">
         <source>Trailblazer</source>
-        <target>Pionero</target>
+        <target>Abrecaminos</target>
       </segment>
     </unit>
     <unit id="3269624145102222845">
@@ -6916,9 +6916,9 @@
       </segment>
     </unit>
     <unit id="9019759608416406738">
-      <segment state="initial">
+      <segment state="translated">
         <source>Early Adopter</source>
-        <target>Pionero</target>
+        <target>Adelantado</target>
       </segment>
     </unit>
     <unit id="9023791413043930148">
@@ -17568,9 +17568,9 @@
       </segment>
     </unit>
     <unit id="7224722019363844519">
-      <segment state="initial">
+      <segment state="translated">
         <source>Pathfinder</source>
-        <target>Pionero</target>
+        <target>Rastreador</target>
       </segment>
     </unit>
     <unit id="7276436554511308696">
@@ -17969,6 +17969,102 @@
         <target>Abrir esto en PK Spot</target>
       </segment>
     </unit>
+    <unit id="badges.amount.early_adopter">
+      <segment state="translated">
+        <source>First <ph id="0" equiv="INTERPOLATION" disp="{{ n | number }}"/> members</source>
+        <target>Primeros <ph id="0" equiv="INTERPOLATION" disp="{{ n | number }}"/> miembros</target>
+      </segment>
+    </unit>
+    <unit id="badges.amount.media_added">
+      <segment state="translated">
+        <source>{VAR_PLURAL, plural, =1 {1 photo or video} other {<ph id="0" equiv="INTERPOLATION"/> photos or videos}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 foto o vídeo} other {<ph id="0" equiv="INTERPOLATION"/> fotos o vídeos}}</target>
+      </segment>
+    </unit>
+    <unit id="badges.amount.spots_created">
+      <segment state="translated">
+        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</target>
+      </segment>
+    </unit>
+    <unit id="badges.amount.spots_edited">
+      <segment state="translated">
+        <source>{VAR_PLURAL, plural, =1 {1 edit} other {<ph id="0" equiv="INTERPOLATION"/> edits}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 edición} other {<ph id="0" equiv="INTERPOLATION"/> ediciones}}</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.early_adopter.description">
+      <segment state="translated">
+        <source>One of the first people to join PK Spot.</source>
+        <target>Una de las primeras personas en unirse a PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.early_adopter.name">
+      <segment state="translated">
+        <source>Early Adopter</source>
+        <target>Adelantado</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.media_added.description">
+      <segment state="translated">
+        <source>Adds photos and videos to Spots.</source>
+        <target>Añade fotos y vídeos a los Spots.</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.media_added.name">
+      <segment state="translated">
+        <source>Media Contributor</source>
+        <target>Colaborador multimedia</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_created.description">
+      <segment state="translated">
+        <source>Adds new Spots to the map.</source>
+        <target>Añade nuevos Spots al mapa.</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_created.name">
+      <segment state="translated">
+        <source>Spot Creator</source>
+        <target>Creador de Spots</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_edited.description">
+      <segment state="translated">
+        <source>Keeps Spot details up to date.</source>
+        <target>Mantiene al día los detalles de los Spots.</target>
+      </segment>
+    </unit>
+    <unit id="badges.category.spots_edited.name">
+      <segment state="translated">
+        <source>Spot Editor</source>
+        <target>Editor de Spots</target>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.all_levels">
+      <segment state="translated">
+        <source> Every level collected </source>
+        <target> Todos los niveles conseguidos </target>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.member_number">
+      <segment state="translated">
+        <source> Member #<ph id="0" equiv="INTERPOLATION" disp="{{ progress.value | number }}"/> </source>
+        <target> Miembro n.º <ph id="0" equiv="INTERPOLATION" disp="{{ progress.value | number }}"/> </target>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.next_level">
+      <segment state="translated">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ remaining | number }}"/> more to reach <ph id="1" equiv="INTERPOLATION_1" disp="{{ next.name }}"/></source>
+        <target>Faltan <ph id="0" equiv="INTERPOLATION" disp="{{ remaining | number }}"/> para <ph id="1" equiv="INTERPOLATION_1" disp="{{ next.name }}"/></target>
+      </segment>
+    </unit>
+    <unit id="badges.dialog.not_earned">
+      <segment state="translated">
+        <source>Not earned yet</source>
+        <target>Aún no conseguido</target>
+      </segment>
+    </unit>
     <unit id="bookmark_spot_tooltip">
       <segment state="initial">
         <source>Bookmark this spot</source>
@@ -18282,9 +18378,9 @@
       </segment>
     </unit>
     <unit id="1772658275500241538">
-      <segment state="initial">
+      <segment state="translated">
         <source>Snapper</source>
-        <target>Fotógrafo</target>
+        <target>Fotero</target>
       </segment>
     </unit>
     <unit id="1774760996053367231">
