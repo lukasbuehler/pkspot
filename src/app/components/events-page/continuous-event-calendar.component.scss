@@ -64,7 +64,9 @@
 .calendar-scroll {
   position: relative;
   height: min(68dvh, 720px);
-  min-height: 420px;
+  // A short landscape phone (iPhone Duo outer display: 466 pt) keeps the
+  // weekday row and the scroll area within one screen.
+  min-height: min(420px, 75dvh);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
