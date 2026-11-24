@@ -92,10 +92,18 @@ mat-card.fill-height {
   height: 100%;
 }
 
-// A Spot without photos in a recommendation grid: a short strip, not a 4:3 slot.
+// A Spot without photos in a grid: a short strip, not a 4:3 slot. When the
+// row is taller because a neighbour has a photo, the strip takes the extra
+// height, so the placeholder lines up with the neighbour's photo.
 mat-card:not(.compact) > .img-container.missing-media-compact {
+  flex: 1 0 56px;
   aspect-ratio: auto;
-  height: 56px;
+  height: auto;
+  min-height: 56px;
+}
+
+mat-card:has(> .img-container.missing-media-compact) > mat-card-header {
+  flex-grow: 0;
 }
 
 mat-card.clickable:hover {

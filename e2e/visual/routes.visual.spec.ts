@@ -38,6 +38,8 @@ interface RouteVisualCase {
   liveEventFixture?: boolean;
   myEventsDialogFixture?: boolean;
   trainFixture?: boolean;
+  /** Gives the first Train fixture Spot a photo. */
+  trainSpotPhoto?: boolean;
   /** Moves the first nearby fixture event so it is live at the fixed time. */
   trainLiveEventFixture?: boolean;
   assertTrainPage?: boolean;
@@ -1478,6 +1480,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       publicProfile,
       signedIn,
       trainFixture,
+      trainSpotPhoto,
       trainLiveEventFixture,
       trainingLogFixture,
       unloggedCheckIn,
@@ -1621,7 +1624,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               name: "Riverside rails",
               locality: "Zurich",
               countryCode: "CH",
-              imageSrc: "",
+              imageSrc: trainSpotPhoto ? "/assets/icons/icon-512.webp" : "",
               isIconic: true,
               rating: 9,
               location_raw: { lat: 47.3773, lng: 8.539 },
@@ -2446,6 +2449,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       publicProfile: route.publicProfile === true,
       signedIn: route.signedIn === true,
       trainFixture: route.trainFixture === true,
+      trainSpotPhoto: route.trainSpotPhoto === true,
       trainLiveEventFixture: route.trainLiveEventFixture === true,
       trainingLogFixture: route.trainingLogFixture === true,
       unloggedCheckIn: route.unloggedCheckIn === true,
@@ -2863,6 +2867,36 @@ test.describe("Account top navigation @visual", () => {
       }
     });
   }
+});
+
+test("Spot cards without media stay short unless a neighbour has a photo @visual", async ({ page }) => {
+  const cards = async () => page.locator(".spot-preview-grid app-spot-preview-card").evaluateAll(elements =>
+    elements.map(card => {
+      const media = card.querySelector<HTMLElement>(".img-container")!.getBoundingClientRect();
+      return { row: Math.round(card.getBoundingClientRect().top), media: Math.round(media.height), photo: !!card.querySelector("img") };
+    }));
+
+  await prepareRoute(page, { name: "train-spots-no-media", path: "/train", signedIn: true, trainFixture: true,
+    trainingLogFixture: true, assertTrainPage: true, fixedTime: "2026-08-20T12:00:00.000Z" });
+  await page.locator(".spot-preview-grid").scrollIntoViewIfNeeded();
+  // Rows of Spots without media keep the short strip.
+  for (const card of await cards()) expect(card.media).toBe(56);
+
+  await prepareRoute(page, { name: "train-spots-mixed-media", path: "/train", signedIn: true, trainFixture: true,
+    trainSpotPhoto: true, trainingLogFixture: true, assertTrainPage: true, fixedTime: "2026-08-20T12:00:00.000Z" });
+  const grid = page.locator(".spot-preview-grid");
+  await grid.scrollIntoViewIfNeeded();
+  const mixed = await cards();
+  const photo = mixed.find(card => card.photo)!;
+  const beside = mixed.filter(card => !card.photo && card.row === photo.row);
+  const alone = mixed.filter(card => card.row !== photo.row);
+  expect(beside.length).toBeGreaterThan(0);
+  expect(alone.length).toBeGreaterThan(0);
+  // Beside a photo, placeholders fill the row and line up with it; a row
+  // without photos stays short.
+  for (const card of beside) expect(Math.abs(card.media - photo.media)).toBeLessThanOrEqual(2);
+  for (const card of alone) expect(card.media).toBe(56);
+  await expect(grid).toHaveScreenshot("train-spots-mixed-media.png", { animations: "disabled" });
 });
 
 test("dialogs respect Duo side cutouts after rotation and with a keyboard @visual", async ({ page }) => {
