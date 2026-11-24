@@ -22,9 +22,16 @@ hold the details; read the ones your task touches before you start.
 
 ## Branches, PRs and permissions
 
-- Do each task on its own branch in its own Git worktree. Name branches by
-  purpose: `feat/<topic>`, `bugfix/<topic>`, `perf/<topic>`, `docs/<topic>`.
-  Leave uncommitted changes in other worktrees, including the main checkout,
+- Disk space is limited, and each worktree costs about 0.5–3 GB. Make small
+  fixes (a few files, a few commits, done in one session) directly on
+  `development` in the main checkout, without a branch or worktree. Commit
+  only your own files there.
+- Give larger or longer-running work its own branch and worktree: features,
+  anything that waits for a PR or review, or anything that must ship
+  separately. Name branches by purpose: `feat/<topic>`, `bugfix/<topic>`,
+  `perf/<topic>`, `docs/<topic>`. Remove the worktree once its branch is
+  merged.
+- Leave uncommitted changes in other worktrees, including the main checkout,
   alone.
 - Branch from `origin/development`, the default branch, and open PRs against
   `development`. When a feature needs another unmerged branch, branch from it,
