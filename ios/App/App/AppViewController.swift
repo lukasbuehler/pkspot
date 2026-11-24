@@ -6,6 +6,8 @@ class AppViewController: CAPBridgeViewController {
     private var pageLoadObservation: NSKeyValueObservation?
     private var canGoBackObservation: NSKeyValueObservation?
     private var lastPublishedInsets: UIEdgeInsets?
+    private var insetPublishScheduled = false
+    private var insetPublishForced = false
     private lazy var backItem = UIBarButtonItem(
         title: String(localized: "Back"),
         image: UIImage(systemName: "chevron.backward"),
@@ -69,7 +71,24 @@ class AppViewController: CAPBridgeViewController {
         publishSafeAreaInsets()
     }
 
+    /// Folding, rotating and tab changes run several layout passes in a row,
+    /// some with a stale tab bar frame. Publishing once per main run-loop turn
+    /// sends only the settled insets, so the page lays out once instead of
+    /// jumping through the intermediate states.
     private func publishSafeAreaInsets(force: Bool = false) {
+        insetPublishForced = insetPublishForced || force
+        guard !insetPublishScheduled else { return }
+        insetPublishScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let force = self.insetPublishForced
+            self.insetPublishScheduled = false
+            self.insetPublishForced = false
+            self.publishSettledSafeAreaInsets(force: force)
+        }
+    }
+
+    private func publishSettledSafeAreaInsets(force: Bool) {
         guard let webView, let window = webView.window else { return }
         // The bridge view fills the window. Its own safeAreaInsets can also
         // lag at cold launch on iOS 27; read the scene window directly.
@@ -92,11 +111,17 @@ class AppViewController: CAPBridgeViewController {
 
     /// The native tab bar floats over the web view like the web navigation did.
     /// Publishing it as part of the safe area lets the existing CSS (page
-    /// padding, map controls, bottom-sheet clearance) clear it. On iPhone Duo
-    /// the bar sits in the reserved side column and usually overlaps nothing.
+    /// padding, map controls, bottom-sheet clearance) clear it.
+    ///
+    /// A vertical bar (iPhone Duo) sits in the side column the system already
+    /// reserves, so it adds nothing. Its frame can be wider than that column
+    /// (132 pt beside an 84 pt column in landscape) although its items fit
+    /// inside it, and counting the frame doubled the leading margin and made
+    /// the page jump whenever a dialog hid the bar.
     private func addNativeTabBarOverlap(to insets: inout UIEdgeInsets, in webView: UIView) {
         guard let controller = tabBarController as? NativeTabBarController, !controller.isBarHidden,
               controller.tabBar.window != nil else { return }
+        if #available(iOS 27.1, *), traitCollection.verticalBarEdge != .unspecified { return }
         let tabBar = controller.tabBar
         let bounds = webView.bounds
         let overlap = bounds.intersection(tabBar.convert(tabBar.bounds, to: webView))
