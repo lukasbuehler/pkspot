@@ -295,11 +295,14 @@ mat-drawer-container.map-overlay-drawer.sidenav-open .sidenav-toggle {
   overflow: visible;
 }
 
+// The drawer layouts span the whole screen, so the island must clear the
+// trailing inset itself; on the iPhone Duo a vertical tab bar sits there.
 .map-context-host {
+  --map-context-trailing-inset: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
   position: absolute;
   top: 20px;
   left: 16px;
-  right: 20px;
+  right: calc(20px + var(--map-context-trailing-inset));
   display: grid;
   justify-items: center;
   gap: 8px;
@@ -326,13 +329,13 @@ mat-drawer-container.map-overlay-drawer.sidenav-open .sidenav-toggle {
 mat-drawer-container:not(.sidenav-open) .map-context-host {
   @media (max-width: 767.98px) {
     top: 136px;
-    left: 16px;
-    right: 16px;
+    left: calc(16px + var(--map-leading-safe-area, 0px));
+    right: calc(16px + var(--map-context-trailing-inset));
   }
 
   @media (min-width: 768px) {
     left: calc(50% + 8px);
-    right: 16px;
+    right: calc(16px + var(--map-context-trailing-inset));
   }
 
   @media (min-width: 1200px) {
@@ -348,7 +351,7 @@ mat-drawer-container.sidenav-open .map-context-host {
   @media (min-width: 768px) and (max-width: 959.98px) {
     top: 20px;
     left: 16px;
-    right: 20px;
+    right: calc(20px + var(--map-context-trailing-inset));
     justify-content: center;
   }
 }

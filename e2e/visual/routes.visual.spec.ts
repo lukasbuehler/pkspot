@@ -1153,6 +1153,23 @@ test.describe("Route visual regression @visual", () => {
     expect(search!.x + search!.width).toBeLessThanOrEqual(390 - 84);
   });
 
+  test("keeps the map island clear of a trailing tab bar", async ({ page }) => {
+    // The unfolded iPhone Duo in landscape: the native tab bar runs down the
+    // right edge, over the full-screen map.
+    const viewport = { width: 1000, height: 700 };
+    await prepareRoute(page, { name: "map-island-trailing-inset", path: "/map", viewport });
+    await page.evaluate(() => document.documentElement.style.setProperty("--safe-area-inset-right", "84px"));
+    const host = page.locator(".map-context-host");
+    for (const open of [true, false]) {
+      await expect(host).toBeAttached();
+      await expect.poll(async () => {
+        const box = (await host.boundingBox())!;
+        return box.x + box.width;
+      }).toBeLessThanOrEqual(viewport.width - 84 - 16);
+      if (open) await page.locator(".sidenav-toggle button").click();
+    }
+  });
+
   test("keeps a content peek above navigation when Android insets arrive and rotate", async ({ page }) => {
     await prepareRoute(page, {
       name: "android-sheet-peek", path: "/map", signedIn: true,
