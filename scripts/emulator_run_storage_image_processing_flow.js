@@ -247,6 +247,18 @@ async function assertOriginalArchived(
   assert.equal(originalStillExists, false);
 }
 
+// The moderation Function writes the "approved" review status before it
+// deletes the intake upload, so an intake file can outlive that status briefly.
+async function waitForFileMissing(filePath, timeoutMs = 15_000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const [exists] = await bucket.file(filePath).exists();
+    if (!exists) return;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  assert.fail(`${filePath} should not exist`);
+}
+
 async function assertFileMissing(filePath) {
   const [exists] = await bucket.file(filePath).exists();
   assert.equal(exists, false, `${filePath} should not exist`);
@@ -413,7 +425,7 @@ async function main() {
   const moderatedReview = await waitForReviewStatus(moderatedUploadId, "approved");
   assert.equal(moderatedReview.data().approved_path, moderatedApprovedPath);
   assert.equal(moderatedReview.data().scan_result.reason, undefined);
-  await assertFileMissing(moderatedIntakePath);
+  await waitForFileMissing(moderatedIntakePath);
   await assertDerivativesForOriginal(moderatedApprovedPath, {
     uid,
     upload_id: moderatedUploadId,
@@ -457,7 +469,7 @@ async function main() {
   );
   assert.equal(organizationReview.data().target_kind, "organization");
   assert.equal(organizationReview.data().target_id, organizationId);
-  await assertFileMissing(organizationIntakePath);
+  await waitForFileMissing(organizationIntakePath);
   await assertDerivativesForOriginal(organizationApprovedPath, {
     uid,
     upload_id: organizationUploadId,
@@ -613,7 +625,7 @@ async function main() {
     "media-moderation-admin"
   );
   assert.equal(releasedReview.data().approved_path, reviewApprovedPath);
-  await assertFileMissing(reviewIntakePath);
+  await waitForFileMissing(reviewIntakePath);
   await waitForFile(`${ARCHIVE_PREFIX}/${reviewApprovedPath}`);
   const resolvedReport = await db
     .collection("reports")
