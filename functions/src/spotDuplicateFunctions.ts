@@ -440,167 +440,184 @@ export const resolveSpotDuplicate = onCall<ResolveSpotDuplicateRequest>(
     if ((await actionRef.get()).exists) {
       return {ok: true, canonicalSpotId, redundantSpotId, replayed: true};
     }
-    const reportedSpotId = db.doc(reportPath).parent.parent?.id;
-    const candidateSpotId = reportedSpotId === canonicalSpotId ?
-      redundantSpotId :
-      canonicalSpotId;
-    const preview = await buildPreview(reportPath, candidateSpotId);
-    if (preview.previewToken !== previewToken) {
-      throw new HttpsError("aborted", "Spot data changed; preview again.");
-    }
-    if (!preview.eligibleCanonicalSpotIds.includes(canonicalSpotId)) {
-      throw new HttpsError(
-        "failed-precondition",
-        preview.blockers.join(", ") || "Duplicate resolution is blocked.",
-      );
-    }
-    const redundant = preview.loadedReported.id === redundantSpotId ?
-      preview.loadedReported :
-      preview.loadedCandidate.id === redundantSpotId ?
-        preview.loadedCandidate :
-        undefined;
-    const canonical = preview.loadedReported.id === canonicalSpotId ?
-      preview.loadedReported :
-      preview.loadedCandidate.id === canonicalSpotId ?
-        preview.loadedCandidate :
-        undefined;
-    if (!redundant || !canonical) {
-      throw new HttpsError("invalid-argument", "Preview Spots do not match.");
-    }
-    const votes = await Promise.all(
-      redundant.edits.map((edit) => edit.ref.collection("votes").get()),
-    );
-    const aliases = await db.collection("spot_slugs")
-      .where("spot_id", "==", redundant.id)
-      .get();
-    const creatorUid = redundant.createEdit.data()["user"]?.["uid"];
-    const approvedEdits = redundant.edits.filter(
-      (edit) => edit.data()["approved"] === true,
-    );
-    const counts = {
-      edits: approvedEdits.length,
-      creates: approvedEdits.filter(
-        (edit) => edit.data()["type"] === "CREATE",
-      ).length,
-      media: approvedEdits.reduce(
-        (sum, edit) => sum + (Array.isArray(edit.data()["data"]?.["media"]) ?
-          edit.data()["data"]["media"].length :
-          0),
-        0,
-      ),
-    };
-    const redundantReports = await redundant.ref.collection("reports").get();
-    const sourceReportRef = db.doc(reportPath);
-    const sourceReportIsOnRedundant = reportPath.startsWith(
-      `spots/${redundant.id}/`,
-    );
-    const creatorRef = creatorUid ? db.doc(`users/${creatorUid}`) : null;
-    const leaderboardRefs = [
-      db.doc("leaderboards/spots_edited"),
-      db.doc("leaderboards/spots_created"),
-      db.doc("leaderboards/media_added"),
-    ];
-    const writeCount =
-      aliases.size +
-      votes.reduce((sum, snapshot) => sum + snapshot.size, 0) +
-      redundant.edits.length +
-      redundantReports.size +
-      2 +
-      (sourceReportIsOnRedundant ? 0 : 1) +
-      (creatorRef ? 4 : 0);
-    if (writeCount > 480) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Resolution exceeds the safe write limit.",
-      );
-    }
-    const replayed = await db.runTransaction(async (transaction) => {
-      const action = await transaction.get(actionRef);
-      if (action.exists) return true;
-
-      const sourceReport = await transaction.get(sourceReportRef);
-      const creator = creatorRef ? await transaction.get(creatorRef) : null;
-      const leaderboards = creator?.exists ?
-        await Promise.all(leaderboardRefs.map((ref) => transaction.get(ref))) :
-        [];
-
-      aliases.docs.forEach((alias) => {
-        transaction.update(alias.ref, {spot_id: canonical.id});
-      });
-      votes.flatMap((snapshot) => snapshot.docs).forEach((vote) => {
-        transaction.delete(vote.ref);
-      });
-      redundant.edits.forEach((edit) => transaction.delete(edit.ref));
-      redundantReports.docs.forEach((report) => transaction.delete(report.ref));
-      if (!sourceReportIsOnRedundant) {
-        transaction.update(sourceReportRef, {
-          status: "resolved",
-          resolvedAt: FieldValue.serverTimestamp(),
-          resolvedBy: {uid: adminUid},
-          resolutionNote: "Resolved as a verified rapid-submit duplicate.",
-        });
+    // A second call for the same report (a double click, or a retry) can pass
+    // the check above while the first call is still running. Once the first
+    // commits, the redundant Spot is gone and the second call's preview fails;
+    // report that as a replay instead of an error.
+    let committed = false;
+    try {
+      const reportedSpotId = db.doc(reportPath).parent.parent?.id;
+      const candidateSpotId = reportedSpotId === canonicalSpotId ?
+        redundantSpotId :
+        canonicalSpotId;
+      const preview = await buildPreview(reportPath, candidateSpotId);
+      if (preview.previewToken !== previewToken) {
+        throw new HttpsError("aborted", "Spot data changed; preview again.");
       }
-      transaction.delete(redundant.ref);
+      if (!preview.eligibleCanonicalSpotIds.includes(canonicalSpotId)) {
+        throw new HttpsError(
+          "failed-precondition",
+          preview.blockers.join(", ") || "Duplicate resolution is blocked.",
+        );
+      }
+      const redundant = preview.loadedReported.id === redundantSpotId ?
+        preview.loadedReported :
+        preview.loadedCandidate.id === redundantSpotId ?
+          preview.loadedCandidate :
+          undefined;
+      const canonical = preview.loadedReported.id === canonicalSpotId ?
+        preview.loadedReported :
+        preview.loadedCandidate.id === canonicalSpotId ?
+          preview.loadedCandidate :
+          undefined;
+      if (!redundant || !canonical) {
+        throw new HttpsError("invalid-argument", "Preview Spots do not match.");
+      }
+      const votes = await Promise.all(
+        redundant.edits.map((edit) => edit.ref.collection("votes").get()),
+      );
+      const aliases = await db.collection("spot_slugs")
+        .where("spot_id", "==", redundant.id)
+        .get();
+      const creatorUid = redundant.createEdit.data()["user"]?.["uid"];
+      const approvedEdits = redundant.edits.filter(
+        (edit) => edit.data()["approved"] === true,
+      );
+      const counts = {
+        edits: approvedEdits.length,
+        creates: approvedEdits.filter(
+          (edit) => edit.data()["type"] === "CREATE",
+        ).length,
+        media: approvedEdits.reduce(
+          (sum, edit) => sum + (Array.isArray(edit.data()["data"]?.["media"]) ?
+            edit.data()["data"]["media"].length :
+            0),
+          0,
+        ),
+      };
+      const redundantReports = await redundant.ref.collection("reports").get();
+      const sourceReportRef = db.doc(reportPath);
+      const sourceReportIsOnRedundant = reportPath.startsWith(
+        `spots/${redundant.id}/`,
+      );
+      const creatorRef = creatorUid ? db.doc(`users/${creatorUid}`) : null;
+      const leaderboardRefs = [
+        db.doc("leaderboards/spots_edited"),
+        db.doc("leaderboards/spots_created"),
+        db.doc("leaderboards/media_added"),
+      ];
+      const writeCount =
+        aliases.size +
+        votes.reduce((sum, snapshot) => sum + snapshot.size, 0) +
+        redundant.edits.length +
+        redundantReports.size +
+        2 +
+        (sourceReportIsOnRedundant ? 0 : 1) +
+        (creatorRef ? 4 : 0);
+      if (writeCount > 480) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Resolution exceeds the safe write limit.",
+        );
+      }
+      const replayed = await db.runTransaction(async (transaction) => {
+        const action = await transaction.get(actionRef);
+        if (action.exists) return true;
 
-      if (creator?.exists && creatorRef) {
-        const next = nextContributionCounts(creator, counts);
-        transaction.set(creatorRef, {
-          spot_edits_count: next["spots_edited"],
-          spot_creates_count: next["spots_created"],
-          media_added_count: next["media_added"],
-        }, {merge: true});
-        leaderboardRefs.forEach((ref, index) => {
-          const leaderboardId = ref.id;
-          transaction.set(ref, {
-            entries: leaderboardEntries(
-              creator.id,
-              leaderboards[index],
-              next[leaderboardId],
-            ),
-            updated_at: FieldValue.serverTimestamp(),
+        const sourceReport = await transaction.get(sourceReportRef);
+        const creator = creatorRef ? await transaction.get(creatorRef) : null;
+        const leaderboards = creator?.exists ?
+          await Promise.all(
+            leaderboardRefs.map((ref) => transaction.get(ref)),
+          ) :
+          [];
+
+        aliases.docs.forEach((alias) => {
+          transaction.update(alias.ref, {spot_id: canonical.id});
+        });
+        votes.flatMap((snapshot) => snapshot.docs).forEach((vote) => {
+          transaction.delete(vote.ref);
+        });
+        redundant.edits.forEach((edit) => transaction.delete(edit.ref));
+        redundantReports.docs.forEach((report) => {
+          transaction.delete(report.ref);
+        });
+        if (!sourceReportIsOnRedundant) {
+          transaction.update(sourceReportRef, {
+            status: "resolved",
+            resolvedAt: FieldValue.serverTimestamp(),
+            resolvedBy: {uid: adminUid},
+            resolutionNote: "Resolved as a verified rapid-submit duplicate.",
+          });
+        }
+        transaction.delete(redundant.ref);
+
+        if (creator?.exists && creatorRef) {
+          const next = nextContributionCounts(creator, counts);
+          transaction.set(creatorRef, {
+            spot_edits_count: next["spots_edited"],
+            spot_creates_count: next["spots_created"],
+            media_added_count: next["media_added"],
           }, {merge: true});
+          leaderboardRefs.forEach((ref, index) => {
+            const leaderboardId = ref.id;
+            transaction.set(ref, {
+              entries: leaderboardEntries(
+                creator.id,
+                leaderboards[index],
+                next[leaderboardId],
+              ),
+              updated_at: FieldValue.serverTimestamp(),
+            }, {merge: true});
+          });
+        }
+        transaction.create(actionRef, {
+          action_type: "resolve_duplicate_spot",
+          source_type: "spot_report",
+          source_path: reportPath,
+          source_snapshot: sourceReport.data() ?? {},
+          target_type: "spot",
+          target_path: canonical.ref.path,
+          target_snapshot: canonical.data,
+          created_at: FieldValue.serverTimestamp(),
+          created_by: {uid: adminUid},
+          decision: {
+            canonical_spot_id: canonical.id,
+            redundant_spot_id: redundant.id,
+            preview_token: previewToken,
+            contribution_adjustment: counts,
+          },
         });
+        return false;
+      });
+      if (replayed) {
+        return {ok: true, canonicalSpotId, redundantSpotId, replayed: true};
       }
-      transaction.create(actionRef, {
-        action_type: "resolve_duplicate_spot",
-        source_type: "spot_report",
-        source_path: reportPath,
-        source_snapshot: sourceReport.data() ?? {},
-        target_type: "spot",
-        target_path: canonical.ref.path,
-        target_snapshot: canonical.data,
-        created_at: FieldValue.serverTimestamp(),
-        created_by: {uid: adminUid},
-        decision: {
-          canonical_spot_id: canonical.id,
-          redundant_spot_id: redundant.id,
-          preview_token: previewToken,
-          contribution_adjustment: counts,
-        },
-      });
-      return false;
-    });
-    if (replayed) {
-      return {ok: true, canonicalSpotId, redundantSpotId, replayed: true};
-    }
-    if (!sourceReportIsOnRedundant) {
-      const remaining = await canonical.ref.collection("reports").get();
-      const hasOpenReports = remaining.docs.some((report) => {
-        const status = report.data()["status"];
-        return status !== "resolved" && status !== "dismissed" &&
-          status !== "withdrawn" && status !== "superseded";
-      });
-      if (!hasOpenReports) {
-        await canonical.ref.update({
-          is_reported: FieldValue.delete(),
-          report_reason: FieldValue.delete(),
-          isReported: FieldValue.delete(),
-          reportReason: FieldValue.delete(),
-          latest_report_at: FieldValue.delete(),
-          public_notice: FieldValue.delete(),
+      committed = true;
+      if (!sourceReportIsOnRedundant) {
+        const remaining = await canonical.ref.collection("reports").get();
+        const hasOpenReports = remaining.docs.some((report) => {
+          const status = report.data()["status"];
+          return status !== "resolved" && status !== "dismissed" &&
+            status !== "withdrawn" && status !== "superseded";
         });
+        if (!hasOpenReports) {
+          await canonical.ref.update({
+            is_reported: FieldValue.delete(),
+            report_reason: FieldValue.delete(),
+            isReported: FieldValue.delete(),
+            reportReason: FieldValue.delete(),
+            latest_report_at: FieldValue.delete(),
+            public_notice: FieldValue.delete(),
+          });
+        }
       }
+      return {ok: true, canonicalSpotId, redundantSpotId, replayed: false};
+    } catch (error) {
+      if (!committed && (await actionRef.get()).exists) {
+        return {ok: true, canonicalSpotId, redundantSpotId, replayed: true};
+      }
+      throw error;
     }
-    return {ok: true, canonicalSpotId, redundantSpotId, replayed: false};
   },
 );
